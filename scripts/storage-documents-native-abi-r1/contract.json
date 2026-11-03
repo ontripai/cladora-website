@@ -1,0 +1,90 @@
+{
+  "format": "platform15-native-abi-fixture-contract.v2",
+  "default": "HOLD",
+  "scope": "owned existing synthetic development Storage/Auth stack; one fresh private bucket and one exact path",
+  "versions": {
+    "supabase": "2.112.4",
+    "storage": "2.112.4",
+    "auth": "2.112.4"
+  },
+  "capture": {
+    "normal_bytes": 8388608,
+    "cleanup_bytes": 1048576,
+    "slot_bytes": 131072,
+    "response_body_bytes": 65536,
+    "normal_max_http": 64,
+    "cleanup_max_http": 8,
+    "wire_raw_bytes_per_connection": 1048576,
+    "semantics": "finite local capture ceilings, not a proven provider response bound or disk quota; breach is UNKNOWN and never truncation-success"
+  },
+  "deadlines": {
+    "overall_seconds": 360,
+    "http_seconds": 15,
+    "sql_seconds": 15,
+    "filesystem_seconds": 10,
+    "worker_exit_seconds": 8,
+    "terminate_seconds": 5,
+    "kill_ack_seconds": 3
+  },
+  "retention_private_days": 30,
+  "resources": "No new container/image/volume/user. Only run bucket/object/policies, new real Auth sessions and explicitly reviewed temporary ACL delta.",
+  "acl_review": "Not approved. service_role non-DML privileges on seven relations must be addressed before shared schema USAGE; no new table or function privileges.",
+  "recovery": "Original effective privileges/options/owner grantor; raw NULL schema ACL becomes explicit equivalent owner ACL. Separate acceptance required; never direct catalog repair.",
+  "native": "NOT_RUN",
+  "authority": null,
+  "execution_binding": null,
+  "out_of_scope": [
+    "canonical Documents authority",
+    "AAL2",
+    "non-overwrite verifier",
+    "verified-object brand",
+    "conditional delete/restore",
+    "scanner",
+    "persistent custody",
+    "Core15 domain installation",
+    "staging",
+    "Production"
+  ],
+  "atomic_recovery": {
+    "format": "platform15-atomic-recovery.v2",
+    "isolation": "READ COMMITTED",
+    "catalogs": [
+      "pg_attribute",
+      "pg_attrdef",
+      "pg_authid",
+      "pg_auth_members",
+      "pg_class",
+      "pg_collation",
+      "pg_database",
+      "pg_default_acl",
+      "pg_enum",
+      "pg_language",
+      "pg_namespace",
+      "pg_operator",
+      "pg_policy",
+      "pg_proc",
+      "pg_range",
+      "pg_rewrite",
+      "pg_trigger",
+      "pg_type"
+    ],
+    "lock_mode": "SHARE ROW EXCLUSIVE",
+    "lock_timeout_seconds": 3,
+    "statement_timeout_seconds": 10,
+    "idle_in_transaction_timeout_seconds": 5,
+    "window_seconds": 20,
+    "terminal_seconds": 5,
+    "rollback_seconds": 5,
+    "phases": [
+      "recovery_begin",
+      "recovery_state",
+      "acl_recover",
+      "recovery_state",
+      "recovery_commit"
+    ],
+    "snapshot": "complete original catalog ABI; comparison under catalog locks on same backend",
+    "expiry": "original reviewed cleanup-only-after-expiry ceiling; no normal authority renewal; hard recovery window never extended",
+    "window": "coordinator-exclusive Storage ACL/DDL window required; database catalogs and cluster-wide role writers may wait",
+    "unknown": "no replay/rollback on quarantined or unidentified stream; close own relay and custodian follow-up"
+  }
+}

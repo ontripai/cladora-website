@@ -1,0 +1,772 @@
+{
+  "contract": "core15-service-first-native-cut.delivery.v1",
+  "parent": "a0a37f3c573558d14be2e62ba27e6e5475b9c4fe",
+  "FullSHA": "CONTAINING_GIT_COMMIT",
+  "branch": "codex/program-core-service-s01-producer-01",
+  "status": "SERVICE_FIRST_NATIVE_CUT_DELIVERED_CORE15_IN_PROGRESS",
+  "scope": "workspace-wide non-reservation Offering-to-Request; resource=null",
+  "platform": "794f5a12c3928ae0a3585ab679a3cbe60aab49a3",
+  "target": "OWNED_ISOLATED_SYNTHETIC_LOCAL_DEVELOPMENT_ONLY; private identity omitted",
+  "versions": {
+    "PG": 170011,
+    "Next": "16.4.1",
+    "Zod": "4.6.6",
+    "TypeScript": "5.9.3"
+  },
+  "accepted_native_source": {
+    "blob": "a13e382d31ea40b2ddd52306a34c56b648f3ed47",
+    "sha256": "94543e82513461f808037fdbfcb6c3d51531f4d826e82155a8844ace15929822",
+    "outputs": "Core300 all48_source_outputs; four exact native installers only; no old readiness/private artifact required"
+  },
+  "required_native_units": [
+    "foundation"
+  ],
+  "incidental_native_units": [
+    "assets"
+  ],
+  "excluded_native_units": {
+    "maintenance-procurement": "REAL_OC1_REJECTION_KNOWN_ROLLBACK; NOT_REQUIRED_FOR_THIS_CUT",
+    "building-provisioning": "NOT_DISPATCHED_NOT_REQUIRED_FOR_THIS_CUT"
+  },
+  "domain_order": [
+    "catalog",
+    "module-registry",
+    "request",
+    "service-v14",
+    "subject-validity",
+    "request-version",
+    "s01-store",
+    "canonical-sqlstate",
+    "session-authority-delegation",
+    "owner-execute-bindings",
+    "runtime-access"
+  ],
+  "domain_committed": [
+    {
+      "id": "catalog",
+      "actor": "ordinary installer",
+      "source_sha256": "64090bf0948e7f4b01188df9c81704a5af7a4a24dfbfa7ada3ed9a5ccebb4293",
+      "payload_sha256": "c1524e989288523dffe6c47f24634ec87667bcc12e547daf3c9f539d165d9694",
+      "receipt_sha256": "dbac88e824603dad0a4e1c255c2169a0523ee8f7ca8a83814f733da0c7450586",
+      "settlement": "COMMIT_COMMAND_COMPLETE_AND_READYFORQUERY_I"
+    },
+    {
+      "id": "module-registry",
+      "actor": "ordinary installer",
+      "source_sha256": "5d96ea037185f6a4b302455cd060ff598cac6435d05ce97e89d2e6c9d41189a6",
+      "payload_sha256": "79625a1e5f87e3a06c87b48d7fe207e3b3d57ecaf822be2fcd96f84c59b83389",
+      "receipt_sha256": "beac761cb3f9c5b2f258c7deddebb3abe7dd8c12e3b1e3448751204d19352031",
+      "settlement": "COMMIT_COMMAND_COMPLETE_AND_READYFORQUERY_I"
+    },
+    {
+      "id": "request",
+      "actor": "ordinary installer",
+      "source_sha256": "dde8935e1568c9def4a0f743fe871ce5c265118a87c00e658d8162a4bb387db6",
+      "payload_sha256": "d622dc5e217c0aeaadb34351f1ba3f119aea720dbb2a2f5e7321a14513d6dab5",
+      "receipt_sha256": "f07b19e2cc1edb8a5c7b86ed3c42eaf6d3e4180ebcf46f66c9e486db8dfe5479",
+      "settlement": "COMMIT_COMMAND_COMPLETE_AND_READYFORQUERY_I"
+    },
+    {
+      "id": "service-v14",
+      "actor": "ordinary installer",
+      "source_sha256": "b215663375d29ade089e60a1d84e0459919b21add895d8bd5cb2054372e37737",
+      "payload_sha256": "b516333d13ff3e461d3667a056ae6fd0b017e924a5aac133f416730b07622f34",
+      "receipt_sha256": "53345de5fd45925dd8947bcb546269dd082d09f09234b39e6149bf735052a328",
+      "settlement": "COMMIT_COMMAND_COMPLETE_AND_READYFORQUERY_I"
+    },
+    {
+      "id": "subject-validity",
+      "actor": "ordinary installer",
+      "source_sha256": "1b78c4f78f1ee9d5aae4a8d8001d1056a6c97b4d642d26165f754680e9c38b56",
+      "payload_sha256": "b138ba7bbb74c90c1b092fbcee4c3d017c91dac5b562a11dce9646b05c060d00",
+      "receipt_sha256": "c3f6b62d6d143d3d81c36263a6a40bfc8112819c3a67b524fd8b259b9231722f",
+      "settlement": "COMMIT_COMMAND_COMPLETE_AND_READYFORQUERY_I"
+    },
+    {
+      "id": "request-version",
+      "actor": "ordinary installer",
+      "source_sha256": "c8555ccaacd3964c7667d82bcbe904619fdda697a2e37f44870242c8cbc58e04",
+      "payload_sha256": "3840f3b6bb2f36704fe905c6552dd1c8ee852e94cbe84ccbc0dfd51c6b65a97f",
+      "receipt_sha256": "f335f7426958cac3c0ad9bd2e680d05de99aab14a91979f5a0ad0a9718cd5fc3",
+      "settlement": "COMMIT_COMMAND_COMPLETE_AND_READYFORQUERY_I"
+    },
+    {
+      "id": "s01-store",
+      "actor": "ordinary installer",
+      "source_sha256": "f7ed99779d1f69d18893392a1c593fe966086cc4adbfa838365a0c35f427ee0e",
+      "payload_sha256": "09a467d8379579f8e6ef457d8ee4c96ac6678333fb1ae4c9f058b78fb23aafbe",
+      "receipt_sha256": "72aaaa8cecbe73716004dc3dbcce50035c656a0d8eb555aa52e9474f6d926922",
+      "settlement": "COMMIT_COMMAND_COMPLETE_AND_READYFORQUERY_I"
+    },
+    {
+      "id": "canonical-sqlstate",
+      "actor": "ordinary installer",
+      "source_sha256": "4a10c4ad0002d0e98e8ccdfe8df8d90ef4772e9f06741548adb866d5de4c1c8e",
+      "payload_sha256": "178132a9826dc46d97c0e3351d1823ad7e2df34ed2e1ac5deebc73705540912d",
+      "receipt_sha256": "c7020db5762c533795257968154240866de1ce661af4f355677bbc4defb4b719",
+      "settlement": "COMMIT_COMMAND_COMPLETE_AND_READYFORQUERY_I"
+    },
+    {
+      "id": "session-authority-delegation",
+      "actor": "fixed lifecycle custodian",
+      "source_sha256": "8bf60e32e685fd5c8042bb287b2c76a0cc4085950e077d6d4fcebd862ef367d7",
+      "payload_sha256": "8bf60e32e685fd5c8042bb287b2c76a0cc4085950e077d6d4fcebd862ef367d7",
+      "receipt_sha256": "99884df2c6e7d57d83bc25bf61d19fe677810fb7bbb9b80def431e86f497e18e",
+      "settlement": "COMMIT_COMMAND_COMPLETE_AND_READYFORQUERY_I"
+    },
+    {
+      "id": "owner-execute-bindings",
+      "actor": "fixed lifecycle custodian",
+      "source_sha256": "22d268ab5c0799666b5545f27296e1d93e743bbd211d9fe280aca995b58d52ca",
+      "payload_sha256": "22d268ab5c0799666b5545f27296e1d93e743bbd211d9fe280aca995b58d52ca",
+      "receipt_sha256": "ada7f60a5fb087e4d86a6a94101d7c20ed7eda9a45958c2b9ded546946696bc6",
+      "settlement": "COMMIT_COMMAND_COMPLETE_AND_READYFORQUERY_I"
+    },
+    {
+      "id": "runtime-access",
+      "actor": "ordinary installer",
+      "source_sha256": "da89067ca7326cb27b4dea8a751cba47ae3c0c1e4df38ce79967fab57aec3d1c",
+      "payload_sha256": "da89067ca7326cb27b4dea8a751cba47ae3c0c1e4df38ce79967fab57aec3d1c",
+      "receipt_sha256": "9d7948847edfa4bf6d81c9bd61f352e7ebee1888a24af81999c1321eda5b647d",
+      "settlement": "COMMIT_COMMAND_COMPLETE_AND_READYFORQUERY_I"
+    }
+  ],
+  "evidence": [
+    {
+      "receipt": "service-first-native-proof-committed-continuation.json",
+      "bytes": 408828,
+      "sha256": "06e587ef9a6722977ce6b961035ea52497f947b910e682f7282c666e807451e7",
+      "state": "PASS_INITIAL_REAL_SERVICE_API_DB_CUT",
+      "checks": {
+        "real_http_preflight_zero_write": true,
+        "actual_request_and_c03_committed": true,
+        "commit_same_backend_readyforquery_I": true,
+        "stored_canonical_receipt_audit_outbox_readback": true,
+        "exact_replay_one_effect": true,
+        "changed_body_not_a_new_effect": true,
+        "foreign_scope_and_actor_no_effect": true
+      },
+      "runtime_source_pins": null,
+      "private_raw_custody": true
+    },
+    {
+      "receipt": "service-next-existing-proof-refresh-binding.json",
+      "bytes": 769,
+      "sha256": "c7114b9740b0ddf38116647b0bebbdd2d5eba8c430c36ef7fdf0dd9a0482aee2",
+      "state": "PASS_ACTUAL_NEXT_CONFIGURED_ROUTE",
+      "checks": {
+        "actual_next_get_ready": true,
+        "actual_next_same_original_receipt_result": true,
+        "anonymous_denied": true,
+        "independent_exact_receipt_no_new_effect": true
+      },
+      "runtime_source_pins": null,
+      "private_raw_custody": true
+    },
+    {
+      "receipt": "service-native-settlement-proof-pool-budget.json",
+      "bytes": 673357,
+      "sha256": "265bb82abf09860d04b145d5cde26ba208cf253ea50af0dcc6b4539486484ce3",
+      "state": "PASS_NATIVE_CONCURRENCY_UNKNOWN_ROLLBACK",
+      "checks": {
+        "concurrent_same_key_one_atomic_effect": true,
+        "actual_commit_ack_fault_unknown_no_auto_resend": true,
+        "explicit_same_key_body_recovers_exact_stored_receipt": true,
+        "domain_receipt_audit_outbox_native_rollback_zero_partial_effect": true,
+        "exact_outbox_acl_restored": true
+      },
+      "runtime_source_pins": null,
+      "private_raw_custody": true
+    },
+    {
+      "receipt": "service-restart-proof.json",
+      "bytes": 50784,
+      "sha256": "c17369a7c9444597c5c25457d8d5c35614cc15ac5c71fb1b76836249d5fed96c",
+      "state": "PASS_REAL_PERSISTENCE_AFTER_RESTART",
+      "checks": {
+        "same_exact_request_receipt_audit_outbox_after_restart": true,
+        "actual_postmaster_start_changed": true
+      },
+      "runtime_source_pins": null,
+      "private_raw_custody": true
+    },
+    {
+      "receipt": "service-currentness-proof-native-denial-continuation.json",
+      "bytes": 43433,
+      "sha256": "06b83c0dc75adca21e06850d19e63f98d4d38f986f36226f812a9f62267cbca7",
+      "state": "PASS_NATIVE_EXPIRY_AFTER_WAIT_AND_REVOKE",
+      "checks": {
+        "native_scope_positive": true,
+        "real_s01_row_lock_wait_observed": true,
+        "expiry_after_real_lock_wait_denied": true,
+        "no_request_receipt_audit_outbox_from_expired_read": true,
+        "native_membership_revoke_denied_zero_domain_write": true,
+        "synthetic_validity_fields_restored": true
+      },
+      "runtime_source_pins": null,
+      "private_raw_custody": true
+    },
+    {
+      "receipt": "service-final-verify-auth-binding.json",
+      "bytes": 1848,
+      "sha256": "e36e33096f41568f4cd741fe00561e3c950dca309ac6ffa03ba8705e677e2648",
+      "state": "PASS_FINAL_SERVICE_CUT_VERIFY",
+      "checks": {
+        "real_runtime_profile_closed_auth_s01": true,
+        "actual_next_read_after_pg_restart_and_currentness_test": true,
+        "final_get_no_new_request": true
+      },
+      "runtime_source_pins": {
+        "src/lib/core/functional-command-runtime-v1.ts": "0a8f472e88d7b79fc55cc7e643852e66b8b9b0638de26a9c104840a23b352a75",
+        "src/lib/core/functional-request-auth-v1.ts": "50f3f913366cd93aa8342ce6d653a847ab3f2a90335777334b235bdf0a6c66e6",
+        "src/lib/core/service-functional-binding-v1.ts": "7951bb8f6f3a1507a8006fe3ff1d430a1f8b8be25c3e4793c3b1bcb498ba4ded",
+        "src/lib/core/private-service-development-binding-v1.ts": "11a10fdca8eaa8c47c80e8730f5af5a1ce283b1f314fdeeef1ec56eabf4cc7ac",
+        "src/lib/core/scoped-server-clock-v1.ts": "2753aee2dce0ed13e1dc8307eacfdb7f60f5bbacd90421968bcffe662f3a1823",
+        "src/lib/customer/service-v14-execution/http.ts": "23f06920a08fe4deda4d9469fc3e1117916f7e7090e7311a130ba15ade28b28e",
+        "src/lib/customer/service-v14-execution/provider-binding.ts": "cc758f83ce3f851f7a5e52cd04d5b5936142ca3e6fea1f470f3b2806d21a0ee0",
+        "src/lib/customer/service-v14-execution/runtime-binding.ts": "63c07924ac5d03848f71cb3da9d51711719f3a8766afa44871d4d42016f001a6"
+      },
+      "private_raw_custody": true
+    }
+  ],
+  "protectedSources": [
+    {
+      "path": "supabase/install/v14-operations/foundation.sql",
+      "sha256": "da5a4e3ac421f71674ddc309feff3c0d03d6ebc6f168911d48f41b799c73ae35",
+      "unchanged_from_parent": true
+    },
+    {
+      "path": "supabase/install/v14-operations/assets.sql",
+      "sha256": "311f5615008e9de4544b0c51e94533dd825d57294d5205d160c238975112683c",
+      "unchanged_from_parent": true
+    },
+    {
+      "path": "supabase/install/v14-operations/maintenance-procurement.sql",
+      "sha256": "8eb3d843fb161a5ebdfdbe1d80bc67b8df3bf0aa316a886c8baab20320294652",
+      "unchanged_from_parent": true
+    },
+    {
+      "path": "supabase/install/v14-operations/building-provisioning.sql",
+      "sha256": "258c27e4505235a761b1e2557c33548af0067c11eebfa0c88972783df7025171",
+      "unchanged_from_parent": true
+    },
+    {
+      "path": "supabase/install/core-functional-runtime-v1/04-session-bootstrap.sql",
+      "sha256": "566f53876352618f4b74cd79ffe1b5a093ce788c165f020659bb7a6c0e8bdcb8",
+      "unchanged_from_parent": true
+    },
+    {
+      "path": "supabase/install/core-functional-runtime-v1/05-session-auth-owner.sql",
+      "sha256": "0fc67958b6811a254603e3d4743e965288ede5d13c28fe8b6cb9825bad56ef4c",
+      "unchanged_from_parent": true
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "sha256": "9436c082f8ce8a054d8300f55bd49ac4b6120240cf06fa6ca94190b5c6c1858a",
+      "unchanged_from_parent": true
+    },
+    {
+      "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "sha256": "977581d5c025287e7a88cc485a31d277fc412e8d7825087c871bfbdf2ecbeb8c",
+      "unchanged_from_parent": true
+    },
+    {
+      "path": "src/lib/core/service-s01/offering-disclosure-policy-v1.ts",
+      "sha256": "3d57e846dd782a4443b637a4bf9fc8337fda471f36d56ad3ae5eaab0830c3df6",
+      "unchanged_from_parent": true
+    },
+    {
+      "path": "src/lib/customer/service-offering-disclosure-source-v1.ts",
+      "sha256": "f8667b1d69809d3880e477c5cd7b875db27cf7dd5a78a2fcd0feec796d06bf5b",
+      "unchanged_from_parent": true
+    },
+    {
+      "path": "src/lib/customer/service-offering-time-precision-v1.ts",
+      "sha256": "a14d38abb83b15a39d82d928e1e8e03fbce9939b195cbfea3883aeaa5ed851a2",
+      "unchanged_from_parent": true
+    },
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "unchanged_from_parent": true
+    },
+    {
+      "path": "src/lib/core/current-authority-transaction-port-v1.ts",
+      "sha256": "02e0b85d1dba7ca87ec0eddff5d3f3552bed518794888e9ee0f34c0de962c14f",
+      "unchanged_from_parent": true
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/application-flow.ts",
+      "sha256": "1ddd67defe807989cf62ba69f8f9f5cbc7a1219ae3b573d7284700a02c916dcb",
+      "unchanged_from_parent": true
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/request-source-ports.ts",
+      "sha256": "9fb767911503ce7fb5db832b05e317ef61298506fab9db64068d140c97cb27cd",
+      "unchanged_from_parent": true
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/request-command.ts",
+      "sha256": "bf64d03fd5d52d2cef4b72ef010738efd84b98ad2b8d722ec62172c82353f10a",
+      "unchanged_from_parent": true
+    }
+  ],
+  "inventory": [
+    {
+      "path": "scripts/check-core15-service-cut-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 4281,
+        "sha256": "b96baed80e6ebb08bee6cdd939d0e0d60e02e49f233f819d406fc09c61673eb2",
+        "git_blob": "7dea8ec2a0e69f9982ae7ea972cdbe7eea6fdefe"
+      }
+    },
+    {
+      "path": "scripts/lib/core15-native-ts-loader.mjs",
+      "before": null,
+      "after": {
+        "bytes": 1510,
+        "sha256": "01a6f0dd78534785087e67cb52db5d4b37aa8ccd552bddef6ed5ddb445a6c524",
+        "git_blob": "ebe068982f5ce4dce709b31cf82d096ec8c46663"
+      }
+    },
+    {
+      "path": "scripts/lib/core15-ordinary-installer-profile-v3.mjs",
+      "before": null,
+      "after": {
+        "bytes": 3212,
+        "sha256": "803859ad75a68a7e602ee471e4eb5c3b1420bab1c7192e4e58400904b8596382",
+        "git_blob": "e974a81c1b96155a400a9c05989f70546050313d"
+      }
+    },
+    {
+      "path": "scripts/prepare-core15-native-synthetic-auth-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 4004,
+        "sha256": "4d6ae82385675e631c3b980260358d02421653e40de4f139ec4765c6c36f9b5f",
+        "git_blob": "17fadef20c776c9dc23529aa51283d32c31669fa"
+      }
+    },
+    {
+      "path": "scripts/prepare-core15-runtime-access-v2.py",
+      "before": null,
+      "after": {
+        "bytes": 2746,
+        "sha256": "6e712878045aced7f6260bf8d94a982fdd72b45fb2abf90eb95a66f867b77727",
+        "git_blob": "06c4372147fcb83932612e31f5ab3eb1e2482e30"
+      }
+    },
+    {
+      "path": "scripts/prepare-core15-service-cut-delivery-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 7371,
+        "sha256": "ab757fb4c21e2f5ed4e89a8a5d384a6d2a46bae4f587dcec8378a559a4adc821",
+        "git_blob": "850f137b44a817d2bdd93350875a867afcd22104"
+      }
+    },
+    {
+      "path": "scripts/prepare-core15-service-domain-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 10233,
+        "sha256": "a6d87e50dd44b8ad7b721ce91216397cfd25571890d02dfb3ec293043222dbb7",
+        "git_blob": "f9159bed0f7c1ee3673f98110b9ec73ea792d22d"
+      }
+    },
+    {
+      "path": "scripts/prepare-core15-service-native-v3.mjs",
+      "before": null,
+      "after": {
+        "bytes": 2780,
+        "sha256": "74f40c9d8af96d0e073ed2d3421023d01a8ff356084e1e97949210a111cb3c98",
+        "git_blob": "4f0133abe75b457315a618f4ef4f147d53bd09d1"
+      }
+    },
+    {
+      "path": "scripts/prepare-core15-service-synthetic-fixture-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 10733,
+        "sha256": "c6c74c55aee2818fbd5d94a45d53fdafaa426ad027cc7ca4da3d977c3ec19ecb",
+        "git_blob": "b6e152790286252a14c4f3f050dd8e2fef473de7"
+      }
+    },
+    {
+      "path": "scripts/prove-core15-service-currentness-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 9615,
+        "sha256": "ae7d888b98fa35c145b1e610d3d2329278ad2a7a5328c9b843be62de982ccd59",
+        "git_blob": "18b9706527805fc10d75a4cb9a36bcc80879cc3c"
+      }
+    },
+    {
+      "path": "scripts/prove-core15-service-first-native-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 13486,
+        "sha256": "c57e573b1394f4aab261c106a8a16f3ca06690aae5e4a5505e71b14633e28127",
+        "git_blob": "306fc9160f810db26ed77b3e72327e214a1d0890"
+      }
+    },
+    {
+      "path": "scripts/prove-core15-service-native-settlement-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 10289,
+        "sha256": "a9b1128a39fc40463f3f5b2704c6f22774cb1a7fadb979cc8e1cb9799c2b25fb",
+        "git_blob": "95ee9d151a95136432eb250153bff4dc3a952215"
+      }
+    },
+    {
+      "path": "scripts/prove-core15-service-next-existing-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 4334,
+        "sha256": "b80f9e23479b61d22c6d542bc80d8f8dcc69053e783709f95c4d36defe9dfb7b",
+        "git_blob": "7ef510cb5db3675b78d0517ea0cfc28594e2adba"
+      }
+    },
+    {
+      "path": "scripts/prove-core15-service-restart-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 3420,
+        "sha256": "82e2292bbbe483076700ca0e8631b0bbf6314afb57b2c5271d8476d8056f6f1b",
+        "git_blob": "e99cba6d37d6e64eafb1c3cd6cc37cb9a95629d4"
+      }
+    },
+    {
+      "path": "scripts/reauth-core15-existing-synthetic-factor-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 3928,
+        "sha256": "d6ca85f3563aa3039660f8eab93ad3345992ac6941c979d6b72e95d417e7ff8a",
+        "git_blob": "328c46dffac89f0742f8ccfec1f23271a1429032"
+      }
+    },
+    {
+      "path": "scripts/run-core15-private-service-next-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 1573,
+        "sha256": "e1561728a4482d820be8540bcd939d42f39649645829ece02cf33c8c6b0fa484",
+        "git_blob": "84879a40479828f524f4d9e397fdec92c6ac66d8"
+      }
+    },
+    {
+      "path": "scripts/run-core15-service-domain-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 5519,
+        "sha256": "17570c6fbbd5077de0d51dec6d0283841f56968f3d8b31cc7fa637a3e6a383d5",
+        "git_blob": "0ba8f102aa785bc2856decf2b51c045fcfa180c1"
+      }
+    },
+    {
+      "path": "scripts/run-core15-service-native-v3.mjs",
+      "before": null,
+      "after": {
+        "bytes": 10812,
+        "sha256": "19528751be1404cf5d605632356fe746e3f16f8940263051bc346574bd5f3e73",
+        "git_blob": "2c5bcd2743995f183e2487e8bf393361189fd008"
+      }
+    },
+    {
+      "path": "scripts/run-core15-session-owner-admission-v1.py",
+      "before": null,
+      "after": {
+        "bytes": 2704,
+        "sha256": "346670b10ec99a2609f6f8b4005a4e281371311b1e9ad24ef54cfc8e5bff2ab7",
+        "git_blob": "8b4fb945585552bcc28e597d7dd74cdf5f9ff90b"
+      }
+    },
+    {
+      "path": "scripts/test-core15-ordinary-installer-profile-v3.mjs",
+      "before": null,
+      "after": {
+        "bytes": 1641,
+        "sha256": "003c6947c4fd4f12696485fefa96f551b437b86e589ac097c1b7ee3437c00f0a",
+        "git_blob": "0de8899bcd04088ec640e862dae8cd79476e40c4"
+      }
+    },
+    {
+      "path": "scripts/test-core15-service-cut-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 5458,
+        "sha256": "01e357578db8a5246107f08218dd419a8e7121006496f275f538674806e753e8",
+        "git_blob": "ff504963004abf5f9f33d8d085b0a37d80e0e1e6"
+      }
+    },
+    {
+      "path": "scripts/test-service-v14-execution.mjs",
+      "before": {
+        "bytes": 22413,
+        "sha256": "715d1225a8e9b300c53a5c77aba5ca5a28d8f7c703ff09d535a6b048191d7cbe",
+        "git_blob": "3fc385fe03fee5ded31a5247838bb30112002d17"
+      },
+      "after": {
+        "bytes": 23613,
+        "sha256": "e5a0f9c7b0446df01aec372d40ff3b8fd76c948dd666aca566a701508ab77ff1",
+        "git_blob": "404fb54c319b553bde291889c7aa27e5936763a6"
+      }
+    },
+    {
+      "path": "scripts/verify-core15-service-native-cut-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 5078,
+        "sha256": "60b393b27d4471ed38159e48551f49960b7eabf0eb9a5dc7932dff1479cd02aa",
+        "git_blob": "0ec5133d2c024b4cdedab73924ed74332e7b906a"
+      }
+    },
+    {
+      "path": "scripts/write-core15-private-service-binding-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 3762,
+        "sha256": "d9238a5b8c58fbdd1de609328e29fc84b6b23bd5d12e2147d485a60e2a3ee7e8",
+        "git_blob": "50f8bcfe0335a3d827435e5a092d4904f19e8709"
+      }
+    },
+    {
+      "path": "src/lib/core/functional-command-runtime-v1.ts",
+      "before": {
+        "bytes": 20371,
+        "sha256": "36110c4747773d04380b2241b9b60749dfca9b75ac7b31accde140cc9c4f8d45",
+        "git_blob": "5b64a2dadae9eec33e39e483474d4da4e8c17af7"
+      },
+      "after": {
+        "bytes": 21051,
+        "sha256": "0a8f472e88d7b79fc55cc7e643852e66b8b9b0638de26a9c104840a23b352a75",
+        "git_blob": "751ea25bdae9022acd6b6c126e3726866bcd8d42"
+      }
+    },
+    {
+      "path": "src/lib/core/functional-request-auth-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 1857,
+        "sha256": "50f3f913366cd93aa8342ce6d653a847ab3f2a90335777334b235bdf0a6c66e6",
+        "git_blob": "bb153cbe3eb2a440b7b5e374f2cdc907d075ef11"
+      }
+    },
+    {
+      "path": "src/lib/core/private-service-development-binding-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 2692,
+        "sha256": "11a10fdca8eaa8c47c80e8730f5af5a1ce283b1f314fdeeef1ec56eabf4cc7ac",
+        "git_blob": "4e5cb615a701e50415f5db8ca395b36d1e53a3d9"
+      }
+    },
+    {
+      "path": "src/lib/core/scoped-server-clock-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 1120,
+        "sha256": "2753aee2dce0ed13e1dc8307eacfdb7f60f5bbacd90421968bcffe662f3a1823",
+        "git_blob": "d94ff4283f1920f643f23d860cbdca089a0303b2"
+      }
+    },
+    {
+      "path": "src/lib/core/service-functional-binding-v1.ts",
+      "before": {
+        "bytes": 6434,
+        "sha256": "769c49733f894773452665f39a024cc8a16b4b9e1269e9d8cac3e3405b1c254a",
+        "git_blob": "f9a69ea4261cd77da738df13cb34f151aaeda27f"
+      },
+      "after": {
+        "bytes": 6450,
+        "sha256": "7951bb8f6f3a1507a8006fe3ff1d430a1f8b8be25c3e4793c3b1bcb498ba4ded",
+        "git_blob": "7c545113a92e12e8bac27bf9f87e4ebe6e7e872e"
+      }
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/http.ts",
+      "before": {
+        "bytes": 3875,
+        "sha256": "fede5c34e9d56511b0e9a342a0afb83e7008a6c8c28583e5014224fc347e48fb",
+        "git_blob": "c00458d59afb9ccce60ffa3a02564168cabc9e54"
+      },
+      "after": {
+        "bytes": 4713,
+        "sha256": "23f06920a08fe4deda4d9469fc3e1117916f7e7090e7311a130ba15ade28b28e",
+        "git_blob": "c92e45a7e62da1534d139e999623acfb750288e2"
+      }
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/provider-binding.ts",
+      "before": {
+        "bytes": 17263,
+        "sha256": "3bc5ff891b72c9001b13086d8c9cd9b1882118af99e92281ab70249559f72b25",
+        "git_blob": "aae01e7e3628631fadaa5f965f3f5dc8ae8d8efe"
+      },
+      "after": {
+        "bytes": 17376,
+        "sha256": "cc758f83ce3f851f7a5e52cd04d5b5936142ca3e6fea1f470f3b2806d21a0ee0",
+        "git_blob": "80bf96b10f83588bee4f5e6c0e74d51b6c304be3"
+      }
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/runtime-binding.ts",
+      "before": {
+        "bytes": 489,
+        "sha256": "74fa54358f1d593d675ea3abe63ab37650c65e984077f521ded5f62991090372",
+        "git_blob": "b395cc2dbe0a324beff31b8e789d2a965c793cbe"
+      },
+      "after": {
+        "bytes": 2111,
+        "sha256": "63c07924ac5d03848f71cb3da9d51711719f3a8766afa44871d4d42016f001a6",
+        "git_blob": "2a9d6edeaf5d1e94d19f90a6b84e2d5761fd0ca6"
+      }
+    },
+    {
+      "path": "supabase/install/core-functional-runtime-v1/service-native-v3/06-session-authority-delegation.sql",
+      "before": null,
+      "after": {
+        "bytes": 3862,
+        "sha256": "8bf60e32e685fd5c8042bb287b2c76a0cc4085950e077d6d4fcebd862ef367d7",
+        "git_blob": "764a3e5034aac4418739852d317b36af5b9d66ce"
+      }
+    },
+    {
+      "path": "supabase/install/core-functional-runtime-v1/service-native-v3/07-runtime-access.sql",
+      "before": null,
+      "after": {
+        "bytes": 12669,
+        "sha256": "da89067ca7326cb27b4dea8a751cba47ae3c0c1e4df38ce79967fab57aec3d1c",
+        "git_blob": "275178e64a0e43c7fb7490232151fd6f4e2a18b7"
+      }
+    },
+    {
+      "path": "supabase/install/core-functional-runtime-v1/service-native-v3/08-owner-execute-bindings.sql",
+      "before": null,
+      "after": {
+        "bytes": 2158,
+        "sha256": "22d268ab5c0799666b5545f27296e1d93e743bbd211d9fe280aca995b58d52ca",
+        "git_blob": "5b5ec76fbb9320c32f8f0c95dd815ea12db650aa"
+      }
+    },
+    {
+      "path": "supabase/install/core-functional-runtime-v1/service-native-v3/README.md",
+      "before": null,
+      "after": {
+        "bytes": 12599,
+        "sha256": "e222c7d11c6bd992dbaf51a8b7d6dd5d6b143c77a440a8c1a1df451abf584354",
+        "git_blob": "61b9bb097920b03e076334be4ed818932366ff57"
+      }
+    },
+    {
+      "path": "supabase/install/core-functional-runtime-v1/service-native-v3/domain-manifest.json",
+      "before": null,
+      "after": {
+        "bytes": 5062,
+        "sha256": "f8bd859ef411d521ae7220b2980ae1e2aa3f29578296d0480493582ca2a4c89e",
+        "git_blob": "2e72eb2e6611ae070d56e99536ab4a058dee3da0"
+      }
+    },
+    {
+      "path": "supabase/install/core-functional-runtime-v1/service-native-v3/installer-prerequisites.sql",
+      "before": null,
+      "after": {
+        "bytes": 3564,
+        "sha256": "70b17acd04727287038078ac67785df31d73c32e667be5ec63da56724886511c",
+        "git_blob": "c8ab0c2e2e026672cd620d81f8c5f2ec991a2512"
+      }
+    },
+    {
+      "path": "supabase/install/core-functional-runtime-v1/service-native-v3/manifest.json",
+      "before": null,
+      "after": {
+        "bytes": 4332,
+        "sha256": "61f7b69b90a96ed177a7db84ec7a9ddbd4120e20ec5595325b750fa504f0907a",
+        "git_blob": "9c695ff03bddff61a60ed8ba1068f8a6062edde1"
+      }
+    }
+  ],
+  "derived_exclusions": [
+    "supabase/install/core-functional-runtime-v1/service-native-v3/service-cut.manifest.json",
+    "docs/testing/CORE15-SERVICE-FIRST-NATIVE-CUT.md"
+  ],
+  "actual_install_history": "incremental per-unit corrections after known ROLLBACKs; proposed corrected fresh order not rerun as a single clean installation",
+  "runtime": {
+    "configured_owned_development": "REAL_NEXT_REQUEST_LOCAL_BINDING_AUTH_AAL2_C01_S01_C03_NATIVE",
+    "unconfigured_and_Vercel": "NULL_FAIL_CLOSED",
+    "public_success_abi": [
+      "request_id",
+      "status"
+    ],
+    "private_setup_and_credentials": "NEVER_EMBEDDED"
+  },
+  "checks": {
+    "new_controlled_ssr_clock": 12,
+    "affected_service_clock": 3,
+    "profile_source_controls_previously_run_this_slice": 13,
+    "new_manifest_positive": 1,
+    "new_manifest_negatives": 10,
+    "ES5_typecheck": "PASS",
+    "limited_lint": "PASS",
+    "syntax": "PASS",
+    "diff": "PASS"
+  },
+  "not_run_not_pass": [
+    "whole_Core15",
+    "browser_UI/full_product_production_build",
+    "AIRPROP/DW02/Unit/resource_specific_Request",
+    "Documents_custody/CE_writer",
+    "staging_or_managed_Supabase_install",
+    "full_Maintenance/Building",
+    "fresh_recipe_as_one_clean_rehearsal",
+    "independent_review",
+    "universal_writer/deferred_COMMIT_wait_currentness_proof"
+  ],
+  "recovery": {
+    "unknown": "STOP_HOLD_ORIGINAL_KEY_BODY_NO_BLIND_RESEND",
+    "known_commit": "exact canonical C03 receipt readback plus current original binding/authority",
+    "expiry_revoke": "real DB denial after observed row wait; public redacted SOURCE_UNAVAILABLE; no success data",
+    "late_delivery": "no guarantee currentness through client ACK/delivery",
+    "retention": "NO_NEW_TTL_PURGE_CANCEL_POLICY"
+  },
+  "automation": {
+    "classification": "\u0646\u06cc\u0627\u0632\u0645\u0646\u062f \u0628\u0631\u0631\u0633\u06cc",
+    "input": "pinned source and private owned target descriptor",
+    "automatable": "offline pin/order/closure verification and private receipt projection",
+    "human_decision_role": "coordinator reviews source, target custody and activation scope",
+    "conditions": "same owned development only; exact existing receipts; no UNKNOWN",
+    "exception_owner": "Core/Platform on mismatch, timeout or settlement uncertainty",
+    "formal_dependency": "Platform12 profile and canonical C01/C03/S01",
+    "value": "detect stale payload/role profile before a privileged dispatch; no fabricated savings"
+  },
+  "integration_lineage": {
+    "contract": "core15-service-cut-lint-identifier-successor.v1",
+    "source_commit": "580de7be74d7bc1000119b0b940cff644c6437ab",
+    "native_manifest": "docs/verification/CORE15-SERVICE-CUT-580de7.manifest.json",
+    "native_manifest_sha256": "4c5fac4491094a5b96cecf703837ebc1280a98ea9f2e29e2f5e467115348fcb9",
+    "changes": [
+      {
+        "path": "scripts/prepare-core15-service-native-v3.mjs",
+        "identifier_before": "module",
+        "identifier_after": "profileModule",
+        "original_sha256": "e1f3047a6642535b68d7802621feb334cf100f4a8c26868e7fcf82277572575f",
+        "successor_sha256": "74f40c9d8af96d0e073ed2d3421023d01a8ff356084e1e97949210a111cb3c98",
+        "occurrences": 3
+      },
+      {
+        "path": "scripts/prepare-core15-service-synthetic-fixture-v1.mjs",
+        "identifier_before": "module",
+        "identifier_after": "serviceModule",
+        "original_sha256": "a0b2c045b6b5f49c3d39a38a95b3daba451b147e243f8a65b1172e87eb40f664",
+        "successor_sha256": "c6c74c55aee2818fbd5d94a45d53fdafaa426ad027cc7ca4da3d977c3ec19ecb",
+        "occurrences": 3
+      }
+    ],
+    "native_results": "INHERITED_ONLY_FOR_IDENTICAL_RUNTIME_AND_SQL_IMAGES; NOT_RERUN_FOR_IDENTIFIER_SUCCESSOR",
+    "runtime_source_bytes": "UNCHANGED",
+    "SQL_images": "UNCHANGED",
+    "native_dispatch": false
+  }
+}

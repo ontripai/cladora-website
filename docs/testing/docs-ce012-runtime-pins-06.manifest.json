@@ -1,0 +1,182 @@
+{
+  "task": "PLATFORM-DOCS-CE012-RUNTIME-PINS-06",
+  "base": "2a718a7315bcdbf512f0401abb9dc1e7e469afec",
+  "branch": "codex/program-local-runtime-lane-01",
+  "status": "COLLECTED_MATERIALIZED_LIMITED_SMOKE_PASS_UNRESOLVED_ROUTES_BLOCKED",
+  "observed_utc": "2026-11-02T12:56:42.594376+00:00",
+  "source_seal": {
+    "files": {
+      "scripts/run-local-runtime-lane.py": "8f0a964041cb4c2a78ab37ec7fc5c36be817d106cb396f598e625ef62907068e",
+      "scripts/local_runtime_consumer.py": "b240725de9119e0176e49fb0bc55f4917ef8df79a9383cb8d77ed97ca579d439",
+      "supabase/local-profiles/runtime-lane-v1.json": "71647e9dbd24d50137cb8ea0d3c3f3854bc1c32a44c364da0acf9ef5ce6818ef",
+      "scripts/run-docs-ce012-pgauth.py": "00e983f53e77e4dd30cd1a102cee7d086f8a3eca06c6b9604c1ff5fcb0aea58d",
+      "supabase/local-profiles/docs-ce012-pgauth-binding-v1.json": "8fa3b78ffc5a78732d9494a6533ae5d134433da9a107d58265f15562e64ec5bd",
+      "scripts/docs-ce012-platform-v1/contract.mjs": "81c202a5df7e17022bd81c8ae421e9a4bbfb98410becad06fcefa8ef26ae6f46",
+      "scripts/docs-ce012-platform-v1/custody.mjs": "9c3d9bea4c9bc2f7061bd6770f162255b0d97cebb608c9ea2afe9c5293e1516e",
+      "scripts/docs-ce012-platform-v1/transport.mjs": "25c9edf54030196a753c2c71309400099aabb08697b3807ddde695c50f8370d3",
+      "scripts/docs-ce012-platform-v1/worker.mjs": "4fd6f8e8ec2f9677145b2ee08d0bf8c48cbb5bdec3c3e6ca5185f4bd2b32b438",
+      "scripts/docs-ce012-platform-v1/runtime-collector.mjs": "e3d65d7e946310b99fa2b42ce1e4461aa1671443c3541cac108164bd44012e41",
+      "scripts/docs-ce012-platform-v1/runtime-smoke.mjs": "f7e0fab3389e83d88fd48289906078ef6ec8a3021f92d79d7029c77635c0d473"
+    },
+    "sha256": "6773cc1c80c5e3ee7d62348e0c0572177c077fb20ad13fbf96a9a53b2a478baf"
+  },
+  "changed_paths_count": 7,
+  "files": [
+    {
+      "path": "scripts/docs-ce012-platform-v1/contract.mjs",
+      "bytes": 12197,
+      "sha256": "81c202a5df7e17022bd81c8ae421e9a4bbfb98410becad06fcefa8ef26ae6f46",
+      "git_blob": "e6bbd23a537bb8ebd37d1ab3e8ede3c4ef974b2d"
+    },
+    {
+      "path": "scripts/docs-ce012-platform-v1/worker.mjs",
+      "bytes": 15476,
+      "sha256": "4fd6f8e8ec2f9677145b2ee08d0bf8c48cbb5bdec3c3e6ca5185f4bd2b32b438",
+      "git_blob": "65b6b7aa4ca57a2e0bc028e74f5ef72af90a6e85"
+    },
+    {
+      "path": "scripts/docs-ce012-platform-v1/runtime-collector.mjs",
+      "bytes": 15773,
+      "sha256": "e3d65d7e946310b99fa2b42ce1e4461aa1671443c3541cac108164bd44012e41",
+      "git_blob": "c7879887d1936e65ea98d523c0679757bc547959"
+    },
+    {
+      "path": "scripts/docs-ce012-platform-v1/runtime-smoke.mjs",
+      "bytes": 3277,
+      "sha256": "f7e0fab3389e83d88fd48289906078ef6ec8a3021f92d79d7029c77635c0d473",
+      "git_blob": "a05201f3c9daf3949c028cd8eac4b8bb6c32a80e"
+    },
+    {
+      "path": "scripts/test-docs-ce012-runtime-pins-v1.mjs",
+      "bytes": 10724,
+      "sha256": "0d2af9a1f70eaf9a762cc82fe49ab55b045ac9b2fc56a549b67f3a7f28f59027",
+      "git_blob": "a2eb8b276c5a0244a50eaba73f58dcf9bd0a6690"
+    },
+    {
+      "path": "docs/testing/PLATFORM-DOCS-CE012-RUNTIME-PINS-06.md",
+      "bytes": 8698,
+      "sha256": "bee65e02517eadbd6ef21437d19fb559f060c9c215fa4ce24081827a82a48d38",
+      "git_blob": "fb9dd0bdd28bbc99d3f689a1e7f0adc9e6e6150a"
+    }
+  ],
+  "consumer": {
+    "head": "c0caf3e70d97c3d09b16cbff91188367804cba6b",
+    "contract": "documents-ce012-live-connection-request.v2",
+    "request_sha256": "3ca7a18b4789d262565dc3289cf029d633b36a0fa155c5f3a575dfeedc619873",
+    "native_closure_sha256": "55093d835a860ceeb414fbd097d3b62af2520e60cee5b093763ff7f983f928ee"
+  },
+  "compiler_reference_only": {
+    "head": "5f6b671d2ea1b1a7341d1ed0352fe2ae2713bdaa",
+    "abi": "documents-ce012-case-plan-compiler.v1",
+    "fixture_or_provenance": "NOT_CONSUMED",
+    "historical_slots": 2,
+    "historical_status": "BLOCKED_OFFICIAL_STORED_RECEIPT_RELATION_VERIFIER_REQUIRED"
+  },
+  "collection": {
+    "counts": {
+      "runtime_files": 271,
+      "root_source_files": 2,
+      "runtime_bytes": 11650553,
+      "packages": 29,
+      "edges": 525,
+      "blocked": 43
+    },
+    "tools": {
+      "node": {
+        "bytes": 125989464,
+        "sha256": "bc17c508ffeed0ec622934f9b7fa72f8e78da65350e63c3eceb56fa688aa5e12",
+        "version": "v24.19.0"
+      },
+      "python": {
+        "bytes": 30894944,
+        "sha256": "fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7",
+        "version": "Python 3.12.14"
+      },
+      "docker": {
+        "bytes": 43556144,
+        "sha256": "27f239f97492c434e091a70b41b8796c698f0aa2b6052c6f9c28da4ee7ae888b",
+        "version": "Docker version 28.4.0, build d8eb465"
+      }
+    },
+    "package_versions": {
+      "@supabase/ssr": "0.12.5",
+      "zod": "4.6.6",
+      "pg": "8.23.0",
+      "typescript": "5.9.3",
+      "next": "16.4.1"
+    },
+    "blocked_categories": {
+      "BLOCKED_DYNAMIC_DATA_ACCESS": 40,
+      "BLOCKED_DYNAMIC_REQUIRE": 1,
+      "BLOCKED_NATIVE_DEPENDENCY": 1,
+      "BLOCKED_UNRESOLVED_LITERAL": 1
+    },
+    "graph_sha256": "c9e7635b9009d2898be3115af36de6f2c0140bce142510eccbc680c996dba3ab",
+    "file_pins_sha256": "b7c0f3435b670dccb172a7fa673dd5397b6269a138c04b983c71d3d83f5518d1",
+    "private_materialization": "RETAINED_NOT_PUBLISHED",
+    "symlinks": 0,
+    "copied_files_mode": "0400",
+    "directories_mode": "0700",
+    "source_consumed_bytes": "UNCHANGED"
+  },
+  "tests": {
+    "new_targeted_groups": 14,
+    "result": "PASS_OFFLINE_INCREMENTAL",
+    "smoke": "PASS_LIMITED_LOADS_OF_FIVE_ROOTS",
+    "real_effect": "NONE",
+    "old_suites": "NOT_REPLAYED",
+    "syntax_diff": "PASS"
+  },
+  "protected_from_base": [
+    {
+      "path": "supabase/local-profiles/docs-ce012-pgauth-binding-v1.json",
+      "sha256": "8fa3b78ffc5a78732d9494a6533ae5d134433da9a107d58265f15562e64ec5bd",
+      "byte_identical": true
+    },
+    {
+      "path": "supabase/local-profiles/docs-ce012-pgauth-reviews-v1.json",
+      "sha256": "d86026d28d136b092e6ee5ab4fadc01f963dd91bf33f3625a5ee125d3b56f983",
+      "byte_identical": true
+    },
+    {
+      "path": "scripts/run-docs-ce012-pgauth.py",
+      "sha256": "00e983f53e77e4dd30cd1a102cee7d086f8a3eca06c6b9604c1ff5fcb0aea58d",
+      "byte_identical": true
+    },
+    {
+      "path": "scripts/docs-ce012-platform-v1/custody.mjs",
+      "sha256": "9c3d9bea4c9bc2f7061bd6770f162255b0d97cebb608c9ea2afe9c5293e1516e",
+      "byte_identical": true
+    },
+    {
+      "path": "scripts/docs-ce012-platform-v1/transport.mjs",
+      "sha256": "25c9edf54030196a753c2c71309400099aabb08697b3807ddde695c50f8370d3",
+      "byte_identical": true
+    },
+    {
+      "path": "supabase/local-profiles/runtime-lane-v1.json",
+      "sha256": "71647e9dbd24d50137cb8ea0d3c3f3854bc1c32a44c364da0acf9ef5ce6818ef",
+      "byte_identical": true
+    },
+    {
+      "path": "supabase/local-profiles/acl02-pg-only.envelope.json",
+      "sha256": "79c710d0d910ef61100645b52e3eafdfefbabe239e417837cf2192ce8ff8d140",
+      "byte_identical": true
+    }
+  ],
+  "registry": "EMPTY",
+  "runtime_binding": null,
+  "execution_authority": null,
+  "not_run": [
+    "Docker daemon/run/pull/start",
+    "PG/SQL",
+    "Auth/session",
+    "consumer --run",
+    "compiler/test-input fixture",
+    "install/upgrade",
+    "grant/activation",
+    "staging/Production",
+    "CI/deployment"
+  ],
+  "manifest_self_hash": "outside file; Git identity/transfer report only; no circular hash"
+}

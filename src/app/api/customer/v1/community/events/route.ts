@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
+import { eventReadResponseSchema, parseEventCommandResult, sameEventUuid } from '@/lib/community/event-interest-client';
 import { eventCommandSchema } from '@/lib/community/event-interest-schema';
 import { hasTrustedMutationOrigin } from '@/lib/security/same-origin';
 import { isApplicationJson, parseJsonWithLimit } from '@/lib/security/request-body';
@@ -21,6 +22,7 @@ function rpcFailure(error: { code?: string }) {
 }
 
 export async function GET(request: NextRequest) {
+  try {
   const raw = Object.fromEntries(request.nextUrl.searchParams);
   if (Array.from(request.nextUrl.searchParams.keys()).some((key) => !['context_id', 'workspace_id'].includes(key))
     || request.nextUrl.searchParams.getAll('context_id').length !== 1
@@ -35,14 +37,18 @@ export async function GET(request: NextRequest) {
     p_workspace_id: parsed.data.workspace_id,
   });
   if (error) return rpcFailure(error);
-  return NextResponse.json(data, { headers: HEADERS });
+  const result = eventReadResponseSchema.safeParse(data);
+  if (!result.success || !sameEventUuid(result.data.workspace_id, parsed.data.workspace_id)) return fail('CE_EVENT_INVALID_RESULT', 502);
+  return NextResponse.json(result.data, { headers: HEADERS });
+  } catch { return fail('CE_EVENT_QUERY_FAILED', 500); }
 }
 
 export async function POST(request: NextRequest) {
+  try {
   if (!hasTrustedMutationOrigin(request)) return fail('BAD_ORIGIN', 403);
   if (!isApplicationJson(request.headers.get('content-type'))) return fail('UNSUPPORTED_MEDIA_TYPE', 415);
   const { data: body, errorResponse } = await parseJsonWithLimit<unknown>(request, 16 * 1024);
-  if (errorResponse) return errorResponse;
+  if (errorResponse) return fail('INVALID_REQUEST', errorResponse.status);
   const parsed = eventCommandSchema.safeParse(body);
   if (!parsed.success) return fail('INVALID_REQUEST', 400);
   const supabase = await createClient();
@@ -50,5 +56,9 @@ export async function POST(request: NextRequest) {
   if (authError || !claims?.claims?.sub) return fail('UNAUTHORIZED', 401);
   const { data, error } = await (supabase.schema('customer_api') as any).rpc('command_ce_event_v1', { p_request: parsed.data });
   if (error) return rpcFailure(error);
-  return NextResponse.json(data, { status: 200, headers: HEADERS });
+  try {
+    const result = parseEventCommandResult(data, parsed.data);
+    return NextResponse.json(result, { status: 200, headers: HEADERS });
+  } catch { return fail('CE_EVENT_INVALID_RESULT', 502); }
+  } catch { return fail('CE_EVENT_QUERY_FAILED', 500); }
 }

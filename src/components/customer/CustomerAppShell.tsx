@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   BarChart3,
   Bell,
@@ -164,6 +165,7 @@ function Shell({
   children: React.ReactNode;
   lang: Language;
 }) {
+  const pathname = usePathname() || '';
   const state = useCustomerContext();
   const t = copy[lang];
   const [profileName, setProfileName] = useState("");
@@ -280,14 +282,17 @@ function Shell({
               value={state.active?.context_id ?? ""}
               onChange={(e) => state.select(e.target.value)}
               disabled={!state.contexts.length || state.pendingContextId !== null}
-              className="max-w-[230px] rounded-xl border border-[#CBD5E1] bg-[#F8FAFC] px-3 py-2"
+              className="max-w-[230px] rounded-xl border border-[#CBD5E1] bg-[#F8FAFC] px-3 py-2 text-xs font-semibold"
             >
-              <option value="">{t.empty}</option>
-              {state.contexts.map((c) => (
-                <option value={c.context_id} key={c.context_id}>
-                  {c.tenant_name} · {c.context_label} · {c.role_name}
-                </option>
-              ))}
+              <option value="">{state.error === 'session_expired' ? (lang === 'fa' ? 'نشست منقضی شده است' : lang === 'ro' ? 'Sesiune expirată' : 'Session expired') : t.empty}</option>
+              {state.contexts.map((c) => {
+                const label = [c.tenant_name, c.context_label, c.role_name].filter(Boolean).join(" · ") || (c.role_name || t.context);
+                return (
+                  <option value={c.context_id} key={c.context_id}>
+                    {label}
+                  </option>
+                );
+              })}
             </select>
           </label>
         </div>
@@ -301,7 +306,7 @@ function Shell({
             onClick={state.refresh}
             disabled={!state.active || state.loading}
             aria-label="Refresh"
-            className="rounded-xl border border-[#E2E8F0] p-2"
+            className="rounded-xl border border-[#E2E8F0] p-2 hover:bg-[#F1F5F9] transition"
           >
             <RefreshCw
               className={`h-4 w-4 ${state.loading ? "animate-spin" : ""}`}
@@ -329,13 +334,19 @@ function Shell({
       >
         {navItems.map((item) => {
           const Icon = item.icon;
+          const isActive = pathname === item.href || (item.href !== `/${lang}/app/dashboard` && pathname.startsWith(item.href));
           return (
             <Link
               key={item.href}
               href={item.href}
-              className="flex items-center gap-1.5 rounded-lg border border-[#E2E8F0] bg-[#F8FAFC] px-2.5 py-1.5 text-xs font-bold text-[#102A43] hover:bg-[#F1F5F9] shrink-0"
+              aria-current={isActive ? 'page' : undefined}
+              className={`flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-bold shrink-0 transition ${
+                isActive
+                  ? 'bg-[#EAF8F5] text-[#0A6E62] border-[#0E9F8E]'
+                  : 'border-[#E2E8F0] bg-[#F8FAFC] text-[#102A43] hover:bg-[#F1F5F9]'
+              }`}
             >
-              <Icon className="h-3.5 w-3.5 text-[#0E9F8E]" />
+              <Icon className={`h-3.5 w-3.5 ${isActive ? 'text-[#0A6E62]' : 'text-[#0E9F8E]'}`} />
               <span>{item.label}</span>
             </Link>
           );
@@ -349,13 +360,19 @@ function Shell({
           <nav className="space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon;
+              const isActive = pathname === item.href || (item.href !== `/${lang}/app/dashboard` && pathname.startsWith(item.href));
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold text-[#102A43] hover:bg-[#F6F9FC]"
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-bold transition ${
+                    isActive
+                      ? 'bg-[#EAF8F5] text-[#0A6E62] border border-[#B2E5DF]'
+                      : 'text-[#102A43] hover:bg-[#F6F9FC]'
+                  }`}
                 >
-                  <Icon className="h-4 w-4 text-[#0E9F8E]" />
+                  <Icon className={`h-4 w-4 ${isActive ? 'text-[#0A6E62]' : 'text-[#0E9F8E]'}`} />
                   {item.label}
                 </Link>
               );
@@ -374,6 +391,14 @@ function Shell({
               </div>
             ) : null}
           </div>
+          {state.error === 'session_expired' && (
+            <div role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-800">
+              <div className="font-bold">{lang === 'fa' ? 'نشست کاری منقضی شده است' : lang === 'ro' ? 'Sesiune expirată' : 'Session expired'}</div>
+              <Link href={`/${lang}/login?reason=session_expired`} className="mt-2 inline-block font-bold text-red-900 underline">
+                {lang === 'fa' ? 'ورود مجدد به سامانه' : lang === 'ro' ? 'Autentificare din nou' : 'Sign in again'}
+              </Link>
+            </div>
+          )}
         </aside>
 
         {/* Main Content protected by CustomerRouteGuard */}

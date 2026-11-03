@@ -135,9 +135,10 @@ where d.id=$2 and d.workspace_id=$3 and d.tenant_id=$4
  * transaction-scoped consumers. It assumes Core authority was accepted in the
  * same scope and returns no document payload or storage metadata.
  */
-export async function selectDocumentsReferenceCurrentStateV1(
+async function selectDocumentsReferenceStateV1(
   scope: Scope,
   binding: DocumentsReferenceCurrentStateBindingV1,
+  mode: 'current' | 'historical',
 ): Promise<DocumentsReferenceCurrentStateV1> {
   const execution = await scope.query<{
     transaction_id: string; isolation: string; actor_bound: boolean; aal2: boolean;
@@ -179,7 +180,9 @@ export async function selectDocumentsReferenceCurrentStateV1(
     return { decision: 'denied', denial_reason: 'REFERENCE_DENIED', evaluated_at: evaluatedAt };
   }
   if (versions.rowCount !== 1 || versions.rows[0].version !== binding.document_version
-    || documents.rows[0].current_version !== binding.document_version) {
+    || (mode === 'current'
+      ? documents.rows[0].current_version !== binding.document_version
+      : documents.rows[0].current_version < binding.document_version)) {
     return { decision: 'denied', denial_reason: 'STALE_REFERENCE', evaluated_at: evaluatedAt };
   }
   if (!documents.rows[0].active) {
@@ -208,6 +211,25 @@ export async function selectDocumentsReferenceCurrentStateV1(
   const instant = await scope.query<{ now: string }>('select clock_timestamp()::text as now');
   return { decision: 'accepted', denial_reason: null,
     evaluated_at: new Date(instant.rows[0].now).toISOString() };
+}
+
+/** Existing callers continue to require the current immutable version. */
+export function selectDocumentsReferenceCurrentStateV1(
+  scope: Scope,
+  binding: DocumentsReferenceCurrentStateBindingV1,
+): Promise<DocumentsReferenceCurrentStateV1> {
+  return selectDocumentsReferenceStateV1(scope, binding, 'current');
+}
+
+/** Exact historical immutable identity, with the same current read, lifecycle,
+ * scan and lock gates. Only a server-bound replay adapter may call this path.
+ * This checks disclosure; it does not verify or issue a command replay receipt.
+ */
+export function selectDocumentsReferenceHistoricalStateV1(
+  scope: Scope,
+  binding: DocumentsReferenceCurrentStateBindingV1,
+): Promise<DocumentsReferenceCurrentStateV1> {
+  return selectDocumentsReferenceStateV1(scope, binding, 'historical');
 }
 
 /** Inactive Core v2 provider validation. Uses only the host's live serializable

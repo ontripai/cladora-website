@@ -56,14 +56,18 @@ export async function runDenialProof() {
     diagnosticCounts[event.stage] = (diagnosticCounts[event.stage] ?? 0) + 1;
     const value = { phase, ...event }; diagnostics.push(value); if (diagnostics.length > 200) diagnostics.shift();
     console.log(JSON.stringify({ diagnostic: SUITE, ...value })); // Fixed metadata only, no URLs/IDs/headers/bodies.
-    if (event.stage === 'headers_received' && event.status >= 500) blockers.add('UNEXPECTED_API_SERVER_ERROR');
+    // The unconfigured Listing read is a separate dependency control. Every
+    // completed response is body-validated before closing its context below.
+    if (event.stage === 'headers_received' && event.status >= 500
+      && !(event.endpoint === 'listing' && event.status === 503)) blockers.add('UNEXPECTED_API_SERVER_ERROR');
   };
   const stats = { readMethods: {}, authMethods: {}, domainMutationRequests: 0, remoteBackend: 0, externalRequests: 0, contexts: 0 };
   const receipt = { suite: SUITE,
     sha: execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim(),
     tree: execFileSync('git', ['rev-parse', 'HEAD^{tree}'], { encoding: 'utf8' }).trim(),
     browser: 'NOT_RUN_NOT_PASS', locales: 0, scenarios: 0, findings: [],
-    product_limitations: ['WORKSPACE_CANONICAL_NAME_UNAVAILABLE'],
+    product_limitations: ['WORKSPACE_CANONICAL_NAME_UNAVAILABLE', 'LISTING_RUNTIME_UNBOUND_NOT_AUTHORIZATION_PROOF'],
+    listing_dependency: { verified_not_ready: 0, cancelled_not_verified: 0 },
     positive_commercial_e2e: 'NOT_RUN_NOT_PASS', hosted_preview_e2e: 'NOT_RUN_NOT_PASS', release: 'NOT_RUN_NOT_PASS' };
   const cancellation = new AbortController(); const cancel = () => cancellation.abort();
   const proofTimer = setTimeout(cancel, 600_000); // Leave cleanup margin inside the unchanged 900s outer watchdog.
@@ -101,10 +105,14 @@ export async function runDenialProof() {
         return { context, observer };
       };
       const close = async ({ context, observer }) => {
+        const listings = await observer.verifyUnavailableListings();
+        receipt.listing_dependency.verified_not_ready += listings.verified;
+        receipt.listing_dependency.cancelled_not_verified += listings.cancelled;
         await cancelCeErrorBodyDrains(context);
         observer.stop();
         await bounded(() => context.close(), { ms: 5_000, stage: 'scenario_context_close', emit, signal: cancellation.signal });
         contexts.delete(context); await observer.drain(); emit({ stage: 'scenario_context_closed' });
+        observers.splice(observers.indexOf(observer), 1);
       };
       const before = await ceReadState(pool); receipt.before_read_sha256 = ceFingerprint(before);
       receipt.observed_tables = Object.keys(before).length; emit({ stage: 'read_baseline_established', tables: receipt.observed_tables });
@@ -139,12 +147,14 @@ export async function runDenialProof() {
           phase = `${locale}-workspace-${round + 1}`; emit({ stage: 'selection_started', round: round + 1 });
           const after = active.observer.checkpoint();
           await selector.selectOption(workspace, { timeout: 15_000 });
-          const [opportunity, b2] = await bounded(() => Promise.all([
+          const [opportunity, b2, listing] = await bounded(() => Promise.all([
             active.observer.selected({ after, endpoint: 'opportunity', contextId: fixture.context, workspaceId: workspace, signal: cancellation.signal }),
             active.observer.selected({ after, endpoint: 'b2', contextId: fixture.context, workspaceId: workspace, signal: cancellation.signal }),
+            active.observer.selected({ after, endpoint: 'listing', contextId: fixture.context, workspaceId: workspace, signal: cancellation.signal }),
           ]), { ms: 70_000, stage: 'ui_denial_pair', signal: cancellation.signal, emit });
           requireError(opportunity, 403, 'AIRPROP_ACCESS_DENIED');
           requireError(b2, 403, 'AIRPROP_PRE_ACTIVATION');
+          requireError(listing, 503, 'LISTING_SOURCE_NOT_READY');
           await expect(page.locator('main [role="alert"]').filter({ hasText: text.error })).toHaveText(text.error);
           await expect(page.locator('main [role="alert"]').filter({ hasText: text.error })).toBeVisible();
           await expect(page.locator('main').getByText(text.b2, { exact: true })).toBeVisible();
@@ -186,6 +196,7 @@ export async function runDenialProof() {
       const after = await ceReadState(pool); receipt.after_read_sha256 = ceFingerprint(after);
       assert.deepEqual(after, before, 'complete browser read scenarios must leave all observed domain/control/ledger contents unchanged');
       assert.equal(receipt.locales, 3); assert.equal(receipt.scenarios, 24);
+      assert.ok(receipt.listing_dependency.verified_not_ready >= 6, 'each current Workspace must prove the unconfigured Listing boundary separately');
       assert.equal(stats.domainMutationRequests, 0); assert.equal(stats.remoteBackend, 0); assert.equal(stats.externalRequests, 0);
       receipt.path = 'REAL_CHROMIUM_ACTUAL_APP_LAYOUT_LOCAL_API_CANONICAL_RPC_POSTGRES';
       receipt.domain_integrity = 'COMPLETE_BEFORE_AFTER_EQUAL_COUNTS_AND_CONTENT_NOT_SQL_ATTEMPT_AUDIT';
@@ -216,6 +227,11 @@ export async function runDenialProof() {
       catch { errors.push(stage.toUpperCase() + '_CLEANUP_FAILED'); emit({ stage: `cleanup_${stage}_failed` }); }
     };
     phase = 'cleanup';
+    for (const observer of observers) await cleanup('listing_dependency', async () => {
+      const listings = await observer.verifyUnavailableListings();
+      receipt.listing_dependency.verified_not_ready += listings.verified;
+      receipt.listing_dependency.cancelled_not_verified += listings.cancelled;
+    }, 20_000);
     await cleanup('passive_readers', () => Promise.all([...contexts].map(context => cancelCeErrorBodyDrains(context))), 2_000);
     for (const observer of observers) observer.stop();
     await cleanup('browser', async () => {

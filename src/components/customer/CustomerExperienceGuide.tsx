@@ -7,7 +7,7 @@ export interface GuideReferenceView { id: string; label: string; href?: string }
 export interface GuideStepView { id: string; title: string; body: string; references: GuideReferenceView[] }
 export interface ExperienceGuideView { guide_id: string; workspace_id: string; title: string; audience_label: string; status: 'draft' | 'published' | 'cancelled'; version: number; steps: GuideStepView[]; can_edit: boolean }
 export interface NamedGuideTarget { id: string; label: string; type: 'document' | 'service' | 'event' | 'community' }
-export interface ExperienceGuideCommands { saveDraft(input: { guide_id: string; title: string; step_title: string; step_body: string; target_id: string | null }): Promise<void> }
+export interface ExperienceGuideCommands { isUncertain?():boolean; rememberDraft?(input:{guide_id:string;title:string;step_title:string;step_body:string;target_id:string|null}):void; retainedDraft?(): {guide_id:string;title:string;step_title:string;step_body:string;target_id:string|null}|null; saveDraft(input: { guide_id: string; title: string; step_title: string; step_body: string; target_id: string | null }): Promise<void> }
 
 const copy = {
   ro: { heading: 'Ghid', audience: 'Public', editor: 'Editează ghidul', title: 'Titlu', step: 'Titlul pasului', body: 'Instrucțiuni', reference: 'Referință opțională', none: 'Fără referință', save: 'Salvează ciorna', retry: 'Acțiunea nu a reușit. Datele introduse au fost păstrate.', pending: 'Ghidul nu este disponibil momentan.' },
@@ -16,9 +16,9 @@ const copy = {
 } as const;
 
 const feedback = {
-  ro: { sending: 'Se trimite…', saved: 'Ciorna ghidului a fost salvată.' },
-  en: { sending: 'Sending…', saved: 'Guide draft saved.' },
-  fa: { sending: 'در حال ارسال…', saved: 'پیش‌نویس راهنما ذخیره شد.' },
+  ro: { sending: 'Se trimite…', saved: 'Ciorna ghidului a fost salvată.', unknown: 'Rezultatul este necunoscut. Datele sunt păstrate; reîncearcă explicit aceeași comandă.', retry: 'Reîncearcă aceeași comandă' },
+  en: { sending: 'Sending…', saved: 'Guide draft saved.', unknown: 'The result is unknown. Your input is retained; explicitly retry the same command.', retry: 'Retry the same command' },
+  fa: { sending: 'در حال ارسال…', saved: 'پیش‌نویس راهنما ذخیره شد.', unknown: 'نتیجه نامعلوم است. ورودی حفظ شده؛ همان فرمان را صریحاً دوباره بررسی کنید.', retry: 'تلاش با همان فرمان' },
 } as const;
 
 interface GuideDraft {
@@ -44,13 +44,16 @@ function GuideEditor({ lang, guide, targets, commands, onChanged }: { lang: Lang
   const statusId = useId();
   const pending = useRef(false);
   const mounted = useRef(true);
-  const dirty = useRef<GuideFieldState<boolean>>({ title: false, stepTitle: false, body: false, targetId: false });
+  const retained=commands.retainedDraft?.()??null;
+  const dirty = useRef<GuideFieldState<boolean>>({ title: Boolean(retained), stepTitle: Boolean(retained), body: Boolean(retained), targetId: Boolean(retained) });
   const revisions = useRef<GuideFieldState<number>>({ title: 0, stepTitle: 0, body: 0, targetId: 0 });
   const acceptedSave = useRef<{ baseVersion: number; revisions: GuideFieldState<number> } | null>(null);
-  const [draft, setDraft] = useState<GuideDraft>(() => draftFromGuide(guide));
+  const [draft, setDraft] = useState<GuideDraft>(() => retained?{title:retained.title,stepTitle:retained.step_title,body:retained.step_body,targetId:retained.target_id??''}:draftFromGuide(guide));
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+  const [unknown, setUnknown] = useState(commands.isUncertain?.()??false);
+  useEffect(()=>{if(Object.values(dirty.current).some(Boolean))commands.rememberDraft?.({guide_id:guide.guide_id,title:draft.title,step_title:draft.stepTitle,step_body:draft.body,target_id:draft.targetId||null});},[draft,commands,guide.guide_id]);
   const incomingStepTitle = guide.steps[0]?.title ?? '';
   const incomingBody = guide.steps[0]?.body ?? '';
 
@@ -93,10 +96,14 @@ function GuideEditor({ lang, guide, targets, commands, onChanged }: { lang: Lang
       await commands.saveDraft({ guide_id: guide.guide_id, title: submitted.title, step_title: submitted.stepTitle, step_body: submitted.body, target_id: submitted.targetId || null });
       if (!mounted.current) return;
       acceptedSave.current = { baseVersion: guide.version, revisions: submittedRevisions };
+      setUnknown(false);
       setMessage(feedback[lang].saved);
       onChanged?.();
-    } catch {
-      if (mounted.current) setError(t.retry);
+    } catch (reason) {
+      if (mounted.current) {
+        const uncertain = reason instanceof Error && 'code' in reason && reason.code === 'UNKNOWN';
+        setUnknown(uncertain); setError(uncertain ? feedback[lang].unknown : t.retry);
+      }
     } finally {
       pending.current = false;
       if (mounted.current) setBusy(false);
@@ -107,13 +114,13 @@ function GuideEditor({ lang, guide, targets, commands, onChanged }: { lang: Lang
     <h2 id={titleId} className="font-bold sm:col-span-2">{t.editor}</h2>
     <p id={statusId} role="status" aria-live="polite" aria-atomic="true" className="text-sm text-teal-800 sm:col-span-2">{busy ? feedback[lang].sending : message}</p>
     {error ? <p id={`${statusId}-error`} role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800 sm:col-span-2">{error}</p> : null}
-    <fieldset aria-busy={busy} disabled={busy} className="contents">
+    <fieldset aria-busy={busy} disabled={busy || unknown} className="contents">
       <label className="space-y-1 text-sm"><span>{t.title}</span><input required maxLength={160} value={draft.title} onChange={(event) => change('title', event.target.value)} className="w-full rounded-lg border px-3 py-2" /></label>
       <label className="space-y-1 text-sm"><span>{t.step}</span><input required maxLength={160} value={draft.stepTitle} onChange={(event) => change('stepTitle', event.target.value)} className="w-full rounded-lg border px-3 py-2" /></label>
       <label className="space-y-1 text-sm sm:col-span-2"><span>{t.body}</span><textarea required maxLength={5000} value={draft.body} onChange={(event) => change('body', event.target.value)} className="min-h-28 w-full rounded-lg border px-3 py-2" /></label>
       <label className="space-y-1 text-sm sm:col-span-2"><span>{t.reference}</span><select value={draft.targetId} onChange={(event) => change('targetId', event.target.value)} className="w-full rounded-lg border px-3 py-2"><option value="">{t.none}</option>{targets.map((target) => <option key={target.id} value={target.id}>{target.label}</option>)}</select></label>
-      <button disabled={busy} className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 sm:col-span-2 sm:w-fit">{t.save}</button>
     </fieldset>
+    <button disabled={busy} className="rounded-lg bg-teal-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50 sm:col-span-2 sm:w-fit">{unknown ? feedback[lang].retry : t.save}</button>
   </form>;
 }
 

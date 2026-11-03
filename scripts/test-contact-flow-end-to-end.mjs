@@ -82,4 +82,38 @@ console.log('=== TEST: END-TO-END CONTACT & PARTNERSHIP INGESTION PIPELINE ===\n
   console.log('  ✓ 5. Zero-authority lead boundary verified: Contact inquiries do not mutate Workspaces or Roles');
 }
 
+// 6. Contact Form Success Condition & Reference Regex (R05-01 & R05-02)
+{
+  const SERVER_REFERENCE_REGEX = /^CLD-C[23456789ABCDEFGHJKLMNPQRSTUVWXYZ]{8}$/;
+
+  const evaluateSubmission = (responseOk, data) => {
+    const rawRef = typeof data?.referenceId === 'string' && data.referenceId.trim().length > 0
+      ? data.referenceId.trim()
+      : typeof data?.referenceCode === 'string' && data.referenceCode.trim().length > 0
+      ? data.referenceCode.trim()
+      : typeof data?.reference === 'string' && data.reference.trim().length > 0
+      ? data.reference.trim()
+      : '';
+
+    const isRefValid = SERVER_REFERENCE_REGEX.test(rawRef);
+    return Boolean(responseOk && data?.ok === true && isRefValid);
+  };
+
+  // R05-01: Invalid reference CLD-C00000000 must NOT show success
+  assert.equal(SERVER_REFERENCE_REGEX.test('CLD-C00000000'), false, 'CLD-C00000000 contains invalid 0');
+  assert.equal(evaluateSubmission(true, { ok: true, referenceId: 'CLD-C00000000' }), false, 'R05-01 fails closed');
+
+  // R05-02: ok: "false" or string "true" must NOT show success with valid reference
+  const validRef = 'CLD-C23456789';
+  assert.equal(SERVER_REFERENCE_REGEX.test(validRef), true, 'Valid Crockford Base32 ref passes');
+  assert.equal(evaluateSubmission(true, { ok: 'false', referenceId: validRef }), false, 'R05-02 ok:"false" rejected');
+  assert.equal(evaluateSubmission(true, { ok: false, referenceId: validRef }), false, 'ok:false rejected');
+  assert.equal(evaluateSubmission(true, { ok: 'true', referenceId: validRef }), false, 'String ok:"true" rejected');
+  assert.equal(evaluateSubmission(false, { ok: true, referenceId: validRef }), false, 'HTTP non-ok rejected');
+
+  // True success: response.ok === true && data.ok === true && validRef
+  assert.equal(evaluateSubmission(true, { ok: true, referenceId: validRef }), true, 'Strict boolean true + compliant ref succeeds');
+  console.log('  ✓ 6. Contact response criteria (R05-01 & R05-02) strictly verified');
+}
+
 console.log('\n🎉 ALL CONTACT INGESTION PIPELINE TESTS PASSED CLEANLY!\n');

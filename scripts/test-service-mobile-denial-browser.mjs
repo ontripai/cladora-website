@@ -173,6 +173,11 @@ const root=createRoot(document.getElementById('root'));window.disposeServiceCont
           sendJson(res, 200, { contexts: Object.entries(ids.contexts).map(([key, context_id]) => ({ context_id, membership_id: uuid(800 + key.charCodeAt(0)), tenant_name: `Synthetic ${key}`, role_code: 'member', role_name: 'Member', scope_type: 'tenant', context_label: key })) }); return;
         }
         if (url.pathname.endsWith('/dashboard')) { sendJson(res, 200, { contextId: url.searchParams.get('context_id') }); return; }
+        if (url.pathname.endsWith('/services/offering-request-flow')) {
+          assert.equal(url.searchParams.get('offering_id'), ids.offering);
+          assert.equal(url.searchParams.get('published_revision_id'), ids.revision);
+          sendJson(res, 200, { status: 'ready', contract: 'service-offering-request-flow.v1', source_kind: 'workspace', resources: [] }); return;
+        }
         if (url.pathname.endsWith('/services/requests')) {
           const key = contextKey(url.searchParams.get('context_id'));
           if (state.hold && state.hold.contextKey === key && !state.hold.used) {
@@ -184,7 +189,7 @@ const root=createRoot(document.getElementById('root'));window.disposeServiceCont
         }
         sendJson(res, 404, { error: { code: 'SYNTHETIC_UNKNOWN_READ' } }); return;
       }
-      if (req.method === 'POST' && url.pathname.endsWith('/services/requests')) {
+      if (req.method === 'POST' && url.pathname.endsWith('/services/offering-request-flow')) {
         const command = JSON.parse(await readBody(req)); receipt.network.synthetic_posts++; state.posts.push(command);
         let result = state.results.get(command.idempotency_key);
         if (!result) { result = { request_id: ids.result, status: 'submitted' }; state.results.set(command.idempotency_key, result); state.commits++; receipt.network.synthetic_commits++; }
@@ -243,6 +248,7 @@ async function runCase(lang, width) {
     await controls.offering.selectOption(ids.offering);
     await controls.beneficiary.selectOption(ids.party);
     await controls.description.fill(description);
+    await expect(page.getByRole('button', { name: t.submit, exact: true })).toBeEnabled();
   };
   const denialRace = async status => {
     await goto(); const before = activeFixture.posts.length;

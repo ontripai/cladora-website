@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { uuidSchema } from '@/lib/customer/workspace-composition-schema';
 import { updateServiceDefinitionSchema } from '@/lib/customer/service-catalog-management-schema';
+import { isApplicationJson, parseJsonWithLimit } from '@/lib/security/request-body';
 
 const headers = { 'Cache-Control': 'no-store, private', Pragma: 'no-cache', Vary: 'Cookie' };
+const MAX_BODY_BYTES = 8 * 1024;
 const fail = (code: string, status: number) => NextResponse.json({ error: { code } }, { status, headers });
 export async function GET(request: NextRequest) {
   const query = request.nextUrl.searchParams;
@@ -27,13 +29,13 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const origin = request.headers.get('origin');
   if (origin && origin !== request.nextUrl.origin) return fail('INVALID_ORIGIN', 403);
-  if (request.nextUrl.search || request.headers.get('content-type')?.split(';')[0].trim().toLowerCase() !== 'application/json') return fail('INVALID_REQUEST', 400);
+  if (request.nextUrl.search || !isApplicationJson(request.headers.get('content-type'))) return fail('INVALID_REQUEST', 400);
   const supabase = await createClient();
   const { data: claims, error: authError } = await supabase.auth.getClaims();
   if (authError || !claims?.claims?.sub) return fail('UNAUTHORIZED', 401);
-  let body: unknown;
-  try { body = await request.json(); } catch { return fail('INVALID_REQUEST', 400); }
-  const parsed = updateServiceDefinitionSchema.safeParse(body);
+  const body = await parseJsonWithLimit<unknown>(request, MAX_BODY_BYTES);
+  if (body.errorResponse) return fail(body.errorResponse.status === 413 ? 'PAYLOAD_TOO_LARGE' : 'INVALID_REQUEST', body.errorResponse.status);
+  const parsed = updateServiceDefinitionSchema.safeParse(body.data);
   if (!parsed.success) return fail('INVALID_REQUEST', 400);
   const { data, error } = await supabase.schema('customer_api').rpc('update_service_definition_v1' as never, { p_request: parsed.data } as never);
   if (error) {

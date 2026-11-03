@@ -1,0 +1,85 @@
+{
+  "contract": "documents-ce012-live-connection-request.v2",
+  "base": "f3b0a7626de1ffcbbe1b01350a252b92c3e841dc",
+  "entrypoint": "scripts/docs-ce012-live-connection-v1/run.mjs",
+  "source_inventory": "scripts/docs-ce012-live-connection-v1/source-inventory.json",
+  "source_inventory_sha256": "6388b257096dbc094f9513e40a06cebaf9042f55720b89c93cfd89b68b717a11",
+  "artifacts": [
+    {
+      "path": "scripts/docs-ce012-live-connection-v1/admission.mjs",
+      "bytes": 9648,
+      "sha256": "70f0c9d5a854d53593327d73ae8fa7e0f2067c34c9f601fee68ce9916743c582"
+    },
+    {
+      "path": "scripts/docs-ce012-live-connection-v1/measure.mjs",
+      "bytes": 8526,
+      "sha256": "663e47a0bc08a12eadafca691d47b0ee541cf94e0b5db4cc36e359a41fc2dfb3"
+    },
+    {
+      "path": "scripts/docs-ce012-live-connection-v1/run.mjs",
+      "bytes": 3432,
+      "sha256": "2a9cfc8118dbcdc03597e4434442eae1a3ce3bcc6cb73f404f7a422ef7289384"
+    },
+    {
+      "path": "scripts/docs-ce012-live-connection-v1/live.mjs",
+      "bytes": 22384,
+      "sha256": "6ae436256a6b1588baec578db1eeef5d52f44732297ac05f25599e12ad88b032"
+    },
+    {
+      "path": "scripts/docs-ce012-live-connection-v1/closure.mjs",
+      "bytes": 18846,
+      "sha256": "4d5c78dd551369a4a4b39c0208ba7357bbe18eccbd21686a4b3f09de9b2b28c1"
+    }
+  ],
+  "cases": [
+    "current_positive",
+    "documents_denied",
+    "replaced_fresh",
+    "historical_disclosure",
+    "historical_revoked",
+    "cross_workspace",
+    "quarantined",
+    "shared_lock",
+    "serialization_retry"
+  ],
+  "effects": [
+    "catalog_and_fixture_read",
+    "verified_local_auth_user_read",
+    "core_read_phase_and_row_locks",
+    "existing_committed_receipt_read",
+    "fixture_only_permission_id_self_update_for_conflict",
+    "observer_state_hashes",
+    "no_domain_or_core_durable_effect",
+    "no_install_grant_or_activation"
+  ],
+  "measurement_tables": [
+    "documents.documents",
+    "documents.document_versions",
+    "documents.upload_intents",
+    "documents.document_permissions",
+    "documents.document_links",
+    "documents.document_scan_attestations",
+    "documents.access_events",
+    "documents.lifecycle_events",
+    "experience.guides",
+    "experience.guide_steps",
+    "experience.guide_references",
+    "audit.events",
+    "platform.outbox_events",
+    "platform.idempotency_keys",
+    "platform.jurisdiction_domain_artifact_receipt_evidence"
+  ],
+  "limits": {
+    "max_cases": 9,
+    "max_connections": 5,
+    "case_timeout_ms": 15000,
+    "total_timeout_ms": 180000,
+    "lock_probe_ms": 800
+  },
+  "live_default": "CLOSED",
+  "measurement_sequences": [
+    "audit.events_id_seq"
+  ],
+  "runtime_closure": "scripts/docs-ce012-live-connection-v1/runtime-closure.json",
+  "runtime_closure_sha256": "55093d835a860ceeb414fbd097d3b62af2520e60cee5b093763ff7f983f928ee"
+}

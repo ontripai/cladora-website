@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { assertCeGuideInactiveRuntime } from './lib/ce-guide-inactive-runtime-check.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const contractPath = 'docs/architecture/CLADORA-CE-BENEFIT-PRESENTATION-AND-SERVICE-HANDOFF-05-v1.0.md';
@@ -48,6 +49,19 @@ const terminologyPolicy = normalized(terminologyPolicySource);
 const ownershipContract = normalized(read('docs/architecture/CLADORA-DYNAMIC-WORKSPACE-PRODUCT-COMPOSITION-RECONCILIATION-v1.1.md'));
 const applicationWorkflow = read('.github/workflows/application-foundation.yml');
 const inventory = JSON.parse(read(inventoryPath));
+const overlayPath = 'docs/verification/CE-BENEFIT-HANDOFF-INTEGRATION-01.json';
+const overlay = JSON.parse(read(overlayPath));
+check(sha256(bytes(inventoryPath)) === '88b54b42fc1348020c0f55d46d5a94962ad474b6bf89047f65f0bfe6ef287240',
+  'historical inventory bytes must retain their original identity');
+check(sha256(bytes(overlayPath)) === 'de414e403fe45b7c6682c58460a0bcaf6a70aa5200fc6d97735fc05ef4d0498e',
+  'integration overlay bytes must retain their reviewed identity');
+check(overlay.schema === 'ce-benefit-handoff-integration-overlay.v1', 'integration overlay schema must be exact');
+check(overlay.historical_inventory === inventoryPath
+  && overlay.historical_inventory_sha256 === sha256(bytes(inventoryPath)), 'historical inventory must remain byte-identical');
+check(overlay.classification === 'SOURCE_RECONCILIATION_NOT_NATIVE_ACCEPTANCE', 'integration must not imply native acceptance');
+check(overlay.integrated_source === '1d17c2483eeebf2b0f187fa9ac48ccb9e4757842', 'integration must pin its exact reviewed source');
+const changes = new Map(overlay.changes.map(entry => [entry.path, entry]));
+check(changes.size === 10 && overlay.changes.length === 10, 'only ten reviewed source successors supersede inventory pins');
 
 check(inventory.schema === 'ce-benefit-presentation-service-handoff-inventory.v1', 'inventory schema must be exact');
 check(inventory.baseline_commit === baselineCommit, 'inventory must pin the reviewed live-main commit');
@@ -95,9 +109,18 @@ for (const entry of inventory.entries) {
   check(typeof entry.owner === 'string' && entry.owner.length > 0, `inventory owner must be recorded: ${entry.path}`);
   check(typeof entry.finding === 'string' && entry.finding.length > 0, `inventory finding must be recorded: ${entry.path}`);
   check(/^[a-f0-9]{64}$/.test(entry.sha256), `inventory hash must be sha256: ${entry.path}`);
-  check(sha256(bytes(entry.path)) === entry.sha256, `covered file bytes must match the reviewed inventory: ${entry.path}`);
+  const successor = changes.get(entry.path);
+  if (successor) {
+    check(successor.before_sha256 === entry.sha256, `successor must bind the historical pin: ${entry.path}`);
+    check(/^[a-f0-9]{40}$/.test(successor.source_commit) && /^[a-f0-9]{40}$/.test(successor.source_git_blob),
+      `successor must retain exact owner provenance: ${entry.path}`);
+    check(bytes(entry.path).length === successor.after_bytes && sha256(bytes(entry.path)) === successor.after_sha256,
+      `covered file bytes must match the reviewed owner successor: ${entry.path}`);
+    changes.delete(entry.path);
+  } else check(sha256(bytes(entry.path)) === entry.sha256, `covered file bytes must match the reviewed inventory: ${entry.path}`);
   computedCounts[entry.classification] += 1;
 }
+check(changes.size === 0, 'no unrelated source may enter the integration overlay');
 assertions += 1;
 assert.deepEqual(computedCounts, { accepted: 10, inactive: 9, internal_only: 4 }, 'classification counts must be computed from entries');
 assertions += 1;
@@ -235,8 +258,9 @@ for (const field of ['offering_id', 'published_revision_id', 'idempotency_key'])
 const guidePage = read('src/components/customer/CustomerExperienceGuidePage.tsx');
 const guideClient = read('src/lib/community/experience-guide-client.ts');
 const guideComponent = read('src/components/customer/CustomerExperienceGuide.tsx');
-check(guidePage.includes('commands={null}'), 'real Guide page must keep commands=null');
-check(guideClient.includes('can_edit: false'), 'real Guide projection must keep can_edit=false');
+check(guidePage.includes('commands={commands}'), 'Guide commands must use the conditional session binding');
+check(/can_edit:\s*item\.can_edit/.test(guideClient), 'Guide projection must preserve the explicit server edit decision');
+await assertCeGuideInactiveRuntime();
 check(guideComponent.includes('guide.can_edit && commands'), 'Guide editor must require both capability and injected commands');
 
 for (const source of [ceSource, servicePage]) {

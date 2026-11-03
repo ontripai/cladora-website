@@ -1,0 +1,265 @@
+{
+  "format": "platform15-acl-recovery-r2-delivery-manifest.v1",
+  "task": "PLATFORM-STORAGE-ACL-RECOVERY-RACE-R2",
+  "base_parent": "a8ccef2b537f8b3e2b393c16686f41afed64a75a",
+  "branch": "codex/program-local-runtime-lane-01",
+  "relation": "direct additive child of fixed R1 base; replaces unexecuted private candidate, not stack/replay; previous source retained in Git",
+  "inventory": {
+    "before": 2660,
+    "after": 2667,
+    "modified": 5,
+    "added": 7,
+    "paths": [
+      "docs/testing/PLATFORM-STORAGE-ACL-RECOVERY-RACE-R2.md",
+      "docs/testing/platform-storage-acl-recovery-r2.engine-evidence.json",
+      "docs/testing/platform-storage-acl-recovery-r2.manifest.json",
+      "docs/testing/platform-storage-acl-recovery-r2.safe-receipt.json",
+      "scripts/storage-documents-native-abi-r1/contract.json",
+      "scripts/storage-documents-native-abi-r1/harness.py",
+      "scripts/storage-documents-native-abi-r1/plan.py",
+      "scripts/storage-documents-native-abi-r1/rebind.py",
+      "scripts/storage-documents-native-abi-r1/recovery.py",
+      "scripts/storage-documents-native-abi-r1/source-seal.json",
+      "scripts/test-storage-acl-recovery-r2.py",
+      "scripts/test-storage-documents-abi15-r1.py"
+    ]
+  },
+  "files": [
+    {
+      "path": "docs/testing/PLATFORM-STORAGE-ACL-RECOVERY-RACE-R2.md",
+      "change": "ADDED",
+      "bytes": 14898,
+      "sha256": "93c7a4423de65c7a00844ac545ce08312f125201fbe2b445ad8752f81833eaae",
+      "git_blob": "aab179716710b23bf7978cd13e90d2e79a43e7b5"
+    },
+    {
+      "path": "docs/testing/platform-storage-acl-recovery-r2.engine-evidence.json",
+      "change": "ADDED",
+      "bytes": 2983,
+      "sha256": "d8f29f4e1cda25b350253f9e0205dced65069e4d72445a0e751a8a70ca25e790",
+      "git_blob": "ca6997eb3fe101e9ae91911724b1caad1e4bb08d"
+    },
+    {
+      "path": "docs/testing/platform-storage-acl-recovery-r2.safe-receipt.json",
+      "change": "ADDED",
+      "bytes": 6923,
+      "sha256": "db0c775f032e2079fd067d1caf15e556c01b5c28139f84e8b069511fa6e32107",
+      "git_blob": "d21204835302618be31dab69d6bc5a219a91bfb7"
+    },
+    {
+      "path": "scripts/storage-documents-native-abi-r1/contract.json",
+      "change": "MODIFIED",
+      "bytes": 3127,
+      "sha256": "b4d9de05be6a96c987a59820ba26dcff9732da5db64eebb215a5e0de5323ee24",
+      "git_blob": "898a83ab906dcf279c929dbc961831b8fc3dae89"
+    },
+    {
+      "path": "scripts/storage-documents-native-abi-r1/harness.py",
+      "change": "MODIFIED",
+      "bytes": 30779,
+      "sha256": "fb2ddc52790e3f0fd1b937e52168fe0936ba049381255a6c42d0b30cda2d2529",
+      "git_blob": "cac5d27204e089f883427a037f7a5c3f83a83eac"
+    },
+    {
+      "path": "scripts/storage-documents-native-abi-r1/plan.py",
+      "change": "MODIFIED",
+      "bytes": 9527,
+      "sha256": "318b921b854b207dffb396dc6ba6a6a762506e5fcab0eba04a5a77fe1ef0bc76",
+      "git_blob": "dc0f05199afe8582e35a26994c7e49c694dfa783"
+    },
+    {
+      "path": "scripts/storage-documents-native-abi-r1/rebind.py",
+      "change": "ADDED",
+      "bytes": 4460,
+      "sha256": "3c551e437c9452bc5dced91294600b70413b206d915acd773e32ac25f3bfcdf5",
+      "git_blob": "967bda854d5da31306f989d386f16ce5b983fc76"
+    },
+    {
+      "path": "scripts/storage-documents-native-abi-r1/recovery.py",
+      "change": "ADDED",
+      "bytes": 6844,
+      "sha256": "faf9441bb50eb6c6a38b3cf02df3fa2e467d24aa6ed3a6256a4bcc9e1e2568db",
+      "git_blob": "a5af16271254b633efe5b404b4d66ef698f32474"
+    },
+    {
+      "path": "scripts/storage-documents-native-abi-r1/source-seal.json",
+      "change": "MODIFIED",
+      "bytes": 3399,
+      "sha256": "ed21d155f49163ee9588a89204102a5804f85d03b45d715e787b152c4285f45f",
+      "git_blob": "ae0b45410b5ea751fec5fd6dec71f5d282ecf574"
+    },
+    {
+      "path": "scripts/test-storage-acl-recovery-r2.py",
+      "change": "ADDED",
+      "bytes": 20815,
+      "sha256": "a3ab1d4c048c741b93d725a93467008ac389f02ce3697dc0c00d6a2a4aaf22b4",
+      "git_blob": "c55c6af5f83ee1815b65bd4d093b0d61231b35db"
+    },
+    {
+      "path": "scripts/test-storage-documents-abi15-r1.py",
+      "change": "MODIFIED",
+      "bytes": 10485,
+      "sha256": "a1adea30952ddbd8041831f8759f7e137589346f7b2f8afac1b532d36cee2d0c",
+      "git_blob": "c8dca5807682d393102b635e3c8c7bc11f531d79"
+    }
+  ],
+  "self_identity": "outside-file only; manifest excluded from own hash list",
+  "source_seal": {
+    "files": 25,
+    "sha256": "33b8012891c8ea72d24b89f5806fd917524dc96cb0b54c14af07c12f6c39d6d2",
+    "path": "scripts/storage-documents-native-abi-r1/source-seal.json"
+  },
+  "request": {
+    "bytes": 7926,
+    "sha256": "b6bc312a7745efe87f64952662b47355d7f57ca9af1cd064cce8e732b5535483",
+    "public_payload": false,
+    "reconstruction": "fixed rebind.py from exact frozen private R1 inputs",
+    "target_pins": "DECLARED_EXPECTED_ONLY_NOT_FRESHLY_OBSERVED",
+    "authority": null,
+    "execution_binding": null
+  },
+  "sql_materials": {
+    "acl_apply": {
+      "bytes": 10307,
+      "sha256": "f1736abcf35bbe222d703c438d638a33f13d724dc7d607eed6ec29664abbe09c"
+    },
+    "fixture_create": {
+      "bytes": 6188,
+      "sha256": "465457eddda40b72ba6adf53f48d6f30d89f0072ac6cbf970c6f34bab2a60a4e"
+    },
+    "fixture_drop_policies": {
+      "bytes": 4411,
+      "sha256": "8a6880713f35a190ad32cce79c76847a91fc9f54658949a7643995fa43a0385f"
+    },
+    "recovery_begin": {
+      "bytes": 593,
+      "sha256": "d24a61b18c65f76ec3404ae3d717e928bdc9f1407b93be82b64af6c23132015f"
+    },
+    "recovery_state": {
+      "bytes": 5219,
+      "sha256": "7fd7fa678c7166f7abab1d625f35c3a181a2fc22d1f930f97313f747808b627f"
+    },
+    "acl_recover": {
+      "bytes": 4672,
+      "sha256": "cdf3b767605755a5dbd98d0c0c6ea1aabfa8c718a5c26786f0a47e0f6b8554d2"
+    },
+    "recovery_commit": {
+      "bytes": 8,
+      "sha256": "e83e8c1f4ad612a5bd92067c29bdb9b1597fd541ebed41026079aabd6a4a5bf3"
+    }
+  },
+  "reconstruction": {
+    "base": "a8ccef2b537f8b3e2b393c16686f41afed64a75a",
+    "method": "ordinary child checkout preserves all R1 files; no installer/full-patch stacking",
+    "private_inputs": "frozen exact R1 candidate and original catalog/provider/helper custody; not published or regenerated from candidate result",
+    "predecessor": {
+      "bytes": 6177,
+      "sha256": "6bdfe4ab4504dd39fd41f1bf434d103ec2c01c0ae0f071d79c4a93def4d2339c",
+      "source_seal": "25c7181f417248b7bf31b0cfda7492809c11125a937c27a3ab2b9f4d65ff7a5c",
+      "materials": 4,
+      "status": "ARCHIVED_EXACT_NOT_RUN"
+    },
+    "offline_materialize": [
+      "python -B scripts/storage-documents-native-abi-r1/rebind.py --materialize"
+    ],
+    "offline_verify": [
+      "python -B scripts/storage-documents-native-abi-r1/rebind.py --verify"
+    ],
+    "absence": "Missing private inputs is HOLD, not a generic target/file selector or assumption that another Seat shares this filesystem",
+    "readback": "exact request bytes plus all7 renderer outputs; actual cached SDK/tool bytes checked without module load/target operation",
+    "fresh_identifier": "deterministic SHA256(task-id+predecessor request hash) prefix; no attempt claim; target pins copied only as expected",
+    "cycle": "manifest/request identity recorded outside each file; source seal excludes manifest and itself"
+  },
+  "atomic_contract": {
+    "format": "platform15-atomic-recovery.v2",
+    "isolation": "READ COMMITTED",
+    "catalogs": [
+      "pg_attribute",
+      "pg_attrdef",
+      "pg_authid",
+      "pg_auth_members",
+      "pg_class",
+      "pg_collation",
+      "pg_database",
+      "pg_default_acl",
+      "pg_enum",
+      "pg_language",
+      "pg_namespace",
+      "pg_operator",
+      "pg_policy",
+      "pg_proc",
+      "pg_range",
+      "pg_rewrite",
+      "pg_trigger",
+      "pg_type"
+    ],
+    "lock_mode": "SHARE ROW EXCLUSIVE",
+    "lock_timeout_seconds": 3,
+    "statement_timeout_seconds": 10,
+    "idle_in_transaction_timeout_seconds": 5,
+    "window_seconds": 20,
+    "terminal_seconds": 5,
+    "rollback_seconds": 5,
+    "phases": [
+      "recovery_begin",
+      "recovery_state",
+      "acl_recover",
+      "recovery_state",
+      "recovery_commit"
+    ],
+    "snapshot": "complete original catalog ABI; comparison under catalog locks on same backend",
+    "expiry": "original reviewed cleanup-only-after-expiry ceiling; no normal authority renewal; hard recovery window never extended",
+    "window": "coordinator-exclusive Storage ACL/DDL window required; database catalogs and cluster-wide role writers may wait",
+    "unknown": "no replay/rollback on quarantined or unidentified stream; close own relay and custodian follow-up"
+  },
+  "unchanged_sealed_dependencies": {
+    "docs/testing/platform-storage-documents-native-abi-15.r1.acl-review.json": "3a760de6086a0a80faf2d8337120c4ddb46894cab005fc1f172dc3b318eb8fa3",
+    "docs/testing/platform-storage-documents-native-abi-15.r1.actor-helper.json": "122c374b16c4c225ffa3a2ca921ad623d449847b3873ade90788de7ad0609836",
+    "docs/testing/platform-storage-documents-native-abi-15.r1.provider-review.json": "b9232d4ca09bdf778201255c5ce83be2d787a5f0fb44bd762ff43ce5c3f9f916",
+    "scripts/acl02_pg_wire.py": "4fa852fbdb6047ec3c264e1fee53b6218d9db9abf8b462d29e10d24fc4b242c3",
+    "scripts/functional-dev-stack-v1/bootstrap.sql": "fd77a96615502200d51046c6ab98485e81763377dd605b21426503a8ee25a540",
+    "scripts/functional-dev-stack-v1/gateway.conf": "dd60b2cd8e28bae75b0ba32943e65f236682d7a9e5ad43ca630e97bd8e23b8c1",
+    "scripts/functional-dev-stack-v1/profile.json": "5287f38709eb71e85915c9e23a18dd3f7cbb8276346f271ded1dd485de792218",
+    "scripts/functional-dev-stack-v1/provider-compatibility.sql": "5e6214c55dde2c4e2328c19cb79fc5a9a3ae0d84ecaab9544c419ff40a34fd7d",
+    "scripts/functional-dev-stack-v1/stack.py": "2049056db7bf4dc47c7d57b3bbaf0da5e57812a3b1fe55685a9d263533cc10f7",
+    "scripts/local_runtime_consumer.py": "b240725de9119e0176e49fb0bc55f4917ef8df79a9383cb8d77ed97ca579d439",
+    "scripts/storage-documents-native-abi-r1/acl-delta.v1.sql": "38065bf28e7806b5c2825f29a5d44cedbb0ea231d43e112cdab8bada8f227534",
+    "scripts/storage-documents-native-abi-r1/acl-recovery.v1.sql": "05401abe88cf8283aa54232b7f4e66b23025f63ef57e3c8196df7f7f25a1d838",
+    "scripts/storage-documents-native-abi-r1/actor-helper-review.sql": "2cee5a4374310db628223ac66587cbfd8819020889ee77d358f57def15f5457a",
+    "scripts/storage-documents-native-abi-r1/audit.py": "84baa56d402b791e2ddb3dc32a2e493e5b1ab7f2f0f8c61851edcaf7f1c9b92f",
+    "scripts/storage-documents-native-abi-r1/catalog-review.sql": "7fd7fa678c7166f7abab1d625f35c3a181a2fc22d1f930f97313f747808b627f",
+    "scripts/storage-documents-native-abi-r1/native.mjs": "1fce00213df826c4cd580183a1589cbb5d2083ab5668aa75a59e01c7eea6c4fd",
+    "scripts/storage-documents-native-abi-r1/principal-review.sql": "4ccd90c627105a33f5ede5394e81609f4e84ff0381b2848da196c906c195778b",
+    "scripts/storage-documents-native-abi-r1/sdk-pins.json": "cd3ee3f2d5f871796c494c99af25e59b69c11f6d9be12fc8bd9101fe7789219c"
+  },
+  "checks": [
+    {
+      "group": "new_r2",
+      "source": "scripts/test-storage-acl-recovery-r2.py",
+      "unique_controls": 19,
+      "result": "PASS;19 unique new groups; only affected interactions repeated after source edits"
+    },
+    {
+      "group": "versioned_request_and_material_abi",
+      "source": "scripts/test-storage-documents-abi15-r1.py",
+      "unique_controls": 4,
+      "result": "PASS;test_no_request_approval_or_old_scope,test_exact_review_and_expiry_ceiling,test_png_and_fixed_payloads,test_recomputed_hash_cannot_admit_arbitrary_sql"
+    }
+  ],
+  "remaining_gates": [
+    "Coordinator independent review of F01 source successor",
+    "Exact database/cluster-role catalog barrier impact and exclusive Storage ACL/DDL window approval",
+    "Underlying ACL delta and raw NULL-to-explicit equivalent owner ACL representation acceptance",
+    "Current target/source/tool/SDK re-admission and separately authorized one-use final request",
+    "Native SQL/lock/Auth/Storage/observer/cleanup evidence; capture/quota are ceilings not future-bound proof",
+    "Canonical Documents/AAL2/non-overwrite brand/conditional delete/restore/scanner/durable custody remain separate"
+  ],
+  "native": "NOT_RUN",
+  "authority": null,
+  "execution_binding": null,
+  "registry": "EMPTY",
+  "report": "docs/testing/PLATFORM-STORAGE-ACL-RECOVERY-RACE-R2.md",
+  "safe_receipt": "docs/testing/platform-storage-acl-recovery-r2.safe-receipt.json",
+  "official_engine_evidence": "docs/testing/platform-storage-acl-recovery-r2.engine-evidence.json",
+  "observed_at": "2026-11-03T18:02:57.747826+00:00"
+}

@@ -1,0 +1,103 @@
+{
+  "contract": "core-functional-read-query-census.v1",
+  "pins": [
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a"
+    },
+    {
+      "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "sha256": "977581d5c025287e7a88cc485a31d277fc412e8d7825087c871bfbdf2ecbeb8c"
+    },
+    {
+      "path": "src/lib/customer/service-offering-disclosure-source-v1.ts",
+      "sha256": "f8667b1d69809d3880e477c5cd7b875db27cf7dd5a78a2fcd0feec796d06bf5b"
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/request-source-ports.ts",
+      "sha256": "9fb767911503ce7fb5db832b05e317ef61298506fab9db64068d140c97cb27cd"
+    },
+    {
+      "path": "src/lib/core/functional-producers-v1.ts",
+      "sha256": "f44c68523edcb4c75589a7b040d6f380d5609788a6c12bb0fb661c74870ed887"
+    }
+  ],
+  "queries": [
+    {
+      "sql": "select\n      app_private.check_workspace_native_permission_v2($1,$2,$3,$4) as allowed,\n      statement_timestamp()::text as evaluated_at, d.id::text as module_definition_id,\n      d.entitlement_key from platform.module_definitions d\n      where d.code=$4 and d.is_active and d.lifecycle_status in ('active','published')\n        and d.valid_from<=statement_timestamp()\n        and (d.valid_to is null or d.valid_to>statement_timestamp())",
+      "sha256": "8cac53cd9598384744e7a359a0147a99fe4af161b5e88a634f33b1cc46ab6baf"
+    },
+    {
+      "sql": "select * from (with allowed as materialized (select\n      app_private.check_workspace_native_permission_v2($1::uuid,$2::uuid,$3::text,$4::text) as allowed),\n    checked as materialized (select allowed,\n      app_private.require_request_session_current_at_v1(clock_timestamp()) as session_guard from allowed)\n    select txid_current()::text as database_transaction_id,auth.uid()::text as actor_id,\n      current_setting('transaction_isolation') as isolation,\n      to_char(clock_timestamp() at time zone 'UTC','YYYY-MM-DD\"T\"HH24:MI:SS.US\"Z\"') as evaluated_at,\n      allowed,session_guard,(select revision::text from app_private.canonical_authority_revision_v1 where singleton) as authority_revision\n    from checked) as final_observation",
+      "sha256": "4322102bb41e85de4bd0ce8dd131db6ff86964591f41e50a078899387a874069"
+    },
+    {
+      "sql": "select agreement_id::text,tenant_id::text,workspace_id::text,provider_party_id::text,\n    version,valid_from::text,valid_until::text,allowed_service_scope\n    from platform.provider_agreement_versions_v1\n    where agreement_id=$1::uuid and tenant_id=$2::uuid and workspace_id=$3::uuid and version=$4::integer for share",
+      "sha256": "0f47b86ad8750fea0a8c1d801797134530c281a15d6a882dbd82927694e85060"
+    },
+    {
+      "sql": "select app_private.require_request_session_current_at_v1(clock_timestamp())",
+      "sha256": "33916a7fb60d8b6123cc4204bbf5ff5e84b314723421e6b4d38331ba69280816"
+    },
+    {
+      "sql": "select customer_api.resolve_canonical_resource_reference_v1($1::uuid,$2::uuid,$3::text,$4::uuid,$5::integer,$6::text,$7::text) as reference",
+      "sha256": "27b997b20a9dbe489c5ad5421fb22b1bc0f5d3bcc0be761c4168c8131619f2dc"
+    },
+    {
+      "sql": "select d.id::text as definition_id,d.tenant_id::text as tenant_id,\n    d.workspace_id::text as workspace_id,d.active as definition_current\n  from service_catalog.definitions d\n  where d.tenant_id=$1::uuid and d.workspace_id=$2::uuid and d.id=$3::uuid for key share of d",
+      "sha256": "dbc037f6da6d8ce075d5fbe08660ab5f2869787220f676e685dbf31d52b9c526"
+    },
+    {
+      "sql": "select id::text,tenant_id::text,archived_at is null and lifecycle_status='ACTIVE' as current\n    from platform.customer_workspaces where id=$1::uuid and tenant_id=$2::uuid for share",
+      "sha256": "01f679da38faf08160c6fbcf499157a62ca3e83879f12b381071a24b31d8bc7c"
+    },
+    {
+      "sql": "select id::text,tenant_id::text,archived_at is null as current\n    from portfolio.parties where id=$1::uuid and tenant_id=$2::uuid for share",
+      "sha256": "66c96b84f4ccb4ef2c29c2a4a2a4e3d1207678fa3f74e0dcb392e831e88bc59c"
+    },
+    {
+      "sql": "select id::text,tenant_id::text,workspace_id::text,provider_party_id::text,\n    current_version,revision,status from platform.provider_agreement_heads_v1\n    where id=$1::uuid and tenant_id=$2::uuid and workspace_id=$3::uuid",
+      "sha256": "313fceeeb625dc605d644108485f898aaa2d818db5a4656441df5253567e5257"
+    },
+    {
+      "sql": "select id::text,tenant_id::text,workspace_id::text,provider_party_id::text,\n    current_version,revision,status from platform.provider_agreement_heads_v1\n    where id=$1::uuid and tenant_id=$2::uuid and workspace_id=$3::uuid for share",
+      "sha256": "4ecceedcb636cace18508bfd67b97f842967b39177968894db528c4172e7aae3"
+    },
+    {
+      "sql": "select m.tenant_id::text, m.user_id::text as actor_id,\n        m.status::text, (m.starts_at<=clock_timestamp()\n          and (m.ends_at is null or m.ends_at>clock_timestamp())\n          and g.starts_at<=clock_timestamp()\n          and (g.ends_at is null or g.ends_at>clock_timestamp())) as current\n      from identity.context_grants g join identity.memberships m\n        on m.id=g.membership_id and m.tenant_id=g.tenant_id\n      where g.id=$1",
+      "sha256": "f7690727dae6b06d1b314dd639cd94a7f4fd7ee95174d980d0aa58b56b0a6158"
+    },
+    {
+      "sql": "select o.tenant_id::text as tenant_id,o.workspace_id::text as workspace_id,\n    o.id::text as offering_id,o.lock_version::text as offering_version,\n    o.published_revision_id::text as published_revision_id,\n    o.provider_party_id::text as provider_party_id,\n    o.definition_id::text as definition_id\n  from service_catalog.offerings o\n  where o.tenant_id=$1::uuid and o.workspace_id=$2::uuid and o.id=$3::uuid\n  for key share of o",
+      "sha256": "a4a6a9bc24de977a3b36455e22ccbf0a11c5583cdd8418b872652c5fb3f7a3bd"
+    },
+    {
+      "sql": "select p.id::text as provider_party_id,p.tenant_id::text as tenant_id,\n    p.archived_at is null as provider_current\n  from portfolio.parties p where p.tenant_id=$1::uuid and p.id=$2::uuid for share of p",
+      "sha256": "55bd45ba966973014823b719cc20be726f6fceaf78febf880bcfd1df77f7974f"
+    },
+    {
+      "sql": "select r.tenant_id::text as tenant_id,r.workspace_id::text as workspace_id,\n    r.offering_id::text as offering_id,r.id::text as published_revision_id,\n    r.revision_version::text as published_revision_version,\n    r.provider_agreement_id::text as provider_agreement_id,\n    r.provider_agreement_version::text as provider_agreement_version,\n    r.status::text as revision_status,\n    to_char(r.valid_from at time zone 'UTC','YYYY-MM-DD\"T\"HH24:MI:SS.US\"Z\"') as valid_from,\n    case when r.valid_until is null then null else\n      to_char(r.valid_until at time zone 'UTC','YYYY-MM-DD\"T\"HH24:MI:SS.US\"Z\"') end as valid_until,\n    r.commercial_terms->>'acquisition_mode' as acquisition_mode,\n    r.coverage,r.eligibility\n  from service_catalog.revisions r\n  where r.tenant_id=$1::uuid and r.workspace_id=$2::uuid\n    and r.offering_id=$3::uuid and r.id=$4::uuid for share of r",
+      "sha256": "f2d38171e99101dcbcc399d05bae13ce9cb3e68205f382d06bfef7a4d5b99338"
+    },
+    {
+      "sql": "select revision::text\n      from app_private.canonical_authority_revision_v1 where singleton for share",
+      "sha256": "c2010cd0f9768e32c9c615692e3b1a24e5e43d59cfd4e8264ac1c6dc8f462702"
+    },
+    {
+      "sql": "select tenant_id::text\n      from platform.customer_workspaces where id=$1 and archived_at is null\n        and lifecycle_status='ACTIVE'",
+      "sha256": "01034b9fa779d85272905df030f4a2155c783e47fb99a8f5e65a0b29276406e0"
+    },
+    {
+      "sql": "select txid_current()::text as database_transaction_id,\n    auth.uid()::text as actor_id,\n    to_char(clock_timestamp() at time zone 'UTC','YYYY-MM-DD\"T\"HH24:MI:SS.US\"Z\"') as evaluated_at",
+      "sha256": "08fb0d6ca19d31831284a2f7a4e2392f476075e2e46f5ad1dde19b6abe3ebc59"
+    },
+    {
+      "sql": "select txid_current()::text as database_transaction_id, auth.uid()::text as actor_id,\n    current_setting('transaction_isolation') as isolation,\n    to_char(clock_timestamp() at time zone 'UTC','YYYY-MM-DD\"T\"HH24:MI:SS.US\"Z\"') as evaluated_at",
+      "sha256": "a8ccc43265b83f1c1f6a31583fba3913395a809e3351455ce3f3fc0f7ff8e463"
+    },
+    {
+      "sql": "select txid_current()::text as transaction_id,\n        auth.uid()::text as actor_id, current_setting('transaction_isolation') as isolation,\n        clock_timestamp()::text as evaluated_at",
+      "sha256": "044c38ac5ef44bbfb0c5891995714446417d3a65919339c45c17b00e91e9c5c0"
+    }
+  ]
+}

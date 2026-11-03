@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import type { z } from 'zod';
 import type { Language } from '@/types';
 import { currencyConfig, type SupportedCurrency } from '@/config/currencies';
@@ -12,44 +12,76 @@ export const serviceQuoteCopy = {
   fa: { title:'پیش‌نویس پیشنهادها', loading:'در حال دریافت درخواست‌ها…', denied:'مدیریت پیشنهاد برای این حساب فعال نیست.', mfa:'برای ذخیرهٔ پیشنهاد با برنامهٔ Authenticator وارد شوید و سپس به‌روزرسانی کنید.', empty:'درخواست خدمتی وجود ندارد.', request:'درخواست خدمت', choose:'انتخاب کنید', scope:'شرح خدمت پیشنهادی', amount:'مبلغ کل', currency:'ارز', expiry:'معتبر تا', beneficiary:'پرداخت‌کنندهٔ پیشنهادی', provider:'ارائه‌دهندهٔ خدمت', save:'ذخیرهٔ نسخهٔ جدید پیش‌نویس', retry:'تکرار همان پیش‌نویس', refresh:'به‌روزرسانی', draft:'پیش‌نویس', version:'نسخه', success:'پیش‌نویس ذخیره شد؛ تأیید طرف، سفارش یا پرداختی ایجاد نشد.', error:'نتیجه مشخص نیست؛ همان پیش‌نویس را برای بررسی تکرار کنید.', conflict:'درخواست تغییر کرده است؛ ابتدا اطلاعات را به‌روز کنید.', invalid:'فیلدهای مشخص‌شده را بررسی کنید.', requestError:'یک درخواست خدمت انتخاب کنید.', scopeError:'شرح پیشنهادی باید بین ۵ تا ۵۰۰۰ نویسه باشد.', amountError:'مبلغ صفر یا بیشتر را با حداکثر دو رقم اعشار در ارز انتخاب‌شده وارد کنید.', expiryError:'تاریخ و ساعت آینده را انتخاب کنید.', note:'این پیش‌نویس هماهنگ‌کننده است. پرداخت‌کنندهٔ پیشنهادی همان شخص درخواست است؛ پذیرش او مرحله‌ای جداگانه است و این ثبت تعهدی ایجاد نمی‌کند.', bounded:'۵۰ درخواست اخیر و ۱۰ نسخهٔ اخیر هر درخواست نمایش داده می‌شود.' },
 };
 type Read = z.infer<typeof serviceQuoteReadSchema>;
+type PendingCommand = { command:CreateServiceQuoteDraft; state:'attempting'|'unknown'|'rejected' };
+type ReadOperation = { generation:number; controller:AbortController; controlsBusy:boolean };
+type DashboardFetch = ReturnType<typeof useDashboardFetch>;
+const transportKeys=new WeakMap<object,number>();let nextTransportKey=0;
+function transportKey(fetch:DashboardFetch){const identity=fetch as object;let key=transportKeys.get(identity);if(key===undefined){key=++nextTransportKey;transportKeys.set(identity,key);}return key;}
 const readCopy={
   en:{session:'Your session needs verification. Sign in again.',load:'Requests could not be loaded. Check your connection and try again.',retry:'Try again'},
   ro:{session:'Sesiunea necesită verificare. Autentifică-te din nou.',load:'Cererile nu au putut fi încărcate. Verifică conexiunea și reîncearcă.',retry:'Încearcă din nou'},
   fa:{session:'نشست شما نیاز به بررسی دوباره دارد؛ دوباره وارد شوید.',load:'درخواست‌ها دریافت نشدند؛ اتصال را بررسی و دوباره تلاش کنید.',retry:'تلاش دوباره'},
 };
-export function CustomerServiceQuotes({contextId,workspaceId,lang}:{contextId:string;workspaceId:string;lang:Language}) {
-  const fetch = useDashboardFetch(); const t=serviceQuoteCopy[lang];
+export function CustomerServiceQuotes(props:{contextId:string;workspaceId:string;lang:Language}) {
+  // Never carry an unresolved command into another account Context/Workspace.
+  const fetch=useDashboardFetch();
+  return <QuotePanel key={`${props.contextId}:${props.workspaceId}:${transportKey(fetch)}`} {...props} fetch={fetch}/>;
+}
+function QuotePanel({contextId,workspaceId,lang,fetch}:{contextId:string;workspaceId:string;lang:Language;fetch:DashboardFetch}) {
+  const t=serviceQuoteCopy[lang];
   const fieldId=useId();
   const [fieldErrors,setFieldErrors]=useState({request:false,scope:false,amount:false,expiry:false});
   const requestRef=useRef<HTMLSelectElement>(null); const scopeRef=useRef<HTMLTextAreaElement>(null);
   const amountRef=useRef<HTMLInputElement>(null); const expiryRef=useRef<HTMLInputElement>(null);
   const [data,setData]=useState<Read|null>(null); const [notice,setNotice]=useState(''); const [selected,setSelected]=useState('');
-  const [pending,setPending]=useState<CreateServiceQuoteDraft|null>(null); const [busy,setBusy]=useState(false); const [blocked,setBlocked]=useState(false);
+  const [pending,setPending]=useState<PendingCommand|null>(null); const [busy,setBusy]=useState(false); const [blocked,setBlocked]=useState(false);
   const [readStatus,setReadStatus]=useState<'loading'|'ready'|'denied'|'session'|'retry'>('loading'); const [readAttempt,setReadAttempt]=useState(0);
-  const alive=useRef(true); const submitting=useRef(false); const writeAbort=useRef<AbortController|null>(null);
+  const active=useRef(true); const submitting=useRef(false); const writeAbort=useRef<AbortController|null>(null);
+  const readGeneration=useRef(0); const readOperation=useRef<ReadOperation|null>(null);
   const query=new URLSearchParams({context_id:contextId,workspace_id:workspaceId}).toString();
-  useEffect(()=>{alive.current=true;const controller=new AbortController();
-    void fetch(`/api/customer/v1/services/quotes?${query}`,{cache:'no-store',credentials:'same-origin',signal:controller.signal})
-      .then(async response=>{if(!response.ok)throw new Error(response.status===401?'session':response.status===403||response.status===404?'denied':'retry');return serviceQuoteReadSchema.parse(await response.json());})
-      .then(value=>{if(!controller.signal.aborted){setData(value);setReadStatus('ready');}}).catch(reason=>{if(!controller.signal.aborted)setReadStatus(reason instanceof Error&&['session','denied'].includes(reason.message)?reason.message as 'session'|'denied':'retry');});
-    return ()=>{alive.current=false;controller.abort();writeAbort.current?.abort();};
-  },[fetch,query,readAttempt]);
+  const isCurrentRead=useCallback((operation:ReadOperation)=>active.current&&readOperation.current===operation&&readGeneration.current===operation.generation&&!operation.controller.signal.aborted,[]);
+  const beginRead=useCallback((controlsBusy:boolean)=>{
+    readOperation.current?.controller.abort();
+    const operation={generation:++readGeneration.current,controller:new AbortController(),controlsBusy};
+    readOperation.current=operation;return operation;
+  },[]);
+  const finishRead=useCallback((operation:ReadOperation)=>{
+    if(readOperation.current!==operation||readGeneration.current!==operation.generation)return;
+    readOperation.current=null;if(operation.controlsBusy&&active.current&&!submitting.current)setBusy(false);
+  },[]);
+  const endLifetime=useCallback(()=>{
+    active.current=false;readGeneration.current++;readOperation.current?.controller.abort();readOperation.current=null;writeAbort.current?.abort();
+  },[]);
+  useEffect(()=>{active.current=true;return endLifetime;},[endLifetime]);
+  useEffect(()=>{const operation=beginRead(false);
+    void (async()=>{try{
+      const response=await fetch(`/api/customer/v1/services/quotes?${query}`,{cache:'no-store',credentials:'same-origin',signal:operation.controller.signal});
+      if(!isCurrentRead(operation))return;
+      if(!response.ok)throw new Error(response.status===401?'session':response.status===403||response.status===404?'denied':'retry');
+      const body=await response.json();if(!isCurrentRead(operation))return;
+      const value=serviceQuoteReadSchema.parse(body);if(!isCurrentRead(operation))return;
+      setData(value);setReadStatus('ready');
+    }catch(reason){if(isCurrentRead(operation))setReadStatus(reason instanceof Error&&['session','denied'].includes(reason.message)?reason.message as 'session'|'denied':'retry');}
+    finally{finishRead(operation);}})();
+    return()=>{operation.controller.abort();finishRead(operation);};
+  },[beginRead,fetch,finishRead,isCurrentRead,query,readAttempt]);
   async function refreshBlocked(){
     if(busy||submitting.current)return;
-    setBusy(true);
+    setBusy(true);const operation=beginRead(true);
     try {
-      const response=await fetch(`/api/customer/v1/services/quotes?${query}`,{cache:'no-store',credentials:'same-origin'});
+      const response=await fetch(`/api/customer/v1/services/quotes?${query}`,{cache:'no-store',credentials:'same-origin',signal:operation.controller.signal});
+      if(!isCurrentRead(operation))return;
       if(!response.ok)throw new Error(response.status===401?'session':response.status===403||response.status===404?'denied':'retry');
-      const next=serviceQuoteReadSchema.parse(await response.json());
-      if(!alive.current)return;
-      setData(next);setPending(null);setBlocked(false);setNotice('');
-    }catch(reason){if(alive.current)setNotice(reason instanceof Error&&reason.message==='denied'?t.denied:reason instanceof Error&&reason.message==='session'?readCopy[lang].session:readCopy[lang].load);}
-    finally{if(alive.current)setBusy(false);}
+      const body=await response.json();if(!isCurrentRead(operation))return;
+      const next=serviceQuoteReadSchema.parse(body);if(!isCurrentRead(operation))return;
+      setData(next);setPending(current=>current?.state==='rejected'?null:current);setBlocked(false);setNotice(pending?.state==='unknown'?t.error:'');
+    }catch(reason){if(isCurrentRead(operation))setNotice(reason instanceof Error&&reason.message==='denied'?t.denied:reason instanceof Error&&reason.message==='session'?readCopy[lang].session:readCopy[lang].load);}
+    finally{finishRead(operation);}
   }
   const request=data?.requests.find(item=>item.request_id===selected);
   async function submit(event:FormEvent<HTMLFormElement>) {
     event.preventDefault();if(submitting.current)return;
-    let command=pending;
+    let current=pending;let command=current?.command;
     if(!command){const form=new FormData(event.currentTarget);const code=String(form.get('currency')) as SupportedCurrency;
       const total=code in currencyConfig?serviceQuoteAmountToMinor(String(form.get('amount')),code):null;
       const until=new Date(String(form.get('expiry')));
@@ -62,21 +94,25 @@ export function CustomerServiceQuotes({contextId,workspaceId,lang}:{contextId:st
       const parsed=createServiceQuoteDraftSchema.safeParse({context_id:contextId,workspace_id:workspaceId,request_id:request.request_id,
         expected_request_version:request.request_version,published_revision_id:request.published_revision_id,scope,total_minor:total,currency:code,
         payer_shares:[{party_id:request.beneficiary_party_id,amount_minor:total}],valid_until:until.toISOString(),idempotency_key:crypto.randomUUID()});
-      if(!parsed.success){setNotice(t.invalid);return;}setFieldErrors({request:false,scope:false,amount:false,expiry:false});command=parsed.data;setPending(command);
+      if(!parsed.success){setNotice(t.invalid);return;}setFieldErrors({request:false,scope:false,amount:false,expiry:false});command=parsed.data;current={command,state:'attempting'};setPending(current);
     }
     submitting.current=true;setBusy(true);setNotice('');const controller=new AbortController();writeAbort.current=controller;
     try {const response=await fetch('/api/customer/v1/services/quotes',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(command),signal:controller.signal});
-      if(!response.ok){if(alive.current&&!controller.signal.aborted){
+      if(!response.ok){if(active.current&&!controller.signal.aborted){
         const result=await response.json().catch(()=>null);
+        if(!active.current||controller.signal.aborted)return;
+        const wasUnknown=current?.state==='unknown';
+        setPending({command,state:wasUnknown||![403,409].includes(response.status)?'unknown':'rejected'});
         setBlocked([403,409].includes(response.status));
-        setNotice(response.status===409?t.conflict:result?.error?.code==='MFA_REQUIRED'?t.mfa:response.status===403?t.denied:t.error);
+        setNotice(wasUnknown?t.error:response.status===409?t.conflict:result?.error?.code==='MFA_REQUIRED'?t.mfa:response.status===403?t.denied:t.error);
       }return;}
-      serviceQuoteResultSchema.parse(await response.json());if(!alive.current||controller.signal.aborted)return;
+      const result=serviceQuoteResultSchema.parse(await response.json());if(result.request_version!==command.expected_request_version)throw new Error('unexpected result');
+      if(!active.current||controller.signal.aborted)return;
       setPending(null);setNotice(t.success);
       try{const read=await fetch(`/api/customer/v1/services/quotes?${query}`,{cache:'no-store',credentials:'same-origin',signal:controller.signal});
-        if(read.ok){const next=serviceQuoteReadSchema.parse(await read.json());if(alive.current&&!controller.signal.aborted)setData(next);}
+        if(read.ok){const next=serviceQuoteReadSchema.parse(await read.json());if(active.current&&!controller.signal.aborted)setData(next);}
       }catch{/* Keep a confirmed save confirmed. */}
-    }catch{if(alive.current&&!controller.signal.aborted)setNotice(t.error);}finally{submitting.current=false;if(alive.current)setBusy(false);}
+    }catch{if(active.current&&!controller.signal.aborted){setPending({command,state:'unknown'});setNotice(t.error);}}finally{submitting.current=false;if(active.current&&!controller.signal.aborted)setBusy(false);}
   }
   return <section dir={lang==='fa'?'rtl':'ltr'} className="space-y-4 rounded-2xl border bg-white p-6"><h2 className="text-xl font-bold">{t.title}</h2>
     <p className="text-sm">{t.note}</p>{notice?<p role="status">{notice}</p>:null}

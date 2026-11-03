@@ -1,0 +1,98 @@
+{
+  "source_manifest": {
+    "blob": "a13e382d31ea40b2ddd52306a34c56b648f3ed47",
+    "sha256": "94543e82513461f808037fdbfcb6c3d51531f4d826e82155a8844ace15929822",
+    "outputs": "Core300 all48_source_outputs; four exact native installers only; no old readiness/private artifact required"
+  },
+  "contract": "core15-ordinary-installer-profile.v3",
+  "parent": "a0a37f3c573558d14be2e62ba27e6e5475b9c4fe",
+  "platform": "794f5a12c3928ae0a3585ab679a3cbe60aab49a3",
+  "profile": {
+    "lifecycle_custodian": "postgres; unchanged provider profile",
+    "installer": "cladora_core_installer; ordinary LOGIN NOINHERIT CREATEROLE; no privileged memberships",
+    "runtime": "cladora_core_runtime; no installer/owner membership or DDL rights"
+  },
+  "adapter": {
+    "path": "scripts/lib/core15-ordinary-installer-profile-v3.mjs",
+    "bytes": 3212,
+    "sha256": "803859ad75a68a7e602ee471e4eb5c3b1420bab1c7192e4e58400904b8596382"
+  },
+  "prerequisite": {
+    "path": "supabase/install/core-functional-runtime-v1/service-native-v3/installer-prerequisites.sql",
+    "bytes": 3564,
+    "sha256": "70b17acd04727287038078ac67785df31d73c32e667be5ec63da56724886511c"
+  },
+  "units": [
+    {
+      "order": 1,
+      "path": "supabase/install/v14-operations/foundation.sql",
+      "unit": "foundation",
+      "source_sha256": "f0e13f0c8b50f2dd43c80aaab1d3bc9a3b76b627f5118f9dfb4219b1f30c5d27",
+      "payload_sha256": "e4f1e2eb4f9d6d4b41743264382498b065eccc278ce59191a6852599b0864aeb",
+      "bytes": 800938,
+      "role_references": 131,
+      "target_references": 1,
+      "body_changes": [
+        {
+          "name": "app_private.guard_workspace_member_role_authority_v2",
+          "before": "ba55df5a5c2fd97032195db0ab78c7fdd7fa4f72786619547768c7dad8b6311c",
+          "after": "caf2f376222b71bf80328e1a450bad11d12008739cbe3bb477bc1831bc1467cb"
+        }
+      ],
+      "role_mapping": {
+        "postgres": "cladora_core_installer"
+      },
+      "protected": "whole-source reverse transform equality; guard300 option/restoration logic retained"
+    },
+    {
+      "order": 2,
+      "path": "supabase/install/v14-operations/assets.sql",
+      "unit": "assets",
+      "source_sha256": "d51db3a078ed259120ad3801f77cd852742969e2f141dc70dcdc0611450087ba",
+      "payload_sha256": "5a9b5c76aab5a28fc71df657aaa296cd5ee8e163ae0bf887d0678f4d79a2cc94",
+      "bytes": 227739,
+      "role_references": 77,
+      "target_references": 1,
+      "body_changes": [],
+      "role_mapping": {
+        "postgres": "cladora_core_installer"
+      },
+      "protected": "whole-source reverse transform equality; guard300 option/restoration logic retained"
+    },
+    {
+      "order": 3,
+      "path": "supabase/install/v14-operations/maintenance-procurement.sql",
+      "unit": "maintenance-procurement",
+      "source_sha256": "6ce3f721329f6cbdd7c945769b022a1afa6b65cf2e898abc19b8c11447c8bcad",
+      "payload_sha256": "03e1467e191cce829958452d3cdbc221bcb7c05172f01937fa9b6ac56cf66473",
+      "bytes": 310486,
+      "role_references": 100,
+      "target_references": 2,
+      "body_changes": [],
+      "role_mapping": {
+        "postgres": "cladora_core_installer"
+      },
+      "protected": "whole-source reverse transform equality; guard300 option/restoration logic retained"
+    },
+    {
+      "order": 4,
+      "path": "supabase/install/v14-operations/building-provisioning.sql",
+      "unit": "building-provisioning",
+      "source_sha256": "91195b0e0eef75444386795beda113daf417d4cf464bed2da91ec36adab539cb",
+      "payload_sha256": "395bd24ee71aa6f096e8390d4aefdec2fe9dd20f403409cba23165f62390a70f",
+      "bytes": 206486,
+      "role_references": 49,
+      "target_references": 1,
+      "body_changes": [],
+      "role_mapping": {
+        "postgres": "cladora_core_installer"
+      },
+      "protected": "whole-source reverse transform equality; guard300 option/restoration logic retained"
+    }
+  ],
+  "execution": "NOT_DISPATCHED; private actual target/PG principal/custody preflight required; GUC not identity proof",
+  "settlement": "one COMMIT per exact unit; mismatch/UNKNOWN stop, no global rollback or blind resend",
+  "install_closure": "accepted four native source units ONLY, not replay-all historical migrations",
+  "authority": "closed native ACL; no caller positive grant; Service runtime access separate",
+  "native_runtime": "NOT_READY"
+}

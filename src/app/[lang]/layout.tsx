@@ -1,9 +1,81 @@
 import React from 'react';
 import type { Metadata } from 'next';
+import localFont from 'next/font/local';
 import { SUPPORTED_LOCALES, getLocaleConfig, getIntlLocale, isSupportedLocale } from '@/types';
 import { notFound } from 'next/navigation';
 import { AppOrMarketingLayout } from '@/components/layout/AppOrMarketingLayout';
 import { getSiteUrl } from '@/config/site';
+
+const inter = localFont({
+  src: [
+    {
+      path: '../../fonts/inter/InterVariable.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../../fonts/inter/InterVariable.woff2',
+      weight: '600',
+      style: 'normal',
+    },
+    {
+      path: '../../fonts/inter/InterVariable.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: '../../fonts/inter/InterVariable.woff2',
+      weight: '800',
+      style: 'normal',
+    },
+  ],
+  variable: '--font-inter',
+  display: 'swap',
+});
+
+const manrope = localFont({
+  src: [
+    {
+      path: '../../fonts/manrope/Manrope[wght].woff2',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: '../../fonts/manrope/Manrope[wght].woff2',
+      weight: '800',
+      style: 'normal',
+    },
+  ],
+  variable: '--font-manrope',
+  display: 'swap',
+});
+
+const vazirmatn = localFont({
+  src: [
+    {
+      path: '../../fonts/vazirmatn/Vazirmatn[wght].woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../../fonts/vazirmatn/Vazirmatn[wght].woff2',
+      weight: '600',
+      style: 'normal',
+    },
+    {
+      path: '../../fonts/vazirmatn/Vazirmatn[wght].woff2',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: '../../fonts/vazirmatn/Vazirmatn[wght].woff2',
+      weight: '800',
+      style: 'normal',
+    },
+  ],
+  variable: '--font-vazirmatn',
+  display: 'swap',
+});
 
 export async function generateStaticParams() {
   return SUPPORTED_LOCALES.map((lang) => ({ lang }));
@@ -168,11 +240,15 @@ export default async function LangLayout(
     ],
   };
 
+  const fontVariables = isFa
+    ? `${vazirmatn.variable} ${inter.variable}`
+    : `${inter.variable} ${manrope.variable}`;
+
   return (
     <html 
       lang={locale.code} 
       dir={locale.direction}
-      className="scroll-smooth"
+      className={`${fontVariables} scroll-smooth`}
     >
       <head>
         <script

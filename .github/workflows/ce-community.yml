@@ -31,6 +31,8 @@ on:
       - 'scripts/test-ce-010-*.mjs'
       - 'scripts/test-ce-012-*.mjs'
       - 'scripts/test-ce-guide-translation-provenance-v1.mjs'
+      - 'scripts/lib/load-application-test-module.mjs'
+      - 'scripts/lib/ce-guide-inactive-runtime-check.mjs'
       - 'scripts/test-ce-guide-lifecycle-http-*.mjs'
       - 'scripts/test-core-platform-role-bound-pool-*.mjs'
       - 'src/lib/core/platform-role-bound-pool-v1.ts'
@@ -78,6 +80,7 @@ jobs:
         with:
           version: 2.84.2
       - name: Start disposable local Supabase with staged SERVICE S4 gate
+        id: start_supabase
         run: bash scripts/start-local-supabase-staged-service-s4.sh start
         env:
           CLADORA_LOCAL_STEP_SU_02_AUTHORIZED: "1"
@@ -112,5 +115,5 @@ jobs:
           CE_GUIDE_LIFECYCLE_HTTP_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
           CE_GUIDE_LIFECYCLE_HTTP_SUPABASE_URL: http://127.0.0.1:54321
       - name: Stop disposable local Supabase
-        if: always()
+        if: ${{ always() && (steps.start_supabase.outcome == 'success' || steps.start_supabase.outcome == 'failure') }}
         run: supabase stop --no-backup

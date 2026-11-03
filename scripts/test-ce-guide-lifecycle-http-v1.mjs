@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import ts from 'typescript';
+import { assertCeGuideInactiveRuntime } from './lib/ce-guide-inactive-runtime-check.mjs';
 
 const require = createRequire(import.meta.url);
 const cache = new Map();
@@ -69,8 +70,9 @@ assert.match(postgresHarness, /createCorePlatformRoleBoundPoolV1/);
 assert.match(migrationSource, /create role cladora_ce_guide_executor/i);
 assert.match(migrationSource, /create role cladora_ce_guide_runtime/i);
 assert.doesNotMatch(route, /experience-guide-lifecycle-http-v1/);
-assert.match(page, /commands=\{null\}/);
-assert.match(projection, /can_edit:\s*false/);
+assert.match(page, /commands=\{commands\}/);
+assert.match(projection, /can_edit:\s*item\.can_edit/);
+await assertCeGuideInactiveRuntime(load);
 // Preserve the historical 296-file inventory and account only for the four
 // byte-exact additions accepted by B01/SERVICE297. This is not installed ACL proof.
 const reviewedAdditions = {

@@ -63,7 +63,7 @@ const click=async text=>act(async()=>button(text).click());
 const input=async(selector,value)=>act(async()=>{const e=typeof selector==='string'?document.querySelector(selector):selector;Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype,'value').set.call(e,value);e.dispatchEvent(new dom.window.Event('input',{bubbles:true}));});
 // Synthetic data belongs to this fixture, never to the authenticated form defaults.
 async function fillSyntheticDraft(){
- const fields=[...document.querySelector('fieldset').querySelectorAll('input'),document.querySelector('[aria-label="period start"]'),document.querySelector('[aria-label="period end"]'),...document.querySelectorAll('input[aria-label$=" 1"]')];
+ const fields=[...document.querySelector('fieldset').querySelectorAll('input'),document.querySelector('#period-start-input, [name="period_start"]'),document.querySelector('#period-end-input, [name="period_end"]'),...document.querySelectorAll('input[aria-label$=" 1"]')];
  const values=['CLADORA Synthetic Association','Synthetic Building A','BLD-A','4','2026-01-01','2026-12-31','A-01','0','62'];
  assert.equal(fields.length,values.length);
  for(const [index,field] of fields.entries())await input(field,values[index]);

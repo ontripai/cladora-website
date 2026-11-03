@@ -1,0 +1,137 @@
+{
+  "contract": "documents-ce012-case-plan-source-manifest.v1",
+  "base": "c0caf3e70d97c3d09b16cbff91188367804cba6b",
+  "source_approval": "NOT_GRANTED_BY_THIS_MANIFEST",
+  "files": [
+    {
+      "path": "package-lock.json",
+      "bytes": 285183,
+      "sha256": "c0d6201b9dddab56818ee2c6a547cdba318b0f6979f2a27657b7ac5a41c9b4dc"
+    },
+    {
+      "path": "package.json",
+      "bytes": 20058,
+      "sha256": "fd82e8763837cbf7af3a0b55dd3e17c9d51f916deab6f5551ecf1a74bce083ce"
+    },
+    {
+      "path": "scripts/docs-ce012-case-plan-v1/compile-private-plan.mjs",
+      "bytes": 2728,
+      "sha256": "6d57e4a3ba34ef66933a90a6e4798f8c366c7951878ce9f684a1ee4f40142cdc"
+    },
+    {
+      "path": "scripts/docs-ce012-case-plan-v1/compiler.ts",
+      "bytes": 25570,
+      "sha256": "45195982da27452c1a46cfe248b2034ebfc389063af9a1748678430f41cd725f"
+    },
+    {
+      "path": "scripts/docs-ce012-case-plan-v1/contract.json",
+      "bytes": 29240,
+      "sha256": "ddfb2f5843984a34041f58f4280ee64bbab075700a3f7226770724b4950932f5"
+    },
+    {
+      "path": "scripts/docs-ce012-case-plan-v1/loader.mjs",
+      "bytes": 2328,
+      "sha256": "485c6be74133c22d0d38261e4e08eef43a9d27bb5caf3984204803f95a247f16"
+    },
+    {
+      "path": "src/lib/community/experience-guide-command-contract.ts",
+      "bytes": 14414,
+      "sha256": "324d30b10eecb1b1f03f706118b51b7dc80605892f1ec267e9d4dc44a5f8e2e6"
+    },
+    {
+      "path": "src/lib/community/experience-guide-lifecycle-http-v1.ts",
+      "bytes": 19207,
+      "sha256": "22c9816a557445bc19e133015f416598e702c90fb9b26a89cc8110bc69142481"
+    },
+    {
+      "path": "src/lib/community/experience-guide-lifecycle-provider-v1.ts",
+      "bytes": 21136,
+      "sha256": "0656476203b0cbefaa0852848f84221924fb2c9c01ff2b83e4bb36dac264822e"
+    },
+    {
+      "path": "src/lib/community/experience-guide-provider-bridge.ts",
+      "bytes": 9983,
+      "sha256": "ddeda87fc4d19fb9516198fbcb1290240b1d3e152a5e85a936d513a7994b52ca"
+    },
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a"
+    },
+    {
+      "path": "src/lib/core/current-authority-transaction-port-v1.ts",
+      "bytes": 9496,
+      "sha256": "02e0b85d1dba7ca87ec0eddff5d3f3552bed518794888e9ee0f34c0de962c14f"
+    },
+    {
+      "path": "src/lib/core/jurisdiction-domain-artifact-transaction-evidence-v1.ts",
+      "bytes": 2008,
+      "sha256": "e30ced9821eb8f8cc99dac45b1ae1461d46d53e34f1a7cdae774c55d54281981"
+    },
+    {
+      "path": "src/lib/core/platform-role-bound-pool-v1.ts",
+      "bytes": 9923,
+      "sha256": "d31f3b31a1302686d8022627475b2e14057cd36fff219a8b4441ff052798fc79"
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "bytes": 39738,
+      "sha256": "5ae0d49cde0850c3d8b2c55bc2398d685e1c833d2e9a9e176ee8eab8d1cdce06"
+    },
+    {
+      "path": "src/lib/core/transaction-provider-evidence-v1.ts",
+      "bytes": 2252,
+      "sha256": "515c173f1fa1aeed01ef1af465acf8cee6504cc09bbcf3d137549a8150f32d75"
+    },
+    {
+      "path": "src/lib/core/transaction-replay-provider-hook-v1.ts",
+      "bytes": 2688,
+      "sha256": "eb20fa622ba10b9cde6ea8d4d64f1ad9f9eea93f7fba354d03f6959156487dd4"
+    },
+    {
+      "path": "src/lib/customer/documents-ce012-reference-contract.ts",
+      "bytes": 1998,
+      "sha256": "1c6cae9052fb8bb1910f88af4ef264dbd973c52fe81e5394e1527db4aa2d4b93"
+    },
+    {
+      "path": "src/lib/customer/documents-ce012-reference-provider-v1.ts",
+      "bytes": 6458,
+      "sha256": "14c37f949f120fb071e0834773e3c7939022511673506bd1d2260ba881e6d0d3"
+    },
+    {
+      "path": "src/lib/customer/documents-reference-authority-v1.ts",
+      "bytes": 14569,
+      "sha256": "444c9b2c7b11be04ef6867887ebc77f7a0308414daee33ab41ecbf6eb9870b81"
+    },
+    {
+      "path": "src/lib/customer/documents-reference-tx-selector-v1.ts",
+      "bytes": 10550,
+      "sha256": "dd0834afe07bb61f7d00e43ace31e73faa9b9e6754a5f4e6a281bb0104ebfcca"
+    },
+    {
+      "path": "src/lib/customer/workspace-composition-schema.ts",
+      "bytes": 3916,
+      "sha256": "d9888aa61cdf42618597b0984c75a922e83cdea6b3ba52d4f30a6f68cdb2da9f"
+    },
+    {
+      "path": "src/lib/security/same-origin.ts",
+      "bytes": 532,
+      "sha256": "b00a95fb384e286fd116c979847693d0e286283c19750e254f934576a55f96cc"
+    },
+    {
+      "path": "src/lib/supabase/env.ts",
+      "bytes": 2591,
+      "sha256": "5e1a8f1b1058b27fdcbf2e8ba9b9d737883fd9c7de292da07d336ef65f9be7b6"
+    },
+    {
+      "path": "src/lib/supabase/server.ts",
+      "bytes": 791,
+      "sha256": "5eb2bc418fbd3933ab2c45b2426f70f43cf1d392392788069b7832d5d6adffdc"
+    },
+    {
+      "path": "src/types/database.generated.ts",
+      "bytes": 75472,
+      "sha256": "9cb636b174782c9333afdf2775cb56bfca071cad5d79ccb48d9858cdc48fd6d2"
+    }
+  ]
+}

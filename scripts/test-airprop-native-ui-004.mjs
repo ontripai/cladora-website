@@ -39,6 +39,7 @@ const {CustomerAirpropWorkspace}=load('src/components/customer/CustomerAirpropWo
  './CustomerContextProvider':{useCustomerContext:()=>({active,registerUnsavedGuard})},
  './CustomerAirpropUnderwriting':{CustomerAirpropUnderwriting:()=>null},
  './CustomerAirpropB2':{CustomerAirpropB2Workspace:()=>null},
+ './CustomerAirpropListings':{CustomerAirpropListings:()=>null},
  '@/lib/airprop/opportunity-contract-v2':load('src/lib/airprop/opportunity-contract-v2.ts'),
 });
 const root=createRoot(document.getElementById('root'));
@@ -80,6 +81,7 @@ async function testRealContextProvider(){
    './CustomerAirpropDiligence':{CustomerAirpropDiligence:()=>null},
    './CustomerAirpropUnderwriting':{CustomerAirpropUnderwriting:()=>null},
    './CustomerAirpropB2':{CustomerAirpropB2Workspace:()=>null},
+ './CustomerAirpropListings':{CustomerAirpropListings:()=>null},
    '@/lib/airprop/opportunity-contract-v2':load('src/lib/airprop/opportunity-contract-v2.ts'),
   });
   function ContextControls(){
@@ -236,6 +238,7 @@ async function testPersistentConflict(){
    './CustomerContextProvider':{useCustomerContext:()=>({active,registerUnsavedGuard})},
    './CustomerAirpropValuation':{CustomerAirpropValuation:()=>null},
    './CustomerAirpropDiligence':{CustomerAirpropDiligence:()=>null},'./CustomerAirpropUnderwriting':{CustomerAirpropUnderwriting:()=>null},'./CustomerAirpropB2':{CustomerAirpropB2Workspace:()=>null},
+ './CustomerAirpropListings':{CustomerAirpropListings:()=>null},
    '@/lib/airprop/opportunity-contract-v2':load('src/lib/airprop/opportunity-contract-v2.ts'),
   });
   await act(async()=>root.render(React.createElement(fresh.CustomerAirpropWorkspace,{lang})));await choose(workspaceA);
@@ -405,9 +408,9 @@ try{
 
  // The accessible warning and both actions are localized in every supported language.
  const localeWarnings={
-  en:['Discard opportunity edits?','Keep editing','Discard edits'],
-  ro:['Renunți la modificările oportunității?','Continuă editarea','Renunță la modificări'],
-  fa:['ویرایش‌های فرصت نادیده گرفته شود؟','ادامهٔ ویرایش','نادیده گرفتن ویرایش‌ها'],
+  en:['Discard unsaved edits?','Keep editing','Discard edits'],
+  ro:['Renunți la modificările nesalvate?','Continuă editarea','Renunță la modificări'],
+  fa:['ویرایش‌های ذخیره‌نشده کنار گذاشته شوند؟','ادامهٔ ویرایش','نادیده گرفتن ویرایش‌ها'],
  };
  for(const [lang,[title,keep,discard]] of Object.entries(localeWarnings)){
   await render(`locale-${lang}`,lang);await choose(workspaceA);await act(async()=>setInput('name',`draft-${lang}`));

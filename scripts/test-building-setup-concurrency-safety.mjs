@@ -341,6 +341,16 @@ test('R1 rejects arbitrary nested cleanup fields and inconsistent SQLSTATE forwa
  }
 });
 
+test('native proof checkpoint is allowlisted metadata and cannot forward raw diagnostics',async()=>{
+ const base={...legacyRecord('40001'),primary:{category:'sql-error',sqlstate:'40001'},cleanup:[]};
+ const valid={...base,checkpoint:'concurrent-create'};
+ assert.deepEqual(parseProofFailureRecord(valid),valid);
+ const result=await childDiagnostic(valid,{suffix:'\n'});assert.deepEqual(result.proofFailure,valid);
+ for(const checkpoint of [secret,'unknown',null,{},'concurrent-create '+secret]){
+  assert.equal(parseProofFailureRecord({...base,checkpoint}),null);
+ }
+});
+
 for(const code of ['2BP01','42704','XX000','P0001','55000','42883','42804','22023'])test('snapshot records only allowlisted SQLSTATE '+code+' without raw server output',async()=>{
  const child=node('process.stderr.write('+JSON.stringify('ERROR:  '+code+' '+secret+'\n')+');process.exitCode=3;');child.stdout.resume();
  const result=await observeProcess(child,'restore');assert.equal(result.sqlstate,code);assert.ok(!JSON.stringify(result).includes(secret));

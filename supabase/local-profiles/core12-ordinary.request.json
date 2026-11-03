@@ -1,0 +1,192 @@
+{
+  "format": "core12-ordinary-fixture-request.v1",
+  "source_commit": "1eb8b5a1e522a529b39af02e32748756ee04dfec",
+  "source_seal": {
+    "files": {
+      "scripts/run-local-runtime-lane.py": "8f0a964041cb4c2a78ab37ec7fc5c36be817d106cb396f598e625ef62907068e",
+      "scripts/local_runtime_consumer.py": "b240725de9119e0176e49fb0bc55f4917ef8df79a9383cb8d77ed97ca579d439",
+      "scripts/run-acl02-pg-only.py": "bde75479e6b90c4ebec91742e19f8962d50b8842597b8362459d91dc0b5e5c4a",
+      "scripts/acl02_pg_adapter.py": "72d7a69026cfe5d0dd15d6d5d4394ef62c4fced016919064150d3bc5ab5c361a",
+      "scripts/acl02_pg_wire.py": "4fa852fbdb6047ec3c264e1fee53b6218d9db9abf8b462d29e10d24fc4b242c3",
+      "supabase/local-profiles/runtime-pg-only-acl02-v1.json": "aa394a6068f75a438a3118f63c949984745d8ce46fc9cb69c525e51dd67cfaaa",
+      "scripts/core12_ordinary_contract.py": "d2734ac224490a23e9f2904f5b3f1ea9d5831c61a001102ef26d8308e96eea1e",
+      "scripts/core12_ordinary_wire.py": "f7c2ab88780f82dfaf65d8037be7c1a0d130e631a3911080162cae3783b3e943",
+      "scripts/run-core12-ordinary.py": "8571de55c4a28e887af29c8d11a619619e61141bd07ce6b23f86e57de87f3a27",
+      "supabase/local-profiles/runtime-pg-only-core12-ordinary-v1.json": "2456f87cfd1ce0064c90d2f4fe3327a18a44c2ca325093b4f5bcabb6b6714533",
+      "supabase/local-profiles/core12-ordinary-v1/catalog-snapshot.sql": "74310697e7be4bc1cba661cbc818fa998cef02ab2eeafa1d819d3bb69927df48",
+      "supabase/local-profiles/core12-ordinary-v1/custodian-identity.sql": "e7cc9068437d03a5327d6b32592f8041baf7d7d5ed6a4ccb4c9943c6affce758",
+      "supabase/local-profiles/core12-ordinary-v1/ordinary-identity.sql": "5276e96dd503c99df7f0aa95137d5e908a493b4d029ddd80db3732377088257d",
+      "supabase/local-profiles/core12-ordinary-v1/setup-access.sql": "6bb549e3327494954fe85f0bbf38cc3b1c6ca014f679ef03c315b10995cb274a",
+      "supabase/local-profiles/core12-ordinary-v1/setup-database.sql": "fe09c4874e6fa4731a85802671593681259f8b94d0d897e86954b1842be38644",
+      "supabase/local-profiles/core12-ordinary-v1/setup-local.sql": "0025d408afaadd6aa8937db2315679ca1e12c45ce578d2ca35a02d1cb6ded64d",
+      "supabase/local-profiles/core12-ordinary-v1/setup-roles.sql": "bb074abb4e7d40e3b2d3796245ebd637a36ae9e1ae04c1ae1f241e17b0b0c15a"
+    },
+    "sha256": "628f3da8137b184e90fd66699826337d566150b73592f74aefbe3ee631a95703"
+  },
+  "profile_sha256": "2456f87cfd1ce0064c90d2f4fe3327a18a44c2ca325093b4f5bcabb6b6714533",
+  "witness": {
+    "bytes": 20744,
+    "sha256": "07072fdae234825786709260befa0b2c5337b0379ce852f072fdbfb9d17a9158",
+    "query_frame_bytes": 20750
+  },
+  "setup_order": [
+    "setup-roles",
+    "setup-database",
+    "setup-access",
+    "setup-local"
+  ],
+  "operations": {
+    "setup-roles": {
+      "file": "setup-roles.sql",
+      "actors": [
+        "custodian-root"
+      ],
+      "terminal_tag": "COMMIT"
+    },
+    "setup-database": {
+      "file": "setup-database.sql",
+      "actors": [
+        "custodian-root"
+      ],
+      "terminal_tag": "CREATE DATABASE"
+    },
+    "setup-access": {
+      "file": "setup-access.sql",
+      "actors": [
+        "custodian-root"
+      ],
+      "terminal_tag": "COMMIT"
+    },
+    "setup-local": {
+      "file": "setup-local.sql",
+      "actors": [
+        "custodian-target"
+      ],
+      "terminal_tag": "COMMIT"
+    },
+    "custodian-info": {
+      "file": "custodian-identity.sql",
+      "actors": [
+        "custodian-root"
+      ],
+      "terminal_tag": "SELECT 1"
+    },
+    "identity": {
+      "file": "ordinary-identity.sql",
+      "actors": [
+        "executor",
+        "observer"
+      ],
+      "terminal_tag": "SELECT 1"
+    },
+    "snapshot": {
+      "file": "catalog-snapshot.sql",
+      "actors": [
+        "observer"
+      ],
+      "terminal_tag": "ROLLBACK"
+    },
+    "witness": {
+      "file": null,
+      "actors": [
+        "executor"
+      ],
+      "terminal_tag": "ROLLBACK"
+    }
+  },
+  "sql_pins": {
+    "catalog-snapshot.sql": {
+      "bytes": 2609,
+      "sha256": "74310697e7be4bc1cba661cbc818fa998cef02ab2eeafa1d819d3bb69927df48"
+    },
+    "custodian-identity.sql": {
+      "bytes": 898,
+      "sha256": "e7cc9068437d03a5327d6b32592f8041baf7d7d5ed6a4ccb4c9943c6affce758"
+    },
+    "ordinary-identity.sql": {
+      "bytes": 1244,
+      "sha256": "5276e96dd503c99df7f0aa95137d5e908a493b4d029ddd80db3732377088257d"
+    },
+    "setup-access.sql": {
+      "bytes": 432,
+      "sha256": "6bb549e3327494954fe85f0bbf38cc3b1c6ca014f679ef03c315b10995cb274a"
+    },
+    "setup-database.sql": {
+      "bytes": 179,
+      "sha256": "fe09c4874e6fa4731a85802671593681259f8b94d0d897e86954b1842be38644"
+    },
+    "setup-local.sql": {
+      "bytes": 982,
+      "sha256": "0025d408afaadd6aa8937db2315679ca1e12c45ce578d2ca35a02d1cb6ded64d"
+    },
+    "setup-roles.sql": {
+      "bytes": 1095,
+      "sha256": "bb074abb4e7d40e3b2d3796245ebd637a36ae9e1ae04c1ae1f241e17b0b0c15a"
+    }
+  },
+  "actors": {
+    "custodian-root": {
+      "user": "postgres",
+      "database": "postgres",
+      "options": ""
+    },
+    "custodian-target": {
+      "user": "postgres",
+      "database": "core_sqlstate_boundary_proof",
+      "options": ""
+    },
+    "executor": {
+      "user": "core12_boundary_executor",
+      "database": "core_sqlstate_boundary_proof",
+      "options": "-c core12.reviewed_pg_only_capsule=core12-boundary-v1 -c search_path=pg_catalog"
+    },
+    "observer": {
+      "user": "core12_boundary_observer",
+      "database": "core_sqlstate_boundary_proof",
+      "options": "-c default_transaction_read_only=on -c search_path=pg_catalog"
+    }
+  },
+  "scope": [
+    "one-owned-pg17-fixture",
+    "exact-synthetic-role-db-setup",
+    "one-core12-boundary-witness",
+    "correlated-custodian-metadata",
+    "independent-baseline-and-residue",
+    "owned-rollback-and-cleanup"
+  ],
+  "planned_calls": 176,
+  "executed_calls": null,
+  "target": null,
+  "executor": null,
+  "observer": null,
+  "authority": null,
+  "execution_binding": null,
+  "registry": "EMPTY",
+  "live": "HOLD",
+  "setup_transactions": "roles/access/local commit separately; CREATE DATABASE alone; all synthetic resources die with owned CID",
+  "baseline": "independent read-only snapshot after setup before witness; persist before dispatch, never derive expected from candidate",
+  "system_identity": "custodian actual pg_control_system + actual pg_stat_activity PID/datid/app/backend_start, same owned CID; no ordinary grant/SECURITY DEFINER",
+  "wire": "same existing bounded PG reader/capture; closed versioned startup/query specialization; 20744 exact bytes in one20750-byte frame",
+  "deadlines_seconds": {
+    "pull": 180,
+    "command": 20,
+    "health": 65,
+    "wire_startup": 35,
+    "witness": 30,
+    "observer": 15,
+    "settlement": 5,
+    "relay_close": 2,
+    "cleanup_each": 20
+  },
+  "wire_limits": {
+    "bytes_per_connection": 1048576,
+    "frames_per_connection": 4096
+  },
+  "retry": false,
+  "terminal": "error-free same connection final DO,ROLLBACK and ReadyForQuery I; ACK after durable raw capture",
+  "recovery": "only same known non-quarantined T/E stream ROLLBACK and bounded owned read-only observation; never replay witness",
+  "residue": "complete snapshot and exact pre/post protected hash equality; zero witness functions/matrix; no temp-namespace exclusion",
+  "cleanup": "existing Lane cleanup/finalizer; all owned resources accounted; partial/unknown/duplicate/skip is not success",
+  "proof_scope": "synthetic exception clauses only; no canonical authorization or genuine SSI",
+  "historical_slots": "BLOCKED"
+}

@@ -1,0 +1,217 @@
+{
+  "contract": "documents-functional-upload-connection-requirements.v1",
+  "task": "DOCS-FUNCTIONAL-UPLOAD-11",
+  "shared_base": "ec639884452cc0cb6dfef520339791a5c20e9b39",
+  "status": "OPEN_REAL_PERSISTENCE_SCAN_DENIAL_REQUIRED",
+  "platform12": {
+    "full_sha": null,
+    "delivery_reference": null,
+    "target_identity": null,
+    "runtime_binding": null,
+    "required_identity": [
+      "owned isolated DEVELOPMENT only; not populated staging/Production",
+      "actual run/custody identity, image digests, named volume and backup/reset ownership",
+      "exact PG/Auth/REST/Storage URLs and database/system/namespace identity; secret selectors only",
+      "persistent development product data retained across app/worker restart; test data namespace isolated"
+    ],
+    "storage": {
+      "bucket_id": "document-vault",
+      "public": false,
+      "max_size_bytes": 20971520,
+      "required_policy": [
+        "INSERT only on explicit current authorized unconsumed canonical intent for same actor/tenant/Context/Workspace/path and expiry",
+        "no anonymous access, no public URL, no application UPDATE/upsert/move/copy/delete",
+        "no generic service_role fallback for application upload/read",
+        "server/scanner read only under their actual scoped identities; no arbitrary direct client download bypass",
+        "actual non-overwrite/custody evidence; upload upsert=false or ETag/version alone is NOT that evidence"
+      ],
+      "api": [
+        "Supabase Storage upload with upsert=false",
+        "info exact bucket/path/object UUID/version/ETag/size/contentType",
+        "download full bytes -> recomputed SHA256/byte count/magic MIME -> second info identity check"
+      ],
+      "verification": "Existing DocumentsStoredObjectVerifierV1 actual admitted producer must bind measurement+non_overwritable before Core transaction; readback adapter alone is NOT a verified brand"
+    },
+    "scanner": {
+      "binary": "real ClamAV via existing scripts/document-clamav-worker.mjs",
+      "signatures": "freshclam succeeds; signatures <=2 days; actual engine version; no injected run/clean verdict",
+      "entry": "scanVaultDocumentOnceV1({client,workerId}) from scripts/documents-vault-scan-once-v1.mjs",
+      "scope": "Vault queue only, no fallback to internal-message-vault/case-vault",
+      "principal": "separately reviewed limited scanner identity/custody; no generic service_role credential fallback",
+      "required_rpcs": [
+        "public.claim_document_scan_job_v1(text,integer)",
+        "public.get_document_scan_target_v1(uuid)",
+        "public.complete_document_scan_job_v1(uuid,uuid,uuid,text,text,text,timestamptz)",
+        "public.fail_document_scan_job_v1(uuid,uuid,text,integer)"
+      ],
+      "existing_rpc_dependency": [
+        "public.record_document_scan_v1(uuid,uuid,text,text,text,timestamptz)",
+        "public.get_document_scan_queue_status_v1()"
+      ],
+      "evidence": [
+        "actual job/lease/version/hash/engine/signature and private scan output",
+        "canonical immutable document_scan_attestations row, same bytes/hash, guarded version verdict update",
+        "unknown/stale signatures/timeout/failed persistence remains unavailable, never clean"
+      ]
+    },
+    "not_yet_authorized_or_observed": "No actual target/scanner connection or credentials have been supplied; do not create a fake descriptor"
+  },
+  "core15": {
+    "full_sha": null,
+    "delivery_reference": null,
+    "abi": null,
+    "runtime_binding": null,
+    "required_outputs": [
+      "actual server-issued synthetic session/AAL2 and current authority revision, actor from verified server session only",
+      "Documents role-bound host/pool with real principal/effective ACL/RLS and current canonical authority",
+      "server-owned Context/explicit Workspace/tenant/command context and custody, no UI actor/revision/tenant inference",
+      "exact resource/version/current read permission before outward metadata/body; check again after Storage/network waits",
+      "actual same-scope lifecycle/scan/checksum/permission/version/hold check and expiry/revoke denial after waits",
+      "final response/body release binding to actual Storage object ID/generation/ETag/SHA/size + current target, no historical MATCH as authority",
+      "full schema/installer closure, actual catalog/function/trigger owner/ACL/RLS and durable data readback capability"
+    ],
+    "existing_ports_to_consume": [
+      "CoreTransactionHostV1",
+      "CoreTransactionScopeV1",
+      "canonical resolveAuthority/bindCanonicalCurrentAuthorityObservationV1",
+      "existing Documents new intent/finalization and replacement/promotion providers",
+      "selectDocumentsReferenceInCoreTransactionV1 and selectDocumentsReferenceCurrentStateV1"
+    ],
+    "no_guessed_abi": "No Core15 exports/interfaces/allow callback/session claims or new roles are invented"
+  },
+  "documents": {
+    "implemented_independent_components": [
+      "documents-storage-readback-v1.ts",
+      "documents-functional-download-provider-v1.ts",
+      "documents-functional-commands-v1.ts",
+      "documents-vault-scan-once-v1.mjs"
+    ],
+    "writer_fields": [
+      "upload_intents.workspace_id/prospective_document_id/operation_kind/expected_parent_version_id",
+      "committed_document_id/committed_version_id/verified_storage_object_id/verified_storage_generation/verified_storage_etag/verified_sha256/verified_size_bytes",
+      "document_versions.upload_intent_id/replaces_version_id/bucket_id/storage_object_id/storage_generation/storage_etag"
+    ],
+    "invariants": [
+      "explicit Workspace immutable on initial INSERT only; no historical NULL backfill/rebind/default/inference",
+      "initial version checksum verified and scan deferred until real worker attestation",
+      "replacement immutable candidate does not promote before clean; canonical locked attestation and parent CAS",
+      "existing ledgers/stores only; no new domain/audit/outbox/idempotency stores",
+      "private candidate/Storage metadata is not outward permission; route maintenance remains until actual bindings",
+      "both CE historical slots BLOCKED; standalone upload must not depend on CE receipt/MATCH"
+    ],
+    "file_policy": "existing canonical MIME allowlist/safe filename/max20MiB; server magic bytes+SHA, active/zero/oversize rejection",
+    "historical_match_authority": false
+  },
+  "native_acceptance": [
+    {
+      "scenario": "real synthetic upload through API and scoped Storage; independent readback exact bytes/hash",
+      "status": "NOT_RUN_NOT_PASS"
+    },
+    {
+      "scenario": "actual ClamAV scan/job/immutable attestation and clean only after real result",
+      "status": "NOT_RUN_NOT_PASS"
+    },
+    {
+      "scenario": "same document/version/scanner state survive application and worker restart",
+      "status": "NOT_RUN_NOT_PASS"
+    },
+    {
+      "scenario": "authorized download after restart with current Core15 target/custody/session guard",
+      "status": "NOT_RUN_NOT_PASS"
+    },
+    {
+      "scenario": "different reader/same tenant cross-Workspace/cross-tenant denial without label/body disclosure",
+      "status": "NOT_RUN_NOT_PASS"
+    },
+    {
+      "scenario": "revoke and expiry across waits denied before response bytes release",
+      "status": "NOT_RUN_NOT_PASS"
+    },
+    {
+      "scenario": "replacement candidate stays unavailable until real clean then exact parent CAS; old target denied",
+      "status": "NOT_RUN_NOT_PASS"
+    },
+    {
+      "scenario": "unknown upload/finalization/scan ACK retains original command/key; no duplicate document/version",
+      "status": "NOT_RUN_NOT_PASS"
+    },
+    {
+      "scenario": "RLS/ACL/no direct Storage bypass and no service_role fallback",
+      "status": "NOT_RUN_NOT_PASS"
+    }
+  ],
+  "migration_policy": "No new migration generated here. Existing files immutable; install in canonical GLOBAL order only on verified owned isolated dev target. Preserve guards. Supabase schema_migrations presence/digest is not a file-byte hash.",
+  "remote_staging_production": "NO_OPERATIONS",
+  "automation": {
+    "classification": "نیازمند بررسی",
+    "value_measured": null
+  },
+  "documents_migration_preimages": [
+    {
+      "path": "supabase/migrations/20260909133706_secure_documents_evidence_vault.sql",
+      "bytes": 59270,
+      "sha256": "2ce2159b0b8cfb6c80323e6260ce28a8e0773ce8be2e143ab22d835b2a087e71"
+    },
+    {
+      "path": "supabase/migrations/20260927211439_document_vault_clamav_attestation.sql",
+      "bytes": 8656,
+      "sha256": "ac040ce45f823141e57fbd545de40e4ef0016964844a5595f5dd9d6f08cfc992"
+    },
+    {
+      "path": "supabase/migrations/20260927211448_document_vault_scan_queue.sql",
+      "bytes": 9324,
+      "sha256": "4a840d34bd7bf03c0a5ca68050fefcc62250232f02ceba695ca4c58793973700"
+    },
+    {
+      "path": "supabase/migrations/20260928042750_document_vault_storage_intent_rls.sql",
+      "bytes": 1261,
+      "sha256": "34aa45f269042ac0d409103040d3e39968320da76cad81f770a77bcac430935f"
+    },
+    {
+      "path": "supabase/migrations/20261013063739_document_reference_exact_workspace_v1.sql",
+      "bytes": 1045,
+      "sha256": "988a8ddea361421cf6d75700ac3b0332c59ef0e10862201d2c2da0db48f91c51"
+    },
+    {
+      "path": "supabase/migrations/20261014083050_document_workspace_binding_writer_v1.sql",
+      "bytes": 2336,
+      "sha256": "1e7b64b5e623b9ca9f3eee43e1b41ac61f9fe9be008d1c59fa90e68d9ed3804d"
+    },
+    {
+      "path": "supabase/migrations/20261014200948_document_null_workspace_creation_closure_v1.sql",
+      "bytes": 3843,
+      "sha256": "5d8b2b6d68868001e7fdc6085c87aabe5568917d271a84192734c9643e8496e8"
+    },
+    {
+      "path": "supabase/migrations/20261018092958_documents_legacy_creation_rpc_shutdown_v1.sql",
+      "bytes": 4494,
+      "sha256": "d14a34f39242e2d05b16a713faa4fca1d5d45c2f59795495300046f6f6d39438"
+    },
+    {
+      "path": "supabase/migrations/20261018094131_documents_canonical_storage_identity_v1.sql",
+      "bytes": 13225,
+      "sha256": "34b1ea7f98ef235db3113775d3bee660f8de021768a8217ba2dcc208aceacf8b"
+    },
+    {
+      "path": "supabase/migrations/20261018130000_documents_replacement_promotion_after_clean_v1.sql",
+      "bytes": 5332,
+      "sha256": "896d54f54b6a531f7c65a45198257b99471c8c05afc216cb8768247d8215d249"
+    },
+    {
+      "path": "supabase/migrations/20261018133000_documents_vault_download_exact_workspace_v2.sql",
+      "bytes": 5666,
+      "sha256": "38640d7d60b122966a8e18fe1a56d643f60022b4722998b70a1d8619c2d9c6a4"
+    },
+    {
+      "path": "supabase/migrations/20261018150000_documents_retention_lifecycle_workspace_gate_v2.sql",
+      "bytes": 5333,
+      "sha256": "53ca525fbd9970cc7260e28c60cf6e956c58e1e02cd33f63ef07c9337cc8436a"
+    },
+    {
+      "path": "supabase/migrations/20261018151500_documents_service_role_acl_cleanup_v1.sql",
+      "bytes": 9291,
+      "sha256": "756852f145ef156f1afba777b08f6bf2f179bef9c17dc033e078eea99993f56b"
+    }
+  ],
+  "migration_preimages_scope": "Documents-specific required subset, NOT an independently installable global dependency closure; Core15 must bind foundation/auth/workspace/role-safety/storage dependencies and full installed catalog."
+}

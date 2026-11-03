@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { createCe012GuideReadCutoverV1 } from '@/lib/community/experience-guide-functional-http-v1';
 import { createClient } from '@/lib/supabase/server';
 import { ce012CommandSchema } from '@/lib/community/experience-guide-schema';
 import { hasTrustedMutationOrigin } from '@/lib/security/same-origin';
@@ -21,7 +22,7 @@ function rpcFailure(error: { code?: string }) {
   return fail('CE_GUIDE_QUERY_FAILED', 500);
 }
 
-export async function GET(request: NextRequest) {
+async function readExistingGuides(request: NextRequest) {
   const allowed = ['context_id', 'workspace_id', 'reference_id'];
   const raw = Object.fromEntries(request.nextUrl.searchParams);
   if (Array.from(request.nextUrl.searchParams.keys()).some((key) => !allowed.includes(key))
@@ -48,6 +49,8 @@ export async function GET(request: NextRequest) {
   if (data == null) return fail('CE_GUIDE_QUERY_FAILED', 500);
   return NextResponse.json(data, { headers: HEADERS });
 }
+
+export const GET = createCe012GuideReadCutoverV1(readExistingGuides);
 
 export async function POST(request: NextRequest) {
   if (!hasTrustedMutationOrigin(request)) return fail('BAD_ORIGIN', 403);

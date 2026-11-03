@@ -1,0 +1,4538 @@
+{
+  "format": "platform15.acl-review.v1",
+  "private_snapshot_sha256": "1b731fc0dd16c558987b3fdfb7fb56602dca26cbbbf0e6fb80418c3d8391a04e",
+  "relations": [
+    {
+      "name": "storage.buckets",
+      "kind": "r",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "acl_representation": "EXPLICIT",
+      "access": {
+        "anon": {
+          "direct": [
+            {
+              "grantee": "anon",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "INSERT"
+            },
+            {
+              "grantee": "anon",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            },
+            {
+              "grantee": "anon",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "UPDATE"
+            },
+            {
+              "grantee": "anon",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "DELETE"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [
+            {
+              "grantee": "authenticated",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "INSERT"
+            },
+            {
+              "grantee": "authenticated",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            },
+            {
+              "grantee": "authenticated",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "UPDATE"
+            },
+            {
+              "grantee": "authenticated",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "DELETE"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "INSERT"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "UPDATE"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "DELETE"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRUNCATE"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "REFERENCES"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRIGGER"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "MAINTAIN"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "INSERT"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "UPDATE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "DELETE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRUNCATE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "REFERENCES"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRIGGER"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "MAINTAIN"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": true
+        }
+      },
+      "acl_summary": [
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "INSERT"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "UPDATE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "DELETE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRUNCATE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "REFERENCES"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRIGGER"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "MAINTAIN"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": true,
+          "privilege_type": "INSERT"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": true,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": true,
+          "privilege_type": "UPDATE"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": true,
+          "privilege_type": "DELETE"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": true,
+          "privilege_type": "TRUNCATE"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": true,
+          "privilege_type": "REFERENCES"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": true,
+          "privilege_type": "TRIGGER"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": true,
+          "privilege_type": "MAINTAIN"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "INSERT"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "UPDATE"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "DELETE"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRUNCATE"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "REFERENCES"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRIGGER"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "MAINTAIN"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "INSERT"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "UPDATE"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "DELETE"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "INSERT"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "UPDATE"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "DELETE"
+        }
+      ],
+      "rls": true,
+      "force_rls": false,
+      "policies": [],
+      "column_acl_count": 0,
+      "catalog_shape_sha256": "3a93274f076a8a2833179bd36ef93c91080944e93726bd853dee2afadcc31fee",
+      "effect": "Owner bypasses non-FORCE RLS. Non-owner DML default-denied with no policies. RLS does not constrain TRUNCATE/REFERENCES/TRIGGER/MAINTAIN."
+    },
+    {
+      "name": "storage.buckets_analytics",
+      "kind": "r",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "acl_representation": "EXPLICIT",
+      "access": {
+        "anon": {
+          "direct": [
+            {
+              "grantee": "anon",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "INSERT"
+            },
+            {
+              "grantee": "anon",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            },
+            {
+              "grantee": "anon",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "UPDATE"
+            },
+            {
+              "grantee": "anon",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "DELETE"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [
+            {
+              "grantee": "authenticated",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "INSERT"
+            },
+            {
+              "grantee": "authenticated",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            },
+            {
+              "grantee": "authenticated",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "UPDATE"
+            },
+            {
+              "grantee": "authenticated",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "DELETE"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "INSERT"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "UPDATE"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "DELETE"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRUNCATE"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "REFERENCES"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRIGGER"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "MAINTAIN"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "INSERT"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "UPDATE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "DELETE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRUNCATE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "REFERENCES"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRIGGER"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "MAINTAIN"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": true
+        }
+      },
+      "acl_summary": [
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "INSERT"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "UPDATE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "DELETE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRUNCATE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "REFERENCES"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRIGGER"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "MAINTAIN"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "INSERT"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "UPDATE"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "DELETE"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRUNCATE"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "REFERENCES"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRIGGER"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "MAINTAIN"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "INSERT"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "UPDATE"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "DELETE"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "INSERT"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "UPDATE"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "DELETE"
+        }
+      ],
+      "rls": true,
+      "force_rls": false,
+      "policies": [],
+      "column_acl_count": 0,
+      "catalog_shape_sha256": "f32eaae05d4ee9f58325eb7206d36c1255dc54ce9aa7792898c55c34423d2053",
+      "effect": "Owner bypasses non-FORCE RLS. Non-owner DML default-denied with no policies. RLS does not constrain TRUNCATE/REFERENCES/TRIGGER/MAINTAIN."
+    },
+    {
+      "name": "storage.buckets_vectors",
+      "kind": "r",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "acl_representation": "EXPLICIT",
+      "access": {
+        "anon": {
+          "direct": [
+            {
+              "grantee": "anon",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [
+            {
+              "grantee": "authenticated",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "INSERT"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "UPDATE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "DELETE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRUNCATE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "REFERENCES"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRIGGER"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "MAINTAIN"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": true
+        }
+      },
+      "acl_summary": [
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "INSERT"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "UPDATE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "DELETE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRUNCATE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "REFERENCES"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRIGGER"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "MAINTAIN"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        }
+      ],
+      "rls": true,
+      "force_rls": false,
+      "policies": [],
+      "column_acl_count": 0,
+      "catalog_shape_sha256": "984dbac770375278ecc5767dcc177ee4475372bea727923a1fc1706007b5ff20",
+      "effect": "Owner bypasses non-FORCE RLS. Non-owner DML default-denied with no policies. RLS does not constrain TRUNCATE/REFERENCES/TRIGGER/MAINTAIN."
+    },
+    {
+      "name": "storage.iceberg_namespaces",
+      "kind": "r",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "acl_representation": "EXPLICIT",
+      "access": {
+        "anon": {
+          "direct": [
+            {
+              "grantee": "anon",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [
+            {
+              "grantee": "authenticated",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "INSERT"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "UPDATE"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "DELETE"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRUNCATE"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "REFERENCES"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRIGGER"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "MAINTAIN"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "INSERT"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "UPDATE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "DELETE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRUNCATE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "REFERENCES"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRIGGER"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "MAINTAIN"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": true
+        }
+      },
+      "acl_summary": [
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "INSERT"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "UPDATE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "DELETE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRUNCATE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "REFERENCES"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRIGGER"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "MAINTAIN"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "INSERT"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "UPDATE"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "DELETE"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRUNCATE"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "REFERENCES"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRIGGER"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "MAINTAIN"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        }
+      ],
+      "rls": true,
+      "force_rls": false,
+      "policies": [],
+      "column_acl_count": 0,
+      "catalog_shape_sha256": "9a7f9aa00fc551c8731529510496d10d4fee2ea6a792bd4024bccd52f4e13820",
+      "effect": "Owner bypasses non-FORCE RLS. Non-owner DML default-denied with no policies. RLS does not constrain TRUNCATE/REFERENCES/TRIGGER/MAINTAIN."
+    },
+    {
+      "name": "storage.iceberg_tables",
+      "kind": "r",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "acl_representation": "EXPLICIT",
+      "access": {
+        "anon": {
+          "direct": [
+            {
+              "grantee": "anon",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [
+            {
+              "grantee": "authenticated",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "INSERT"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "UPDATE"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "DELETE"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRUNCATE"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "REFERENCES"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRIGGER"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "MAINTAIN"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "INSERT"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "UPDATE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "DELETE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRUNCATE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "REFERENCES"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRIGGER"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "MAINTAIN"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": true
+        }
+      },
+      "acl_summary": [
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "INSERT"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "UPDATE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "DELETE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRUNCATE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "REFERENCES"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRIGGER"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "MAINTAIN"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "INSERT"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "UPDATE"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "DELETE"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRUNCATE"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "REFERENCES"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRIGGER"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "MAINTAIN"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        }
+      ],
+      "rls": true,
+      "force_rls": false,
+      "policies": [],
+      "column_acl_count": 0,
+      "catalog_shape_sha256": "f52f839847fbdfbc17adf5d58b4547c3c8202110aeeeb67a5ee6e2ed2a3e6048",
+      "effect": "Owner bypasses non-FORCE RLS. Non-owner DML default-denied with no policies. RLS does not constrain TRUNCATE/REFERENCES/TRIGGER/MAINTAIN."
+    },
+    {
+      "name": "storage.migrations",
+      "kind": "r",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "acl_representation": "NULL_DEFAULT",
+      "access": {
+        "anon": {
+          "direct": [],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "INSERT"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "UPDATE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "DELETE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRUNCATE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "REFERENCES"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRIGGER"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "MAINTAIN"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": true
+        }
+      },
+      "acl_summary": [
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "INSERT"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "UPDATE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "DELETE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRUNCATE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "REFERENCES"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRIGGER"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "MAINTAIN"
+        }
+      ],
+      "rls": true,
+      "force_rls": false,
+      "policies": [],
+      "column_acl_count": 0,
+      "catalog_shape_sha256": "5511dc74ceb57b3bd745e1f776fb8750155c4d9e8dcdf0dc2618be6eb16c9ef7",
+      "effect": "Owner bypasses non-FORCE RLS. Non-owner DML default-denied with no policies. RLS does not constrain TRUNCATE/REFERENCES/TRIGGER/MAINTAIN."
+    },
+    {
+      "name": "storage.objects",
+      "kind": "r",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "acl_representation": "EXPLICIT",
+      "access": {
+        "anon": {
+          "direct": [
+            {
+              "grantee": "anon",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "INSERT"
+            },
+            {
+              "grantee": "anon",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            },
+            {
+              "grantee": "anon",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "UPDATE"
+            },
+            {
+              "grantee": "anon",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "DELETE"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [
+            {
+              "grantee": "authenticated",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "INSERT"
+            },
+            {
+              "grantee": "authenticated",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            },
+            {
+              "grantee": "authenticated",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "UPDATE"
+            },
+            {
+              "grantee": "authenticated",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "DELETE"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "INSERT"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "UPDATE"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "DELETE"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRUNCATE"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "REFERENCES"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRIGGER"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "MAINTAIN"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "INSERT"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "UPDATE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "DELETE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRUNCATE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "REFERENCES"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRIGGER"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "MAINTAIN"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": true
+        }
+      },
+      "acl_summary": [
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "INSERT"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "UPDATE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "DELETE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRUNCATE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "REFERENCES"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRIGGER"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "MAINTAIN"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": true,
+          "privilege_type": "INSERT"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": true,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": true,
+          "privilege_type": "UPDATE"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": true,
+          "privilege_type": "DELETE"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": true,
+          "privilege_type": "TRUNCATE"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": true,
+          "privilege_type": "REFERENCES"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": true,
+          "privilege_type": "TRIGGER"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": true,
+          "privilege_type": "MAINTAIN"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "INSERT"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "UPDATE"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "DELETE"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRUNCATE"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "REFERENCES"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRIGGER"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "MAINTAIN"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "INSERT"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "UPDATE"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "DELETE"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "INSERT"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "UPDATE"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "DELETE"
+        }
+      ],
+      "rls": true,
+      "force_rls": false,
+      "policies": [],
+      "column_acl_count": 0,
+      "catalog_shape_sha256": "82f2237ca73a3bf6d689767ae861af6385dec189ee70aa33e3b222baeadd4e3d",
+      "effect": "Owner bypasses non-FORCE RLS. Non-owner DML default-denied with no policies. RLS does not constrain TRUNCATE/REFERENCES/TRIGGER/MAINTAIN."
+    },
+    {
+      "name": "storage.s3_multipart_uploads",
+      "kind": "r",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "acl_representation": "EXPLICIT",
+      "access": {
+        "anon": {
+          "direct": [
+            {
+              "grantee": "anon",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [
+            {
+              "grantee": "authenticated",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "INSERT"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "UPDATE"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "DELETE"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRUNCATE"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "REFERENCES"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRIGGER"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "MAINTAIN"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "INSERT"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "UPDATE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "DELETE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRUNCATE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "REFERENCES"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRIGGER"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "MAINTAIN"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": true
+        }
+      },
+      "acl_summary": [
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "INSERT"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "UPDATE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "DELETE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRUNCATE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "REFERENCES"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRIGGER"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "MAINTAIN"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "INSERT"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "UPDATE"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "DELETE"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRUNCATE"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "REFERENCES"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRIGGER"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "MAINTAIN"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        }
+      ],
+      "rls": true,
+      "force_rls": false,
+      "policies": [],
+      "column_acl_count": 0,
+      "catalog_shape_sha256": "a7a94fafa7c027596797fce0013d632ffbe3513fc13e85151b227cfd3251c92c",
+      "effect": "Owner bypasses non-FORCE RLS. Non-owner DML default-denied with no policies. RLS does not constrain TRUNCATE/REFERENCES/TRIGGER/MAINTAIN."
+    },
+    {
+      "name": "storage.s3_multipart_uploads_parts",
+      "kind": "r",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "acl_representation": "EXPLICIT",
+      "access": {
+        "anon": {
+          "direct": [
+            {
+              "grantee": "anon",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [
+            {
+              "grantee": "authenticated",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "INSERT"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "UPDATE"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "DELETE"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRUNCATE"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "REFERENCES"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRIGGER"
+            },
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "MAINTAIN"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "INSERT"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "UPDATE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "DELETE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRUNCATE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "REFERENCES"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRIGGER"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "MAINTAIN"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": true
+        }
+      },
+      "acl_summary": [
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "INSERT"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "UPDATE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "DELETE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRUNCATE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "REFERENCES"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRIGGER"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "MAINTAIN"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "INSERT"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "UPDATE"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "DELETE"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRUNCATE"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "REFERENCES"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRIGGER"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "MAINTAIN"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        }
+      ],
+      "rls": true,
+      "force_rls": false,
+      "policies": [],
+      "column_acl_count": 0,
+      "catalog_shape_sha256": "a574756a78b3f251177324feedb80128b026ae3283389f7d9c4daf315d873317",
+      "effect": "Owner bypasses non-FORCE RLS. Non-owner DML default-denied with no policies. RLS does not constrain TRUNCATE/REFERENCES/TRIGGER/MAINTAIN."
+    },
+    {
+      "name": "storage.vector_indexes",
+      "kind": "r",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "acl_representation": "EXPLICIT",
+      "access": {
+        "anon": {
+          "direct": [
+            {
+              "grantee": "anon",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [
+            {
+              "grantee": "authenticated",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [
+            {
+              "grantee": "service_role",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "INSERT"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "SELECT"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "UPDATE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "DELETE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRUNCATE"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "REFERENCES"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "TRIGGER"
+            },
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "MAINTAIN"
+            }
+          ],
+          "inherited": [],
+          "public": [],
+          "owner": true
+        }
+      },
+      "acl_summary": [
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "INSERT"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "UPDATE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "DELETE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRUNCATE"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "REFERENCES"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "TRIGGER"
+        },
+        {
+          "grantee": "supabase_storage_admin",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "MAINTAIN"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "supabase_storage_admin",
+          "is_grantable": false,
+          "privilege_type": "SELECT"
+        }
+      ],
+      "rls": true,
+      "force_rls": false,
+      "policies": [],
+      "column_acl_count": 0,
+      "catalog_shape_sha256": "7b35d6f795875b70b7df8ad2fc3e21a4cddc544d631201334d72640346de636e",
+      "effect": "Owner bypasses non-FORCE RLS. Non-owner DML default-denied with no policies. RLS does not constrain TRUNCATE/REFERENCES/TRIGGER/MAINTAIN."
+    }
+  ],
+  "functions": [
+    {
+      "signature": "storage.allow_any_operation(text[])",
+      "result": "boolean",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "access": {
+        "anon": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": true
+        }
+      },
+      "raw_acl_is_null": true,
+      "security": "INVOKER",
+      "search_path": "AMBIENT_NOT_PINNED",
+      "language": "sql",
+      "definition_bytes": 791,
+      "definition_sha256": "a4ae3c8d1258ced584d91fed4bf7a9b0729937dd07cfe7d5fe45b2808a12b966",
+      "scope_review": "Compares operation labels, not actor authority; invoker. Operation GUC is not an authorization envelope.",
+      "execution_in_native_harness": "NO_DIRECT_FUNCTION_INVOCATION; existing table triggers may fire"
+    },
+    {
+      "signature": "storage.allow_only_operation(text)",
+      "result": "boolean",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "access": {
+        "anon": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": true
+        }
+      },
+      "raw_acl_is_null": true,
+      "security": "INVOKER",
+      "search_path": "AMBIENT_NOT_PINNED",
+      "language": "sql",
+      "definition_bytes": 773,
+      "definition_sha256": "a12f88ff4e00a9a63c24a93ea5b120e790be63a3555e840656c6525ff6dc0a85",
+      "scope_review": "Operation-label predicate only; no actor/tenant binding; invoker.",
+      "execution_in_native_harness": "NO_DIRECT_FUNCTION_INVOCATION; existing table triggers may fire"
+    },
+    {
+      "signature": "storage.can_insert_object(text,text,uuid,jsonb)",
+      "result": "void",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "access": {
+        "anon": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": true
+        }
+      },
+      "raw_acl_is_null": true,
+      "security": "INVOKER",
+      "search_path": "AMBIENT_NOT_PINNED",
+      "language": "plpgsql",
+      "definition_bytes": 433,
+      "definition_sha256": "d6a14645c2a2a394b759f3fb6bbbe5b67cceb6b8c4229a3e7e6c27e1f98c25cf",
+      "scope_review": "Attempts caller-scoped object INSERT then raises rollback sentinel. No own actor authorization; table ACL/RLS still required.",
+      "execution_in_native_harness": "NO_DIRECT_FUNCTION_INVOCATION; existing table triggers may fire"
+    },
+    {
+      "signature": "storage.enforce_bucket_lifecycle_service_role()",
+      "result": "trigger",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "access": {
+        "anon": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": true
+        }
+      },
+      "raw_acl_is_null": true,
+      "security": "INVOKER",
+      "search_path": [
+        "search_path=pg_catalog"
+      ],
+      "language": "plpgsql",
+      "definition_bytes": 940,
+      "definition_sha256": "1cb7aecc95a27f8600fc8e7aab11f6a40b9b46a5cb86e02438f3af9642a0d2c4",
+      "scope_review": "Trigger checks current role against configured trigger role argument; bucket control columns. Not an actor ownership check.",
+      "execution_in_native_harness": "NO_DIRECT_FUNCTION_INVOCATION; existing table triggers may fire"
+    },
+    {
+      "signature": "storage.enforce_bucket_name_length()",
+      "result": "trigger",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "access": {
+        "anon": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": true
+        }
+      },
+      "raw_acl_is_null": true,
+      "security": "INVOKER",
+      "search_path": "AMBIENT_NOT_PINNED",
+      "language": "plpgsql",
+      "definition_bytes": 309,
+      "definition_sha256": "bf9dcf9beab8062d27f9f6f5db850fac0c22423d6d62d31a3fe9622b1244336e",
+      "scope_review": "Trigger validates bucket name length; no actor/scope authority.",
+      "execution_in_native_harness": "NO_DIRECT_FUNCTION_INVOCATION; existing table triggers may fire"
+    },
+    {
+      "signature": "storage.enforce_versioning_status_transition()",
+      "result": "trigger",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "access": {
+        "anon": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": true
+        }
+      },
+      "raw_acl_is_null": true,
+      "security": "INVOKER",
+      "search_path": "AMBIENT_NOT_PINNED",
+      "language": "plpgsql",
+      "definition_bytes": 539,
+      "definition_sha256": "fcd699a13272ce769d3a94322d3a150562ea8c6fd191018e025f67815776fff5",
+      "scope_review": "Trigger restricts versioning transitions; no actor authorization.",
+      "execution_in_native_harness": "NO_DIRECT_FUNCTION_INVOCATION; existing table triggers may fire"
+    },
+    {
+      "signature": "storage.extension(text)",
+      "result": "text",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "access": {
+        "anon": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": true
+        }
+      },
+      "raw_acl_is_null": true,
+      "security": "INVOKER",
+      "search_path": "AMBIENT_NOT_PINNED",
+      "language": "plpgsql",
+      "definition_bytes": 515,
+      "definition_sha256": "839c088c388a275fdfd10d7d909f12b55e643c8ba8a2c6ef674b62c641113b94",
+      "scope_review": "Pure path/string helper; no actor authorization or row access.",
+      "execution_in_native_harness": "NO_DIRECT_FUNCTION_INVOCATION; existing table triggers may fire"
+    },
+    {
+      "signature": "storage.filename(text)",
+      "result": "text",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "access": {
+        "anon": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": true
+        }
+      },
+      "raw_acl_is_null": true,
+      "security": "INVOKER",
+      "search_path": "AMBIENT_NOT_PINNED",
+      "language": "plpgsql",
+      "definition_bytes": 255,
+      "definition_sha256": "6616e7416f58bfe6bcb2a58f1da44477d79e1383430a958dd6b2b854668817f0",
+      "scope_review": "Pure path/string helper; no actor authorization or row access.",
+      "execution_in_native_harness": "NO_DIRECT_FUNCTION_INVOCATION; existing table triggers may fire"
+    },
+    {
+      "signature": "storage.foldername(text)",
+      "result": "text[]",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "access": {
+        "anon": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": true
+        }
+      },
+      "raw_acl_is_null": true,
+      "security": "INVOKER",
+      "search_path": "AMBIENT_NOT_PINNED",
+      "language": "plpgsql",
+      "definition_bytes": 356,
+      "definition_sha256": "a673a01626cb42e9eb507eb18e4cb038ce5db1da875a22e254df2ebb597bd2bc",
+      "scope_review": "Pure path/string helper; no actor authorization or row access.",
+      "execution_in_native_harness": "NO_DIRECT_FUNCTION_INVOCATION; existing table triggers may fire"
+    },
+    {
+      "signature": "storage.get_common_prefix(text,text,text)",
+      "result": "text",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "access": {
+        "anon": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": true
+        }
+      },
+      "raw_acl_is_null": true,
+      "security": "INVOKER",
+      "search_path": "AMBIENT_NOT_PINNED",
+      "language": "sql",
+      "definition_bytes": 486,
+      "definition_sha256": "62810fa1178c7e748df4393fca51900b36841187fcbcfa79740d45ea54b4357d",
+      "scope_review": "Pure prefix helper; no actor authorization or row access.",
+      "execution_in_native_harness": "NO_DIRECT_FUNCTION_INVOCATION; existing table triggers may fire"
+    },
+    {
+      "signature": "storage.get_size_by_bucket(text,text)",
+      "result": "TABLE(size bigint, bucket_id text)",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "access": {
+        "anon": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": true
+        }
+      },
+      "raw_acl_is_null": true,
+      "security": "INVOKER",
+      "search_path": "AMBIENT_NOT_PINNED",
+      "language": "plpgsql",
+      "definition_bytes": 1229,
+      "definition_sha256": "25ec89ec6e8b55554c0403487a7f83f9331d13b3a01d1f5e44d56857cec8476e",
+      "scope_review": "Caller-selected bucket/version filters and object aggregation; no actor predicate of its own; invoker ACL/RLS boundary.",
+      "execution_in_native_harness": "NO_DIRECT_FUNCTION_INVOCATION; existing table triggers may fire"
+    },
+    {
+      "signature": "storage.list_multipart_uploads_with_delimiter(text,text,text,integer,text,text,text)",
+      "result": "TABLE(key text, id text, created_at timestamp with time zone)",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "access": {
+        "anon": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": true
+        }
+      },
+      "raw_acl_is_null": true,
+      "security": "INVOKER",
+      "search_path": "AMBIENT_NOT_PINNED",
+      "language": "sql",
+      "definition_bytes": 2378,
+      "definition_sha256": "80bf7eb30e8b8b54536a0fbcc34f0da11310c375d56d358ca591d9e675e1e30e",
+      "scope_review": "Caller-supplied bucket/prefix/cursor filters; invoker multipart-table RLS, not a canonical actor check.",
+      "execution_in_native_harness": "NO_DIRECT_FUNCTION_INVOCATION; existing table triggers may fire"
+    },
+    {
+      "signature": "storage.list_objects_with_delimiter(text,text,text,integer,text,text,text,text,text,timestamp with time zone,text)",
+      "result": "TABLE(name text, id uuid, metadata jsonb, updated_at timestamp with time zone, created_at timestamp with time zone, last_accessed_at timestamp with time zone, version text, archived_at timestamp with time zone, is_delete_marker boolean, is_versioned boolean)",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "access": {
+        "anon": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": true
+        }
+      },
+      "raw_acl_is_null": true,
+      "security": "INVOKER",
+      "search_path": "AMBIENT_NOT_PINNED",
+      "language": "plpgsql",
+      "definition_bytes": 32892,
+      "definition_sha256": "2ea5b0041a685b122bc06e975e186c7b8bb6159c4561ff1e82c9ee142230a30e",
+      "scope_review": "Bucket/prefix/version/cursor filters with dynamic SELECT; no actor identity check; invoker object RLS. Not a SQL-injection certification.",
+      "execution_in_native_harness": "NO_DIRECT_FUNCTION_INVOCATION; existing table triggers may fire"
+    },
+    {
+      "signature": "storage.operation()",
+      "result": "text",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "access": {
+        "anon": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": true
+        }
+      },
+      "raw_acl_is_null": true,
+      "security": "INVOKER",
+      "search_path": "AMBIENT_NOT_PINNED",
+      "language": "plpgsql",
+      "definition_bytes": 178,
+      "definition_sha256": "45b3c213bf286ff7601da09fd91d246339d8c79e0bd573bfb6984d806841fcde",
+      "scope_review": "Reads storage.operation GUC; pure status label, not authority.",
+      "execution_in_native_harness": "NO_DIRECT_FUNCTION_INVOCATION; existing table triggers may fire"
+    },
+    {
+      "signature": "storage.protect_bucket_control_columns()",
+      "result": "trigger",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "access": {
+        "anon": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": true
+        }
+      },
+      "raw_acl_is_null": true,
+      "security": "INVOKER",
+      "search_path": [
+        "search_path=pg_catalog"
+      ],
+      "language": "plpgsql",
+      "definition_bytes": 1858,
+      "definition_sha256": "dac4257ed931d18bac0cbbc3135d0c75a36aae55309059d2913ed5e6792fa8de",
+      "scope_review": "Trigger checks configured-role membership for lifecycle insertion and bucket/version/lifecycle consistency. Not a user membership verifier.",
+      "execution_in_native_harness": "NO_DIRECT_FUNCTION_INVOCATION; existing table triggers may fire"
+    },
+    {
+      "signature": "storage.protect_delete()",
+      "result": "trigger",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "access": {
+        "anon": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": true
+        }
+      },
+      "raw_acl_is_null": true,
+      "security": "INVOKER",
+      "search_path": "AMBIENT_NOT_PINNED",
+      "language": "plpgsql",
+      "definition_bytes": 535,
+      "definition_sha256": "60b634ed07bf3c08749b31168c62d598f2a9d10f8cef4ee8251bde93909cd30b",
+      "scope_review": "Trigger denies direct deletion unless provider sets allow_delete_query. GUC is a safety latch, not owner/actor authority.",
+      "execution_in_native_harness": "NO_DIRECT_FUNCTION_INVOCATION; existing table triggers may fire"
+    },
+    {
+      "signature": "storage.search_by_timestamp(text,text,integer,integer,text,text,text,text,text,text,text)",
+      "result": "TABLE(key text, name text, id uuid, updated_at timestamp with time zone, created_at timestamp with time zone, last_accessed_at timestamp with time zone, metadata jsonb, version text, archived_at timestamp with time zone, is_delete_marker boolean, is_versioned boolean)",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "access": {
+        "anon": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": true
+        }
+      },
+      "raw_acl_is_null": true,
+      "security": "INVOKER",
+      "search_path": "AMBIENT_NOT_PINNED",
+      "language": "plpgsql",
+      "definition_bytes": 6929,
+      "definition_sha256": "00035e14f49a1cd28b87d80e0aefde8e4bf1fb91fe4f8facbcb6001c27f8849b",
+      "scope_review": "Parameterized dynamic SELECT and sort/filter construction; caller bucket/prefix filters; invoker RLS; no own actor predicate.",
+      "execution_in_native_harness": "NO_DIRECT_FUNCTION_INVOCATION; existing table triggers may fire"
+    },
+    {
+      "signature": "storage.search(text,text,integer,integer,integer,text,text,text,text,text)",
+      "result": "TABLE(name text, id uuid, updated_at timestamp with time zone, created_at timestamp with time zone, last_accessed_at timestamp with time zone, metadata jsonb, version text, archived_at timestamp with time zone, is_delete_marker boolean, is_versioned boolean)",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "access": {
+        "anon": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": true
+        }
+      },
+      "raw_acl_is_null": true,
+      "security": "INVOKER",
+      "search_path": "AMBIENT_NOT_PINNED",
+      "language": "plpgsql",
+      "definition_bytes": 31522,
+      "definition_sha256": "554f4855e4490792b6c854ba68e622f39f004515d092e7409b0167a44b4acc99",
+      "scope_review": "Dynamic listing/filter branches; caller bucket/prefix/version filters, invoker RLS; no own actor predicate. No broad injection-safety claim.",
+      "execution_in_native_harness": "NO_DIRECT_FUNCTION_INVOCATION; existing table triggers may fire"
+    },
+    {
+      "signature": "storage.search_v2(text,text,integer,integer,text,text,text,text,text,text,timestamp with time zone,text,boolean)",
+      "result": "TABLE(key text, name text, id uuid, updated_at timestamp with time zone, created_at timestamp with time zone, last_accessed_at timestamp with time zone, metadata jsonb, version text, archived_at timestamp with time zone, is_delete_marker boolean, is_versioned boolean)",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "access": {
+        "anon": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": true
+        }
+      },
+      "raw_acl_is_null": true,
+      "security": "INVOKER",
+      "search_path": "AMBIENT_NOT_PINNED",
+      "language": "plpgsql",
+      "definition_bytes": 2862,
+      "definition_sha256": "cd96303762e94fbd02f84a408a09af8019d15c33b2df537bdf1909da8561bcaf",
+      "scope_review": "Delegates to invoker listing/search helpers; caller scope arguments do not establish actor authority.",
+      "execution_in_native_harness": "NO_DIRECT_FUNCTION_INVOCATION; existing table triggers may fire"
+    },
+    {
+      "signature": "storage.update_updated_at_column()",
+      "result": "trigger",
+      "owner": "supabase_storage_admin",
+      "owner_attributes": {
+        "name": "supabase_storage_admin",
+        "login": true,
+        "inherit": false,
+        "createdb": false,
+        "bypassrls": false,
+        "superuser": false,
+        "createrole": false,
+        "replication": false
+      },
+      "access": {
+        "anon": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "authenticated": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "service_role": {
+          "direct": [],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": false
+        },
+        "supabase_storage_admin": {
+          "direct": [
+            {
+              "grantee": "supabase_storage_admin",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "inherited": [],
+          "public": [
+            {
+              "grantee": "PUBLIC",
+              "grantor": "supabase_storage_admin",
+              "is_grantable": false,
+              "privilege_type": "EXECUTE"
+            }
+          ],
+          "owner": true
+        }
+      },
+      "raw_acl_is_null": true,
+      "security": "INVOKER",
+      "search_path": "AMBIENT_NOT_PINNED",
+      "language": "plpgsql",
+      "definition_bytes": 178,
+      "definition_sha256": "5b3d8ac75beaf9d1532159c055aa927297f5611ad2ea82c27dbadf76887bb25e",
+      "scope_review": "Timestamp trigger; no actor or tenant authorization.",
+      "execution_in_native_harness": "NO_DIRECT_FUNCTION_INVOCATION; existing table triggers may fire"
+    }
+  ],
+  "sequences": [],
+  "custom_default_acl": [],
+  "implicit_defaults": {
+    "functions": "NULL proacl expands to owner EXECUTE and PUBLIC EXECUTE; not NO_PRIVILEGES",
+    "relations": "NULL relacl is owner-only default; migrations has no client grant",
+    "namespace": "NULL nspacl is owner USAGE/CREATE only"
+  },
+  "membership": [
+    {
+      "set": true,
+      "role": "anon",
+      "admin": false,
+      "member": "supabase_storage_admin",
+      "grantor": "postgres",
+      "inherit": false
+    },
+    {
+      "set": true,
+      "role": "anon",
+      "admin": false,
+      "member": "authenticator",
+      "grantor": "postgres",
+      "inherit": false
+    },
+    {
+      "set": true,
+      "role": "authenticated",
+      "admin": false,
+      "member": "supabase_storage_admin",
+      "grantor": "postgres",
+      "inherit": false
+    },
+    {
+      "set": true,
+      "role": "authenticated",
+      "admin": false,
+      "member": "authenticator",
+      "grantor": "postgres",
+      "inherit": false
+    },
+    {
+      "set": true,
+      "role": "service_role",
+      "admin": false,
+      "member": "supabase_storage_admin",
+      "grantor": "postgres",
+      "inherit": false
+    }
+  ],
+  "reachability": [
+    {
+      "set": true,
+      "role": "anon",
+      "usage": true,
+      "member": true,
+      "principal": "anon"
+    },
+    {
+      "set": true,
+      "role": "authenticated",
+      "usage": true,
+      "member": true,
+      "principal": "authenticated"
+    },
+    {
+      "set": true,
+      "role": "service_role",
+      "usage": true,
+      "member": true,
+      "principal": "service_role"
+    },
+    {
+      "set": true,
+      "role": "anon",
+      "usage": false,
+      "member": true,
+      "principal": "supabase_storage_admin"
+    },
+    {
+      "set": true,
+      "role": "authenticated",
+      "usage": false,
+      "member": true,
+      "principal": "supabase_storage_admin"
+    },
+    {
+      "set": true,
+      "role": "service_role",
+      "usage": false,
+      "member": true,
+      "principal": "supabase_storage_admin"
+    },
+    {
+      "set": true,
+      "role": "supabase_storage_admin",
+      "usage": true,
+      "member": true,
+      "principal": "supabase_storage_admin"
+    }
+  ],
+  "additional_principals": [
+    {
+      "name": "authenticator",
+      "login": true,
+      "inherit": false,
+      "createdb": false,
+      "bypassrls": false,
+      "superuser": false,
+      "createrole": false,
+      "replication": false
+    },
+    {
+      "name": "postgres",
+      "login": true,
+      "inherit": true,
+      "createdb": true,
+      "bypassrls": true,
+      "superuser": true,
+      "createrole": true,
+      "replication": true
+    }
+  ],
+  "schema_owner": "supabase_storage_admin",
+  "schema_acl_representation": "NULL_DEFAULT",
+  "shared_schema_grant_status": "PROPOSED_NOT_APPROVED_NOT_EXECUTED"
+}

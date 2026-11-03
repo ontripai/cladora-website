@@ -1,0 +1,171 @@
+شناسه,نوع ردیف,مالک موجود,دامنهٔ موجود,موج موجود,وضعیت پایهٔ ثبت‌شده؛ شواهد جاری جداست,قابل خودکارسازی
+DW01A,package,CORE_OPERATIONS,capability disclosure/read contract,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+DW01B,package,CORE_OPERATIONS,versioned workspace configuration,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+DW02,package,CORE_OPERATIONS,canonical resources and relationships,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+PC01,package,CORE_OPERATIONS,typed rights/product composition,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+PF01,package,CORE_OPERATIONS,owner portfolio and allowed actions,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+AUTH01,package,CORE_OPERATIONS,current authority and deny/revoke,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+COM01,package,CORE_OPERATIONS,communication request/delivery receipt,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+FIN01,package,CORE_OPERATIONS,proposal/posting/reversal receipt,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+OPS01,package,CORE_OPERATIONS,execution request/work order adapter,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+BK01,package,CORE_OPERATIONS,capacity/time hold lifecycle,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+SV01A,package,SERVICE,service definition,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+SV01B,package,SERVICE,provider offering,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+SV01C,package,SERVICE,eligibility,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+SV01D,package,SERVICE,resource-bound request,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+SV01E,package,SERVICE,versioned quote,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+SV01F,package,SERVICE,quote acceptance/order,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+SV01G,package,SERVICE,delivery/acceptance/rework,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+SV01H,package,SERVICE,booking,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+SV01I,package,SERVICE,portfolio projection,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+SV01J,package,SERVICE,technical execution link,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+SV01K,package,SERVICE,documents/evidence,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+SV01L,package,SERVICE,communications,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+SV01M,package,SERVICE,invoice/payment/refund/provider settlement,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+SV01N,package,SERVICE,experience composition,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+SV01O,package,SERVICE,UX,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+SV01P,package,SERVICE,authority,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+SV01Q,package,SERVICE,integrated acceptance,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+AP-PF01,package,AIRPROP,person/company ownership and representation,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+AP-PF02,package,AIRPROP,dynamic resource selection,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+AP01,package,AIRPROP,listing lifecycle,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+AP02,package,AIRPROP,commercial reservation lifecycle,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+AP03,package,AIRPROP,presale obligations/finance,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+AP04,package,AIRPROP,resale/official title link,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+AP05,package,AIRPROP,lease/handover,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+AP06,package,AIRPROP,management mandate,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+AP07,package,AIRPROP,service/maintenance action,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+AP08,package,AIRPROP,portfolio reporting,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+AP09,package,AIRPROP,three-language workflow,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+AP10,package,AIRPROP,multi-owner integrated acceptance,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+AP-VAL-01A,package,AIRPROP,data/contracts/provenance,1-5,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+AP-VAL-01B,package,AIRPROP,authorized ingestion/quality,1-5,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+AP-VAL-01C,package,AIRPROP,sale/rent baseline,1-5,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+AP-VAL-01D,package,AIRPROP,independent request/result/review UI,1-5,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+AP-VAL-01E,package,AIRPROP,domain integration,1-5,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+AP-VAL-01F,package,AIRPROP,advanced models/drift,1-5,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+CE010,package,CE,community/notices/moderation,2,LATEST_GATE_EVIDENCE_REQUIRED,ترکیبی؛ اجرا با تأیید انسانی
+CE011,package,CE,basic event/interest/manual attendance,2,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+CE012,package,CE,versioned guide/safe references,2,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F001,capability_subrow,CE / CE010,Member profile & privacy,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F002,capability_subrow,CE / CE010,Directory,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F003,capability_subrow,CE / CE010,Feed,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F004,capability_subrow,CE / CE010,Posts/media,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F005,capability_subrow,CE / CE010,Comments/reactions,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F006,capability_subrow,CE / CE010,Channels,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F007,capability_subrow,CE / CE010,Groups,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F008,capability_subrow,CE / CE010,Clubs,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F009,capability_subrow,Communications با CE,Direct messaging,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F010,capability_subrow,Communications با CE,Group messaging,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F011,capability_subrow,CE / CE010,Polls,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F012,capability_subrow,CE / CE010,Surveys,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F013,capability_subrow,CE / CE010,Q&A,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F014,capability_subrow,CE / CE012,Digital guide,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F015,capability_subrow,CE / CE010,Lost & found,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F016,capability_subrow,CE / CE010,Ideas/voting,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F017,capability_subrow,CE / CE010,Member marketplace,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F018,capability_subrow,CE / CE010,Moderation,۲ و ۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F019,capability_subrow,CE / CE010,Segmentation,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F020,capability_subrow,CE / CE010,Translation/localization,۲ و ۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F021,capability_subrow,CE / CE011,Event creation,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F022,capability_subrow,CE / CE011,Recurring events,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F023,capability_subrow,CE / CE011,RSVP,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F024,capability_subrow,CE / CE011,Capacity,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F025,capability_subrow,CE / CE011,Waitlist,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F026,capability_subrow,CE / CE011,Paid ticket,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F027,capability_subrow,CE / CE011,Guest ticket,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F028,capability_subrow,CE / CE011,QR check-in,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F029,capability_subrow,CE / CE011,Manual check-in,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F030,capability_subrow,CE / CE011,Calendar sync,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F031,capability_subrow,CE / CE011,Reminder,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F032,capability_subrow,CE / CE011,Event provider marketplace,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F033,capability_subrow,CE / CE011,Event bundle,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F034,capability_subrow,CE / CE011,Post-event survey,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F035,capability_subrow,CE / CE011,Attendance reward,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F036,capability_subrow,SERVICE / SV01,Dynamic service type,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F037,capability_subrow,SERVICE / SV01,Eligibility rule,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F038,capability_subrow,SERVICE / SV01,Service area,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F039,capability_subrow,SERVICE / SV01,Resource resolution,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F040,capability_subrow,SERVICE / SV01,Provider matching,۳ و ۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F041,capability_subrow,SERVICE / SV01,Availability,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F042,capability_subrow,SERVICE / SV01,Fixed price,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F043,capability_subrow,SERVICE / SV01,Quote price,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F044,capability_subrow,SERVICE / SV01,Add-ons,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F045,capability_subrow,SERVICE / SV01,Recurring service,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F046,capability_subrow,SERVICE / SV01,Subscription plan,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F047,capability_subrow,SERVICE / SV01,Service order,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F048,capability_subrow,SERVICE / SV01,SLA,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F049,capability_subrow,SERVICE / SV01,Dispatch,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F050,capability_subrow,SERVICE / SV01,Evidence/checklist,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F051,capability_subrow,SERVICE / SV01,Acceptance,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F052,capability_subrow,SERVICE / SV01,Cancellation,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F053,capability_subrow,SERVICE / SV01,Refund,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F054,capability_subrow,SERVICE / SV01,Dispute,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F055,capability_subrow,SERVICE / SV01,Favorite/rebook provider,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F056,capability_subrow,Core و مصرف‌کننده / BK01,Generic resource booking,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F057,capability_subrow,Core و مصرف‌کننده / BK01,Capacity booking,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F058,capability_subrow,Core و مصرف‌کننده / BK01,Appointment,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F059,capability_subrow,Core و مصرف‌کننده / BK01,Recurring booking,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F060,capability_subrow,Core و مصرف‌کننده / BK01,Blackout,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F061,capability_subrow,Core و مصرف‌کننده / BK01,Buffer,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F062,capability_subrow,Core و مصرف‌کننده / BK01,Quota,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F063,capability_subrow,Core و مصرف‌کننده / BK01,Approval,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F064,capability_subrow,Core و مصرف‌کننده / BK01,Deposit,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F065,capability_subrow,Core و مصرف‌کننده / BK01,Cancellation rule,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F066,capability_subrow,Core و مصرف‌کننده / BK01,Dynamic/member pricing,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F067,capability_subrow,Core و مصرف‌کننده / BK01,Waitlist,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F068,capability_subrow,Core و مصرف‌کننده / BK01,Booking pass,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F069,capability_subrow,Core و مصرف‌کننده / BK01,Check-in,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F070,capability_subrow,Core و مصرف‌کننده / BK01,Access linkage,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F071,capability_subrow,Commerce تصمیم باز,Merchant directory,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F072,capability_subrow,Commerce تصمیم باز,Product/catalog,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F073,capability_subrow,Commerce تصمیم باز,Food order,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F074,capability_subrow,Commerce تصمیم باز,Grocery order,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F075,capability_subrow,Commerce تصمیم باز,Pickup,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F076,capability_subrow,Commerce تصمیم باز,Delivery,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F077,capability_subrow,Commerce تصمیم باز,Scheduled order,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F078,capability_subrow,Commerce تصمیم باز,Group order,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F079,capability_subrow,Commerce تصمیم باز,Offer/coupon,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F080,capability_subrow,Commerce تصمیم باز,Member price,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F081,capability_subrow,Commerce تصمیم باز,Gift/voucher,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F082,capability_subrow,Commerce تصمیم باز,Order tracking,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F083,capability_subrow,Commerce تصمیم باز,Refund,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F084,capability_subrow,Commerce تصمیم باز,Merchant review,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F085,capability_subrow,Loyalty تصمیم باز,Digital card,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F086,capability_subrow,Loyalty تصمیم باز,Tier,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F087,capability_subrow,Loyalty تصمیم باز,Point ledger,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F088,capability_subrow,Loyalty تصمیم باز,Earn rules,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F089,capability_subrow,Loyalty تصمیم باز,Burn rules,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F090,capability_subrow,Loyalty تصمیم باز,Expiry,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F091,capability_subrow,Loyalty تصمیم باز,Reward catalog,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F092,capability_subrow,Loyalty تصمیم باز,Partner benefit,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F093,capability_subrow,Loyalty تصمیم باز,QR validation,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F094,capability_subrow,Loyalty تصمیم باز,Referral,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F095,capability_subrow,Loyalty تصمیم باز,Challenge/milestone,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F096,capability_subrow,Loyalty تصمیم باز,Credit wallet separation,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F097,capability_subrow,Core / Access و Operations,Visitor invite,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F098,capability_subrow,Core / Access و Operations,Temporary credential,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F099,capability_subrow,Core / Access و Operations,Service access,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F100,capability_subrow,Core / Access و Operations,Guest parking,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F101,capability_subrow,Core / Access و Operations,Vendor access,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F102,capability_subrow,Core / Access و Operations,Mobile key connector,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F103,capability_subrow,Core / Access و Operations,Emergency revoke,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F104,capability_subrow,Operations / لجستیک,Package intake,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F105,capability_subrow,Operations / لجستیک,Locker,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F106,capability_subrow,Operations / لجستیک,Pickup credential,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F107,capability_subrow,Operations / لجستیک,Chain of custody,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F108,capability_subrow,Core / Access و Operations,Courier access,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F109,capability_subrow,CE تجربه و مالک دامنه,AI intent,۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F110,capability_subrow,CE تجربه و مالک دامنه,Context resolution,۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F111,capability_subrow,CE تجربه و مالک دامنه,Multi-action orchestration,۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F112,capability_subrow,CE تجربه و مالک دامنه,Recommendation,۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F113,capability_subrow,CE تجربه و مالک دامنه,Conversational change,۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F114,capability_subrow,CE تجربه و مالک دامنه,Proactive opt-in,۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F115,capability_subrow,CE تجربه و مالک دامنه,Ops copilot,۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F116,capability_subrow,CE تجربه و مالک دامنه,Community copilot,۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F117,capability_subrow,CE تجربه و مالک دامنه,Analytics copilot,۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F118,capability_subrow,CE تجربه و مالک دامنه,Experience dashboard,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F119,capability_subrow,CE تجربه و مالک دامنه,Service KPI,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F120,capability_subrow,CE تجربه و مالک دامنه,Booking utilization,۳ و ۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F121,capability_subrow,CE تجربه و مالک دامنه,Provider score,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+F122,capability_subrow,CE تجربه و مالک دامنه,Loyalty analytics,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی

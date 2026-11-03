@@ -16,7 +16,8 @@ import {
   Sparkles,
   Briefcase,
   Wrench,
-  Building
+  Building,
+  Users
 } from 'lucide-react';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { CladoraBrand } from '@/components/brand/CladoraBrand';
@@ -32,6 +33,31 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
   const [activeDropdown, setActiveDropdown] = useState<'solutions' | 'services' | null>(null);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const solutionsBtnRef = useRef<HTMLButtonElement>(null);
+  const solutionsMenuRef = useRef<HTMLDivElement>(null);
+  const servicesBtnRef = useRef<HTMLButtonElement>(null);
+  const servicesMenuRef = useRef<HTMLDivElement>(null);
+  const mobileToggleBtnRef = useRef<HTMLButtonElement>(null);
+  const mobileDrawerRef = useRef<HTMLDivElement>(null);
+  const desktopLangRef = useRef<HTMLDivElement>(null);
+  const mobileLangRef = useRef<HTMLDivElement>(null);
+
+  // Helper to determine whether an element is connected and visible in the layout (PUBLIC-BR-01)
+  const isElementVisible = (el: HTMLElement | null): boolean => {
+    if (!el || !el.isConnected) return false;
+    if (el.hasAttribute('hidden')) return false;
+    // Check responsive breakpoint visibility
+    if (typeof window !== 'undefined') {
+      const isDesktop = window.innerWidth >= 1024;
+      if (isDesktop && el.closest('.lg\\:hidden')) return false;
+      if (!isDesktop && el.closest('.hidden.lg\\:flex')) return false;
+    }
+    const style = window.getComputedStyle(el);
+    if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
+      return false;
+    }
+    return true;
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -52,16 +78,184 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Close on Escape key
+  // Close on Escape key and return focus to visible opener only if focus belongs to that menu (PUBLIC-BR-01, PUBLIC-BR-01-LANGUAGE, PUBLIC-BR-04)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setActiveDropdown(null);
-        setMobileMenuOpen(false);
+        const activeEl = (typeof document !== 'undefined' ? document.activeElement : null) as HTMLElement | null;
+        const targetEl = (typeof HTMLElement !== 'undefined' && event.target instanceof HTMLElement ? event.target : null) as HTMLElement | null;
+        const triggerFromEvent = ((typeof HTMLElement !== 'undefined' && (event as any).__cladoraLangTrigger instanceof HTMLElement)
+          ? (event as any).__cladoraLangTrigger
+          : null) as HTMLElement | null;
+
+        // Determine focus and event ownership BEFORE closing (unmounting menu elements resets activeElement)
+        const isLangSwitcherOwner = Boolean(
+          (event as any).__cladoraLangFocusPreserved ||
+          triggerFromEvent ||
+          (activeEl && (
+            desktopLangRef.current?.contains(activeEl) ||
+            mobileLangRef.current?.contains(activeEl) ||
+            Boolean(activeEl.closest?.('.relative.inline-block.text-start'))
+          )) ||
+          (targetEl && (
+            desktopLangRef.current?.contains(targetEl) ||
+            mobileLangRef.current?.contains(targetEl) ||
+            Boolean(targetEl.closest?.('.relative.inline-block.text-start')) ||
+            (targetEl.getAttribute?.('role') === 'menuitem' && Boolean(targetEl.closest?.('div[role="menu"]')?.parentElement?.classList.contains('text-start')))
+          ))
+        );
+
+        const isInsideMobileDrawer = !isLangSwitcherOwner && (
+          Boolean(
+            activeEl && (
+              mobileDrawerRef.current?.contains(activeEl) ||
+              Boolean(activeEl.closest?.('nav[aria-label]')) ||
+              Boolean(activeEl.closest?.('.max-h-\\[85vh\\]'))
+            )
+          ) || Boolean(
+            targetEl && (
+              mobileDrawerRef.current?.contains(targetEl) ||
+              Boolean(targetEl.closest?.('nav[aria-label]')) ||
+              Boolean(targetEl.closest?.('.max-h-\\[85vh\\]'))
+            )
+          )
+        );
+
+        const isInsideSolutionsMenu = !isLangSwitcherOwner && (
+          Boolean(
+            activeEl && (
+              solutionsMenuRef.current?.contains(activeEl) ||
+              (activeDropdown === 'solutions' && Boolean(activeEl.closest?.('div[role="menu"]')))
+            )
+          ) || Boolean(
+            targetEl && (
+              solutionsMenuRef.current?.contains(targetEl) ||
+              (activeDropdown === 'solutions' && Boolean(targetEl.closest?.('div[role="menu"]')))
+            )
+          )
+        );
+
+        const isInsideServicesMenu = !isLangSwitcherOwner && (
+          Boolean(
+            activeEl && (
+              servicesMenuRef.current?.contains(activeEl) ||
+              (activeDropdown === 'services' && Boolean(activeEl.closest?.('div[role="menu"]')))
+            )
+          ) || Boolean(
+            targetEl && (
+              servicesMenuRef.current?.contains(targetEl) ||
+              (activeDropdown === 'services' && Boolean(targetEl.closest?.('div[role="menu"]')))
+            )
+          )
+        );
+
+        const isExternalControlFocus = Boolean(
+          activeEl &&
+          activeEl !== document.body &&
+          activeEl !== document.documentElement &&
+          !solutionsBtnRef.current?.contains(activeEl) &&
+          !isInsideSolutionsMenu &&
+          !servicesBtnRef.current?.contains(activeEl) &&
+          !isInsideServicesMenu &&
+          !mobileToggleBtnRef.current?.contains(activeEl) &&
+          !isInsideMobileDrawer &&
+          !isLangSwitcherOwner
+        );
+
+        const getVisibleLangTrigger = (): HTMLElement | null => {
+          if (triggerFromEvent && isElementVisible(triggerFromEvent)) {
+            return triggerFromEvent;
+          }
+          if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+            const btn = mobileLangRef.current?.querySelector('button');
+            if (btn && isElementVisible(btn)) return btn;
+          }
+          const desktopBtn = desktopLangRef.current?.querySelector('button');
+          if (desktopBtn && isElementVisible(desktopBtn)) return desktopBtn;
+          const fallbackBtn = (activeEl?.closest?.('.relative.inline-block.text-start') || targetEl?.closest?.('.relative.inline-block.text-start'))?.querySelector?.('button');
+          if (fallbackBtn && isElementVisible(fallbackBtn)) return fallbackBtn;
+          return null;
+        };
+
+        if (activeDropdown === 'solutions') {
+          setActiveDropdown(null);
+          if (isLangSwitcherOwner) {
+            // Retain focus on LanguageSwitcher trigger button (PUBLIC-BR-01-LANGUAGE, PUBLIC-BR-04)
+            const langBtn = getVisibleLangTrigger();
+            if (langBtn) {
+              langBtn.focus();
+            }
+          } else if (!isExternalControlFocus) {
+            // Focus belongs to Solutions menu, opener, or neutral body: return to opener
+            if (solutionsBtnRef.current && isElementVisible(solutionsBtnRef.current)) {
+              solutionsBtnRef.current.focus();
+            }
+          }
+          // If focus belongs to an external control, do not move focus!
+        } else if (activeDropdown === 'services') {
+          setActiveDropdown(null);
+          if (isLangSwitcherOwner) {
+            // Retain focus on LanguageSwitcher trigger button (PUBLIC-BR-01-LANGUAGE, PUBLIC-BR-04)
+            const langBtn = getVisibleLangTrigger();
+            if (langBtn) {
+              langBtn.focus();
+            }
+          } else if (!isExternalControlFocus) {
+            // Focus belongs to Services menu, opener, or neutral body: return to opener
+            if (servicesBtnRef.current && isElementVisible(servicesBtnRef.current)) {
+              servicesBtnRef.current.focus();
+            }
+          }
+          // If focus belongs to an external control, do not move focus!
+        } else if (mobileMenuOpen) {
+          setMobileMenuOpen(false);
+          if (typeof document !== 'undefined') {
+            document.body.style.overflow = '';
+          }
+          if (isLangSwitcherOwner) {
+            // Retain focus on visible mobile LanguageSwitcher trigger button (PUBLIC-BR-04)
+            const langBtn = getVisibleLangTrigger();
+            if (langBtn) {
+              langBtn.focus();
+            }
+          } else if (!isExternalControlFocus) {
+            // Focus belongs to mobile drawer, toggle opener, or neutral body: return to toggle
+            if (mobileToggleBtnRef.current && isElementVisible(mobileToggleBtnRef.current)) {
+              mobileToggleBtnRef.current.focus();
+            }
+          }
+          // If focus belongs to an external control, do not move focus!
+        }
       }
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [activeDropdown, mobileMenuOpen]);
+
+  // Handle viewport resize: release mobile drawer on desktop, close desktop dropdown on mobile
+  // Never move focus to hidden or detached elements during resize (PUBLIC-BR-01)
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setMobileMenuOpen(false);
+        // Clear focus if active element became hidden on desktop (e.g. mobile toggle button)
+        if (typeof document !== 'undefined' && document.activeElement) {
+          if (!isElementVisible(document.activeElement as HTMLElement) || document.activeElement === mobileToggleBtnRef.current) {
+            (document.activeElement as HTMLElement).blur?.();
+          }
+        }
+      } else {
+        setActiveDropdown(null);
+        // Clear focus if active element became hidden on mobile (e.g. desktop nav buttons)
+        if (typeof document !== 'undefined' && document.activeElement) {
+          if (!isElementVisible(document.activeElement as HTMLElement) || document.activeElement === servicesBtnRef.current || document.activeElement === solutionsBtnRef.current) {
+            (document.activeElement as HTMLElement).blur?.();
+          }
+        }
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, []);
 
   // Prevent background scroll when mobile menu is open
@@ -81,6 +275,11 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
     setPrevPathname(pathname);
     setMobileMenuOpen(false);
     setActiveDropdown(null);
+    if (typeof document !== 'undefined' && document.activeElement) {
+      if (!isElementVisible(document.activeElement as HTMLElement)) {
+        (document.activeElement as HTMLElement).blur?.();
+      }
+    }
   }
 
   const toggleDropdown = (name: 'solutions' | 'services') => {
@@ -139,8 +338,8 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
       desc: lang === 'ro'
         ? 'Prezentarea proprietății, gestionarea oportunităților, verificare documente, rezervări, pre-vânzări, închirieri și mandat de administrare.'
         : lang === 'fa'
-        ? 'معرفی و عرضه ملک، متقاضیان و فرصت‌ها، بررسی شرایط و اسناد، رزرو، پیش‌فروش، اجاره و واگذاری مدیریت با انتقال امن به بهره‌برداری.'
-        : 'Property showcase, verified inquiries, underwriting, reservations, sales, leasing, and property management mandates.',
+          ? 'معرفی و عرضه ملک، متقاضیان و فرصت‌ها، بررسی شرایط و اسناد، رزرو، پیش‌فروش، اجاره و واگذاری مدیریت با انتقال امن به بهره‌برداری.'
+          : 'Property showcase, verified inquiries, underwriting, reservations, sales, leasing, and property management mandates.',
       href: `/${lang}/airprop`,
       icon: Sparkles,
       color: 'text-amber-600 bg-amber-50 border-amber-200'
@@ -151,8 +350,8 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
       desc: lang === 'ro'
         ? 'Alegerea serviciilor, lansarea cererii, compararea ofertelor de cost și termen, urmărirea execuției și atașarea rezultatului la istoricul activului.'
         : lang === 'fa'
-        ? 'انتخاب خدمات، ثبت نیاز، دریافت و مقایسه پیشنهادها، توافق بر دامنه و هزینه، پیگیری اجرا، پذیرش نتیجه و ثبت سابقه روی دارایی.'
-        : 'Service catalog, request brief, quote comparison, scope/cost agreement, execution tracking, sign-off, and permanent asset history.',
+          ? 'انتخاب خدمات، ثبت نیاز، دریافت و مقایسه پیشنهادها، توافق بر دامنه و هزینه، پیگیری اجرا، پذیرش نتیجه و ثبت سابقه روی دارایی.'
+          : 'Service catalog, request brief, quote comparison, scope/cost agreement, execution tracking, sign-off, and permanent asset history.',
       href: `/${lang}/service`,
       icon: Briefcase,
       color: 'text-teal-600 bg-teal-50 border-teal-200'
@@ -163,21 +362,32 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
       desc: lang === 'ro'
         ? 'Evidența echipamentelor, calendare de revizie periodică, semnalare defecțiuni, comenzi de lucru și rapoarte de service pentru persoanele autorizate.'
         : lang === 'fa'
-        ? 'ثبت و ردیابی تجهیزات و دارایی‌ها، نگهداری دوره‌ای، اعلام خرابی، دستورکار با مسئول اجرا، سوابق سرویس و مدارک هزینه.'
-        : 'Asset equipment registries, recurring maintenance schedules, breakdown reporting, work orders, service logs, and auditable history.',
+          ? 'ثبت و ردیابی تجهیزات و دارایی‌ها، نگهداری دوره‌ای، اعلام خرابی، دستورکار با مسئول اجرا، سوابق سرویس و مدارک هزینه.'
+          : 'Asset equipment registries, recurring maintenance schedules, breakdown reporting, work orders, service logs, and auditable history.',
       href: `/${lang}/operations`,
       icon: Wrench,
       color: 'text-blue-600 bg-blue-50 border-blue-200'
+    },
+    {
+      title: 'CE',
+      subtitle: lang === 'ro' ? 'Comunitate & Experiență' : lang === 'fa' ? 'جامعه و تجربه' : 'Community & Experience',
+      desc: lang === 'ro'
+        ? 'Anunțuri, interacțiuni comunitare, evenimente și ghiduri legate de proprietate, cu starea fiecărei funcționalități explicată clar.'
+        : lang === 'fa'
+          ? 'اعلان‌ها و تعاملات جامعه، رویدادها و راهنماهای مرتبط با ملک؛ با توضیح روشن وضعیت هر قابلیت.'
+          : 'Property-related notices, community interactions, events and guides, with a clear status for each capability.',
+      href: `/${lang}/community-experience`,
+      icon: Users,
+      color: 'text-indigo-600 bg-indigo-50 border-indigo-200'
     }
   ];
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
           ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-[#E2E8F0] py-3'
           : 'bg-white/80 backdrop-blur-sm border-b border-[#F0F4F8] py-4'
-      }`}
+        }`}
     >
       <div className="w-full max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-2 sm:gap-4 w-full">
@@ -203,9 +413,8 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
             {/* 1. Platform & Workspace */}
             <Link
               href={`/${lang}/platform`}
-              className={`px-3 py-2 rounded-lg hover:text-[#102A43] hover:bg-[#F0F4F8] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0E9F8E] ${
-                pathname?.includes(`/${lang}/platform`) && !pathname?.includes(`/${lang}/platform/lifecycle`) ? 'text-[#0E9F8E] font-bold bg-[#EAF8F5]' : ''
-              }`}
+              className={`px-3 py-2 rounded-lg hover:text-[#102A43] hover:bg-[#F0F4F8] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0E9F8E] ${pathname?.includes(`/${lang}/platform`) && !pathname?.includes(`/${lang}/platform/lifecycle`) ? 'text-[#0E9F8E] font-bold bg-[#EAF8F5]' : ''
+                }`}
             >
               {lang === 'ro' ? 'Platformă & Workspace' : lang === 'fa' ? 'پلتفرم و Workspace' : 'Platform & Workspace'}
             </Link>
@@ -213,15 +422,15 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
             {/* 2. Solutions Dropdown */}
             <div className="relative">
               <button
+                ref={solutionsBtnRef}
                 type="button"
                 onClick={() => toggleDropdown('solutions')}
                 aria-expanded={activeDropdown === 'solutions'}
                 aria-haspopup="true"
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg hover:text-[#102A43] hover:bg-[#F0F4F8] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0E9F8E] ${
-                  activeDropdown === 'solutions' || pathname?.includes(`/${lang}/solutions`)
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg hover:text-[#102A43] hover:bg-[#F0F4F8] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0E9F8E] ${activeDropdown === 'solutions' || pathname?.includes(`/${lang}/solutions`)
                     ? 'text-[#0E9F8E] font-bold bg-[#EAF8F5]'
                     : ''
-                }`}
+                  }`}
               >
                 <span>{lang === 'ro' ? 'Soluții' : lang === 'fa' ? 'راهکارها' : 'Solutions'}</span>
                 <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${activeDropdown === 'solutions' ? 'rotate-180' : ''}`} aria-hidden="true" />
@@ -229,18 +438,19 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
 
               {activeDropdown === 'solutions' && (
                 <div
+                  ref={solutionsMenuRef}
                   role="menu"
                   className={`absolute top-full mt-2 w-[540px] p-4 bg-white rounded-2xl shadow-xl border border-[#E2E8F0] grid grid-cols-2 gap-3 z-50 animate-in fade-in slide-in-from-top-2 duration-150 ${lang === 'fa' ? 'right-0' : 'left-0'}`}
                 >
                   <div className="col-span-2 pb-2 mb-1 border-b border-[#F0F4F8] flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#627D98]">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#52667A]">
                       {lang === 'ro' ? 'Pe roluri & tipuri de proprietate' : lang === 'fa' ? 'بر اساس مخاطب و نوع ملک' : 'By Audience & Property Type'}
                     </span>
                     <Link
                       href={`/${lang}/solutions`}
                       role="menuitem"
                       onClick={() => setActiveDropdown(null)}
-                      className="text-xs font-bold text-[#0E9F8E] hover:underline flex items-center gap-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#0E9F8E] rounded"
+                      className="text-xs font-bold text-teal-700 hover:text-teal-800 hover:underline flex items-center gap-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-teal-700 rounded"
                     >
                       <span>{lang === 'ro' ? 'Vezi toate soluțiile' : lang === 'fa' ? 'نمای کلی راهکارها' : 'View all solutions'}</span>
                       <ArrowRight className="w-3 h-3 rtl:rotate-180" aria-hidden="true" />
@@ -260,11 +470,11 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
                           <div className="w-7 h-7 rounded-lg bg-[#EAF8F5] text-[#0E9F8E] flex items-center justify-center group-hover:bg-[#0E9F8E] group-hover:text-white transition-colors">
                             <Icon className="w-4 h-4" aria-hidden="true" />
                           </div>
-                          <span className="font-bold text-xs text-[#102A43] group-hover:text-[#0E9F8E] transition-colors">
+                          <span className="font-bold text-xs text-[#102A43] group-hover:text-teal-700 transition-colors">
                             {item.title}
                           </span>
                         </div>
-                        <p className="text-[11px] text-[#627D98] line-clamp-2 leading-relaxed">
+                        <p className="text-[11px] text-[#52667A] line-clamp-2 leading-relaxed">
                           {item.desc}
                         </p>
                       </Link>
@@ -277,15 +487,15 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
             {/* 3. Services Dropdown */}
             <div className="relative">
               <button
+                ref={servicesBtnRef}
                 type="button"
                 onClick={() => toggleDropdown('services')}
                 aria-expanded={activeDropdown === 'services'}
                 aria-haspopup="true"
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg hover:text-[#102A43] hover:bg-[#F0F4F8] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0E9F8E] ${
-                  activeDropdown === 'services' || pathname?.includes(`/${lang}/airprop`) || pathname?.includes(`/${lang}/service`) || pathname?.includes(`/${lang}/operations`)
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg hover:text-[#102A43] hover:bg-[#F0F4F8] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0E9F8E] ${activeDropdown === 'services' || pathname?.includes(`/${lang}/airprop`) || pathname?.includes(`/${lang}/service`) || pathname?.includes(`/${lang}/operations`) || pathname?.includes(`/${lang}/community-experience`)
                     ? 'text-[#0E9F8E] font-bold bg-[#EAF8F5]'
                     : ''
-                }`}
+                  }`}
               >
                 <span>{lang === 'ro' ? 'Servicii & Module' : lang === 'fa' ? 'خدمات و ارکان' : 'Services & Domains'}</span>
                 <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${activeDropdown === 'services' ? 'rotate-180' : ''}`} aria-hidden="true" />
@@ -293,11 +503,12 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
 
               {activeDropdown === 'services' && (
                 <div
+                  ref={servicesMenuRef}
                   role="menu"
                   className={`absolute top-full mt-2 w-[440px] p-3 bg-white rounded-2xl shadow-xl border border-[#E2E8F0] space-y-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150 ${lang === 'fa' ? 'right-0' : 'left-0'}`}
                 >
                   <div className="pb-1.5 px-2 border-b border-[#F0F4F8]">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#627D98]">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#52667A]">
                       {lang === 'ro' ? 'Domenii Operaționale Integrate' : lang === 'fa' ? 'حوزه‌های عملیاتی متصل' : 'Connected Operational Domains'}
                     </span>
                   </div>
@@ -316,14 +527,14 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
-                            <span className="font-bold text-xs text-[#102A43] group-hover:text-[#0E9F8E] transition-colors">
+                            <span className="font-bold text-xs text-[#102A43] group-hover:text-teal-700 transition-colors">
                               {svc.title}
                             </span>
-                            <span className="text-[10px] text-[#627D98] font-medium">
+                            <span className="text-[10px] text-[#52667A] font-medium">
                               {svc.subtitle}
                             </span>
                           </div>
-                          <p className="text-[11px] text-[#627D98] mt-0.5 line-clamp-2 leading-relaxed">
+                          <p className="text-[11px] text-[#52667A] mt-0.5 line-clamp-2 leading-relaxed">
                             {svc.desc}
                           </p>
                         </div>
@@ -337,9 +548,8 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
             {/* 4. Property Lifecycle */}
             <Link
               href={`/${lang}/platform/lifecycle`}
-              className={`px-3 py-2 rounded-lg hover:text-[#102A43] hover:bg-[#F0F4F8] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0E9F8E] ${
-                pathname?.includes(`/${lang}/platform/lifecycle`) ? 'text-[#0E9F8E] font-bold bg-[#EAF8F5]' : ''
-              }`}
+              className={`px-3 py-2 rounded-lg hover:text-[#102A43] hover:bg-[#F0F4F8] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0E9F8E] ${pathname?.includes(`/${lang}/platform/lifecycle`) ? 'text-[#0E9F8E] font-bold bg-[#EAF8F5]' : ''
+                }`}
             >
               {lang === 'ro' ? 'Ciclul de Viață' : lang === 'fa' ? 'چرخهٔ عمر ملک' : 'Property Lifecycle'}
             </Link>
@@ -347,9 +557,8 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
             {/* 5. Resources & Guides */}
             <Link
               href={`/${lang}/resources`}
-              className={`px-3 py-2 rounded-lg hover:text-[#102A43] hover:bg-[#F0F4F8] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0E9F8E] ${
-                pathname?.includes(`/${lang}/resources`) ? 'text-[#0E9F8E] font-bold bg-[#EAF8F5]' : ''
-              }`}
+              className={`px-3 py-2 rounded-lg hover:text-[#102A43] hover:bg-[#F0F4F8] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0E9F8E] ${pathname?.includes(`/${lang}/resources`) ? 'text-[#0E9F8E] font-bold bg-[#EAF8F5]' : ''
+                }`}
             >
               {lang === 'ro' ? 'Ghid & Resurse' : lang === 'fa' ? 'راهنما و منابع' : 'Guides & Resources'}
             </Link>
@@ -358,7 +567,9 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
           {/* Right Action Bar */}
           <div className="hidden lg:flex items-center gap-3">
             {/* Language Switcher */}
-            <LanguageSwitcher currentLang={lang} variant="header" />
+            <div ref={desktopLangRef} className="shrink-0">
+              <LanguageSwitcher currentLang={lang} variant="header" />
+            </div>
 
             {/* Sign In Button */}
             <Link
@@ -380,8 +591,11 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
 
           {/* Mobile Menu Toggle Button */}
           <div className="flex items-center gap-2 lg:hidden">
-            <LanguageSwitcher currentLang={lang} variant="header" />
+            <div ref={mobileLangRef} className="shrink-0">
+              <LanguageSwitcher currentLang={lang} variant="header" />
+            </div>
             <button
+              ref={mobileToggleBtnRef}
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 text-[#334E68] hover:text-[#102A43] hover:bg-[#F0F4F8] rounded-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0E9F8E]"
@@ -396,7 +610,10 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
 
       {/* Mobile Menu Dropdown Drawer */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-[#E2E8F0] bg-white px-4 pt-3 pb-6 space-y-4 max-h-[85vh] overflow-y-auto">
+        <div
+          ref={mobileDrawerRef}
+          className="lg:hidden border-t border-[#E2E8F0] bg-white px-4 pt-3 pb-6 space-y-4 max-h-[85vh] overflow-y-auto"
+        >
           <nav
             className="flex flex-col space-y-1"
             aria-label={lang === 'ro' ? 'Navigare mobilă' : lang === 'fa' ? 'ناوبری موبایل' : 'Mobile Navigation'}
@@ -445,6 +662,15 @@ export const Header: React.FC<HeaderProps> = ({ lang }) => {
               className="px-4 py-2 rounded-xl text-xs font-semibold text-[#334E68] hover:bg-[#F8FAFC] flex items-center justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0E9F8E]"
             >
               <span>{lang === 'ro' ? 'Operațiuni & Mentenanță' : lang === 'fa' ? 'عملیات فنی و نگهداری' : 'Operations & Maintenance'}</span>
+              <ArrowRight className="w-3.5 h-3.5 text-[#627D98] rtl:rotate-180" aria-hidden="true" />
+            </Link>
+
+            <Link
+              href={`/${lang}/community-experience`}
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#334E68] hover:bg-[#F8FAFC] flex items-center justify-between focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0E9F8E]"
+            >
+              <span>CE — {lang === 'ro' ? 'Comunitate & Experiență' : lang === 'fa' ? 'جامعه و تجربه' : 'Community & Experience'}</span>
               <ArrowRight className="w-3.5 h-3.5 text-[#627D98] rtl:rotate-180" aria-hidden="true" />
             </Link>
 

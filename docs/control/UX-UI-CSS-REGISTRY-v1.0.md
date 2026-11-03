@@ -17,3 +17,19 @@ A component inventory must map actual component paths, token usage, states and o
 Required acceptance: RO/EN/FA and RTL, mobile/desktop, keyboard and focus, named resource/person selectors, meaningful empty/loading/error/disabled states, preserved form input on error, no cross-context leakage, explicit costs/consent where consequential, no exposed permission codes or UUID entry in public flows, direct API authorization independent of menu visibility.
 
 Shared token/component changes require impact review across four works, visual evidence and versioned migration guidance. Domain-only styles must not overwrite global behavior. A passing build or horizontal overflow clipping alone does not prove UX acceptance.
+
+## Pilot Presentation Evaluation Registry: ANTIGRAVITY-BUILDING-SETUP-UI-PILOT-01
+
+- **Pilot Scope**: Presentation-only enhancements for Building Setup components (`CustomerBuildingSetupWizard.tsx`, `CustomerBuildingSetupProgress.tsx`). No operational workflow, schema, SQL, token, or permission changes.
+
+### Evaluated External Resources
+
+| Resource | Version / Commit | License | Evaluation Status & Scope of Use |
+| :--- | :--- | :--- | :--- |
+| **UI UX Pro Max** | `v2.15.0` (`9a3f14f7423037ccb8feeb4fee7482291b9c820e`) | MIT | **Consulted as design & accessibility guidance only**: Form grouping, 44px touch targets, focus rings, mobile single-column stacking, and semantic status messaging. No CLI installation, no new skill, no new master font/palette generated. Authoritative brand, color tokens, and components remain strictly CLADORA's existing design system. |
+| **21st-dev/1code** | `v0.0.72` (`9f1bc76fa4372c18c565b5a4f8daf38ae3595f0e`) | Apache-2.0 | **Evaluated, Not Imported**: Direct component copying rejected due to package overlap, external dependency requirements, and conflicting design tokens. Zero code or color system imported into this pilot. Notice and provenance maintained for audit compliance. |
+
+### R1 Findings Closure & Token Validation (PILOT-F01 - F05)
+- **Token Compliance**: Verified strict adherence to existing Tailwind 3.4.19 design tokens. Zero invalid utilities (`shadow-xs`, `shadow-2xs`) generated; standard `shadow-sm` enforced.
+- **Color Contrast**: Enforced WCAG AA/AAA compliance (>= 4.5:1) for active CTAs using CLADORA `bg-teal-800` (`#115E59`, 7.44:1 contrast on white).
+- **A11y & Motion**: Bound date pickers to localized visual labels via `aria-labelledby`; removed decorative `animate-pulse` from confirmed status; ensured `motion-reduce:animate-none` compliance.

@@ -1,0 +1,180 @@
+{
+  "format": "platform15.acl-r1-delivery-manifest.v1",
+  "parent": "b7f61c027e9fd96afc663fc208d869760f14c791",
+  "branch": "codex/program-local-runtime-lane-01",
+  "replacement": "additive child; original preflight/receipts unchanged. Final private candidate replaces unexecuted v1; never stack or replay.",
+  "files": [
+    {
+      "path": "docs/testing/PLATFORM-STORAGE-DOCUMENTS-NATIVE-ABI-15.R1.md",
+      "bytes": 23253,
+      "sha256": "c6f20ea6d83ca414ae51897435e6793987347b81dfec7b9264b386dfe1fa1d74",
+      "git_blob": "056c62354f8d78bd91573e1f994e03148218724d"
+    },
+    {
+      "path": "docs/testing/platform-storage-documents-native-abi-15.r1.acl-review.json",
+      "bytes": 138105,
+      "sha256": "3a760de6086a0a80faf2d8337120c4ddb46894cab005fc1f172dc3b318eb8fa3",
+      "git_blob": "2dcccf4b602c2ae803ef322a0ebe0020cb31fc1c"
+    },
+    {
+      "path": "docs/testing/platform-storage-documents-native-abi-15.r1.actor-helper.json",
+      "bytes": 677,
+      "sha256": "122c374b16c4c225ffa3a2ca921ad623d449847b3873ade90788de7ad0609836",
+      "git_blob": "db256776bf32aec70512ef959e23515b3b825a69"
+    },
+    {
+      "path": "docs/testing/platform-storage-documents-native-abi-15.r1.provider-review.json",
+      "bytes": 19095,
+      "sha256": "b9232d4ca09bdf778201255c5ce83be2d787a5f0fb44bd762ff43ce5c3f9f916",
+      "git_blob": "ab39d6168ae3e10463a0bd057c93970e3b6caeae"
+    },
+    {
+      "path": "docs/testing/platform-storage-documents-native-abi-15.r1.safe-receipt.json",
+      "bytes": 7283,
+      "sha256": "4e141f00a7c1b69143bb979b9638febb0e6daf0e9cb1254843fe2a88bade4fa4",
+      "git_blob": "dd9e8e921a550c6a3dc5caeb690596e665712ece"
+    },
+    {
+      "path": "scripts/storage-documents-native-abi-r1/acl-delta.v1.sql",
+      "bytes": 1052,
+      "sha256": "38065bf28e7806b5c2825f29a5d44cedbb0ea231d43e112cdab8bada8f227534",
+      "git_blob": "cbaa45dc579256fdc23a2f08baafdc5cef9fcad5"
+    },
+    {
+      "path": "scripts/storage-documents-native-abi-r1/acl-recovery.v1.sql",
+      "bytes": 1112,
+      "sha256": "05401abe88cf8283aa54232b7f4e66b23025f63ef57e3c8196df7f7f25a1d838",
+      "git_blob": "7acac2bac55caa040571d68b1d864e5c52ea5bdc"
+    },
+    {
+      "path": "scripts/storage-documents-native-abi-r1/actor-helper-review.sql",
+      "bytes": 672,
+      "sha256": "2cee5a4374310db628223ac66587cbfd8819020889ee77d358f57def15f5457a",
+      "git_blob": "a9edef5204af9e2d6c12de2b4030375b64124304"
+    },
+    {
+      "path": "scripts/storage-documents-native-abi-r1/audit.py",
+      "bytes": 7169,
+      "sha256": "84baa56d402b791e2ddb3dc32a2e493e5b1ab7f2f0f8c61851edcaf7f1c9b92f",
+      "git_blob": "9b40a977e043f7558c61b73f8c4f99c40b973d32"
+    },
+    {
+      "path": "scripts/storage-documents-native-abi-r1/catalog-review.sql",
+      "bytes": 5219,
+      "sha256": "7fd7fa678c7166f7abab1d625f35c3a181a2fc22d1f930f97313f747808b627f",
+      "git_blob": "9a90bfcc20b432a262ea584874433990de33c273"
+    },
+    {
+      "path": "scripts/storage-documents-native-abi-r1/contract.json",
+      "bytes": 1688,
+      "sha256": "f535ebfdbe48e996bb890871850237fa9088c8eab916c787520bb4b23e122f68",
+      "git_blob": "3e30b1ba98f6051ebac9bcdca1a8ad9347394bc7"
+    },
+    {
+      "path": "scripts/storage-documents-native-abi-r1/harness.py",
+      "bytes": 28189,
+      "sha256": "a32774e9a518fdbdac4af2657b3bdbf206976cbad078a83f74c76dfb82b027d9",
+      "git_blob": "7de4218dc18fe8af4a9f7790a2f212c11ffdb305"
+    },
+    {
+      "path": "scripts/storage-documents-native-abi-r1/native.mjs",
+      "bytes": 27963,
+      "sha256": "1fce00213df826c4cd580183a1589cbb5d2083ab5668aa75a59e01c7eea6c4fd",
+      "git_blob": "8c63a4aca224a2fda105f93f8fd77e2f31f7dbd6"
+    },
+    {
+      "path": "scripts/storage-documents-native-abi-r1/plan.py",
+      "bytes": 8665,
+      "sha256": "e3018bf21bc03951a8c1e71978255f8b5bd5847817d7c5fe1e611b673648440b",
+      "git_blob": "20099f31dccaec1fed0dd9431218a1dac928bf30"
+    },
+    {
+      "path": "scripts/storage-documents-native-abi-r1/principal-review.sql",
+      "bytes": 393,
+      "sha256": "4ccd90c627105a33f5ede5394e81609f4e84ff0381b2848da196c906c195778b",
+      "git_blob": "65d0346d873e473677b75d7988590ce0ab051bd0"
+    },
+    {
+      "path": "scripts/storage-documents-native-abi-r1/reviews.json",
+      "bytes": 72,
+      "sha256": "c1a2ccc0120dc2c9a4b2cf2cbacd2502ff3491274fbd23c78493e7cfaf755f1a",
+      "git_blob": "dc0dd63a523e974123b329eab0a59ec011061804"
+    },
+    {
+      "path": "scripts/storage-documents-native-abi-r1/sdk-pins.json",
+      "bytes": 7881,
+      "sha256": "cd3ee3f2d5f871796c494c99af25e59b69c11f6d9be12fc8bd9101fe7789219c",
+      "git_blob": "7fc80f118603b8fd2723f10c83e6438be92ae560"
+    },
+    {
+      "path": "scripts/storage-documents-native-abi-r1/source-seal.json",
+      "bytes": 2914,
+      "sha256": "ea415d83545474a9f49c9bdbc845e42962f93eea7ae6061da45a148c63451a67",
+      "git_blob": "09db362ca5791768ec97495ae837cc5aba8fd872"
+    },
+    {
+      "path": "scripts/test-storage-documents-abi15-capture-r1.mjs",
+      "bytes": 2715,
+      "sha256": "880263da7496314a5a2d18035f7daaf0a183f2bae528974f7a7e874409a84753",
+      "git_blob": "b3bf1fa338c5c97f26886908e0b3e31c3b26509a"
+    },
+    {
+      "path": "scripts/test-storage-documents-abi15-r1.mjs",
+      "bytes": 5173,
+      "sha256": "1799ee0285d0d585cd7dfa49a949b5ee17604a54682783bb9919aea3d03bde42",
+      "git_blob": "8401eca393e2321eb92f656a29334bb0947e2581"
+    },
+    {
+      "path": "scripts/test-storage-documents-abi15-r1.py",
+      "bytes": 10177,
+      "sha256": "e020188b3a74ea8fef94202e1d1218612e02e5921e4b05189b16ff7c7751e468",
+      "git_blob": "ec51d0384c2a661d6d18345fde20ee43b5c0c7b6"
+    }
+  ],
+  "source_seal": {
+    "format": "platform15-source-seal.v1",
+    "files": {
+      "docs/testing/platform-storage-documents-native-abi-15.r1.acl-review.json": "3a760de6086a0a80faf2d8337120c4ddb46894cab005fc1f172dc3b318eb8fa3",
+      "docs/testing/platform-storage-documents-native-abi-15.r1.actor-helper.json": "122c374b16c4c225ffa3a2ca921ad623d449847b3873ade90788de7ad0609836",
+      "docs/testing/platform-storage-documents-native-abi-15.r1.provider-review.json": "b9232d4ca09bdf778201255c5ce83be2d787a5f0fb44bd762ff43ce5c3f9f916",
+      "scripts/acl02_pg_wire.py": "4fa852fbdb6047ec3c264e1fee53b6218d9db9abf8b462d29e10d24fc4b242c3",
+      "scripts/functional-dev-stack-v1/bootstrap.sql": "fd77a96615502200d51046c6ab98485e81763377dd605b21426503a8ee25a540",
+      "scripts/functional-dev-stack-v1/gateway.conf": "dd60b2cd8e28bae75b0ba32943e65f236682d7a9e5ad43ca630e97bd8e23b8c1",
+      "scripts/functional-dev-stack-v1/profile.json": "5287f38709eb71e85915c9e23a18dd3f7cbb8276346f271ded1dd485de792218",
+      "scripts/functional-dev-stack-v1/provider-compatibility.sql": "5e6214c55dde2c4e2328c19cb79fc5a9a3ae0d84ecaab9544c419ff40a34fd7d",
+      "scripts/functional-dev-stack-v1/stack.py": "2049056db7bf4dc47c7d57b3bbaf0da5e57812a3b1fe55685a9d263533cc10f7",
+      "scripts/local_runtime_consumer.py": "b240725de9119e0176e49fb0bc55f4917ef8df79a9383cb8d77ed97ca579d439",
+      "scripts/storage-documents-native-abi-r1/acl-delta.v1.sql": "38065bf28e7806b5c2825f29a5d44cedbb0ea231d43e112cdab8bada8f227534",
+      "scripts/storage-documents-native-abi-r1/acl-recovery.v1.sql": "05401abe88cf8283aa54232b7f4e66b23025f63ef57e3c8196df7f7f25a1d838",
+      "scripts/storage-documents-native-abi-r1/actor-helper-review.sql": "2cee5a4374310db628223ac66587cbfd8819020889ee77d358f57def15f5457a",
+      "scripts/storage-documents-native-abi-r1/audit.py": "84baa56d402b791e2ddb3dc32a2e493e5b1ab7f2f0f8c61851edcaf7f1c9b92f",
+      "scripts/storage-documents-native-abi-r1/catalog-review.sql": "7fd7fa678c7166f7abab1d625f35c3a181a2fc22d1f930f97313f747808b627f",
+      "scripts/storage-documents-native-abi-r1/contract.json": "f535ebfdbe48e996bb890871850237fa9088c8eab916c787520bb4b23e122f68",
+      "scripts/storage-documents-native-abi-r1/harness.py": "a32774e9a518fdbdac4af2657b3bdbf206976cbad078a83f74c76dfb82b027d9",
+      "scripts/storage-documents-native-abi-r1/native.mjs": "1fce00213df826c4cd580183a1589cbb5d2083ab5668aa75a59e01c7eea6c4fd",
+      "scripts/storage-documents-native-abi-r1/plan.py": "e3018bf21bc03951a8c1e71978255f8b5bd5847817d7c5fe1e611b673648440b",
+      "scripts/storage-documents-native-abi-r1/principal-review.sql": "4ccd90c627105a33f5ede5394e81609f4e84ff0381b2848da196c906c195778b",
+      "scripts/storage-documents-native-abi-r1/sdk-pins.json": "cd3ee3f2d5f871796c494c99af25e59b69c11f6d9be12fc8bd9101fe7789219c"
+    },
+    "sha256": "25c7181f417248b7bf31b0cfda7492809c11125a937c27a3ab2b9f4d65ff7a5c",
+    "self_hash": "outside-file; reviews kept outside executable seal"
+  },
+  "private_request": {
+    "bytes": 6177,
+    "sha256": "6bdfe4ab4504dd39fd41f1bf434d103ec2c01c0ae0f071d79c4a93def4d2339c",
+    "authority": null,
+    "execution_binding": null,
+    "not_in_git": true
+  },
+  "reconstruction": "Checkout exact child. Runtime source/SQL bodies/data pins are in Git. Custodian-only fixed prepare uses preserved private catalog/actor metadata, source-bound private user selectors and accepted persistence identity; target/actor bindings are intentionally not public. Actual SQL material independently re-rendered and compared byte-for-byte before effects. The final local candidate already exists; do not reprepare merely for reporting.",
+  "inventory": {
+    "tracked_before": 2638,
+    "new_files_including_manifest": 22,
+    "expected_after": 2660,
+    "modified_existing": []
+  },
+  "self_identity": "outside file; no circular manifest/request hash",
+  "status": "SOURCE_REVIEWABLE_NATIVE_NOT_RUN_ACL_NOT_APPROVED",
+  "registry": "EMPTY",
+  "automation": "نیازمند بررسی"
+}

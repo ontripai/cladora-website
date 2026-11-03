@@ -1,0 +1,641 @@
+{
+  "format": "CORE_AIRPROP_READ_HOST_MINIMUM_08",
+  "task": "V14-CORE-01 / AIRPROP-READ-HOST-MINIMUM-08",
+  "base": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+  "branch": "codex/program-core-service-s01-producer-01",
+  "status": "SOURCE_DELIVERED_INDEPENDENT_REVIEW_REQUIRED_NATIVE_NOT_READY",
+  "runtime_binding": null,
+  "abi": {
+    "contract": "core-airprop-read-host.v1",
+    "factory": "createCoreAirpropReadHostV1({pool,principal})",
+    "method": "withScope<T>(actorId, requested, read): Promise<{value:T;completed_at:string}>",
+    "actorId": "comparison only; authentication from actual existing SSR getUser/getClaims",
+    "requested": [
+      "context_id",
+      "workspace_id"
+    ],
+    "server_scope": [
+      "context_id",
+      "workspace_id",
+      "tenant_id",
+      "actor_id"
+    ],
+    "sql_scope": "existing CoreTransactionScopeV1 shape; new opaque logical read id, attempt1; no command or aggregate-lock receipt",
+    "authority": "existing resolver/session checker/revision barrier/evaluator; no callback allow/provider identity input",
+    "callback_query_admission": [
+      {
+        "source": "actual consumer LISTING_NATIVE_PAGE_SQL",
+        "bytes": 670,
+        "sha256": "ab4992773d4e4638a52f218b97252bcc509b92c56a0c667a43d680b9750387d2",
+        "parameters": "exact tenant,Workspace; UUID keyset cursor/null; limit1..100"
+      },
+      {
+        "source": "actual consumer databaseTime SELECT",
+        "bytes": 112,
+        "sha256": "d589c6582430f861e3bba1205ebcb81765a2f089f4cc4ef3187d47d191d0ef30",
+        "parameters": "none"
+      }
+    ],
+    "completion": "same-held-backend post-COMMIT server-clock observation, exact six-digit UTC; no Date.now/TTL or ACK/delivery guarantee",
+    "failure_diagnostics": "coreReadFailureInfoV1(error): first error preserved; stage/settlement/secondary cleanup errors; never serialize to public clients",
+    "settlement_states": [
+      "not_started",
+      "unknown",
+      "rolled_back",
+      "committed"
+    ],
+    "no_new_retry": true,
+    "logical_select_only_not_pg_read_only": true
+  },
+  "consumer": {
+    "ref": "2981ec440e5978724c8da373800e9b1913f63905",
+    "proof": {
+      "path": "docs/airprop/LISTING-NATIVE-READ-SOURCE-04.proof-request.json",
+      "ref": "2981ec440e5978724c8da373800e9b1913f63905",
+      "bytes": 4196,
+      "sha256": "8ce21d10f78de72c315c4b84da24af616e725278da8a8de621af24170667fd71",
+      "git_blob": "bfa711e55b5428ceca17d1f7e8b3323694181db2"
+    },
+    "all_proof_pins_checked": [
+      {
+        "path": "src/lib/airprop/listing-native-read-v1.ts",
+        "ref": "2981ec440e5978724c8da373800e9b1913f63905",
+        "bytes": 11498,
+        "sha256": "dd38454f193a0ad54ac397e41a065254871d97527a64fe8e9951b0d03279a580",
+        "git_blob": "1cfc17a0894a705452ede9fa0c6909798880a531"
+      },
+      {
+        "path": "scripts/test-airprop-listing-native-read-04.mjs",
+        "ref": "2981ec440e5978724c8da373800e9b1913f63905",
+        "bytes": 11077,
+        "sha256": "530a3c3f63661531a5af789c84c89a1d94105bad2cc793ae3cb2dd224392aede",
+        "git_blob": "687e2607a53f16c6f76f446af7eb80617de79029"
+      },
+      {
+        "path": "src/lib/core/current-unit-property-selector-v1.ts",
+        "ref": "2981ec440e5978724c8da373800e9b1913f63905",
+        "bytes": 14179,
+        "sha256": "cf8649d0196c4d87e6bb17a756ab24194faddd1cec382cde97e17c5466c55dcd",
+        "git_blob": "454e547a66aad25316e5c9232a0921ccbb874024"
+      },
+      {
+        "path": "src/lib/core/airprop-companion-mapping-v1.ts",
+        "ref": "2981ec440e5978724c8da373800e9b1913f63905",
+        "bytes": 2931,
+        "sha256": "9049c94a462c6e3955a5e7bb1ef3f9f21ffb572ce45aad59690f878d08c88e08",
+        "git_blob": "29da91ea442a758b046b8868747e5418bba37687"
+      },
+      {
+        "path": "src/lib/core/resource-authority-contract-v1.ts",
+        "ref": "2981ec440e5978724c8da373800e9b1913f63905",
+        "bytes": 12058,
+        "sha256": "435841041ee5bc14e62eac44b2875ab7b700e2636ae3d580071db96932607eaf",
+        "git_blob": "455725edc026e20bccffed2c05ed3b675ad9f777"
+      },
+      {
+        "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+        "ref": "2981ec440e5978724c8da373800e9b1913f63905",
+        "bytes": 7831,
+        "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+        "git_blob": "e67df2d947608f546dab42dba88b5bdc418cbffb"
+      },
+      {
+        "path": "src/lib/core/postgres-transaction-host-v1.ts",
+        "ref": "2981ec440e5978724c8da373800e9b1913f63905",
+        "bytes": 39738,
+        "sha256": "5ae0d49cde0850c3d8b2c55bc2398d685e1c833d2e9a9e176ee8eab8d1cdce06",
+        "git_blob": "8e6e4f1eafe67e6c6df70ead3d273cf27484c918"
+      },
+      {
+        "path": "supabase/migrations/20261007112219_airprop_commercial_lifecycle_v1.sql",
+        "ref": "2981ec440e5978724c8da373800e9b1913f63905",
+        "bytes": 25183,
+        "sha256": "caff6c0d695767a7e61b6c9a3cf9470d8c3dbea814490e5593238f3349bc3231",
+        "git_blob": "22311e3b9f5647d1c7d0e9282381c65ed7167dfb"
+      },
+      {
+        "path": "supabase/migrations/20261008135433_airprop_listing_controls_v1.sql",
+        "ref": "2981ec440e5978724c8da373800e9b1913f63905",
+        "bytes": 7042,
+        "sha256": "9dd60f3f428e25a8194ea09b21c944c19e891b1cd8a649758765026984b75c79",
+        "git_blob": "2a4795449939cf4a957112113ee6024aa2f9222b"
+      }
+    ],
+    "result": "9/9 exact source identities; not native execution or producer admission"
+  },
+  "source_evidence": [
+    {
+      "path": "src/lib/supabase/server.ts",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 791,
+      "sha256": "5eb2bc418fbd3933ab2c45b2426f70f43cf1d392392788069b7832d5d6adffdc",
+      "git_blob": "8e5a47b6c28ef827efe1d58a9992cb37cf15e9e8",
+      "line": 6,
+      "meaning": "Existing SSR cookie/publishable-client boundary"
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 39738,
+      "sha256": "5ae0d49cde0850c3d8b2c55bc2398d685e1c833d2e9a9e176ee8eab8d1cdce06",
+      "git_blob": "8e6e4f1eafe67e6c6df70ead3d273cf27484c918",
+      "line": 241,
+      "meaning": "Existing pg connect/query/release transport type; unchanged command host"
+    },
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "git_blob": "e67df2d947608f546dab42dba88b5bdc418cbffb",
+      "line": 26,
+      "meaning": "Command-bound canonical provider cannot issue fabricated read command receipt; shared evaluator/revision sources reused directly"
+    },
+    {
+      "path": "src/lib/core/platform-role-bound-pool-v1.ts",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 9923,
+      "sha256": "d31f3b31a1302686d8022627475b2e14057cd36fff219a8b4441ff052798fc79",
+      "git_blob": "1128064d1f9ba0a09446bfbb651516e41c88a141",
+      "line": 246,
+      "meaning": "Existing role-bound transport pattern has CE/SERVICE profiles; not AIRPROP admission"
+    },
+    {
+      "path": "supabase/migrations/20261003151649_20261003122445_workspace_native_context_authority_v2.sql",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 32650,
+      "sha256": "9bfec6f0760eae0f5ebb0d65a55124b30eefd8e8fd3cfe714ce991b7f3c5a054",
+      "git_blob": "61f44b8f3841fbb3ae0218adf1f22877a184ab17",
+      "line": 33,
+      "meaning": "Canonical selected Context/Workspace membership/tenant resolver"
+    },
+    {
+      "path": "supabase/migrations/20261025214155_building_setup_command_receipts_v1.sql",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 732202,
+      "sha256": "254e17c9e5f21ce4e50786d3325c2cc84759097b16cb53028602d1e8db5e02e3",
+      "git_blob": "f365539237f6799311e5a2a824837987fd4e8fea",
+      "line": 8083,
+      "meaning": "Existing real session currentness checker, no direct session projection/new evaluator"
+    },
+    {
+      "path": "src/lib/core/current-unit-property-selector-v1.ts",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 14179,
+      "sha256": "cf8649d0196c4d87e6bb17a756ab24194faddd1cec382cde97e17c5466c55dcd",
+      "git_blob": "454e547a66aad25316e5c9232a0921ccbb874024",
+      "line": 20,
+      "meaning": "Command aggregate/command_id required; real read scope lacks a command"
+    },
+    {
+      "path": "src/lib/core/current-unit-property-selector-v1.ts",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 14179,
+      "sha256": "cf8649d0196c4d87e6bb17a756ab24194faddd1cec382cde97e17c5466c55dcd",
+      "git_blob": "454e547a66aad25316e5c9232a0921ccbb874024",
+      "line": 107,
+      "meaning": "Existing selector command receipt/lock guard remains intact"
+    },
+    {
+      "path": "src/lib/airprop/listing-native-read-v1.ts",
+      "ref": "2981ec440e5978724c8da373800e9b1913f63905",
+      "bytes": 11498,
+      "sha256": "dd38454f193a0ad54ac397e41a065254871d97527a64fe8e9951b0d03279a580",
+      "git_blob": "1cfc17a0894a705452ede9fa0c6909798880a531",
+      "line": 71,
+      "meaning": "Consumer-proposed interface; exact structural coupling only"
+    }
+  ],
+  "host_sql_identities": [
+    {
+      "name": "principal",
+      "bytes": 190,
+      "sha256": "71126a3a5f4d6941d45b88c33c6a7f1f17f7b2bd00bb2945c5ade75f1718e026",
+      "git_blob": "86f0b1ffe5f77d041acfd337f13bee6bb6379114"
+    },
+    {
+      "name": "identity",
+      "bytes": 303,
+      "sha256": "22053f30ac370188be7092facc5fa46352756c4e9c90e12198603855618fb337",
+      "git_blob": "20cab7dfde224f51509070a72b600425b0bc0f33"
+    },
+    {
+      "name": "resolve",
+      "bytes": 137,
+      "sha256": "763fad6c90842bcb0484276962d5e709cf3b1043ac595604a4678d011f375c99",
+      "git_blob": "f59268ff7b80f23b44c784a81d024f5a1814b56d"
+    },
+    {
+      "name": "lock",
+      "bytes": 375,
+      "sha256": "3ebf8758f4e4bf784879554c2deaa1798a461ae093234fa40cd015e90dd3c59f",
+      "git_blob": "64a0d89b06a95a5ac9e9bfda4ae6d4be1d0c0e46"
+    },
+    {
+      "name": "guard",
+      "bytes": 1860,
+      "sha256": "b757fcd0e1ef6f20c6d4689c63c06aa5289cd6f136f36aa60fe6fc7c584e7289",
+      "git_blob": "13aa55b8193277ff756ab02337b4952f8cd25d86"
+    },
+    {
+      "name": "completed",
+      "bytes": 191,
+      "sha256": "1c7cf44bdf4b2d3808af9532c9f2fd04d10215f6178b858a1576b60a1c7d4782",
+      "git_blob": "5837297cb0b0955432216069447bcfb9609a3e67"
+    },
+    {
+      "name": "revision",
+      "bytes": 96,
+      "sha256": "c68c616ed8e806234bde7ee81c83ca6fa66b29b403c25a772e2ca885a2364269",
+      "git_blob": "341ba8ad54a9d03b7a2b6acda617233b11743a46"
+    }
+  ],
+  "driver_source": {
+    "pg": "8.23.0 (installed equals unchanged package-lock)",
+    "pins": [
+      {
+        "path": "node_modules/pg/lib/query.js",
+        "ref": null,
+        "bytes": 7654,
+        "sha256": "a13377272ad4f842f6f6616d187ef3123cfed90e764cae9a663058ab41a769a0",
+        "git_blob": "6b92141995801206e152053da41944175abf4d56"
+      },
+      {
+        "path": "node_modules/pg/lib/client.js",
+        "ref": null,
+        "bytes": 24930,
+        "sha256": "992c12d10cd42ece06b0b224601fa783a02ed08f3ace8bd8089cc441b6308abf",
+        "git_blob": "7a2fc9a649344855b9fcf7183463cfddec825aeb"
+      },
+      {
+        "path": "node_modules/pg-pool/index.js",
+        "ref": null,
+        "bytes": 14460,
+        "sha256": "6f304776edaabde2954cbf8c4366fa6d9512bfba0e408e78cc56b3c46c69d058",
+        "git_blob": "ab514fa88f0e2f37eaf19c25c54d527a28675a12"
+      }
+    ],
+    "ack_basis": "Query.handleReadyForQuery callback and Client._handleReadyForQuery; pg-pool._remove calls underlying Client.end on release(true)",
+    "native_ack_correlation_cleanup": "NOT_RUN"
+  },
+  "deadlines": {
+    "server_statement_timeout": "10s session-scoped to include post-COMMIT query",
+    "server_lock_timeout": "5s",
+    "server_idle_in_transaction_timeout": "15s",
+    "local_wire_auth_checkout_callback_failure_budget_ms": 15000,
+    "local_cleanup_end_budget_ms": 5000,
+    "semantics": "duration failure deadlines only; no minted completed_at/TTL; timeout is not cancellation/rollback"
+  },
+  "verification": {
+    "targeted_command": "node scripts/test-core-airprop-read-host-minimum-08.mjs",
+    "checks": 47,
+    "result": "PASS",
+    "transport": "controlled pg/EventEmitter + SSR API stub; no issued JWT/DB/Auth/native proof",
+    "actual_consumer_coupling": "actual queryListingNativePageV1; actual createListingNativeReadV1(host,null) rejects CANONICAL_PRODUCER_NOT_READY",
+    "selector_counterexample": "actual selector schema/reader reject read scope missing command lock/receipt with BINDING_MISMATCH",
+    "full_typecheck": "PASS unchanged current ES5 tsconfig",
+    "actual_consumer_ABI_typecheck": "PASS isolated scratch of exact consumer src + new Core host",
+    "limited_lint_syntax_diff": "PASS",
+    "business_command_reservation_audit_outbox_writes": 0,
+    "old_successful_suites": "NOT_RERUN",
+    "not_run": [
+      "SQL parser/compile/query/execute",
+      "real PG/Auth/issued identity",
+      "native role/ACL/RLS/currentness/lock/writer/driver proof",
+      "install/grant/activation",
+      "Release-wide acceptance/security suite",
+      "staging/Production/merge/deploy"
+    ]
+  },
+  "selector_contract_delta_proposal": {
+    "status": "PROPOSED_NOT_IMPLEMENTED_NOT_APPROVED",
+    "owner": "Core; AIRPROP consumes after separate assignment",
+    "path": "src/lib/core/current-unit-property-selector-v1.ts",
+    "shape": "read-specific selector entry with opaque host-issued same-live-scope canonical read-authority observation; real unit/property predicate/SHARE-lock reuse",
+    "must_keep": [
+      "existing command ABI and guards unchanged",
+      "no command_id/aggregate-lock/authority receipt fabrication",
+      "no JSON allow or detached reusable read token",
+      "explicit admission for exact selector query closure"
+    ]
+  },
+  "remaining_dependencies": [
+    "official AIRPROP Unit/spec/party/relationship/label/disclosure producer and all-gate real current_until",
+    "accepted read-compatible selector ABI and live scope observation",
+    "Platform-admitted AIRPROP principal/role-graph/ACL/RLS and physical session pool",
+    "native all-writer/session participation, lock order/implicit waits/currentness/COMMIT protocol",
+    "full release security/regression acceptance under separate authority"
+  ],
+  "proof_request": {
+    "status": "NOT_ADMITTED_NO_EXECUTION",
+    "admission": null,
+    "profile": null,
+    "principal": null,
+    "authenticated_identity_binding": null,
+    "run_id": null,
+    "backend_correlation": null,
+    "target_binding": null,
+    "activation_authorized": false,
+    "required": [
+      "review exact source/consumer/driver and principal query closure",
+      "real verified SSR identity and official canonical resolver/session/evaluator in same admitted database",
+      "same-backend PID and positive COMMIT/ReadyForQuery contract; postclock then cleanup end acknowledgement",
+      "independent zero business/C03/audit/outbox-write census and cleanup/custody",
+      "native contention/revoke/expiry/mismatch/40001 and first-error/UNKNOWN evidence"
+    ],
+    "does_not_authorize": [
+      "role/grant/schema changes",
+      "CE/SERVICE profile reuse as AIRPROP proof",
+      "fake canonical producer/label/relationship/expiry",
+      "runner/env/credentials/activation"
+    ]
+  },
+  "protected_source_pins": [
+    {
+      "path": "docs/contracts/core-ce012-stored-relation-v1/README.md",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 11272,
+      "sha256": "2a149c633d38a268756a242ee9148c6c437fd512b957c47e0461e917285de515",
+      "git_blob": "bd86b0c5e272c2230352c56f9c998049e350a4e5"
+    },
+    {
+      "path": "docs/contracts/core-ce012-stored-relation-v1/manifest.json",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 19548,
+      "sha256": "ae1b70ac7eff5d1b62f04fbbe91d6406365d4bbccbb33d02001425c34472a92c",
+      "git_blob": "e00f1c04ad5a81ebc5433703792708ce0bd5ae1e"
+    },
+    {
+      "path": "docs/contracts/core-service-s01/README.md",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 13308,
+      "sha256": "1a60a1f926e2af54bfa075ce5fab4e9bc6796360b3fbf990d793b935c0b61c7c",
+      "git_blob": "b33846d3182297293bd3e0da417277e22e8d8efe"
+    },
+    {
+      "path": "docs/contracts/core-service-s01/SOURCE-CLOSEOUT-02.md",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 17016,
+      "sha256": "0d8581b9eaca7969d7a2851810d7a2ebeaaf9d31403a5fd150f3ff142e1c9295",
+      "git_blob": "8e0312176b8212d3e052c34fc9d40a01c0e60bfa"
+    },
+    {
+      "path": "docs/contracts/core-service-s01/closeout-manifest.json",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 18848,
+      "sha256": "78c94ae90f24dbda4908ea36294a72cc178e9839141a166be5317078391f0bf9",
+      "git_blob": "e1a77bac28649fb6197303d50cf881d8bf086a02"
+    },
+    {
+      "path": "docs/contracts/core-service-s01/platform-proof-request.json",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 12079,
+      "sha256": "ff7fe7c564722cb07fcd1460d0b93071d44ea417b737ac09cb63869ead2c0b99",
+      "git_blob": "088a71ab389cee6882a41046e4e6059edde8ab6c"
+    },
+    {
+      "path": "docs/contracts/core-service-s01/provenance.json",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 9536,
+      "sha256": "a41b79038cf69e5143dadd9d282235cd4827a664d4ff1280b0e6b478dba4e3ad",
+      "git_blob": "c211ba1043c17b945e52cfa108ed76532a6987af"
+    },
+    {
+      "path": "docs/contracts/core-service-s01/store-proposal.json",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 5368,
+      "sha256": "1058ecb4e3e61f4ede6d8e5329b8fe17c0bb899a838eacd1e6bf5a4093ef890f",
+      "git_blob": "048079ba656864bc79e831fe8aede3da2c7d6163"
+    },
+    {
+      "path": "package-lock.json",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 285183,
+      "sha256": "c0d6201b9dddab56818ee2c6a547cdba318b0f6979f2a27657b7ac5a41c9b4dc",
+      "git_blob": "e757f68e7602eb2f31dfd7d79eccedab18b72734"
+    },
+    {
+      "path": "package.json",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 20058,
+      "sha256": "fd82e8763837cbf7af3a0b55dd3e17c9d51f916deab6f5551ecf1a74bce083ce",
+      "git_blob": "24d2aa6ac1b58b075a0e4c42b84ef73ab9ea063b"
+    },
+    {
+      "path": "scripts/review-core-service-s01-producer-01/check-store.mjs",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 5493,
+      "sha256": "c352b6e2a948633c18710cba04bd620b946c5f45eb39d4dfea1911fbcf6b64d2",
+      "git_blob": "44dadb6a7fcfcff49318601c51073a3ac407075a"
+    },
+    {
+      "path": "scripts/review-core-service-s01-producer-01/compose-proof.mjs",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 1481,
+      "sha256": "fa7f29926d8c5240ae8d386561e0d748dab3f95bbfd3f5f5ece69b4c8cbda720",
+      "git_blob": "6f413d553d86bc34eabc2a1dd147bdaf314fe01d"
+    },
+    {
+      "path": "scripts/review-core-service-s01-producer-01/test-producer.mjs",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 39787,
+      "sha256": "9eb7b3b128306e300db0ef12875389127a56f4d58ae74c936c5b4353ffccd2eb",
+      "git_blob": "6d8bdcff5413c85c8e77c048566fba2c8457408a"
+    },
+    {
+      "path": "scripts/test-core-ce012-stored-relation-v1.mjs",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 18002,
+      "sha256": "5e977c2064c15efd57732d4bf605c1ceabf72e3b65ccfa2afece6b1a426c0489",
+      "git_blob": "b628e0491d330a2ed6bb0831d251f8eade4ec7ee"
+    },
+    {
+      "path": "src/lib/core/ce012-stored-relation-v1.ts",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 10032,
+      "sha256": "d6e8495f4f03c46076c3d4fb15c6174eccef8a4c161c644b5976ceeb2aed69f0",
+      "git_blob": "79456ecc7e5b372f01eb6422c48d0826e9512dab"
+    },
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "git_blob": "e67df2d947608f546dab42dba88b5bdc418cbffb"
+    },
+    {
+      "path": "src/lib/core/current-unit-property-selector-v1.ts",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 14179,
+      "sha256": "cf8649d0196c4d87e6bb17a756ab24194faddd1cec382cde97e17c5466c55dcd",
+      "git_blob": "454e547a66aad25316e5c9232a0921ccbb874024"
+    },
+    {
+      "path": "src/lib/core/platform-role-bound-pool-v1.ts",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 9923,
+      "sha256": "d31f3b31a1302686d8022627475b2e14057cd36fff219a8b4441ff052798fc79",
+      "git_blob": "1128064d1f9ba0a09446bfbb651516e41c88a141"
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 39738,
+      "sha256": "5ae0d49cde0850c3d8b2c55bc2398d685e1c833d2e9a9e176ee8eab8d1cdce06",
+      "git_blob": "8e6e4f1eafe67e6c6df70ead3d273cf27484c918"
+    },
+    {
+      "path": "src/lib/core/service-s01/errors-v1.ts",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 301,
+      "sha256": "be1b63b6c9f62ae9d152a2ddda10d18508bd7426e5b66f2b9d3566d8f2b05e07",
+      "git_blob": "5d0408872fa2116bc49ca7ae5fa9b670030eb435"
+    },
+    {
+      "path": "src/lib/core/service-s01/offering-disclosure-policy-v1.ts",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 7396,
+      "sha256": "3d57e846dd782a4443b637a4bf9fc8337fda471f36d56ad3ae5eaab0830c3df6",
+      "git_blob": "9cba2cc22501c0695837d2c800c00fa03d24f236"
+    },
+    {
+      "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 19246,
+      "sha256": "977581d5c025287e7a88cc485a31d277fc412e8d7825087c871bfbdf2ecbeb8c",
+      "git_blob": "4080a96d003670068abbf435bb303f09e32cdc0d"
+    },
+    {
+      "path": "src/lib/supabase/server.ts",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 791,
+      "sha256": "5eb2bc418fbd3933ab2c45b2426f70f43cf1d392392788069b7832d5d6adffdc",
+      "git_blob": "8e5a47b6c28ef827efe1d58a9992cb37cf15e9e8"
+    },
+    {
+      "path": "supabase/migrations/20261003151649_20261003122445_workspace_native_context_authority_v2.sql",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 32650,
+      "sha256": "9bfec6f0760eae0f5ebb0d65a55124b30eefd8e8fd3cfe714ce991b7f3c5a054",
+      "git_blob": "61f44b8f3841fbb3ae0218adf1f22877a184ab17"
+    },
+    {
+      "path": "supabase/migrations/20261025214155_building_setup_command_receipts_v1.sql",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 732202,
+      "sha256": "254e17c9e5f21ce4e50786d3325c2cc84759097b16cb53028602d1e8db5e02e3",
+      "git_blob": "f365539237f6799311e5a2a824837987fd4e8fea"
+    },
+    {
+      "path": "supabase/proposals/core-service-s01/store-proof-v1.sql",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 5703,
+      "sha256": "420cf84d33e2d6129158db90a225d92bd8b10bc6d2da9815d5f1a2b71a77e286",
+      "git_blob": "f81ab8c310e47f79d3a46dbac7bdf23477ce3cf5"
+    },
+    {
+      "path": "supabase/proposals/core-service-s01/store-v1.sql",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 16397,
+      "sha256": "42d2c96d7ac7e8a09aa2ecc60725054eb7c058ef471e64ea309add0a1bb72d50",
+      "git_blob": "d1fcd30e635c57e9a34c846aa6613e49daa471ea"
+    },
+    {
+      "path": "supabase/proposals/core-service-s01/verify-clean-v1.sql",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 1783,
+      "sha256": "2615d7c526110b97b881279951dfc05e2395abf0bf240027c5ee090d18e05ac4",
+      "git_blob": "027bfd3309a71f45404f539a440ff1b2aa547c30"
+    },
+    {
+      "path": "tsconfig.json",
+      "ref": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "bytes": 739,
+      "sha256": "9a5465ed302af1556cb72f0f5b98392f4b745761ba51f519c721f0ee49bb4226",
+      "git_blob": "7f9d7d66bf8228222565337be9438986ef09e72b"
+    }
+  ],
+  "automation": {
+    "classification": "\u0646\u06cc\u0627\u0632\u0645\u0646\u062f \u0628\u0631\u0631\u0633\u06cc",
+    "input": "trusted read intent and canonical scope",
+    "opportunity": "bounded validation and exception routing",
+    "human_role": "Core/Platform/coordinator admission",
+    "conditions": "accepted producer/selector/profile; unchanged authority/scope/revoke/expiry/idempotency",
+    "exceptions": "UNKNOWN/currentness -> Core/Platform",
+    "dependency": "official AIRPROP read producer/selector/profile",
+    "value": "unmeasured; needs review",
+    "execution_authority_changed": false
+  },
+  "inventory": [
+    {
+      "path": "src/lib/core/airprop-read-host-v1.ts",
+      "ref": null,
+      "bytes": 16793,
+      "sha256": "4b13bfa4c920a68e7ec31b4a10f17a6e2bcf90721d255ccbc7e33eea34958c3c",
+      "git_blob": "47fde404a10ef6bfcf507fd01069b754eff4bbe8"
+    },
+    {
+      "path": "scripts/test-core-airprop-read-host-minimum-08.mjs",
+      "ref": null,
+      "bytes": 18031,
+      "sha256": "430decbd301f8d9a8161872d164013617ffe039a68518224716da5213009d98d",
+      "git_blob": "69f4a03f69ada7322e1a3f8b8806691cbb880b16"
+    },
+    {
+      "path": "docs/contracts/core-airprop-read-host-minimum-v1/README.md",
+      "ref": null,
+      "bytes": 12883,
+      "sha256": "09501bb4f77454220cd1358a6caefd8299a4ef04bb4dae5bfd54c90d24b19ab8",
+      "git_blob": "783e0fdbc6beaac776dad11b78a894769bdccde5"
+    }
+  ],
+  "inventory_seal": {
+    "algorithm": "SHA256 sorted-key compact JSON UTF-8 inventory; manifest self excluded",
+    "sha256": "f4386eb22c5a0429e59c0adf1c566eaf2c11797b9e2a79914295c5c04548c2c3",
+    "self_identity": "committed Git tree/external delivery manifest"
+  },
+  "transport_control_identities": [
+    {
+      "sql": "set statement_timeout = '10s'",
+      "bytes": 29,
+      "sha256": "68b647a24f8a95cb791a71c5fe413930e81cf45e89e0f42e49c05ac4b7436e6e",
+      "git_blob": "f538745122b219c70906b1f1958f6f615ef0b4e6"
+    },
+    {
+      "sql": "set lock_timeout = '5s'",
+      "bytes": 23,
+      "sha256": "2e542fb8e45ef922d8dc331faaf4ce3034c814191c8835f374eb5948679502b2",
+      "git_blob": "a8fe66fcedcff069a5885585965c467d614f3e76"
+    },
+    {
+      "sql": "set idle_in_transaction_session_timeout = '15s'",
+      "bytes": 47,
+      "sha256": "fc198deb09b2bf5d15cdb10a60460c23292d8b7015e2e81e1fd098d8dacfd5d9",
+      "git_blob": "1e5c5990bf28cf67a22dfe2a1a441422b3657806"
+    },
+    {
+      "sql": "begin isolation level serializable",
+      "bytes": 34,
+      "sha256": "a25b6cc7ddd0477f34e731d522fe028d299ef35960c512e22c23b18326c63736",
+      "git_blob": "a22c1c75b20aeffb4dfb99503a27abf9c92396d0"
+    },
+    {
+      "sql": "set local search_path = pg_catalog",
+      "bytes": 34,
+      "sha256": "18f643be7bf9a35dfac2c2ad1d945e61fbf8a6fd3675c11b5f7cd9efd7889105",
+      "git_blob": "fff6fd56f422fb345407b8481465bf11600a56a1"
+    },
+    {
+      "sql": "commit",
+      "bytes": 6,
+      "sha256": "9505cacb7c710ed17125fcc6cb3669e8ddca6c8cd8af6a31f6b3cd64604c3098",
+      "git_blob": "fcad765822a69c7de41bb1db186c57b160409923"
+    },
+    {
+      "sql": "rollback",
+      "bytes": 8,
+      "sha256": "da25480fb483e6ce3d30f1a179c3c07e9f3b045425b0ac54acc6758a97e2db62",
+      "git_blob": "73bf2864b50dadf1a4ec452f208fe3b92fdd4c04"
+    }
+  ]
+}

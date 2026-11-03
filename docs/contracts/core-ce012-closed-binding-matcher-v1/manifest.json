@@ -1,0 +1,100 @@
+{
+  "task": "CORE-CE012-CLOSED-BINDING-MATCHER-14",
+  "base": "1971770a7ee92c2020387c5222b0c7da03a552d8",
+  "parent": "1971770a7ee92c2020387c5222b0c7da03a552d8",
+  "branch": "codex/program-core-service-s01-producer-01",
+  "documents_input": "f64fa2dacf895fdea698e46ffc178aa0d8270f0e",
+  "runtime_binding": null,
+  "historical_slots": "BLOCKED",
+  "status": "SOURCE_REVIEW_REQUIRED",
+  "abi": {
+    "entry": "matchCoreCe012ClosedBindingV1(exactResult, exactResponseBytes, expected)",
+    "version": "core-ce012-closed-binding-matcher.v1",
+    "expectation": "coreCe012ClosedBindingExpectationV1Schema",
+    "match": "historical equality only",
+    "status": "not_ready",
+    "projection": null,
+    "current_authority": "not_evaluated"
+  },
+  "inventory": [
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "bytes": 61399,
+      "sha256": "cc0d8eb09dde1fae9c736820a66c984cc0a7bd66c1de29f8996496b7f7f74cb8"
+    },
+    {
+      "path": "scripts/test-core-ce012-closed-binding-matcher-14.mjs",
+      "bytes": 10658,
+      "sha256": "2b6d2ba5d68571e1214ae4ac368092f250beccbff58c962ac5406d3e3c144813"
+    },
+    {
+      "path": "docs/contracts/core-ce012-closed-binding-matcher-v1/README.md",
+      "bytes": 5657,
+      "sha256": "db067751eb84b5095ddad8cf86082e23e0d63670d1374ad1a1a6c3de071164a9"
+    }
+  ],
+  "inventory_seal_sha256": "d65021549ee23ab762de8be94a1525886ac3ad96ed8cc5a3db96cb00002a3673",
+  "pins": [
+    {
+      "commit": "1971770a7ee92c2020387c5222b0c7da03a552d8",
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "bytes": 57045,
+      "sha256": "51cb1244bd5380b08107d909a58a82b9e7fd492c3595e0333c489a9663b2d7ea",
+      "git_blob": "96e7dc004eef89431f3825002139863ef8d7bed9"
+    },
+    {
+      "commit": "1971770a7ee92c2020387c5222b0c7da03a552d8",
+      "path": "src/lib/core/ce012-documents-joint-candidate-v1.ts",
+      "bytes": 3438,
+      "sha256": "8b63b866b7abcd043f148638391af918c4d59214ab8c7f7df268122e68105267",
+      "git_blob": "bba91861f9f07bdff4ebdc22cd62627cb3d45b60"
+    },
+    {
+      "commit": "1971770a7ee92c2020387c5222b0c7da03a552d8",
+      "path": "src/lib/core/ce012-host-terminal-checkpoint-v1.ts",
+      "bytes": 2660,
+      "sha256": "4765e3d17fe12b41369a350afff7f62fc94bf03a3098d6c58c92ca63107bb29d",
+      "git_blob": "1d90f5c7badeaf14a3e922d788355ab90d14148b"
+    },
+    {
+      "commit": "1971770a7ee92c2020387c5222b0c7da03a552d8",
+      "path": "src/lib/core/ce012-terminal-authority-port-v1.ts",
+      "bytes": 16620,
+      "sha256": "c58e24ef2b00edb0524e43de145d8990ea4e6846b7d175399aaad7a9a7decf0a",
+      "git_blob": "1e89805d8b8565c0b0a5ea1e0857c6553d057a82"
+    },
+    {
+      "commit": "1971770a7ee92c2020387c5222b0c7da03a552d8",
+      "path": "scripts/test-core-ce012-replay-joint-seal-13.mjs",
+      "bytes": 11199,
+      "sha256": "2b49d18bd0a03011908c068a1605695682dd6406aea3976c0c00d0a3744b6721",
+      "git_blob": "8a21589c4674eae44fdb5883eda1aac4c7412c75"
+    },
+    {
+      "commit": "1971770a7ee92c2020387c5222b0c7da03a552d8",
+      "path": "docs/contracts/core-ce012-replay-joint-seal-v1/manifest.json",
+      "bytes": 28839,
+      "sha256": "be251c21fea933661d870ee9ae0dd4d38af1b60f0250528413752c1fac98e698",
+      "git_blob": "757e4dcd74d5712bc4846eed121cd88a14d469bd"
+    },
+    {
+      "commit": "f64fa2dacf895fdea698e46ffc178aa0d8270f0e",
+      "path": "src/lib/customer/documents-ce012-core13-closed-replay-adopter-v1.ts",
+      "bytes": 7355,
+      "sha256": "09c71ac3d8dcf2c68c4f6f712856e0f18a94bdce79eb27890b1a6f004ecd853e",
+      "git_blob": "bda85b75914f8a20e35bf6fbf229d011da0cf2e7"
+    },
+    {
+      "commit": "f64fa2dacf895fdea698e46ffc178aa0d8270f0e",
+      "path": "src/lib/customer/documents-ce012-target-disclosure-port-v1.ts",
+      "bytes": 15787,
+      "sha256": "5e7beae0d47da015930d0325fa7faf28d03d6c4e3f70681febd8d59a6bf6e0dc",
+      "git_blob": "7f4ad245cf3686937c704d7d9d33c1ba8e571a80"
+    }
+  ],
+  "protected": "Entire Base host exactly reconstructible by deleting ONLY additive matcher block; all other tracked paths unchanged",
+  "new_controls": 88,
+  "old_suites": "23+33 NOT_RERUN",
+  "native": "NOT_RUN_NOT_PASS",
+  "automation": "نیازمند بررسی"
+}

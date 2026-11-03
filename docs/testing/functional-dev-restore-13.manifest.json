@@ -1,0 +1,111 @@
+{
+  "format": "platform-dev-backup-restore-delivery.v1",
+  "task_id": "PLATFORM-DEV-BACKUP-RESTORE-13",
+  "parent": "794f5a12c3928ae0a3585ab679a3cbe60aab49a3",
+  "branch": "codex/program-local-runtime-lane-01",
+  "new_paths": [
+    "docs/testing/PLATFORM-DEV-BACKUP-RESTORE-13.md",
+    "docs/testing/functional-dev-restore-13.receipt.json",
+    "scripts/functional-dev-stack-v1/restore13.py",
+    "scripts/test-functional-dev-restore13.py",
+    "docs/testing/functional-dev-restore-13.manifest.json"
+  ],
+  "files": [
+    {
+      "path": "docs/testing/PLATFORM-DEV-BACKUP-RESTORE-13.md",
+      "bytes": 8239,
+      "sha256": "0ee78502a89b96204ff2e3bf0ffaa1ec40d2a5667f4333b272cad62364ecc0ad",
+      "git_blob": "029698e017b68d93d92952abea70f6d9090b7200"
+    },
+    {
+      "path": "docs/testing/functional-dev-restore-13.receipt.json",
+      "bytes": 6136,
+      "sha256": "6cbdc9d358f7dee379a74a897d194e11c905d66386ee812cd7a8c465c1919d4a",
+      "git_blob": "d87ac1a2041df79ba463eef6ef63c2a7d8e54a2c"
+    },
+    {
+      "path": "scripts/functional-dev-stack-v1/restore13.py",
+      "bytes": 19643,
+      "sha256": "6dea3be79b1f4a609b8c2ae36fe4ccd80f4a8caaca7b41168eb379dc0b2e1960",
+      "git_blob": "f54ac1f2ad56e3e6c75880ab1f6cee37d49309cd"
+    },
+    {
+      "path": "scripts/test-functional-dev-restore13.py",
+      "bytes": 5109,
+      "sha256": "4d0ebb73bae9ba832c4a160d26d445944dd492c1a31474eb19807dfefa17ccf8",
+      "git_blob": "8a4d8c098a74a343106053f8d68597063ed2bd2b"
+    }
+  ],
+  "manifest_self_identity": "external receipt; no circular self-hash",
+  "unchanged_sealed_five": {
+    "bootstrap.sql": "fd77a96615502200d51046c6ab98485e81763377dd605b21426503a8ee25a540",
+    "gateway.conf": "dd60b2cd8e28bae75b0ba32943e65f236682d7a9e5ad43ca630e97bd8e23b8c1",
+    "profile.json": "5287f38709eb71e85915c9e23a18dd3f7cbb8276346f271ded1dd485de792218",
+    "provider-compatibility.sql": "5e6214c55dde2c4e2328c19cb79fc5a9a3ae0d84ecaab9544c419ff40a34fd7d",
+    "stack.py": "2049056db7bf4dc47c7d57b3bbaf0da5e57812a3b1fe55685a9d263533cc10f7"
+  },
+  "helper_source_sha256": "6dea3be79b1f4a609b8c2ae36fe4ccd80f4a8caaca7b41168eb379dc0b2e1960",
+  "backup_receipt_sha256": "d784ee048bdb98950fbd138a2f017d11914c8283171e7ade0975993222ed8b0e",
+  "backup_files": {
+    "database.dump": {
+      "bytes": 241877,
+      "sha256": "bbad080435502bfbedd7e5b37481b07c682faaa3ea5c0007bac144b73166cbfa"
+    },
+    "storage.tar": {
+      "bytes": 10240,
+      "sha256": "8fd7c357cc1fc884feb0c551bb6cf1cb7b9c1f2ea9ea15fd3692ae89e7ea8e0a"
+    },
+    "helper.json": {
+      "bytes": 213,
+      "sha256": "a4e9f5406907ca6cd263f9bbcc49c8b4b8f063dc76f9eee971e2e3cd66e29ba2"
+    },
+    "globals.sql": {
+      "bytes": 2687,
+      "sha256": "a839c4052afc3acb72ea07c86a28e9d14bac2da4b440466fd52446374f618895"
+    }
+  },
+  "image": "docker.io/library/postgres@sha256:2cd2c0f809604aaeff6f0ec8f40aecbd025613107561015c69369a1a7f1d3416",
+  "image_id": "sha256:99445113a4a19e82dd3713c65bd9f6fb5bf972065ab043df8d1e1c93e957da9a",
+  "image_pull": "NOT_NEEDED_NOT_RUN",
+  "execution": {
+    "actual_run": "cladora-restore13-5daa9f465410",
+    "status": "RESTORE_FIDELITY_PROVED_SECURITY_DRIFT_REMAINS",
+    "restore_restart": "MATCH",
+    "cleanup_complete": true,
+    "current_security_profile": "MISMATCH_NOT_RUNTIME_READY"
+  },
+  "preservation": {
+    "tracked_before": 2624,
+    "tracked_after_expected": 2629,
+    "all_existing_tracked_files": "UNCHANGED",
+    "no_primary_dump": true,
+    "primary_instance_and_volumes": "PRESERVED",
+    "private_raw_evidence": "NOT_PUBLISHED"
+  },
+  "checks": {
+    "new_targeted_offline_tests": 10,
+    "syntax": "Python AST PASS",
+    "native": "actual fresh PG restore+restart/readback; not mock",
+    "prior_suites": "NOT_RERUN"
+  },
+  "rebuild": {
+    "input": "exact private accepted backup+receipt and original owner custody, not published here",
+    "commands": [
+      "python -I -B scripts/functional-dev-stack-v1/restore13.py inspect",
+      "python -I -B scripts/functional-dev-stack-v1/restore13.py run"
+    ],
+    "warning": "native run already consumed; no replay for reporting; new attempt needs explicit scoped handling; historical privilege drift blocks runtime activation",
+    "independent_reference": "schema/data extraction from fixed accepted archive; full original globals; only redundant postgres CREATE adaptation",
+    "source5": "unchanged; helper incremental"
+  },
+  "automation": {
+    "classification": "نیازمند بررسی",
+    "input": "accepted task12 backup/receipt and sealed stack",
+    "automatable": "fixed restore/hash/compare/cleanup",
+    "human_role": "Platform/coordinator decide privilege/config reconciliation",
+    "conditions": "fresh owned isolated target/private custody",
+    "exception_owner": "Platform; UNKNOWN no replay",
+    "formal_dependency": "task12 backup; Core15 not required",
+    "value": "real recoverability plus surfaced security drift; estimate UNKNOWN"
+  }
+}

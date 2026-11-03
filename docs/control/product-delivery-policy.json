@@ -1,0 +1,119 @@
+{
+  "version": "CLADORA-FUNCTIONAL-PRODUCT-DELIVERY-v1",
+  "effective_date": "2026-11-03",
+  "timezone": "Asia/Tehran",
+  "authority": "USER_DIRECTION_BUILD_THE_PRODUCT_NOT_ONLY_PREVIEW",
+  "programme": "docs/roadmap/CLADORA-EXECUTION-PLAN-FA-v1.4.md",
+  "tracker": "docs/control/programme-tracker/register.json",
+  "objective": "A usable application with real server APIs, real authenticated database persistence and connected owner domains",
+  "acceptance": [
+    "Real browser UI -> application API -> owned isolated development backend -> committed durable data -> readback after refresh and process restart",
+    "Server-side tenant/workspace/current authority and session enforcement; anonymous/foreign/revoked/expired denial",
+    "Original-command idempotency, unknown-result recovery, concurrency and atomic receipt/audit/outbox where required",
+    "FA/EN/RO, RTL, keyboard/focus/mobile; actionable user-facing errors",
+    "Full integrated source build, affected regressions, native DB/Auth/RLS/concurrency and product E2E before Release"
+  ],
+  "execution_policy": {
+    "source_only_is_not_the_default_end_deliverable": true,
+    "local_native_database_auth_storage_and_migration_tests": "AUTHORIZED_WHEN_NECESSARY_ON_VERIFIED_OWNED_ISOLATED_DEVELOPMENT_TARGET_WITH_SYNTHETIC_ACCOUNTS_DATA",
+    "persistent_development_state": "KEEP_IN_OWNED_NAMED_VOLUME_WITH_CONTROLLED_RESET_AND_BACKUP",
+    "test_sandboxes": "ISOLATE_TEST_RUN_DATA_AND_CLEAN_OWN_RESOURCES_WITHOUT_DELETING_PRODUCT_DATA",
+    "existing_guards": "SATISFY_OR_IMPLEMENT_REVIEWABLE_ADDITIVE_COMPATIBILITY_MIGRATION_DO_NOT_SILENTLY_REMOVE",
+    "production_or_populated_staging": "NO_BLIND_INSTALL_OR_DATA_MUTATION; CONCRETE_MIGRATION_BACKUP_ROLLBACK_AND_FINAL_RELEASE_GATE_REQUIRED",
+    "external_real_mail_payments_real_customer_operations": "NOT_IMPLIED_BY_LOCAL_PRODUCT_DEVELOPMENT",
+    "deployment_protection": "UNCHANGED; PREVIOUS_UNAPPROVED_TEMPORARY_SHARE_LINK_ACTION_REMAINS_HELD"
+  },
+  "dependency_policy": {
+    "independent_flows_continue": true,
+    "missing_port": "IMPLEMENT_THE_REAL_PRODUCER_AND_CONSUMER_WITH_NAMED_OWNERS; KEEP_TASK_OPEN_UNTIL_CONNECTED",
+    "one_shared_canonical_engine": true,
+    "no_self_signed_authority_or_service_role_bypass": true,
+    "unknown_is_not_success": true,
+    "null_binding": "ACCEPTABLE_IN_UNCONFIGURED_ENVIRONMENT; NOT_ACCEPTABLE_AS_COMPLETION_OF_THE_CONFIGURED_PRODUCT_FLOW",
+    "historical_closed_match": "NOT_CURRENT_AUTHORITY"
+  },
+  "first_product_flows": {
+    "core": "Verified sessions/current C01, durable C03, real DW02/S01-S03 and required minimal shared producers",
+    "platform": "Reproducible real PG/Auth/REST/storage development stack with persistent data and role-scoped accounts",
+    "ce": "Independent Community notices, free events/interest/attendance, versioned guides; optional document references isolated to reference-dependent actions",
+    "service": "Real Offering -> request -> versioned quote -> accepted order -> fulfillment; use official Finance/Operations where the action needs them",
+    "airprop": "Canonical named property/resource selection -> existing listing creation/lifecycle -> edit/withdraw/republish with durable receipts",
+    "documents": "Actual upload/scan/immutable version/permission-controlled reference and download; real Core integration",
+    "ui": "Authenticated application navigation/context switching and complete user journeys",
+    "procedure": "Independent product browser-to-real-database persistence/security/recovery verification"
+  },
+  "ownership_and_history": {
+    "preserve_existing_WIP": true,
+    "do_not_reset_or_force": true,
+    "reuse_existing_branches": true,
+    "new_product_packages_use_shared_integrated_source": true,
+    "finish_and_carry_forward_started_source_packages": true,
+    "historical_evidence_and_source_pins": "PRESERVE; NOT_RETROSPECTIVELY_RELABELED_AS_NATIVE",
+    "task_handoffs": "FULL_SELF_CONTAINED_INLINE_CODE_BLOCKS; PREPARED_IS_NOT_SENT_OR_STARTED"
+  },
+  "integrated_inputs": {
+    "core": "3e9593af25433dcf32042f624731f514d09ec35b",
+    "documents": "16daca595aa2fad8300c8d4d3d6ea4b28980fed8",
+    "ce": "1a28c1cb724d24738483801784b8a594b9f6572f",
+    "service": "ca547a7dfc49f125652f9405f9255b2ba5d5479d",
+    "airprop": "4b8d1e9e305f44268688197246d34ac65d972b40",
+    "platform": "3d8cc8f757babbb986762318be81b01eed522442",
+    "public": "f0b88ac1d9376c46d08c554f3a6b8d0c5f938982",
+    "authenticated_app": "41b5179939973adfcd18ea3546082faa98c7bdc5",
+    "coordinator_context_correction": "1d17c2483eeebf2b0f187fa9ac48ccb9e4757842"
+  },
+  "current_truth": {
+    "source_integration": "SERVICE_AIRPROP_DOCUMENTS_CE_AND_APP_SOURCE_INTEGRATED; VERIFIED_BUILD_SHA_RECORDED_BELOW",
+    "service_runtime": "UNBOUND_REQUIRES_IMPLEMENTATION",
+    "listing_read_control_runtime": "UNBOUND_REQUIRES_IMPLEMENTATION",
+    "native_product_E2E": "NOT_READY",
+    "production_release": "NOT_READY",
+    "production_build": "PASS_FOR_EXACT_VERIFIED_SOURCE_SHA",
+    "latest_build_attempt": {
+      "head": "1d17c2483eeebf2b0f187fa9ac48ccb9e4757842",
+      "next": "16.4.1",
+      "zod": "4.6.6",
+      "exit": 0,
+      "generated_static_pages": 605,
+      "full_typecheck": "PASS",
+      "network": "KERNEL_OUTBOUND_DENIED",
+      "credential_environment_inheritance": false,
+      "env_files": false,
+      "font_mock": false,
+      "framework_patch": false,
+      "ignoreBuildErrors": false
+    },
+    "previous_build_evidence": "REVIEW105_PASS_604_PRESERVED_FOR_ITS_EXACT_HEAD_NOT_TRANSFERRED_TO_SUCCESSOR",
+    "documents_upload_download_runtime": "MAINTENANCE_REQUIRES_REAL_CORE_PLATFORM_COMPOSITION",
+    "previous_build_attempts": [
+      {
+        "head": "aee717b297538393c6f799fa96cf5eec6bba2502",
+        "exit": 1,
+        "generated_static_pages": 0,
+        "error": "next/font Inter: loader.js:122 null extension match",
+        "font_mock": false,
+        "framework_patch": false,
+        "ignoreBuildErrors": false
+      },
+      {
+        "head": "21312e9ec3bcb74e9ef81245560d2f065e2775e1",
+        "next": "16.4.1",
+        "zod": "4.6.6",
+        "exit": 1,
+        "generated_static_pages": 0,
+        "error": "Manrope Google Fonts fetch failed; emitted module diagnostic preserved",
+        "font_mock": false,
+        "framework_patch": false,
+        "ignoreBuildErrors": false
+      }
+    ],
+    "build_evidence_scope": "EXACT_SHA_ABOVE; later code changes require affected checks; metadata-only update does not change verified runtime bytes",
+    "authenticated_app": "SOURCE_INTEGRATED_WITH_CONTEXT_403_CORRECTION; REAL_BROWSER_AUTH_DB_ACCEPTANCE_OPEN"
+  },
+  "automation": {
+    "classification": "نیازمند بررسی",
+    "preserve_existing_direction": true,
+    "AI_or_new_paid_infrastructure_requested": false,
+    "measured_value": "UNKNOWN"
+  }
+}

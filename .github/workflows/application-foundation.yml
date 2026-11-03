@@ -4,6 +4,28 @@ on:
   pull_request:
     paths:
       - 'src/**'
+      - '.gitattributes'
+      - 'scripts/test-authenticated-app-07.mjs'
+      - 'scripts/test-core-functional-*.mjs'
+      - 'scripts/test-core15-session-source-v1.mjs'
+      - 'scripts/test-core15-service-cut-v1.mjs'
+      - 'scripts/test-core15-integration-lineage-v1.mjs'
+      - 'docs/verification/CORE15-SERVICE-CUT-580de7.manifest.json'
+      - 'scripts/check-core15-service-cut-v1.mjs'
+      - 'scripts/test-service-functional-request-runtime-binding-v1.mjs'
+      - 'scripts/test-service-s01-consumer-sqlstate-v1.mjs'
+      - 'scripts/lib/core15-install-payload.mjs'
+      - 'supabase/install/core-functional-runtime-v1/**'
+      - 'scripts/functional-dev-stack-v1/**'
+      - 'scripts/storage-documents-native-abi-r1/**'
+      - 'scripts/storage-documents-native-abi-v1/**'
+      - 'scripts/test-functional-dev-*.py'
+      - 'scripts/test-storage-documents-*.mjs'
+      - 'scripts/test-storage-documents-*.py'
+      - 'scripts/test-storage-acl-recovery-r2.py'
+      - 'scripts/review-ops-populated-transition-01a/**'
+      - 'scripts/lib/load-application-test-module.mjs'
+      - 'scripts/lib/ce-guide-inactive-runtime-check.mjs'
       - 'scripts/test-supabase-foundation.mjs'
       - 'scripts/test-occupancy-unit-registry-route.mjs'
       - 'scripts/test-braces-depth-security.mjs'
@@ -44,6 +66,28 @@ on:
       - main
     paths:
       - 'src/**'
+      - '.gitattributes'
+      - 'scripts/test-authenticated-app-07.mjs'
+      - 'scripts/test-core-functional-*.mjs'
+      - 'scripts/test-core15-session-source-v1.mjs'
+      - 'scripts/test-core15-service-cut-v1.mjs'
+      - 'scripts/test-core15-integration-lineage-v1.mjs'
+      - 'docs/verification/CORE15-SERVICE-CUT-580de7.manifest.json'
+      - 'scripts/check-core15-service-cut-v1.mjs'
+      - 'scripts/test-service-functional-request-runtime-binding-v1.mjs'
+      - 'scripts/test-service-s01-consumer-sqlstate-v1.mjs'
+      - 'scripts/lib/core15-install-payload.mjs'
+      - 'supabase/install/core-functional-runtime-v1/**'
+      - 'scripts/functional-dev-stack-v1/**'
+      - 'scripts/storage-documents-native-abi-r1/**'
+      - 'scripts/storage-documents-native-abi-v1/**'
+      - 'scripts/test-functional-dev-*.py'
+      - 'scripts/test-storage-documents-*.mjs'
+      - 'scripts/test-storage-documents-*.py'
+      - 'scripts/test-storage-acl-recovery-r2.py'
+      - 'scripts/review-ops-populated-transition-01a/**'
+      - 'scripts/lib/load-application-test-module.mjs'
+      - 'scripts/lib/ce-guide-inactive-runtime-check.mjs'
       - 'scripts/test-supabase-foundation.mjs'
       - 'scripts/test-occupancy-unit-registry-route.mjs'
       - 'scripts/test-braces-depth-security.mjs'
@@ -92,6 +136,9 @@ jobs:
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
     steps:
       - uses: actions/checkout@v5
+        with:
+          # Core coupling fixtures read sealed historical modules by full SHA.
+          fetch-depth: 0
       - uses: actions/setup-node@v5
         with:
           node-version: 22
@@ -99,6 +146,29 @@ jobs:
       - run: npm ci
       - run: npm audit --audit-level=high
       - run: npm run lint
+      - name: Authenticated shell source and exact local font licenses (static only)
+        run: node scripts/test-authenticated-app-07.mjs
+      - name: Integrated Core session and command source (controlled; no native execution)
+        run: |
+          node scripts/test-core-functional-runtime-v1.mjs
+          node scripts/test-core-functional-install-packet-v1.mjs
+          node scripts/test-core15-session-source-v1.mjs
+          node scripts/test-core15-integration-lineage-v1.mjs
+          node scripts/check-core15-service-cut-v1.mjs
+          node scripts/test-core15-service-cut-v1.mjs
+          node scripts/test-service-functional-request-runtime-binding-v1.mjs
+          node scripts/test-service-s01-consumer-sqlstate-v1.mjs
+      - name: Inactive Operations and Platform source (offline; no ACL or target changes)
+        run: |
+          python -B scripts/review-ops-populated-transition-01a/test.py
+          python -B scripts/review-ops-populated-transition-01a/acl-projection-02/test_packet.py
+          python -B scripts/test-functional-dev-stack-v1.py
+          python -B scripts/test-functional-dev-restore13.py
+          python -B scripts/test-storage-documents-native-preflight-v1.py
+          python -B scripts/test-storage-documents-abi15-r1.py
+          python -B scripts/test-storage-acl-recovery-r2.py
+          node scripts/test-storage-documents-abi15-r1.mjs
+          node scripts/test-storage-documents-abi15-capture-r1.mjs
       - run: npm run test:ce:member-benefit-terminology
       - run: npm run test:ce:benefit-ownership-reconciliation
       - run: npm run test:ce:benefit-presentation-handoff

@@ -82,6 +82,19 @@ function fakeRequest(workspace = 'selected-workspace') {
     method: () => 'GET', failure: () => ({ errorText: 'net::ERR_ABORTED' }) };
 }
 function fakeResponse(request, body) { return { request: () => request, status: () => 403, body }; }
+for (const [status, code, valid] of [[503, 'LISTING_SOURCE_NOT_READY', true],
+  [503, 'UNRELATED_SERVER_FAILURE', false], [500, 'LISTING_SOURCE_NOT_READY', false],
+  [200, 'LISTING_SOURCE_NOT_READY', false]]) {
+  const context = new EventEmitter(); const observer = observeCeRequests(context, APP);
+  const request = { ...fakeRequest(), url: () => `${APP}/api/customer/v2/airprop/listings?context_id=selected-context&workspace_id=selected-workspace` };
+  context.emit('request', request);
+  context.emit('response', { request: () => request, status: () => status,
+    headers: () => ({ 'cache-control': 'no-store, private' }), body: async () => Buffer.from(JSON.stringify({ error: { code } })) });
+  context.emit('requestfinished', request);
+  if (valid) assert.deepEqual(await observer.verifyUnavailableListings(), { verified: 1, cancelled: 0 });
+  else await assert.rejects(observer.verifyUnavailableListings());
+  observer.stop(); await observer.drain(); checks++;
+}
 {
   const context = new EventEmitter(); const events = [];
   const observer = observeCeRequests(context, APP, event => events.push(event), { bodyMs: 20 });

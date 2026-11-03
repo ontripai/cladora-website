@@ -1,0 +1,321 @@
+{
+  "task_id": "V14-CE-01 / CE012-SAVE-WRITER-BRIDGE-07",
+  "worker": "CLADORA-CE-WORKER-01",
+  "base_parent": "d767e84a6d8489ee731f64eb5c8b38f29d35a7fe",
+  "branch": "codex/program-ce-independent-base-02",
+  "runtime_binding": null,
+  "source": [
+    {
+      "path": "src/lib/community/experience-guide-save-writer-v1.ts",
+      "bytes": 27199,
+      "sha256": "311cddeb5a8e87de7943a5363fc84bbe8811ec5e8295b9a0305bfb0ecc1580de",
+      "git_blob": "34da983f3f9e4f7e714bbb544e5ef686dc981e5d"
+    },
+    {
+      "path": "supabase/proposals/ce012_save_writer_relation_v1.sql",
+      "bytes": 10405,
+      "sha256": "b5edb0d313d28d9cea3e6e188ad98f97002f93de914bf18f8ba9dcb2e0d12909",
+      "git_blob": "d81bfccb996736c45690c4f861f7222d5baf329b"
+    },
+    {
+      "path": "scripts/test-ce012-save-writer-v1.mjs",
+      "bytes": 17282,
+      "sha256": "312d35da4544436855eaccfb44ef1a25270686527132b04e64a35e963088c3b1",
+      "git_blob": "d5de348f1248f78d80205993b5c0211689534ed1"
+    },
+    {
+      "path": "docs/contracts/ce012-save-writer-v1/README.md",
+      "bytes": 15355,
+      "sha256": "846bef5ced93b51800580bcfbb546a2173c2eaed7b2d3fae4adbafe0bfa1211f",
+      "git_blob": "16a11df0a8d09f1cc1d5a05f812f273a359e3f04"
+    },
+    {
+      "path": "scripts/test-ce012-save-writer-r1.mjs",
+      "bytes": 12899,
+      "sha256": "6eb3d3695634a5002c112dacb3e9d30eff7e0988bf70b2ae268a37de2ada075d",
+      "git_blob": "c5cc4ba40f3b83761deab5d8b473e7919638bbb5"
+    }
+  ],
+  "manifest_self": "bound externally by final commit tree/report; excluded from own inventory seal",
+  "dependencies": [
+    {
+      "head": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "bytes": 39738,
+      "sha256": "5ae0d49cde0850c3d8b2c55bc2398d685e1c833d2e9a9e176ee8eab8d1cdce06",
+      "git_blob": "8e6e4f1eafe67e6c6df70ead3d273cf27484c918",
+      "in_ce_base": "IDENTICAL"
+    },
+    {
+      "head": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "git_blob": "e67df2d947608f546dab42dba88b5bdc418cbffb",
+      "in_ce_base": "IDENTICAL"
+    },
+    {
+      "head": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "path": "src/lib/core/current-authority-transaction-port-v1.ts",
+      "bytes": 9496,
+      "sha256": "02e0b85d1dba7ca87ec0eddff5d3f3552bed518794888e9ee0f34c0de962c14f",
+      "git_blob": "3e70731254c06ec69a22ef5e2fa689b78ec22aa9",
+      "in_ce_base": "IDENTICAL"
+    },
+    {
+      "head": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "path": "src/lib/core/transaction-provider-evidence-v1.ts",
+      "bytes": 2252,
+      "sha256": "515c173f1fa1aeed01ef1af465acf8cee6504cc09bbcf3d137549a8150f32d75",
+      "git_blob": "55843685128350c37b43ad0a12f183c7fb94ae1a",
+      "in_ce_base": "IDENTICAL"
+    },
+    {
+      "head": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "path": "src/lib/core/transaction-replay-provider-hook-v1.ts",
+      "bytes": 2688,
+      "sha256": "eb20fa622ba10b9cde6ea8d4d64f1ad9f9eea93f7fba354d03f6959156487dd4",
+      "git_blob": "bfec5bb136abad24a233544d3d63d00db1f8d678",
+      "in_ce_base": "IDENTICAL"
+    },
+    {
+      "head": "ef69fa82e19ab269701d6df9abd7bdfd67e3e50e",
+      "path": "src/lib/core/ce012-stored-relation-v1.ts",
+      "bytes": 10032,
+      "sha256": "d6e8495f4f03c46076c3d4fb15c6174eccef8a4c161c644b5976ceeb2aed69f0",
+      "git_blob": "79456ecc7e5b372f01eb6422c48d0826e9512dab",
+      "in_ce_base": "MISSING"
+    },
+    {
+      "head": "c0caf3e70d97c3d09b16cbff91188367804cba6b",
+      "path": "src/lib/customer/documents-ce012-reference-provider-v1.ts",
+      "bytes": 6458,
+      "sha256": "14c37f949f120fb071e0834773e3c7939022511673506bd1d2260ba881e6d0d3",
+      "git_blob": "daa1c030eb8b7a46c934c84e776c4464a8811c06",
+      "in_ce_base": "MISSING"
+    },
+    {
+      "head": "c0caf3e70d97c3d09b16cbff91188367804cba6b",
+      "path": "src/lib/customer/documents-reference-tx-selector-v1.ts",
+      "bytes": 10550,
+      "sha256": "dd0834afe07bb61f7d00e43ace31e73faa9b9e6754a5f4e6a281bb0104ebfcca",
+      "git_blob": "ed1c27b998cb2c3122b5e946d041cc84f590bbe4",
+      "in_ce_base": "DIFFERENT_NO_EDIT_OR_FALLBACK"
+    },
+    {
+      "head": "c0caf3e70d97c3d09b16cbff91188367804cba6b",
+      "path": "src/lib/customer/documents-reference-authority-v1.ts",
+      "bytes": 14569,
+      "sha256": "444c9b2c7b11be04ef6867887ebc77f7a0308414daee33ab41ecbf6eb9870b81",
+      "git_blob": "35bc69dd8d0e7156b5688c9e4b52def9c6c3729d",
+      "in_ce_base": "DIFFERENT_NO_EDIT_OR_FALLBACK"
+    },
+    {
+      "head": "c0caf3e70d97c3d09b16cbff91188367804cba6b",
+      "path": "scripts/docs-ce012-live-connection-v1/consumer-request.json",
+      "bytes": 2819,
+      "sha256": "3ca7a18b4789d262565dc3289cf029d633b36a0fa155c5f3a575dfeedc619873",
+      "git_blob": "418d7ed92ea20e0a40bdedd7b753082a6eb12232",
+      "in_ce_base": "MISSING"
+    },
+    {
+      "head": "5f6b671d2ea1b1a7341d1ed0352fe2ae2713bdaa",
+      "path": "scripts/docs-ce012-case-plan-v1/compiler.ts",
+      "bytes": 25570,
+      "sha256": "45195982da27452c1a46cfe248b2034ebfc389063af9a1748678430f41cd725f",
+      "git_blob": "12fdffa458501db3a940434da2482116abda766c",
+      "in_ce_base": "MISSING"
+    },
+    {
+      "head": "ae8107ad170139b650e884863f83ccb0db63edf2",
+      "path": "scripts/test-core-ce012-writer-joint-review-09.mjs",
+      "bytes": 18956,
+      "sha256": "a4283de7b0c7f6e9503520898aeedb81af730222f6502755e5d5c2a47bd4aedc",
+      "git_blob": "7983d3f890800cbdf79dd3cfd19afcfa4f635db2",
+      "use": "official review; harness prefix only for NEW targeted cases; no Core test suite replay"
+    },
+    {
+      "head": "ae8107ad170139b650e884863f83ccb0db63edf2",
+      "path": "docs/contracts/core-ce012-writer-joint-review-v1/README.md",
+      "bytes": 11142,
+      "sha256": "a481ca2bbd58937f4319f6ae4154beb5255ec205d6c9956b1980e95664b4989a",
+      "git_blob": "55609633a4f672c4a262e63ec323ed4712184613",
+      "use": "official review; harness prefix only for NEW targeted cases; no Core test suite replay"
+    }
+  ],
+  "abi": [
+    "buildCe012NewSaveCommandV1(strict input without step_id/payload_fingerprint):Ce012GuideSaveCommandV1; fresh per-content-version row ID before accepted fingerprint",
+    "createCe012SaveWriterProviderV1(guideCommand,officialDocumentsModule|null):CoreTransactionProvidersV2",
+    "createCe012SaveWriterExecutorV1(existingCoreHost,retainedCoreCommand,officialDocumentsModule|null):existingEditorExecutorPort",
+    "readCe012SaveWriterRelationV1(scope,command,guideCommand,expectedCoreReceipt):privateHistoricalRelation/runtimeBindingNULL/actionAuthorizationNotEvaluated"
+  ],
+  "provider_code": "documents-ce012-reference-provider.v1",
+  "replay_policy": "provider_current_state_required",
+  "storage": {
+    "reuse": [
+      "experience.guides",
+      "experience.guide_steps",
+      "experience.guide_references",
+      "platform.idempotency_keys"
+    ],
+    "review_only_addition": "experience.guide_save_receipts_v1",
+    "settlement": "deferred security-invoker constraint check of C03 response_ref in original tx; independent mutation/CE/Core receipt IDs",
+    "no_second_commit_or_repair": true,
+    "retention": "C03 expiry/cleanup authoritative; no availability promised beyond C03; retention decision remains open"
+  },
+  "evidence": {
+    "before": "3 new diagnostic counterexamples: Docs/C03 wait expiry still committed; second save reused step ID and denied; BEFORE_COUNTEREXAMPLES_NOT_PASS",
+    "current": "10 new R1 controlled groups PASS; actual Core09 host/provider and Docs official source; no23 Core review or27 original CE tests executed",
+    "after_refinement": "1 changed UNKNOWN/editor case PASS alone: actual builder invoked once, denial retains UNKNOWN, explicit recovery same wire",
+    "typecheck": "PASS full unchanged config TS5.9.3",
+    "lint": "PASS scoped changed TS/new MJS",
+    "syntax": "PASS new MJS",
+    "native_sql_pg_driver_auth_storage": "NOT_RUN_NOT_PASS",
+    "target_next16_4_1_zod4_6_6": "NOT_RUN_NOT_PASS; existing cached Next16.3.8/Zod4.4.3; no install",
+    "old_suites": "NOT_RERUN CE27/Core23/CE010126/CE011/G1/G2/Docs compiler"
+  },
+  "evidence_hashes": {
+    "before.txt": {
+      "bytes": 1161,
+      "sha256": "20485b844057732866c6385026d829063028ac02f0b9e6be08c25b0b47ea5fc2",
+      "git_blob": "326da7d7d849215b9c8c2fb5383abc3d4e019672"
+    },
+    "after.txt": {
+      "bytes": 2621,
+      "sha256": "c7bb0719096dd3b521133e08bcda966aa6674c52307ec5afde2f6de63786a2bd",
+      "git_blob": "2bca90bd591fa59665f2b71ada33c7a67d059e37"
+    },
+    "unknown-final.txt": {
+      "bytes": 733,
+      "sha256": "6dc7491f08eaef9142774f7c0d161c9b6bd708453fb414e61d5c943326020296",
+      "git_blob": "8972575e8a80ddb03950b7dff64feae0005ffa2a"
+    },
+    "tsc.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "lint.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    }
+  },
+  "preservation": "Only4 CE delta paths. SQL proposal, old harness, Core/Docs/Platform source, CE010/CE011/G1/G2/Context/schema/codec/package/lock unchanged from parent.",
+  "gates": [
+    {
+      "owner": "Core",
+      "closure": "review same-transaction deferred binding, C03 key/hash/receipt/retention; official combined CE+Core reader ABI acceptance; no Core host edits in CE"
+    },
+    {
+      "owner": "Documents",
+      "closure": "review immutable target/lineage and historical/current disclosure composition; genuine provenance/custody required; both compiler historical slots BLOCKED"
+    },
+    {
+      "owner": "Core/Documents/Platform",
+      "closure": "separate minimal proposal/owner/RLS/ACL/capability/install authorization, no positive grant inferred"
+    },
+    {
+      "owner": "Platform/coordinator",
+      "closure": "after source acceptance/separate authority, exact target toolchain and native serializable PG/trigger/rollback/40001/unknown-COMMIT/currentness evidence; not requested/run here"
+    }
+  ],
+  "skills": {
+    "policy": "CLADORA-SKILLS-USAGE v1.1.0",
+    "url": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-6316739482",
+    "applied": [
+      "cloud-environment-runtime",
+      "supabase source-only security checklist",
+      "supabase-postgres-best-practices RLS basics",
+      "installed Next TypeScript guidance"
+    ],
+    "limits": "No SQL/query/advisor execution per explicit task; no docs network expansion/install. Native behavior not verified."
+  },
+  "automation": {
+    "classification": "needs review",
+    "input": "version-bound accepted save command",
+    "opportunity": "draft preparation only",
+    "human_role": "authorized editor explicit save",
+    "conditions": "accepted current authority, Documents disclosure and custody",
+    "exceptions": "UNKNOWN/mismatch to editor and Core/Docs integration owners",
+    "dependency": "official Core/Docs versions above",
+    "value": "not measured; needs review",
+    "authority_expanded": false
+  },
+  "inventory_seal": "6c7278800bbee6e20ec428d4bcc8943df61c4073b7655b31b0cf7026872b96fb",
+  "history": {
+    "initial_delivery": {
+      "base_parent": "df73961fc9d9fbf5d90a5241bfbdfee2fb47eafc",
+      "head": "d767e84a6d8489ee731f64eb5c8b38f29d35a7fe",
+      "source": [
+        {
+          "path": "src/lib/community/experience-guide-save-writer-v1.ts",
+          "bytes": 23502,
+          "sha256": "a1253414c58c1191690f9c62aab6a35098a1d69b1cf003b25aa256d2ed2f8438",
+          "git_blob": "6dfbb8dbb249ab6cea80ca9a6b37ca6ab3e071c2"
+        },
+        {
+          "path": "supabase/proposals/ce012_save_writer_relation_v1.sql",
+          "bytes": 10405,
+          "sha256": "b5edb0d313d28d9cea3e6e188ad98f97002f93de914bf18f8ba9dcb2e0d12909",
+          "git_blob": "d81bfccb996736c45690c4f861f7222d5baf329b"
+        },
+        {
+          "path": "scripts/test-ce012-save-writer-v1.mjs",
+          "bytes": 17282,
+          "sha256": "312d35da4544436855eaccfb44ef1a25270686527132b04e64a35e963088c3b1",
+          "git_blob": "d5de348f1248f78d80205993b5c0211689534ed1"
+        },
+        {
+          "path": "docs/contracts/ce012-save-writer-v1/README.md",
+          "bytes": 8751,
+          "sha256": "a06f8d0b08ad3c44fc9e070945a3ec5d3a9ea880d4440de544d0b597a4edd75a",
+          "git_blob": "b9ebc5c5d92789d8f44765fa583bbb2a76b6ac30"
+        }
+      ],
+      "evidence": {
+        "new_controlled_cases": 27,
+        "result": "PASS_CONTROLLED_TRANSPORT_ONLY",
+        "after_proposal_source_checks": "11 affected relation/proposal checks PASS",
+        "typecheck": "PASS existing tsconfig/TS5.9.3",
+        "lint": "PASS scoped TS+MJS",
+        "syntax": "PASS new MJS",
+        "old_suites": "NOT_RERUN: CE010126/CE011/G1/G2/Docs compiler",
+        "native_sql_pg_driver_auth_storage": "NOT_RUN_NOT_PASS",
+        "next_target_16_4_1_zod_4_6_6": "NOT_RUN_NOT_PASS; local Next16.3.8/Zod4.4.3; no installation"
+      },
+      "inventory_seal": "bbc99fbbcf3f6b21d9f4bb1d8d9abb52e9747467179fc73c40d150aed27233fc",
+      "report": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-6583550929"
+    }
+  },
+  "task_revision": "R1 / CE-WR09-F01 + CE-WR09-F02",
+  "review": "ae8107ad170139b650e884863f83ccb0db63edf2",
+  "changed_paths": [
+    "src/lib/community/experience-guide-save-writer-v1.ts",
+    "scripts/test-ce012-save-writer-r1.mjs",
+    "docs/contracts/ce012-save-writer-v1/README.md",
+    "docs/contracts/ce012-save-writer-v1/manifest.json"
+  ],
+  "r1_findings": [
+    {
+      "id": "CE-WR09-F01",
+      "reported_fix": "official Core checkpoint post-Docs + pre-mutation + post-effect; plan/command hash, scope/attempt/authority privately bound; replay post-Docs recheck",
+      "status": "OWNER_FIXED_REVIEW_REQUIRED",
+      "native_status": "NOT_RUN_NOT_PASS"
+    },
+    {
+      "id": "CE-WR09-F02",
+      "reported_fix": "strict new-command builder allocates per-content-version storage UUID before hash/retention; existing editor retains unresolved command; collision never rekeys or changes PK/history",
+      "status": "OWNER_FIXED_REVIEW_REQUIRED",
+      "native_status": "NOT_RUN_NOT_PASS"
+    }
+  ],
+  "checkpoint_limits": "Existing canonical Core primitive is an observation, not an elapsed-time lease. No claim implicit waits drained. CE post-effect denial rolls back through same Core host; later Core audit/outbox/COMMIT/native authority/session/currentness remain original Core participation/checkpoint/rollback proof gates.",
+  "historical_slots": "BOTH BLOCKED; no compiler/fixture/adoption or runtime activation",
+  "latest_related_gate": {
+    "report": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-6585604856",
+    "source": "acea0d067099dffe8cecacc36b78e2755f51ee13",
+    "D06-C02": "OPEN joint terminal authority/Docs disclosure port; NOT implemented/closed by writer R1 canonical checkpoint",
+    "adoption": "NOT_ADOPTED; no silent Base/dependency change"
+  }
+}

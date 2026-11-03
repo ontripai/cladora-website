@@ -1,0 +1,248 @@
+{
+  "task": "PLATFORM-DOCS-CE012-PGAUTH-BIND-05",
+  "base": "254b7fd604dc0718b37c4b145821922cdf6bd597",
+  "branch": "codex/program-local-runtime-lane-01",
+  "status": "SOURCE_CANDIDATE_EXACT_V2_COMPATIBILITY_ONLY",
+  "observed_utc": "2026-11-02T11:38:20.509780+00:00",
+  "source_seal": {
+    "files": {
+      "scripts/run-local-runtime-lane.py": "8f0a964041cb4c2a78ab37ec7fc5c36be817d106cb396f598e625ef62907068e",
+      "scripts/local_runtime_consumer.py": "b240725de9119e0176e49fb0bc55f4917ef8df79a9383cb8d77ed97ca579d439",
+      "supabase/local-profiles/runtime-lane-v1.json": "71647e9dbd24d50137cb8ea0d3c3f3854bc1c32a44c364da0acf9ef5ce6818ef",
+      "scripts/run-docs-ce012-pgauth.py": "00e983f53e77e4dd30cd1a102cee7d086f8a3eca06c6b9604c1ff5fcb0aea58d",
+      "supabase/local-profiles/docs-ce012-pgauth-binding-v1.json": "8fa3b78ffc5a78732d9494a6533ae5d134433da9a107d58265f15562e64ec5bd",
+      "scripts/docs-ce012-platform-v1/contract.mjs": "d08d7b0d2f23dc659b7e1dc009236c4a8426ab9446c85d84fca561fe37c71008",
+      "scripts/docs-ce012-platform-v1/custody.mjs": "9c3d9bea4c9bc2f7061bd6770f162255b0d97cebb608c9ea2afe9c5293e1516e",
+      "scripts/docs-ce012-platform-v1/transport.mjs": "25c9edf54030196a753c2c71309400099aabb08697b3807ddde695c50f8370d3",
+      "scripts/docs-ce012-platform-v1/worker.mjs": "477dfe1ff3a0cf9c9a04466b136b39fe1b3031148b1267da15f70d91b01ca893"
+    },
+    "sha256": "e1b45250225e96ffdeedddd6a678bebd19703dbd0057d5b0a24f7e18a5fd4fb7"
+  },
+  "changed_paths_count": 12,
+  "changed_files": [
+    {
+      "path": "scripts/run-docs-ce012-pgauth.py",
+      "bytes": 9532,
+      "sha256": "00e983f53e77e4dd30cd1a102cee7d086f8a3eca06c6b9604c1ff5fcb0aea58d",
+      "git_blob": "c06d160a34dca0b068cc5be162b46d2981304f57"
+    },
+    {
+      "path": "scripts/docs-ce012-platform-v1/contract.mjs",
+      "bytes": 12151,
+      "sha256": "d08d7b0d2f23dc659b7e1dc009236c4a8426ab9446c85d84fca561fe37c71008",
+      "git_blob": "dee8b14fcc4672118bc0aae61ec53e6bb98745f2"
+    },
+    {
+      "path": "scripts/docs-ce012-platform-v1/custody.mjs",
+      "bytes": 7032,
+      "sha256": "9c3d9bea4c9bc2f7061bd6770f162255b0d97cebb608c9ea2afe9c5293e1516e",
+      "git_blob": "7d5228876edab2252e325b7a85b21605140b39fd"
+    },
+    {
+      "path": "scripts/docs-ce012-platform-v1/transport.mjs",
+      "bytes": 10542,
+      "sha256": "25c9edf54030196a753c2c71309400099aabb08697b3807ddde695c50f8370d3",
+      "git_blob": "3cc782529fd1839f4f620ac7f1988fd335c86701"
+    },
+    {
+      "path": "scripts/docs-ce012-platform-v1/worker.mjs",
+      "bytes": 12942,
+      "sha256": "477dfe1ff3a0cf9c9a04466b136b39fe1b3031148b1267da15f70d91b01ca893",
+      "git_blob": "7b5b99acc04bc749b673e1cb3f9fcb2ea939b78f"
+    },
+    {
+      "path": "scripts/test-docs-ce012-platform-v1.mjs",
+      "bytes": 24816,
+      "sha256": "18b3dc52ffc514e28f7e7eab603b524b6649e21e441c5e9324b9301e2b09eab1",
+      "git_blob": "cd89cce159460193de28bf7c7a0524835b920a59"
+    },
+    {
+      "path": "scripts/test-docs-ce012-pgauth-lifecycle.py",
+      "bytes": 7270,
+      "sha256": "b6f174e86fbd777598dc6a8ceb1a3020aa976310cd52ad4abdf48e180115512c",
+      "git_blob": "0024b518835e8e9049e19dad97029a0a597fc339"
+    },
+    {
+      "path": "supabase/local-profiles/docs-ce012-pgauth-binding-v1.json",
+      "bytes": 2999,
+      "sha256": "8fa3b78ffc5a78732d9494a6533ae5d134433da9a107d58265f15562e64ec5bd",
+      "git_blob": "96557ca8d1ecdfe20d9eb18143346e57358b0a88"
+    },
+    {
+      "path": "supabase/local-profiles/docs-ce012-pgauth-reviews-v1.json",
+      "bytes": 66,
+      "sha256": "d86026d28d136b092e6ee5ab4fadc01f963dd91bf33f3625a5ee125d3b56f983",
+      "git_blob": "4ce6e490263716b84f0cd0fe0cbf77ac338408b8"
+    },
+    {
+      "path": "docs/testing/PLATFORM-DOCS-CE012-PGAUTH-BIND-05.md",
+      "bytes": 14439,
+      "sha256": "79fdcf2c5f93fa505a60928455f5f6ab446cd93ec87179082372cb28cd1fd945",
+      "git_blob": "9212fda24cb39575a530afe1514841acf7a0e58e"
+    },
+    {
+      "path": "docs/testing/docs-ce012-platform-bind-05.execution-proposal.json",
+      "bytes": 4113,
+      "sha256": "546760c8e914f91cfa56c7ae33c1b778a0aeff142b982c441a8fe15a988a8ad8",
+      "git_blob": "64e6c2a5d0bfdf62749cdd743929bb9b57c7abde"
+    }
+  ],
+  "producer": {
+    "head": "c0caf3e70d97c3d09b16cbff91188367804cba6b",
+    "contract": "documents-ce012-live-connection-request.v2",
+    "request": {
+      "bytes": 2819,
+      "sha256": "3ca7a18b4789d262565dc3289cf029d633b36a0fa155c5f3a575dfeedc619873"
+    },
+    "inventory": {
+      "bytes": 67039,
+      "sha256": "6388b257096dbc094f9513e40a06cebaf9042f55720b89c93cfd89b68b717a11"
+    },
+    "closure": {
+      "bytes": 49022,
+      "sha256": "55093d835a860ceeb414fbd097d3b62af2520e60cee5b093763ff7f983f928ee"
+    },
+    "artifacts": [
+      {
+        "path": "scripts/docs-ce012-live-connection-v1/admission.mjs",
+        "bytes": 9648,
+        "sha256": "70f0c9d5a854d53593327d73ae8fa7e0f2067c34c9f601fee68ce9916743c582"
+      },
+      {
+        "path": "scripts/docs-ce012-live-connection-v1/measure.mjs",
+        "bytes": 8526,
+        "sha256": "663e47a0bc08a12eadafca691d47b0ee541cf94e0b5db4cc36e359a41fc2dfb3"
+      },
+      {
+        "path": "scripts/docs-ce012-live-connection-v1/run.mjs",
+        "bytes": 3432,
+        "sha256": "2a9cfc8118dbcdc03597e4434442eae1a3ce3bcc6cb73f404f7a422ef7289384"
+      },
+      {
+        "path": "scripts/docs-ce012-live-connection-v1/live.mjs",
+        "bytes": 22384,
+        "sha256": "6ae436256a6b1588baec578db1eeef5d52f44732297ac05f25599e12ad88b032"
+      },
+      {
+        "path": "scripts/docs-ce012-live-connection-v1/closure.mjs",
+        "bytes": 18846,
+        "sha256": "4d5c78dd551369a4a4b39c0208ba7357bbe18eccbd21686a4b3f09de9b2b28c1"
+      }
+    ],
+    "runtime": null
+  },
+  "producer_reference_verification": {
+    "official_full_readbacks": 8,
+    "bytes_sha256_git_identity": "MATCH",
+    "source_tests_8scope_5admission_inspect": "COORDINATOR_REPORTED_NOT_REPLAYED",
+    "offline_322_inventory": "SOURCE_INTEGRITY_NOT_INSTALLATION"
+  },
+  "tests": {
+    "node_unique_groups": 27,
+    "python_unique_groups": 8,
+    "status": "PASS_OFFLINE_ONLY",
+    "commands": [
+      "node --test scripts/test-docs-ce012-platform-v1.mjs (affected groups incrementally; exact selection retained in private work evidence)",
+      "python scripts/test-docs-ce012-pgauth-lifecycle.py",
+      "node --check (four new modules + new Node test)",
+      "python -m py_compile (new owner hook/test)"
+    ],
+    "previous_suites": "NOT_REPLAYED",
+    "private_values": "NONE_PUBLISHED"
+  },
+  "preserved_from_base": [
+    {
+      "path": "docs/testing/local-runtime-cleanup-consumer-02.receipt.json",
+      "sha256": "356095fc52da0dac473e9a08b399f4cb85a578b0c151e554f0085eb7acdf0969",
+      "byte_identical": true
+    },
+    {
+      "path": "docs/testing/local-runtime-lane-01.receipt.json",
+      "sha256": "301d84ce1596cc47fac95aef1dc073d9121692021a6b2e431a5eeead097f7669",
+      "byte_identical": true
+    },
+    {
+      "path": "scripts/acl02_pg_adapter.py",
+      "sha256": "72d7a69026cfe5d0dd15d6d5d4394ef62c4fced016919064150d3bc5ab5c361a",
+      "byte_identical": true
+    },
+    {
+      "path": "scripts/acl02_pg_wire.py",
+      "sha256": "4fa852fbdb6047ec3c264e1fee53b6218d9db9abf8b462d29e10d24fc4b242c3",
+      "byte_identical": true
+    },
+    {
+      "path": "scripts/local_runtime_consumer.py",
+      "sha256": "b240725de9119e0176e49fb0bc55f4917ef8df79a9383cb8d77ed97ca579d439",
+      "byte_identical": true
+    },
+    {
+      "path": "scripts/run-acl02-pg-only.py",
+      "sha256": "bde75479e6b90c4ebec91742e19f8962d50b8842597b8362459d91dc0b5e5c4a",
+      "byte_identical": true
+    },
+    {
+      "path": "scripts/run-local-runtime-lane.py",
+      "sha256": "8f0a964041cb4c2a78ab37ec7fc5c36be817d106cb396f598e625ef62907068e",
+      "byte_identical": true
+    },
+    {
+      "path": "supabase/local-profiles/acl02-pg-only-reviews.json",
+      "sha256": "20dbe5289d04fa81a3af52612afbe41a976d6ed29b106e4b2a7fe9d4d835253d",
+      "byte_identical": true
+    },
+    {
+      "path": "supabase/local-profiles/acl02-pg-only.envelope.json",
+      "sha256": "79c710d0d910ef61100645b52e3eafdfefbabe239e417837cf2192ce8ff8d140",
+      "byte_identical": true
+    },
+    {
+      "path": "supabase/local-profiles/acl02-pg-only/request.json",
+      "sha256": "fecd8012f0ad9a82e098d8f513f9e9d694b2731e06067c49e70e029eb1671155",
+      "byte_identical": true
+    },
+    {
+      "path": "supabase/local-profiles/acl02-pg-only/verify-clean.sql",
+      "sha256": "c5aad25fcc2c6ac1c1c9690631464442d4585cf2a00db8ba6ae50963dee85b23",
+      "byte_identical": true
+    },
+    {
+      "path": "supabase/local-profiles/acl02-pg-only/witness.sql",
+      "sha256": "514b3d01c1b0dcca967923128348856cdf9b6871ff86db1b76766dc9551e4ddc",
+      "byte_identical": true
+    },
+    {
+      "path": "supabase/local-profiles/runtime-pg-only-acl02-v1.json",
+      "sha256": "aa394a6068f75a438a3118f63c949984745d8ce46fc9cb69c525e51dd67cfaaa",
+      "byte_identical": true
+    }
+  ],
+  "execution": {
+    "registry": "EMPTY",
+    "effective_authority": null,
+    "target_binding": null,
+    "plan_hash": null,
+    "runtime_tool_dependency_binding": null,
+    "docker_pg_auth_sql_session_live": "NOT_RUN"
+  },
+  "open_gates": [
+    {
+      "owner": "Documents/FIXTURE-PLAN-COMPILER-05",
+      "output": "exact semantic case plan, commands/receipt references and hash"
+    },
+    {
+      "owner": "Platform",
+      "output": "existing Node/tool/package closure and actual owned PG/Auth descriptor + authentic current AAL2 session"
+    },
+    {
+      "owner": "Core/CE/Documents with Platform fixture owner",
+      "output": "independently accepted minimum native installation/lineage and actual fixture/committed receipt outputs, CE/Core mapping"
+    },
+    {
+      "owner": "coordinator",
+      "output": "target/native compatibility and exact one-invocation admission after real inputs exist"
+    }
+  ],
+  "manifest_self_hash": "outside file; use Git blob identity after commit; no circular hash",
+  "scope": "source/admission/transport only, no provision/install/mutation/activation"
+}

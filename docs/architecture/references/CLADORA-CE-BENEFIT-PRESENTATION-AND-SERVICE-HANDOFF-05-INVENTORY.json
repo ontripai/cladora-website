@@ -32,7 +32,8 @@
       "owner": "Community & Experience",
       "finding": "Public CE architecture explains SERVICE discovery without a benefit projection.",
       "classification": "accepted",
-      "sha256": "63abbc7afa4fd1584b76f612d7c3f8f65b632d1af9511378f9024fc363cd4f83"
+      "sha256": "c1cbb155f3324cc0adbbc24ecc6032c109f172ffab3f420ff9b41c381a6f67c1",
+      "reviewed_commit": "630a089551c3654c203d4b70c7d676021f991faf"
     },
     {
       "path": "src/app/[lang]/app/community/page.tsx",

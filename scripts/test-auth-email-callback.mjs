@@ -39,14 +39,34 @@ assert.equal(resolveAuthEmailDestination('en', 'recovery', null), '/en/reset-pas
 assert.equal(resolveAuthEmailDestination('fa', 'magiclink', null), '/fa/app/dashboard');
 assert.equal(resolveAuthEmailDestination('en', 'signup', '/en/app/dashboard'), '/en/app/dashboard');
 assert.equal(resolveAuthEmailDestination('fa', 'email_change', '/fa/app/settings'), '/fa/app/settings');
+assert.equal(resolveAuthEmailDestination('en', 'signup', '/en/demo'), '/en/demo');
+assert.equal(resolveAuthEmailDestination('ro', 'email', '/ro/demo'), '/ro/demo');
+assert.equal(resolveAuthEmailDestination('fa', 'signup', '/fa/demo'), '/fa/demo');
 
 // PKCE destination resolution
 assert.equal(resolvePkceDestination('fa', '/fa/reset-password'), '/fa/reset-password');
 assert.equal(resolvePkceDestination('en', '/en/reset-password'), '/en/reset-password');
 assert.equal(resolvePkceDestination('ro', '/ro/app/dashboard'), '/ro/app/dashboard');
+assert.equal(resolvePkceDestination('fa', '/fa/demo'), '/fa/demo');
+assert.equal(resolvePkceDestination('ro', '/ro/demo'), '/ro/demo');
+assert.equal(resolvePkceDestination('en', '/en/demo'), '/en/demo');
 assert.equal(resolvePkceDestination('fa', null), '/fa/app/dashboard');
 assert.equal(resolvePkceDestination('fa', 'https://attacker.example/steal'), null);
 assert.equal(resolvePkceDestination('ro', '//attacker.example/steal'), null);
+
+// Demo negative controls
+assert.equal(resolveAuthEmailDestination('en', 'recovery', '/en/demo'), null);
+assert.equal(resolveAuthEmailDestination('en', 'invite', '/en/demo'), null);
+assert.equal(resolveAuthEmailDestination('en', 'magiclink', '/en/demo'), null);
+assert.equal(resolveAuthEmailDestination('en', 'email_change', '/en/demo'), null);
+assert.equal(resolveAuthEmailDestination('en', 'signup', '/ro/demo'), null); // cross-locale disallowed
+assert.equal(resolveAuthEmailDestination('fa', 'email', '/fa/demo?workspace=evil'), null); // query disallowed
+assert.equal(resolveAuthEmailDestination('fa', 'signup', '/fa/demo#token=evil'), null); // hash disallowed
+assert.equal(resolveAuthEmailDestination('en', 'signup', '/en/demo/app/dashboard'), null); // subpath disallowed
+assert.equal(resolvePkceDestination('en', '/ro/demo'), null); // cross-locale disallowed
+assert.equal(resolvePkceDestination('en', '/en/demo?x=1'), null); // query disallowed
+assert.equal(resolvePkceDestination('en', '/en/demo#hash'), null); // hash disallowed
+assert.equal(resolvePkceDestination('en', '/en/demo/app'), null); // prefix permissive disallowed
 
 for (const unsafeNext of [
   'https://attacker.example/steal',

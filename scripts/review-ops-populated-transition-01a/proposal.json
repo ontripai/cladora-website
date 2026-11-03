@@ -1,0 +1,253 @@
+{
+  "format": "OPS_POPULATED_TRANSITION_01A",
+  "base": "1afe40aedbfc44855ccea676fb92fd4e6ec61e83",
+  "target": "ryygcqiunqqtfkpkflzf",
+  "status": "INACTIVE_ADDITIVE_PROPOSAL_BLOCKED",
+  "source": {
+    "official_delivery_blob": "a13e382d31ea40b2ddd52306a34c56b648f3ed47",
+    "official_delivery_sha256": "94543e82513461f808037fdbfcb6c3d51531f4d826e82155a8844ace15929822",
+    "native_path": "supabase/install/v14-operations/maintenance-procurement.sql",
+    "native_sha256": "6ce3f721329f6cbdd7c945769b022a1afa6b65cf2e898abc19b8c11447c8bcad",
+    "source_kind": "native_NOT_send_image",
+    "note": "Read accepted materialization only; no chain reconstruction or private source embedded.",
+    "native_bytes": 308614
+  },
+  "effects": [
+    {
+      "id": "app_private.operations_checkpoint_v1(uuid,jsonb)",
+      "kind": "routine",
+      "operation": "ADD_ABSENT_ONLY",
+      "owner": "postgres",
+      "security": "definer",
+      "search_path": [
+        "pg_catalog"
+      ],
+      "source_span": {
+        "offset": 210390,
+        "bytes": 2914,
+        "sha256": "02b828b4a2debf501c3c7c53049189e98cf15a32ecab840cee6d1a4e43b72641"
+      },
+      "intended_effective_acl": {
+        "anon": false,
+        "authenticated": false,
+        "service_role": false,
+        "PUBLIC": false
+      }
+    },
+    {
+      "id": "app_private.operations_command_v1(text,uuid,uuid,text,text)",
+      "kind": "routine",
+      "operation": "ADD_ABSENT_ONLY",
+      "owner": "postgres",
+      "security": "definer",
+      "search_path": [
+        "pg_catalog"
+      ],
+      "source_span": {
+        "offset": 213434,
+        "bytes": 22506,
+        "sha256": "995ab865cb9918adfea422c2cca3cbe8b97938631c9ca43892f6520e694e4ebf"
+      },
+      "intended_effective_acl": {
+        "anon": false,
+        "authenticated": false,
+        "service_role": false,
+        "PUBLIC": false
+      }
+    },
+    {
+      "id": "customer_api.operations_command_v1(text,uuid,uuid,text,text)",
+      "kind": "routine",
+      "operation": "ADD_ABSENT_ONLY",
+      "owner": "postgres",
+      "security": "invoker",
+      "search_path": [
+        "pg_catalog"
+      ],
+      "source_span": {
+        "offset": 236080,
+        "bytes": 307,
+        "sha256": "a83841d799d088f1abb4d04e5391f1e3b3a687c55e13d1ef6fbd04fc195a14af"
+      },
+      "intended_effective_acl": {
+        "anon": false,
+        "authenticated": false,
+        "service_role": false,
+        "PUBLIC": false
+      }
+    },
+    {
+      "id": "app_private.guard_operations_unresolved_v1()",
+      "kind": "routine",
+      "operation": "ADD_ABSENT_ONLY",
+      "owner": "postgres",
+      "security": "definer",
+      "search_path": [
+        "pg_catalog"
+      ],
+      "source_span": {
+        "offset": 236528,
+        "bytes": 2285,
+        "sha256": "f740f89f48fe97a5b813cdfae087bda925b7c55acd7c7d7c18f42fddd2a13aa7"
+      },
+      "intended_effective_acl": {
+        "anon": false,
+        "authenticated": false,
+        "service_role": false,
+        "PUBLIC": false
+      }
+    },
+    {
+      "id": "maintenance.work_orders#operations_unresolved_command",
+      "kind": "trigger",
+      "operation": "ADD_ABSENT_ONLY",
+      "relation": "maintenance.work_orders",
+      "callee": "app_private.guard_operations_unresolved_v1()",
+      "source_span": {
+        "offset": 238938,
+        "bytes": 181,
+        "sha256": "999a3dd89d0653580b4f67f46a428d93667ef5e2adf494493a963143e39a667b"
+      }
+    },
+    {
+      "id": "maintenance.maintenance_plans#operations_unresolved_command",
+      "kind": "trigger",
+      "operation": "ADD_ABSENT_ONLY",
+      "relation": "maintenance.maintenance_plans",
+      "callee": "app_private.guard_operations_unresolved_v1()",
+      "source_span": {
+        "offset": 239120,
+        "bytes": 187,
+        "sha256": "49248fc5ad597a349e0f00b375647a617239c24dd4c6112207e2a865ea6f9ebf"
+      }
+    },
+    {
+      "id": "maintenance.work_order_checklist_items#operations_unresolved_command",
+      "kind": "trigger",
+      "operation": "ADD_ABSENT_ONLY",
+      "relation": "maintenance.work_order_checklist_items",
+      "callee": "app_private.guard_operations_unresolved_v1()",
+      "source_span": {
+        "offset": 239308,
+        "bytes": 196,
+        "sha256": "2cbd7847e3df296c40fc37d9ab4055380ad25af8aa5382e7417e06fdea69d9bf"
+      }
+    }
+  ],
+  "dependency_routine_families": [
+    "app_private.check_effective_permission_v2_at_v1",
+    "app_private.require_request_session_current_at_v1",
+    "app_private.resolve_workspace_from_customer_context_v1_at_v1",
+    "auth.jwt",
+    "auth.uid",
+    "customer_api.complete_work_order_v1",
+    "customer_api.issue_work_order_v1",
+    "customer_api.start_work_order_v1",
+    "customer_api.verify_work_order_v1",
+    "extensions.digest",
+    "maintenance.assert_work_order_authority_v1",
+    "maintenance.generate_calendar_order_v1",
+    "maintenance.save_calendar_plan_v1"
+  ],
+  "dependency_relations": [
+    "app_private.canonical_authority_revision_v1",
+    "assets.assets",
+    "audit.events",
+    "identity.context_grants",
+    "maintenance.maintenance_plans",
+    "maintenance.vendors",
+    "maintenance.work_order_checklist_items",
+    "maintenance.work_orders",
+    "platform.customer_workspaces",
+    "platform.idempotency_keys",
+    "platform.outbox_events",
+    "platform.workspace_property_bindings"
+  ],
+  "dependency_boundary": "direct static calls/relations plus required independently reviewed transitive routine/trigger/type/constraint/index closure; not a compiled oracle",
+  "required_permissions": [
+    "maintenance.work_orders.read",
+    "maintenance.work_orders.manage",
+    "maintenance.work_orders.verify"
+  ],
+  "lineage_contract": "dedicated proposed incremental lineage after existing native/reduced-demo; no applied marker or replay-all",
+  "catalog_sections": [
+    "routines",
+    "relations",
+    "triggers",
+    "namespace_occupancy",
+    "role_graph",
+    "default_acl",
+    "lineage",
+    "effective_acl",
+    "protected"
+  ],
+  "preserve": [
+    "fresh installer and guard300",
+    "existing user data and pending C03 rows",
+    "all existing effective ACLs including currently exposed88",
+    "managed Auth and provider role graph",
+    "consumer ABI and original tuple/currentness/hash/replay",
+    "default ACL ND0"
+  ],
+  "execution_authorized": false,
+  "activation": false,
+  "new_role_or_ledger": false,
+  "default_acl_mutation": false,
+  "source_notes": [
+    "First observation mapper accepts private versioned catalog input; Platform05 full snapshots not locally present.",
+    "No PG reference/normalization equivalence available; source hashes are never compared to catalog MD5 as proof.",
+    "Public facade is SECURITY INVOKER; nested private invocation authorization must be separately resolved without assumed private grant or definer rewrite."
+  ],
+  "gates": [
+    {
+      "id": "MAP01",
+      "status": "OPEN",
+      "owner": "Platform + Core/SERVICE",
+      "required": "Complete private snapshot and independently reviewed PG17 projection/transitive closure/lineage",
+      "blocks": "target conformance and executable payload"
+    },
+    {
+      "id": "ACL01",
+      "status": "OPEN",
+      "owner": "Core/SERVICE + coordinator",
+      "required": "Invoker facade to private call authorization and effective nested rights decision",
+      "blocks": "caller exposure/activation; no assumed grant"
+    },
+    {
+      "id": "OWN01",
+      "status": "OPEN",
+      "owner": "Platform + SERVICE",
+      "required": "Approved incremental principal and DEFINER/RLS trust profile; fresh guard300 untouched",
+      "blocks": "privilege feasibility; fresh transfer is separate"
+    },
+    {
+      "id": "CUT01",
+      "status": "OPEN",
+      "owner": "Core/Operations + coordinator",
+      "required": "Existing writer/pending C03 census and approved trigger installation window/cutover",
+      "blocks": "trigger installation even with new RPC ACL closed"
+    }
+  ],
+  "install_contract": {
+    "transaction_units": 1,
+    "order": [
+      "app_private.operations_checkpoint_v1(uuid,jsonb)",
+      "app_private.operations_command_v1(text,uuid,uuid,text,text)",
+      "customer_api.operations_command_v1(text,uuid,uuid,text,text)",
+      "app_private.guard_operations_unresolved_v1()",
+      "maintenance.work_orders#operations_unresolved_command",
+      "maintenance.maintenance_plans#operations_unresolved_command",
+      "maintenance.work_order_checklist_items#operations_unresolved_command"
+    ],
+    "before_commit": [
+      "explicit new-routine OC1 revokes",
+      "complete created-set/catalog/ACL assertions",
+      "unchanged default ACL and managed Auth/role graph",
+      "unchanged existing effective ACL and data"
+    ],
+    "unknown_commit": "STOP same attempt; independently classify exact object identities and residue before any retry",
+    "positive_caller_grants": false,
+    "legacy_exposure_changes": false,
+    "execute": false
+  }
+}

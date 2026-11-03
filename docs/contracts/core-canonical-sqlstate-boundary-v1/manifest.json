@@ -1,0 +1,998 @@
+{
+  "task": "CORE-CANONICAL-SQLSTATE-BOUNDARY-12",
+  "base": "6110229e72f5a81b2d3c3a1ff7090aa93741a2bc",
+  "parent": "6110229e72f5a81b2d3c3a1ff7090aa93741a2bc",
+  "branch": "codex/program-core-service-s01-producer-01",
+  "scope": "T10-D04 only",
+  "source_status": "PROPOSED_GUARDED_DELTA_SOURCE_REVIEW_REQUIRED",
+  "native_sqlstate_status": "NOT_RUN_NOT_PASS",
+  "runtime_binding": null,
+  "historical_docs_slots": "BLOCKED",
+  "execution_target": null,
+  "executor": null,
+  "execution_authorization": null,
+  "canonical_sources": [
+    {
+      "path": "supabase/install/v14-operations/foundation.sql",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 736073,
+      "sha256": "da5a4e3ac421f71674ddc309feff3c0d03d6ebc6f168911d48f41b799c73ae35",
+      "git_blob": "5fcdf690888d6bec186b654eeafb826601572d27"
+    },
+    {
+      "path": "supabase/install/v14-operations/building-provisioning.sql",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 262457,
+      "sha256": "258c27e4505235a761b1e2557c33548af0067c11eebfa0c88972783df7025171",
+      "git_blob": "45737a8100b3542ad787ea4414090d0f304fc123"
+    }
+  ],
+  "closure": {
+    "named_routines": [
+      "app_private.check_direct_effective_permission_v2",
+      "app_private.check_direct_effective_permission_v2_at_v1",
+      "app_private.check_effective_permission_v2",
+      "app_private.check_effective_permission_v2_at_v1",
+      "app_private.check_workspace_native_permission_v2",
+      "app_private.check_workspace_native_permission_v2_at_v1",
+      "app_private.customer_mfa_required",
+      "app_private.customer_mfa_required_at_v1",
+      "app_private.native_workspace_scope_for_membership_v2",
+      "app_private.native_workspace_scope_for_membership_v2_at_v1",
+      "app_private.resolve_workspace_from_customer_context_v1",
+      "app_private.resolve_workspace_from_customer_context_v1_at_v1",
+      "app_private.resolve_workspace_native_context_v2",
+      "app_private.resolve_workspace_native_context_v2_at_v1",
+      "app_private.workspace_context_covers_role_scope_v1",
+      "app_private.workspace_context_covers_role_scope_v1_at_v1",
+      "app_private.workspace_member_role_authority_active_v1",
+      "app_private.workspace_member_role_authority_active_v1_at_v1",
+      "app_private.workspace_role_identity_source_current_v1",
+      "app_private.workspace_role_identity_source_current_v1_at_v1",
+      "app_private.workspace_role_scope_contains_v1",
+      "app_private.workspace_role_scope_overlaps_v1"
+    ],
+    "edges": [
+      {
+        "caller": "app_private.check_workspace_native_permission_v2",
+        "callee": "app_private.check_effective_permission_v2"
+      },
+      {
+        "caller": "app_private.check_workspace_native_permission_v2_at_v1",
+        "callee": "app_private.check_effective_permission_v2_at_v1"
+      },
+      {
+        "caller": "app_private.check_effective_permission_v2",
+        "callee": "app_private.resolve_workspace_from_customer_context_v1"
+      },
+      {
+        "caller": "app_private.check_effective_permission_v2",
+        "callee": "app_private.resolve_workspace_native_context_v2"
+      },
+      {
+        "caller": "app_private.check_effective_permission_v2",
+        "callee": "app_private.workspace_member_role_authority_active_v1"
+      },
+      {
+        "caller": "app_private.check_effective_permission_v2",
+        "callee": "app_private.check_direct_effective_permission_v2"
+      },
+      {
+        "caller": "app_private.check_effective_permission_v2_at_v1",
+        "callee": "app_private.resolve_workspace_from_customer_context_v1_at_v1"
+      },
+      {
+        "caller": "app_private.check_effective_permission_v2_at_v1",
+        "callee": "app_private.resolve_workspace_native_context_v2_at_v1"
+      },
+      {
+        "caller": "app_private.check_effective_permission_v2_at_v1",
+        "callee": "app_private.workspace_member_role_authority_active_v1_at_v1"
+      },
+      {
+        "caller": "app_private.check_effective_permission_v2_at_v1",
+        "callee": "app_private.check_direct_effective_permission_v2_at_v1"
+      },
+      {
+        "caller": "app_private.resolve_workspace_native_context_v2",
+        "callee": "app_private.customer_mfa_required"
+      },
+      {
+        "caller": "app_private.resolve_workspace_native_context_v2",
+        "callee": "app_private.native_workspace_scope_for_membership_v2"
+      },
+      {
+        "caller": "app_private.workspace_member_role_authority_active_v1",
+        "callee": "app_private.workspace_role_scope_contains_v1"
+      },
+      {
+        "caller": "app_private.workspace_member_role_authority_active_v1",
+        "callee": "app_private.workspace_context_covers_role_scope_v1"
+      },
+      {
+        "caller": "app_private.workspace_member_role_authority_active_v1",
+        "callee": "app_private.workspace_role_identity_source_current_v1"
+      },
+      {
+        "caller": "app_private.workspace_member_role_authority_active_v1",
+        "callee": "app_private.workspace_member_role_authority_active_v1"
+      },
+      {
+        "caller": "app_private.check_direct_effective_permission_v2",
+        "callee": "app_private.native_workspace_scope_for_membership_v2"
+      },
+      {
+        "caller": "app_private.check_direct_effective_permission_v2",
+        "callee": "app_private.workspace_member_role_authority_active_v1"
+      },
+      {
+        "caller": "app_private.resolve_workspace_native_context_v2_at_v1",
+        "callee": "app_private.customer_mfa_required_at_v1"
+      },
+      {
+        "caller": "app_private.resolve_workspace_native_context_v2_at_v1",
+        "callee": "app_private.native_workspace_scope_for_membership_v2_at_v1"
+      },
+      {
+        "caller": "app_private.workspace_member_role_authority_active_v1_at_v1",
+        "callee": "app_private.workspace_role_scope_contains_v1"
+      },
+      {
+        "caller": "app_private.workspace_member_role_authority_active_v1_at_v1",
+        "callee": "app_private.workspace_context_covers_role_scope_v1_at_v1"
+      },
+      {
+        "caller": "app_private.workspace_member_role_authority_active_v1_at_v1",
+        "callee": "app_private.workspace_role_identity_source_current_v1_at_v1"
+      },
+      {
+        "caller": "app_private.workspace_member_role_authority_active_v1_at_v1",
+        "callee": "app_private.workspace_member_role_authority_active_v1_at_v1"
+      },
+      {
+        "caller": "app_private.check_direct_effective_permission_v2_at_v1",
+        "callee": "app_private.native_workspace_scope_for_membership_v2_at_v1"
+      },
+      {
+        "caller": "app_private.check_direct_effective_permission_v2_at_v1",
+        "callee": "app_private.workspace_member_role_authority_active_v1_at_v1"
+      },
+      {
+        "caller": "app_private.native_workspace_scope_for_membership_v2",
+        "callee": "app_private.workspace_member_role_authority_active_v1"
+      },
+      {
+        "caller": "app_private.workspace_role_identity_source_current_v1",
+        "callee": "app_private.workspace_context_covers_role_scope_v1"
+      },
+      {
+        "caller": "app_private.workspace_role_identity_source_current_v1",
+        "callee": "app_private.workspace_role_scope_overlaps_v1"
+      },
+      {
+        "caller": "app_private.native_workspace_scope_for_membership_v2_at_v1",
+        "callee": "app_private.workspace_member_role_authority_active_v1_at_v1"
+      },
+      {
+        "caller": "app_private.workspace_role_identity_source_current_v1_at_v1",
+        "callee": "app_private.workspace_context_covers_role_scope_v1_at_v1"
+      },
+      {
+        "caller": "app_private.workspace_role_identity_source_current_v1_at_v1",
+        "callee": "app_private.workspace_role_scope_overlaps_v1"
+      }
+    ],
+    "unmapped": [],
+    "external_qualified_calls": [
+      "auth.jwt",
+      "auth.uid",
+      "pg_catalog.isfinite"
+    ],
+    "method": "pinned-source lexical named calls; no dynamic EXECUTE allowed; external Auth/system primitives unchanged; NOT parser/compile/overload/catalog proof"
+  },
+  "functions": [
+    {
+      "signature": "app_private.check_effective_permission_v2(uuid,text,text,text,uuid,uuid)",
+      "source": "supabase/install/v14-operations/foundation.sql",
+      "line": 6110,
+      "end_line": 6400,
+      "byte_offset": 315161,
+      "before": {
+        "bytes": 11542,
+        "sha256": "bf228a3d596dc190eb7dbc9b1630da2109e316379f94b00228cbe85e6b180d5d",
+        "git_blob": "1eaa4a985094451d088d1dda6fe23873ff21e419"
+      },
+      "after": {
+        "bytes": 11576,
+        "sha256": "6e06bf6d505488865c1c578e68afcf809a8ceca5cb7f9a17877dab6bc73016db",
+        "git_blob": "16f4b533c8ce41637d27d4224e014d101b68e420"
+      },
+      "before_body": {
+        "bytes": 11223,
+        "sha256": "8f00424daca0ede92c652b5137a498b19797db611cb0b20054413041869d57c9",
+        "git_blob": "42bbb83ebe3b0ca2e86743933f7ae969f7c8304e"
+      },
+      "after_body": {
+        "bytes": 11257,
+        "sha256": "e0ca913af05edc8320b7201343d10f3aa442a57586d3419cd68e4547b477f092",
+        "git_blob": "fc558ece398ea3a179baad64ce0040a4cf02fa21"
+      },
+      "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
+    },
+    {
+      "signature": "app_private.check_effective_permission_v2_at_v1(uuid,text,text,text,uuid,uuid,timestamptz)",
+      "source": "supabase/install/v14-operations/building-provisioning.sql",
+      "line": 1491,
+      "end_line": 1767,
+      "byte_offset": 88062,
+      "before": {
+        "bytes": 11487,
+        "sha256": "5549d89feadc019b43ae8eb469e3e4d52907df88aa31b94bb40cc4e57e6caeb1",
+        "git_blob": "c6a8fde57ddc96efac470cfde498a83a19399635"
+      },
+      "after": {
+        "bytes": 11532,
+        "sha256": "72fa1fd10d51b2e689177629642624cfa417be89432c04972ff291389293f3ea",
+        "git_blob": "079fbfff163ea1828967e2bd90154bc8b2efd96b"
+      },
+      "before_body": {
+        "bytes": 11131,
+        "sha256": "c24b1a4d049d3466d86d693f0d9a19ded0bdd85296384e17fc44fca0ff0b4d63",
+        "git_blob": "a30db5e24d820a4104e1aaabbe9ac8c84e7b85ba"
+      },
+      "after_body": {
+        "bytes": 11165,
+        "sha256": "e82983f82b06ca498015ddf2821ab43fa40e2b0eb04dc36cbaa1057151227528",
+        "git_blob": "2fbef18079d59f1db441c7b2d3b6745369da2c07"
+      },
+      "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
+    },
+    {
+      "signature": "app_private.workspace_context_covers_role_scope_v1(uuid,uuid,text,uuid)",
+      "source": "supabase/install/v14-operations/foundation.sql",
+      "line": 5056,
+      "end_line": 5095,
+      "byte_offset": 258969,
+      "before": {
+        "bytes": 1918,
+        "sha256": "601bf84e6dc4fe0f9c8ac441d62a8627fb1bd5577b8f6e9dc327d142c45f3694",
+        "git_blob": "5d1763be64e0c6d29ad1f252fc920bbfb7f639de"
+      },
+      "after": {
+        "bytes": 1952,
+        "sha256": "f430b5fae2816a9c1af7b0836437c5a184052ff284a6ebe4b3507f9db4523a62",
+        "git_blob": "3f8485ea22f0ae8edbc1cc5c6ceb250d78c164a9"
+      },
+      "before_body": {
+        "bytes": 1644,
+        "sha256": "f0928f38cb5d10127d103c95938c4ebfbbaf5b2ffe3a390afa4865b57cd23e10",
+        "git_blob": "7883db06c707168cb37947a6004335833da3cc05"
+      },
+      "after_body": {
+        "bytes": 1678,
+        "sha256": "9949d588f2ab98dbc4a95db587e427f82f00b2bd2e5f71f139c7af3511f2db18",
+        "git_blob": "a5fe6f39b7baa6c1ac35c3a7fadfa6858320b471"
+      },
+      "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
+    },
+    {
+      "signature": "app_private.workspace_context_covers_role_scope_v1_at_v1(uuid,uuid,text,uuid,timestamptz)",
+      "source": "supabase/install/v14-operations/building-provisioning.sql",
+      "line": 695,
+      "end_line": 738,
+      "byte_offset": 48792,
+      "before": {
+        "bytes": 2087,
+        "sha256": "878f90d79711170d615b77465e0793a3cfd81239c40ade286604f849ad08e0d2",
+        "git_blob": "1603d2bb2d1c2877b145029db8f0649de1a296a6"
+      },
+      "after": {
+        "bytes": 2132,
+        "sha256": "62a73a4caae457a190edc3245f144531f7da7e54a90a517f67eace6b304320a4",
+        "git_blob": "b52be6c38a161e0c57ea3cadeebd2a877e1e80a8"
+      },
+      "before_body": {
+        "bytes": 1790,
+        "sha256": "5f60bb3c24d48a03c679bd7224696feb2c2f5040158b9d2e3333987954fe662e",
+        "git_blob": "82ef628d59d6c2c5216eeb203a226aa22fdbe1a5"
+      },
+      "after_body": {
+        "bytes": 1824,
+        "sha256": "c85ef4ec54a679dffd982f4252557a9b784fbb125cab37ef8050706f67ccbcf3",
+        "git_blob": "c2d5138852e6a63d5642407bbdf1f981aa0f25ee"
+      },
+      "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
+    },
+    {
+      "signature": "app_private.workspace_member_role_authority_active_v1(uuid,uuid,uuid,text,uuid,uuid[])",
+      "source": "supabase/install/v14-operations/foundation.sql",
+      "line": 5316,
+      "end_line": 5406,
+      "byte_offset": 272961,
+      "before": {
+        "bytes": 6278,
+        "sha256": "013a97671946d8b8e7742d7ef87aaae617612c8775992cfa39e70a8ab070e35e",
+        "git_blob": "62106799e029cbdd04fe7c107a92c425b5b344ee"
+      },
+      "after": {
+        "bytes": 6312,
+        "sha256": "438194470fdc319d816a33ab00f2d08505a1fe746aab0c83635a633999fe7343",
+        "git_blob": "fbf17d4cc5fd9f3f99b80b6db524b6acf300c786"
+      },
+      "before_body": {
+        "bytes": 5917,
+        "sha256": "8cdc0a8b98478147a11db0da64ecb6656feacf5a0c1cf7709433a36735f3257b",
+        "git_blob": "1588715a0945d6d82cd60bd70be176b81dfe7bdd"
+      },
+      "after_body": {
+        "bytes": 5951,
+        "sha256": "5b62320bd3c4fa799405f9dfccbb37aa612db79531588578b968f0f8b5a3769f",
+        "git_blob": "9d0770d2e74acb68f92774576869edb7045720c2"
+      },
+      "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
+    },
+    {
+      "signature": "app_private.workspace_member_role_authority_active_v1_at_v1(uuid,uuid,uuid,text,uuid,uuid[],timestamptz)",
+      "source": "supabase/install/v14-operations/building-provisioning.sql",
+      "line": 804,
+      "end_line": 891,
+      "byte_offset": 55244,
+      "before": {
+        "bytes": 6327,
+        "sha256": "f4468bc75b1c547d704ecdf6af7c9abd84c7d1f7f049e40900650218357b75e3",
+        "git_blob": "0dae8e9be57ef208af1a98308534f8c463168f3b"
+      },
+      "after": {
+        "bytes": 6372,
+        "sha256": "9e6775012e11173f982f437dd1d0ad5f2ac3c8c003aace69fd8d22e2451d6502",
+        "git_blob": "5e036d4853d3613f0ab7e5da08369a750a203dcb"
+      },
+      "before_body": {
+        "bytes": 5975,
+        "sha256": "8b50fb008031e95bd99d5660777c5868b90fee7e5e69c445bded6c7328676c38",
+        "git_blob": "68fa049ab15a8d420c0d94e93de04ef1d2371125"
+      },
+      "after_body": {
+        "bytes": 6009,
+        "sha256": "a69b967e373ffc99a8c2a5992ce73c0c15b6ae7cf5ee90107d4fb096cf370e9c",
+        "git_blob": "77fbf9fe36b315da6f017e20874c2d086eb830cc"
+      },
+      "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
+    },
+    {
+      "signature": "app_private.workspace_role_identity_source_current_v1(uuid,uuid,uuid,uuid,uuid,uuid,uuid,text,uuid)",
+      "source": "supabase/install/v14-operations/foundation.sql",
+      "line": 5239,
+      "end_line": 5299,
+      "byte_offset": 267757,
+      "before": {
+        "bytes": 4303,
+        "sha256": "cc0d37123d4e7db07e09d0521d5bc16d5fa4d11889aeab403d1e4b433304d3ce",
+        "git_blob": "cfc2580e95c07864b2c3d3ced1b3c14714ad1902"
+      },
+      "after": {
+        "bytes": 4337,
+        "sha256": "356d51b464284c5dc705344a63811ddbcd3e09871ea54293978eb9837848311f",
+        "git_blob": "8e07c687fe544360d82e30fd9ff8df0d5b8501e2"
+      },
+      "before_body": {
+        "bytes": 3902,
+        "sha256": "58c63fb293ae7354f69bddb6f0dac572a0d2913281ca96634d093e2d84dd85e4",
+        "git_blob": "bac7f912c2cff018beae88ddc761772cc4ee670c"
+      },
+      "after_body": {
+        "bytes": 3936,
+        "sha256": "460ed1455bcb7f1cbfbe46cd52cb716d699aa56aa9175d646b0b5d16d7b87e78",
+        "git_blob": "dd26278592ad0b9d09e2da8a46b8afd2de49a9e4"
+      },
+      "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
+    },
+    {
+      "signature": "app_private.workspace_role_identity_source_current_v1_at_v1(uuid,uuid,uuid,uuid,uuid,uuid,uuid,text,uuid,timestamptz)",
+      "source": "supabase/install/v14-operations/building-provisioning.sql",
+      "line": 740,
+      "end_line": 802,
+      "byte_offset": 50881,
+      "before": {
+        "bytes": 4361,
+        "sha256": "04a030f42f5deb27e40584566824a862013a11edf7ba7ca7e895afcca3c464d8",
+        "git_blob": "53dbe37b1e2e32d66b28fec858f723687566e0ea"
+      },
+      "after": {
+        "bytes": 4406,
+        "sha256": "26de80dafc384ab9700d8b2de0efd274ca81c90bae21c86e5ebc99717c544313",
+        "git_blob": "27e380cfd20e03d6f67385b15316d5ae8f0ef528"
+      },
+      "before_body": {
+        "bytes": 3950,
+        "sha256": "01f6a216814ad9902a68e9c922574ccbb61c26b01db9a2e159d813cae035a886",
+        "git_blob": "923e63b31d9a001b621483f5f17e180cd64cfe91"
+      },
+      "after_body": {
+        "bytes": 3984,
+        "sha256": "5216f63f910d921463447dc72b85ac7763b5d29cd8f2996beefdfa0e26865045",
+        "git_blob": "c97ec6fbc444933d259795dd5cdd04f30fb96c0a"
+      },
+      "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
+    }
+  ],
+  "minimal_body_edit": "insert WHEN SQLSTATE '40001' THEN bare RAISE at each of8 existing handlers; remove that clause => exact original prosrc",
+  "preserved": [
+    "ordinary protected-region errors retain false fallback",
+    "57014/P0004 naturally remain outside OTHERS",
+    "all predicates/signatures/header security/search_path policy",
+    "existing owner/ACL/defaults/OIDs and dependencies must compare equal after replacement",
+    "Core11 and all accepted installer/migration/guard/owner source",
+    "D01/D02/D03/runtime NULL/Docs BLOCKED unchanged"
+  ],
+  "guarded_delta": {
+    "file": "supabase/proposals/core-canonical-sqlstate-boundary-v1/delta.sql",
+    "default": "unconditional55000 guard before catalog reads/DDL; BEGIN/final ROLLBACK; not installable/activation-approved",
+    "privilege": "actual ownership/effective owner rights plus schema CREATE, exact profile must be independently reviewed; no superuser/SET/GRANT assumptions",
+    "preserve": [
+      "all8 existing OIDs/owners/ACLs/attributes except prosrc",
+      "all pg_default_acl",
+      "target pg_depend",
+      "ordinary errors false",
+      "57014/P0004 propagate as before",
+      "Core11/evaluator policy/store/managed Auth unchanged except proposed40001 body branch"
+    ],
+    "unknown": "failure/mismatch/timeout/cancel => stop and rollback; unknown settlement not success, no blind retry"
+  },
+  "pg_only_harness": {
+    "file": "supabase/proposals/core-canonical-sqlstate-boundary-v1/pg-only-boundary.test.sql",
+    "target_database": "core_sqlstate_boundary_proof",
+    "principal": "existing ordinary executor, non-superuser/non-BYPASSRLS with TEMP and own pg_temp function rights; actual identity NULL; no role/grant creation in packet",
+    "objects": "16 pg_temp boundary wrappers + temp matrix, final ROLLBACK; ordinary EXECUTE ACL owner-only after PUBLIC revoke; function default-ACL rows must be absent, no defaults modified",
+    "cases": [
+      {
+        "code": null,
+        "control": true,
+        "result": true
+      },
+      {
+        "code": null,
+        "control": false,
+        "result": false
+      },
+      {
+        "code": "40001",
+        "control": false,
+        "before_state": null,
+        "after_state": "40001",
+        "result": false
+      },
+      {
+        "code": "57014",
+        "control": false,
+        "before_state": "57014",
+        "after_state": "57014",
+        "result": false
+      },
+      {
+        "code": "42501",
+        "control": false,
+        "before_state": null,
+        "after_state": null,
+        "result": false
+      },
+      {
+        "code": "22023",
+        "control": false,
+        "before_state": null,
+        "after_state": null,
+        "result": false
+      },
+      {
+        "code": "42P01",
+        "control": false,
+        "before_state": null,
+        "after_state": null,
+        "result": false
+      },
+      {
+        "code": "40P01",
+        "control": false,
+        "before_state": null,
+        "after_state": null,
+        "result": false
+      },
+      {
+        "code": "XX000",
+        "control": false,
+        "before_state": null,
+        "after_state": null,
+        "result": false
+      },
+      {
+        "code": "P0001",
+        "control": false,
+        "before_state": null,
+        "after_state": null,
+        "result": false
+      },
+      {
+        "code": "P0004",
+        "control": false,
+        "before_state": "P0004",
+        "after_state": "P0004",
+        "result": false
+      }
+    ],
+    "planned_calls": 176,
+    "proof": "future real PL/pgSQL RAISE/exception/GET STACKED DIAGNOSTICS for exact extracted clauses only; NOT full canonical evaluator or native SSI concurrency",
+    "rollback": "outer final ROLLBACK; separate same-backend ACK and fresh observer absence required; no retry on UNKNOWN"
+  },
+  "harness_execution_status": "NOT_RUN;176planned boundary calls are not test results; native RAISE witness distinct from genuine SSI or full canonical evaluation",
+  "verification": {
+    "generator": "node scripts/generate-core-canonical-sqlstate-boundary-12.mjs; PASS deterministic source check",
+    "new_tests": "node scripts/test-core-canonical-sqlstate-boundary-12.mjs;39 groups PASS_SOURCE_BYTES_AND_MODEL_ONLY",
+    "model_proof_boundary": "JavaScript counterexample/condition model only, no actual SQLSTATE native claim",
+    "negative_tests": "coherent recomputed identities fail actual source invariants for catch/policy/guard/target/preimage/activation/default-ACL/grant/extra SQL/authorization/oracle mutation",
+    "limited_lint": "PASS both new MJS --max-warnings=0",
+    "syntax": "PASS node --check both new MJS",
+    "diff_json_inventory_identities_seal": "PASS",
+    "TS_product_edits": false,
+    "prior_suites": "NOT_RERUN, all previously tracked files byte-identical to Base",
+    "not_run": [
+      "all SQL parsing/compile/execution",
+      "PG/Auth/native SSI/concurrency",
+      "full canonical authorization semantics",
+      "owner/ACL/RLS/hosted grant proof",
+      "actual timeout/backend cancellation and genuine concurrent SSI40001",
+      "installation/activation",
+      "Core11 native settlement proof",
+      "typecheck/full Release suites not repeated; no TS change"
+    ],
+    "full_definition_round_trip": "8 independent tests: remove added clause + CREATE prefix normalization only restores entire original definition including header/delimiters/suffix",
+    "new_negatives": "actual old dollar collapse on4 definitions, header security/search_path/closing delimiter/suffix, packet rendered definition rejected independently of resealed hashes"
+  },
+  "protected_source_pins": [
+    {
+      "path": "docs/contracts/core-airprop-read-host-minimum-v1/README.md",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 12883,
+      "sha256": "09501bb4f77454220cd1358a6caefd8299a4ef04bb4dae5bfd54c90d24b19ab8",
+      "git_blob": "783e0fdbc6beaac776dad11b78a894769bdccde5"
+    },
+    {
+      "path": "docs/contracts/core-airprop-read-host-minimum-v1/manifest.json",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 27623,
+      "sha256": "06257de33cc4ce2851bebc051edf9fa349e0e698b936ae3c08c28fddecf67ca2",
+      "git_blob": "b7e59838db358a55e2c463c2ce35ccd6beb08577"
+    },
+    {
+      "path": "docs/contracts/core-ce012-stored-relation-v1/README.md",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 11272,
+      "sha256": "2a149c633d38a268756a242ee9148c6c437fd512b957c47e0461e917285de515",
+      "git_blob": "bd86b0c5e272c2230352c56f9c998049e350a4e5"
+    },
+    {
+      "path": "docs/contracts/core-ce012-stored-relation-v1/manifest.json",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 19548,
+      "sha256": "ae1b70ac7eff5d1b62f04fbbe91d6406365d4bbccbb33d02001425c34472a92c",
+      "git_blob": "e00f1c04ad5a81ebc5433703792708ce0bd5ae1e"
+    },
+    {
+      "path": "docs/contracts/core-service-s01/README.md",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 13308,
+      "sha256": "1a60a1f926e2af54bfa075ce5fab4e9bc6796360b3fbf990d793b935c0b61c7c",
+      "git_blob": "b33846d3182297293bd3e0da417277e22e8d8efe"
+    },
+    {
+      "path": "docs/contracts/core-service-s01/SOURCE-CLOSEOUT-02.md",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 17016,
+      "sha256": "0d8581b9eaca7969d7a2851810d7a2ebeaaf9d31403a5fd150f3ff142e1c9295",
+      "git_blob": "8e0312176b8212d3e052c34fc9d40a01c0e60bfa"
+    },
+    {
+      "path": "docs/contracts/core-service-s01/closeout-manifest.json",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 18848,
+      "sha256": "78c94ae90f24dbda4908ea36294a72cc178e9839141a166be5317078391f0bf9",
+      "git_blob": "e1a77bac28649fb6197303d50cf881d8bf086a02"
+    },
+    {
+      "path": "docs/contracts/core-service-s01/platform-proof-request.json",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 12079,
+      "sha256": "ff7fe7c564722cb07fcd1460d0b93071d44ea417b737ac09cb63869ead2c0b99",
+      "git_blob": "088a71ab389cee6882a41046e4e6059edde8ab6c"
+    },
+    {
+      "path": "docs/contracts/core-service-s01/provenance.json",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 9536,
+      "sha256": "a41b79038cf69e5143dadd9d282235cd4827a664d4ff1280b0e6b478dba4e3ad",
+      "git_blob": "c211ba1043c17b945e52cfa108ed76532a6987af"
+    },
+    {
+      "path": "docs/contracts/core-service-s01/store-proposal.json",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 5368,
+      "sha256": "1058ecb4e3e61f4ede6d8e5329b8fe17c0bb899a838eacd1e6bf5a4093ef890f",
+      "git_blob": "048079ba656864bc79e831fe8aede3da2c7d6163"
+    },
+    {
+      "path": "package-lock.json",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 285183,
+      "sha256": "c0d6201b9dddab56818ee2c6a547cdba318b0f6979f2a27657b7ac5a41c9b4dc",
+      "git_blob": "e757f68e7602eb2f31dfd7d79eccedab18b72734"
+    },
+    {
+      "path": "package.json",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 20058,
+      "sha256": "fd82e8763837cbf7af3a0b55dd3e17c9d51f916deab6f5551ecf1a74bce083ce",
+      "git_blob": "24d2aa6ac1b58b075a0e4c42b84ef73ab9ea063b"
+    },
+    {
+      "path": "scripts/review-core-service-s01-producer-01/check-store.mjs",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 5493,
+      "sha256": "c352b6e2a948633c18710cba04bd620b946c5f45eb39d4dfea1911fbcf6b64d2",
+      "git_blob": "44dadb6a7fcfcff49318601c51073a3ac407075a"
+    },
+    {
+      "path": "scripts/review-core-service-s01-producer-01/compose-proof.mjs",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 1481,
+      "sha256": "fa7f29926d8c5240ae8d386561e0d748dab3f95bbfd3f5f5ece69b4c8cbda720",
+      "git_blob": "6f413d553d86bc34eabc2a1dd147bdaf314fe01d"
+    },
+    {
+      "path": "scripts/review-core-service-s01-producer-01/test-producer.mjs",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 39787,
+      "sha256": "9eb7b3b128306e300db0ef12875389127a56f4d58ae74c936c5b4353ffccd2eb",
+      "git_blob": "6d8bdcff5413c85c8e77c048566fba2c8457408a"
+    },
+    {
+      "path": "scripts/test-core-airprop-read-host-minimum-08.mjs",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 18031,
+      "sha256": "430decbd301f8d9a8161872d164013617ffe039a68518224716da5213009d98d",
+      "git_blob": "69f4a03f69ada7322e1a3f8b8806691cbb880b16"
+    },
+    {
+      "path": "scripts/test-core-ce012-stored-relation-v1.mjs",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 18002,
+      "sha256": "5e977c2064c15efd57732d4bf605c1ceabf72e3b65ccfa2afece6b1a426c0489",
+      "git_blob": "b628e0491d330a2ed6bb0831d251f8eade4ec7ee"
+    },
+    {
+      "path": "src/lib/community/experience-guide-command-contract.ts",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 14414,
+      "sha256": "324d30b10eecb1b1f03f706118b51b7dc80605892f1ec267e9d4dc44a5f8e2e6",
+      "git_blob": "f423e40d9ebda19216d184ed72c8bdd09f27e353"
+    },
+    {
+      "path": "src/lib/community/experience-guide-editor-adapter.ts",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 7826,
+      "sha256": "57b04afd9ac99616d69e45f2c645f9fc0927861b24a0e9c92b7cf6f1bde9395c",
+      "git_blob": "95324958399881fc1b35596133f00db570be978f"
+    },
+    {
+      "path": "src/lib/community/experience-guide-provider-bridge.ts",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 9983,
+      "sha256": "ddeda87fc4d19fb9516198fbcb1290240b1d3e152a5e85a936d513a7994b52ca",
+      "git_blob": "8e61503042837522fbe6f9643e6d90bda435b2de"
+    },
+    {
+      "path": "src/lib/core/airprop-read-host-v1.ts",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 16793,
+      "sha256": "4b13bfa4c920a68e7ec31b4a10f17a6e2bcf90721d255ccbc7e33eea34958c3c",
+      "git_blob": "47fde404a10ef6bfcf507fd01069b754eff4bbe8"
+    },
+    {
+      "path": "src/lib/core/ce012-stored-relation-v1.ts",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 10032,
+      "sha256": "d6e8495f4f03c46076c3d4fb15c6174eccef8a4c161c644b5976ceeb2aed69f0",
+      "git_blob": "79456ecc7e5b372f01eb6422c48d0826e9512dab"
+    },
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "git_blob": "e67df2d947608f546dab42dba88b5bdc418cbffb"
+    },
+    {
+      "path": "src/lib/core/current-authority-transaction-port-v1.ts",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 9496,
+      "sha256": "02e0b85d1dba7ca87ec0eddff5d3f3552bed518794888e9ee0f34c0de962c14f",
+      "git_blob": "3e70731254c06ec69a22ef5e2fa689b78ec22aa9"
+    },
+    {
+      "path": "src/lib/core/current-unit-property-selector-v1.ts",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 14179,
+      "sha256": "cf8649d0196c4d87e6bb17a756ab24194faddd1cec382cde97e17c5466c55dcd",
+      "git_blob": "454e547a66aad25316e5c9232a0921ccbb874024"
+    },
+    {
+      "path": "src/lib/core/service-s01/errors-v1.ts",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 301,
+      "sha256": "be1b63b6c9f62ae9d152a2ddda10d18508bd7426e5b66f2b9d3566d8f2b05e07",
+      "git_blob": "5d0408872fa2116bc49ca7ae5fa9b670030eb435"
+    },
+    {
+      "path": "src/lib/core/service-s01/offering-disclosure-policy-v1.ts",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 7396,
+      "sha256": "3d57e846dd782a4443b637a4bf9fc8337fda471f36d56ad3ae5eaab0830c3df6",
+      "git_blob": "9cba2cc22501c0695837d2c800c00fa03d24f236"
+    },
+    {
+      "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 19246,
+      "sha256": "977581d5c025287e7a88cc485a31d277fc412e8d7825087c871bfbdf2ecbeb8c",
+      "git_blob": "4080a96d003670068abbf435bb303f09e32cdc0d"
+    },
+    {
+      "path": "src/lib/core/transaction-provider-evidence-v1.ts",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 2252,
+      "sha256": "515c173f1fa1aeed01ef1af465acf8cee6504cc09bbcf3d137549a8150f32d75",
+      "git_blob": "55843685128350c37b43ad0a12f183c7fb94ae1a"
+    },
+    {
+      "path": "src/lib/core/transaction-replay-provider-hook-v1.ts",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 2688,
+      "sha256": "eb20fa622ba10b9cde6ea8d4d64f1ad9f9eea93f7fba354d03f6959156487dd4",
+      "git_blob": "bfec5bb136abad24a233544d3d63d00db1f8d678"
+    },
+    {
+      "path": "supabase/proposals/core-service-s01/store-proof-v1.sql",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 5703,
+      "sha256": "420cf84d33e2d6129158db90a225d92bd8b10bc6d2da9815d5f1a2b71a77e286",
+      "git_blob": "f81ab8c310e47f79d3a46dbac7bdf23477ce3cf5"
+    },
+    {
+      "path": "supabase/proposals/core-service-s01/store-v1.sql",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 16397,
+      "sha256": "42d2c96d7ac7e8a09aa2ecc60725054eb7c058ef471e64ea309add0a1bb72d50",
+      "git_blob": "d1fcd30e635c57e9a34c846aa6613e49daa471ea"
+    },
+    {
+      "path": "supabase/proposals/core-service-s01/verify-clean-v1.sql",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 1783,
+      "sha256": "2615d7c526110b97b881279951dfc05e2395abf0bf240027c5ee090d18e05ac4",
+      "git_blob": "027bfd3309a71f45404f539a440ff1b2aa547c30"
+    },
+    {
+      "path": "tsconfig.json",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 739,
+      "sha256": "9a5465ed302af1556cb72f0f5b98392f4b745761ba51f519c721f0ee49bb4226",
+      "git_blob": "7f9d7d66bf8228222565337be9438986ef09e72b"
+    },
+    {
+      "path": "src/lib/core/ce012-combined-stored-relation-v1.ts",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 9177,
+      "sha256": "2d775a6cc629c6b4bb2934345509421a461713cdcc1ba6309680947bc5f46938",
+      "git_blob": "db79cc649189c73d00692c023cbe59e9f21090cc"
+    },
+    {
+      "path": "scripts/test-core-ce012-writer-joint-review-09.mjs",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 24467,
+      "sha256": "1052251ecf779ce2d2af221488a5d04945f72d5f3262a2825fb62c76768930ff",
+      "git_blob": "78562d798b9375af6865fc0bc48d85207e38acbc"
+    },
+    {
+      "path": "docs/contracts/core-ce012-writer-joint-review-v1/README.md",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 18646,
+      "sha256": "aa2da912fa0494e65401b394738cc9f89c6a95cff7b02d472d772d52ffd602a9",
+      "git_blob": "d140e062b7b0a946d712e0d594146f2f8983ca8c"
+    },
+    {
+      "path": "docs/contracts/core-ce012-writer-joint-review-v1/manifest.json",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 41106,
+      "sha256": "e1ae7944199dd6cd67456bef38aa3558ca28c4d97244b8353ceef9750d2bf6d6",
+      "git_blob": "efc9589528fe26029d73eaf66ac4d9680bf8f700"
+    },
+    {
+      "path": "src/lib/core/ce012-terminal-authority-port-v1.ts",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 16620,
+      "sha256": "c58e24ef2b00edb0524e43de145d8990ea4e6846b7d175399aaad7a9a7decf0a",
+      "git_blob": "1e89805d8b8565c0b0a5ea1e0857c6553d057a82"
+    },
+    {
+      "path": "scripts/test-core-ce012-terminal-authority-port-10.mjs",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 14481,
+      "sha256": "487b9a54a6000f2c5a34c0d73b0d6a4142fa7ee1d18b916ee50b7cabd023a0a1",
+      "git_blob": "b8ffec46cc4597c1908c28001fec4e5d5c5d49f8"
+    },
+    {
+      "path": "docs/contracts/core-ce012-terminal-authority-port-v1/README.md",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 13190,
+      "sha256": "c2267ee14713925a93e2097c8873a34e8f5aeb7dbfe7a2a8d05fb670820d6715",
+      "git_blob": "9ee413c607f5188c7e2d3d7efb9600b1436d7a3f"
+    },
+    {
+      "path": "docs/contracts/core-ce012-terminal-authority-port-v1/manifest.json",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 24469,
+      "sha256": "e8b7a38f806e2fe9cde0ce3f15904d1887fb209887ebbd98768c482a4ebfaa76",
+      "git_blob": "7174135f86565e49f130aa96aafa00d79ac402dc"
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 52364,
+      "sha256": "4c903376e93059eebcaa08a181c26d2f2f1900072ed05abd40c7cb58391f2976",
+      "git_blob": "401c01f566d2d005a8197e2a77ebcf2b93872b95"
+    },
+    {
+      "path": "src/lib/core/ce012-host-terminal-checkpoint-v1.ts",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 2403,
+      "sha256": "7be643f96481b0283058e13cdc1e8894ecc90be4effdce4bd5db650385e0eb6e",
+      "git_blob": "f4dc24f850c84ae8207b1829f38c32a003d65b42"
+    },
+    {
+      "path": "scripts/test-core-host-terminal-lifecycle-11.mjs",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 15092,
+      "sha256": "e65e7deeca8b3f2f073de08665bd11e99cad030e64fdab934bc38cff768fb0b0",
+      "git_blob": "26889d07c58c6b063934c670706b9f17cd3f544c"
+    },
+    {
+      "path": "scripts/test-core-host-terminal-regressions-11.mjs",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 3747,
+      "sha256": "44864a49b0fcf01b2d1f824290e13f1719d94707dd9f566b631bd66cad7e8309",
+      "git_blob": "2948b7f47a5db3dd695544113f9acec1427c6f88"
+    },
+    {
+      "path": "docs/contracts/core-host-terminal-lifecycle-v1/README.md",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 11257,
+      "sha256": "3aa34dd4d7947c39b9db7f5ff4580e443e7e1295fd12d50f548951015b3ff2f3",
+      "git_blob": "df98bee80f456b55f790ef8ded1341ad350bb7a9"
+    },
+    {
+      "path": "docs/contracts/core-host-terminal-lifecycle-v1/manifest.json",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 23188,
+      "sha256": "dee659c2486d1e035e169eee68ab4e7a39a383a02e4ecf1a75c29b11ff5d55ad",
+      "git_blob": "ea498e2903224fd103e29a24db7d05671f805895"
+    },
+    {
+      "path": "supabase/install/v14-operations/foundation.sql",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 736073,
+      "sha256": "da5a4e3ac421f71674ddc309feff3c0d03d6ebc6f168911d48f41b799c73ae35",
+      "git_blob": "5fcdf690888d6bec186b654eeafb826601572d27"
+    },
+    {
+      "path": "supabase/install/v14-operations/building-provisioning.sql",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 262457,
+      "sha256": "258c27e4505235a761b1e2557c33548af0067c11eebfa0c88972783df7025171",
+      "git_blob": "45737a8100b3542ad787ea4414090d0f304fc123"
+    },
+    {
+      "path": "supabase/proposals/core-canonical-sqlstate-boundary-v1/pg-only-boundary.test.sql",
+      "ref": "6110229e72f5a81b2d3c3a1ff7090aa93741a2bc",
+      "bytes": 20744,
+      "sha256": "07072fdae234825786709260befa0b2c5337b0379ce852f072fdbfb9d17a9158",
+      "git_blob": "0a187e6d8d8025108578583b5401c78114883c64"
+    }
+  ],
+  "inventory": [
+    {
+      "path": "scripts/generate-core-canonical-sqlstate-boundary-12.mjs",
+      "ref": null,
+      "bytes": 18042,
+      "sha256": "acb1a891bb065decd2aab514cc23746f0e09d7b604fcc66b79809b8b0af5482e",
+      "git_blob": "792e60b791f9669ba9fd46b7336127c0182c8f43"
+    },
+    {
+      "path": "scripts/test-core-canonical-sqlstate-boundary-12.mjs",
+      "ref": null,
+      "bytes": 8870,
+      "sha256": "8512384c998bb2821842cff6c23d20314b89e5abbebcc4f673ec1fa6d11ef46d",
+      "git_blob": "2642ff108d4e64312a350fb318c07f4bfbd1a28f"
+    },
+    {
+      "path": "supabase/proposals/core-canonical-sqlstate-boundary-v1/delta.sql",
+      "ref": null,
+      "bytes": 56741,
+      "sha256": "2e9edd7e196c54b046f4a7dd71944473bffa2a8b24f2f8ec7f09f6318a4eb8ae",
+      "git_blob": "142504617e2651680f8f814649f300a2940dd365"
+    },
+    {
+      "path": "supabase/proposals/core-canonical-sqlstate-boundary-v1/pg-only-boundary.test.sql",
+      "ref": null,
+      "bytes": 20744,
+      "sha256": "07072fdae234825786709260befa0b2c5337b0379ce852f072fdbfb9d17a9158",
+      "git_blob": "0a187e6d8d8025108578583b5401c78114883c64"
+    },
+    {
+      "path": "supabase/proposals/core-canonical-sqlstate-boundary-v1/caseplan.json",
+      "ref": null,
+      "bytes": 23570,
+      "sha256": "121182e246feb5c062b1b3049f99b6f4420dbaa0aa73716cdee21f8802253200",
+      "git_blob": "97361375838b604d9ad11a5dc6bdb20ac6deda71"
+    },
+    {
+      "path": "docs/contracts/core-canonical-sqlstate-boundary-v1/README.md",
+      "ref": null,
+      "bytes": 12585,
+      "sha256": "5f0363f718871ab752ea4a276c13cf2be82c4cd443066ad9b04c63e24cdc699d",
+      "git_blob": "09193eead5c9f3c8f9d568152bace65edbbcda27"
+    }
+  ],
+  "inventory_seal": {
+    "algorithm": "SHA256 sorted-key compact JSON UTF8 inventory; manifest self excluded",
+    "sha256": "27350e4137198140ed953e2984909f4cd08c21522923ea89ac6a13b7041bfb19"
+  },
+  "automation": {
+    "classification": "نیازمند بررسی",
+    "record": "README normal process only; no execution authority"
+  },
+  "canonical_source_base": "847fa09039578eace8361ed00a4eedf815e03ded",
+  "iteration": "R1 / CORE12-F01",
+  "previous_delivery": {
+    "head": "6110229e72f5a81b2d3c3a1ff7090aa93741a2bc",
+    "source_manifest": {
+      "bytes": 41129,
+      "sha256": "1e4b524602969871d5bb6d1343f46693e4bd447591fb00fa8b275588a63c0b17"
+    },
+    "verification": "25 predecessor checks retained historically; did not validate rendered complete definitions"
+  },
+  "correction": {
+    "finding": "CORE12-F01",
+    "replacement": "callback returns literal replacement text; no JS replacement-dollar interpolation",
+    "independent_definition_checks": 8,
+    "affected_dollar_definitions": 4,
+    "delta_bytes_change": 8,
+    "whole_delta_other_bytes": "EXACT_MATCH predecessor after reproducing old renderer on4 definitions",
+    "prosrc_before_after_hashes": "all8 unchanged",
+    "harness_policy_cancellation_guards": "BYTE_IDENTICAL",
+    "Core13": "NOT_STARTED"
+  }
+}

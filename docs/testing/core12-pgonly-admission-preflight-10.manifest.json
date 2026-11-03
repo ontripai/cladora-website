@@ -1,0 +1,237 @@
+{
+  "format": "platform-core12-pgonly-admission-preflight-delivery.v1",
+  "task": "PLATFORM-CORE12-PGONLY-ADMISSION-PREFLIGHT-10",
+  "base": "bec76c530db8b0922d008eb0c60c1f0831cd5659",
+  "branch": "codex/program-local-runtime-lane-01",
+  "observed_utc": "2026-11-03T07:15:59.599045+00:00",
+  "status": "INACTIVE_CONTRACT_DELIVERED_NOT_EXECUTABLE",
+  "source_seal": {
+    "files": {
+      "scripts/run-local-runtime-lane.py": "8f0a964041cb4c2a78ab37ec7fc5c36be817d106cb396f598e625ef62907068e",
+      "scripts/local_runtime_consumer.py": "b240725de9119e0176e49fb0bc55f4917ef8df79a9383cb8d77ed97ca579d439",
+      "scripts/run-acl02-pg-only.py": "bde75479e6b90c4ebec91742e19f8962d50b8842597b8362459d91dc0b5e5c4a",
+      "scripts/acl02_pg_adapter.py": "72d7a69026cfe5d0dd15d6d5d4394ef62c4fced016919064150d3bc5ab5c361a",
+      "scripts/acl02_pg_wire.py": "4fa852fbdb6047ec3c264e1fee53b6218d9db9abf8b462d29e10d24fc4b242c3",
+      "supabase/local-profiles/runtime-pg-only-acl02-v1.json": "aa394a6068f75a438a3118f63c949984745d8ce46fc9cb69c525e51dd67cfaaa",
+      "supabase/local-profiles/runtime-pg-only-core12-preflight-v1.json": "3daa756dc51c6f86c30231954775a639a766adcb6d75564f713041ad58600cac",
+      "scripts/core12_pg_preflight.py": "6e138659d570541ff2562b80ec0e77f6784f86e0779af01fd52252551113bac0"
+    },
+    "sha256": "e93252a204d8c92732659d33cfc2965135707333f1028759122cc39c8bcb3d90"
+  },
+  "core_input": {
+    "id": "core12-boundary-witness",
+    "source_commit": "1eb8b5a1e522a529b39af02e32748756ee04dfec",
+    "path": "supabase/proposals/core-canonical-sqlstate-boundary-v1/pg-only-boundary.test.sql",
+    "bytes": 20744,
+    "sha256": "07072fdae234825786709260befa0b2c5337b0379ce852f072fdbfb9d17a9158",
+    "git_blob": "0a187e6d8d8025108578583b5401c78114883c64",
+    "fetch": "official GitHub exact commit; independent bytes/SHA256/Git identity MATCH",
+    "sql_parser": "NOT_RUN",
+    "sql": "NOT_RUN",
+    "caseplan_reference": {
+      "path": "supabase/proposals/core-canonical-sqlstate-boundary-v1/caseplan.json",
+      "source_commit": "1eb8b5a1e522a529b39af02e32748756ee04dfec",
+      "bytes": 23570,
+      "sha256": "121182e246feb5c062b1b3049f99b6f4420dbaa0aa73716cdee21f8802253200",
+      "git_blob": "97361375838b604d9ad11a5dc6bdb20ac6deda71",
+      "planned_calls": 176,
+      "authority": null
+    }
+  },
+  "request": {
+    "path": "supabase/local-profiles/core12-pg-only.request.json",
+    "bytes": 8189,
+    "sha256": "ef3ba1b76086537ad4a6a447e21e2a19630da3223df7d530722c9f750096b26a",
+    "git_blob": "b51a74c2a9b85674d567cd6906a604aa7958c272",
+    "self_hash_excluded": true,
+    "target": null,
+    "executor": null,
+    "observer": null,
+    "authority": null,
+    "execution_binding": null,
+    "live": "HOLD"
+  },
+  "profile": {
+    "path": "supabase/local-profiles/runtime-pg-only-core12-preflight-v1.json",
+    "bytes": 3098,
+    "sha256": "3daa756dc51c6f86c30231954775a639a766adcb6d75564f713041ad58600cac",
+    "git_blob": "45d0ca4a5ff827d8b12662fe9fe60dff286c41d4",
+    "execution_enabled": false,
+    "observed_target": null,
+    "observed_executor": null
+  },
+  "registry": {
+    "path": "supabase/local-profiles/core12-pg-only-reviews-v1.json",
+    "bytes": 71,
+    "sha256": "76fe8561f53fdd51774058190cae1f93524b34b1e0aa5fd9e7bd996fc4eeacab",
+    "git_blob": "b4e1f8b0bf369344e6c7a119b506dbe8a1597898",
+    "state": "EMPTY"
+  },
+  "inventory": {
+    "tracked_before": 2426,
+    "tracked_after_expected": 2433,
+    "paths_added": 7,
+    "old_tracked_files_modified": 0,
+    "files_excluding_this_manifest": [
+      {
+        "path": "scripts/core12_pg_preflight.py",
+        "before": null,
+        "after": {
+          "bytes": 15173,
+          "sha256": "6e138659d570541ff2562b80ec0e77f6784f86e0779af01fd52252551113bac0",
+          "git_blob": "56ce1ac72974c458465be54891d63f541d721a51"
+        }
+      },
+      {
+        "path": "scripts/test-core12-pg-preflight.py",
+        "before": null,
+        "after": {
+          "bytes": 8416,
+          "sha256": "9565a367fc35afeed07021b075db90a541f5d9b311a8ff966e4c03d06abbd2d1",
+          "git_blob": "8df9a238230c99a9b35e7d0da3d667fc15e93be3"
+        }
+      },
+      {
+        "path": "supabase/local-profiles/runtime-pg-only-core12-preflight-v1.json",
+        "before": null,
+        "after": {
+          "bytes": 3098,
+          "sha256": "3daa756dc51c6f86c30231954775a639a766adcb6d75564f713041ad58600cac",
+          "git_blob": "45d0ca4a5ff827d8b12662fe9fe60dff286c41d4"
+        }
+      },
+      {
+        "path": "supabase/local-profiles/core12-pg-only.request.json",
+        "before": null,
+        "after": {
+          "bytes": 8189,
+          "sha256": "ef3ba1b76086537ad4a6a447e21e2a19630da3223df7d530722c9f750096b26a",
+          "git_blob": "b51a74c2a9b85674d567cd6906a604aa7958c272"
+        }
+      },
+      {
+        "path": "supabase/local-profiles/core12-pg-only-reviews-v1.json",
+        "before": null,
+        "after": {
+          "bytes": 71,
+          "sha256": "76fe8561f53fdd51774058190cae1f93524b34b1e0aa5fd9e7bd996fc4eeacab",
+          "git_blob": "b4e1f8b0bf369344e6c7a119b506dbe8a1597898"
+        }
+      },
+      {
+        "path": "docs/testing/PLATFORM-CORE12-PGONLY-ADMISSION-PREFLIGHT-10.md",
+        "before": null,
+        "after": {
+          "bytes": 9915,
+          "sha256": "759123a9c548db632ab626c4eef048c656f5cc05882ca61885b6bc1460f2850b",
+          "git_blob": "7e9890f50ef0f32f9229301d1d74598f95fb4a97"
+        }
+      }
+    ],
+    "manifest_identity": "external receipt only"
+  },
+  "tests": {
+    "actually_run": 12,
+    "pass": 12,
+    "fail": 0,
+    "command": "CORE12_UNIT_SOURCE=OWNER_PRIVATE_EXACT_SOURCE python -I -B scripts/test-core12-pg-preflight.py",
+    "log": {
+      "bytes": 111,
+      "sha256": "3dcfb9fc66f79ff607f275906b3e6a0df242d9f62b0ad93c12f239b2f57a7f3a",
+      "custody": "PRIVATE"
+    },
+    "scope": "pure byte/request/identity/ACK/residue/cleanup MODELS; no SQL parser or execution",
+    "positive_closeout_model": "OFFLINE_MODEL_NOT_RUNTIME_PROOF",
+    "existing_finalizer_reused": true,
+    "legacy_Lane_or_Wire_instantiated": false,
+    "subprocess_commands_in_positive_model": "FORBIDDEN_BY_TEST_MOCK",
+    "byte_only_inspection": {
+      "status": "DRAFT_BYTES_VALID_NOT_EXECUTABLE",
+      "request_sha256": "ef3ba1b76086537ad4a6a447e21e2a19630da3223df7d530722c9f750096b26a",
+      "source_seal": "e93252a204d8c92732659d33cfc2965135707333f1028759122cc39c8bcb3d90",
+      "planned_calls": 176,
+      "executed_calls": null,
+      "target": null,
+      "executor": null,
+      "authority": null,
+      "live": "HOLD"
+    },
+    "syntax_python_ast": "PASS",
+    "json": "PASS",
+    "diff_check": "PASS",
+    "accepted_inspector09_materialization_health_or_suites": "NOT_REPEATED"
+  },
+  "receipt_cleanup_contract": {
+    "location": "core12-pg-only.request.json receipt_plan/send_contract/observer_contract/cleanup_plan",
+    "actual_execution_receipt": "NOT_CREATED",
+    "rollback_ack": "NOT_OBSERVED",
+    "observer_residue": "NOT_RUN_UNKNOWN",
+    "cleanup": "NOT_RUN_NO_RESOURCE_CREATED",
+    "primary_error_retention_and_partial_cleanup_controls": "PASS_OFFLINE_ONLY",
+    "delete_is_residue_proof": false
+  },
+  "reused_runtime": {
+    "file_pins": {
+      "scripts/run-local-runtime-lane.py": "8f0a964041cb4c2a78ab37ec7fc5c36be817d106cb396f598e625ef62907068e",
+      "scripts/local_runtime_consumer.py": "b240725de9119e0176e49fb0bc55f4917ef8df79a9383cb8d77ed97ca579d439",
+      "scripts/run-acl02-pg-only.py": "bde75479e6b90c4ebec91742e19f8962d50b8842597b8362459d91dc0b5e5c4a",
+      "scripts/acl02_pg_adapter.py": "72d7a69026cfe5d0dd15d6d5d4394ef62c4fced016919064150d3bc5ab5c361a",
+      "scripts/acl02_pg_wire.py": "4fa852fbdb6047ec3c264e1fee53b6218d9db9abf8b462d29e10d24fc4b242c3",
+      "supabase/local-profiles/runtime-pg-only-acl02-v1.json": "aa394a6068f75a438a3118f63c949984745d8ce46fc9cb69c525e51dd67cfaaa"
+    },
+    "existing_pg_runner": "run-acl02-pg-only.py",
+    "existing_wire": "acl02_pg_wire.py",
+    "integration_state": "not compatible with named DB/ordinary role until separately reviewed binding",
+    "generic_runner_created": false,
+    "current_image_or_Docker_access": "NOT_INSPECTED_NO_DOCKER_CALL"
+  },
+  "readiness_gaps": [
+    "ordinary_role_and_named_database_fixture_producer_exact_payload_unbound",
+    "existing_Wire_startup_and_identity_are_postgres_postgres_only",
+    "ordinary_role_system_identity_transport_not_reviewed",
+    "guard_latch_startup_option_binding_not_reviewed",
+    "independent_observer_payload_and_baseline_exact_pins_unbound",
+    "source_and_contract_independent_review_and_owner_authorization_required",
+    "review fixed20750-byte Query frame under existing deadline/capture contract; no split or larger budget inferred"
+  ],
+  "gap_owners": {
+    "ordinary-role named database fixture/setup": "Platform producer + coordinator/owner exact approval",
+    "startup identity and guard latch transport": "Platform, reuse pinned primitives; no ACL02 change",
+    "independent observer exact source and baseline": "Platform/Core/coordinator review before binding",
+    "source acceptance and future execution scope": "coordinator/owner"
+  },
+  "execution": {
+    "target": null,
+    "executor": null,
+    "authority": null,
+    "binding": null,
+    "registry": "EMPTY",
+    "live": "HOLD",
+    "planned_calls": 176,
+    "executed_calls": null,
+    "Docker_container_PG_SQL_parser_query_Auth": "NOT_RUN",
+    "install_grant_activation": "NOT_RUN",
+    "native_authorization_SSI": "NOT_PROVED",
+    "historical_slots": "BLOCKED"
+  },
+  "automation": {
+    "قابل خودکارسازی": "نیازمند بررسی",
+    "input": "exact source/hash/request",
+    "opportunity": "bounded byte/seal/prerequisite/closeout controls",
+    "human_role": "coordinator acceptance; owner versioned execution scope",
+    "conditions": "real target/executor/custody and reviewed bindings",
+    "exceptions_owner": "Platform/coordinator stop on mismatch/UNKNOWN; no retry",
+    "formal_dependency": "Core12 and exact fixture/transport/observer/baseline bindings",
+    "value": "NEEDS_REVIEW_NOT_MEASURED"
+  },
+  "skills": {
+    "policy": "CLADORA-SKILLS-USAGE v1.1.0",
+    "url": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-6316739482",
+    "applied": [
+      "cloud-environment:cloud-environment-runtime",
+      "networking reference"
+    ],
+    "skill_version": "UNKNOWN",
+    "scope": "source/contract and environment metadata only; no execution authority"
+  }
+}

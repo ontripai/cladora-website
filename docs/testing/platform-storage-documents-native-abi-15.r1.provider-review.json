@@ -1,0 +1,444 @@
+{
+  "format": "platform15.provider-source-principals.v1",
+  "release": "v1.82.1",
+  "image_digest": "sha256:31c11d93a3c7840f97acba43f6df9894028dc85dd9c0781d23427e2009be5b76",
+  "sources": [
+    {
+      "source": "src/http/plugins/db.ts",
+      "bytes": 6862,
+      "sha256": "0ab87e5e7538956fa4b2766a567744f1115659964b0379a833e3f8ef50638f90",
+      "git_blob": "b718a213925521d0a3624c46592b6081c64201b1",
+      "provenance": "embedded source map in exact approved running image; no source import/server operation"
+    },
+    {
+      "source": "src/http/plugins/jwt.ts",
+      "bytes": 3290,
+      "sha256": "d6c334dfeb3dcdbb375c31756e8d85d2eee95671ee1d07d047e9b46b625a2f1b",
+      "git_blob": "e38a8a46bff3e2b056e31c9fd4949b72994a6839",
+      "provenance": "embedded source map in exact approved running image; no source import/server operation"
+    },
+    {
+      "source": "src/http/routes/object/createObject.ts",
+      "bytes": 2295,
+      "sha256": "6fce387ef8021d9b6f6a48665410f74cad5cfc7a98c0bbf818572f16fa60863a",
+      "git_blob": "133ef44816dfc3b0bb0652a82f53ab3ac3144ecc",
+      "provenance": "embedded source map in exact approved running image; no source import/server operation"
+    },
+    {
+      "source": "src/http/routes/object/deleteObject.ts",
+      "bytes": 1841,
+      "sha256": "943e4ab13d1da8d0864ef15bfd6815fd10e1daa30d42fd99b1c991bf4c9b78a0",
+      "git_blob": "cf3577fa04c9598193ea252d0612a7696a337700",
+      "provenance": "embedded source map in exact approved running image; no source import/server operation"
+    },
+    {
+      "source": "src/http/routes/object/deleteObjects.ts",
+      "bytes": 2723,
+      "sha256": "ab5ff4b86991f52f78baabb7ddba904211bdb11df0a59bf53d513ab71e310cff",
+      "git_blob": "c3902abb6c7bfb6fc4ee0498f06ad17cacdf2c2a",
+      "provenance": "embedded source map in exact approved running image; no source import/server operation"
+    },
+    {
+      "source": "src/http/routes/object/getObject.ts",
+      "bytes": 4026,
+      "sha256": "0c8feb32ba3408bd4fdc46da0cac7f08f9952ee4512e11f96e2e81b23ee5f390",
+      "git_blob": "b1b63186b5af5175eeedd139963655779be95f51",
+      "provenance": "embedded source map in exact approved running image; no source import/server operation"
+    },
+    {
+      "source": "src/http/routes/object/getObjectInfo.ts",
+      "bytes": 6233,
+      "sha256": "53addba46449b606d5a3aafedc5584e18831214fcab122a187edae3e01a5c7aa",
+      "git_blob": "a6cd594fbb94e0bc8eb534d6868bbfe4a9b17bec",
+      "provenance": "embedded source map in exact approved running image; no source import/server operation"
+    },
+    {
+      "source": "src/http/routes/object/updateObject.ts",
+      "bytes": 2247,
+      "sha256": "84ea4f48b6808bc3d2e76a17b6c6d99eb45b05ce8945205b9a69fc4db79c7509",
+      "git_blob": "42cd069fc31d63894d3570e49e3fb5fd087bf070",
+      "provenance": "embedded source map in exact approved running image; no source import/server operation"
+    },
+    {
+      "source": "src/internal/database/pg-connection.ts",
+      "bytes": 25878,
+      "sha256": "8c712d053bf47ab0274f84b43090da594188ffc16fba07cada190f901e21cada",
+      "git_blob": "110838201a34e04cd3e53272373cf4ae31e7e43b",
+      "provenance": "embedded source map in exact approved running image; no source import/server operation"
+    },
+    {
+      "source": "src/internal/database/postgres/scope.ts",
+      "bytes": 2500,
+      "sha256": "6dd93c6ec8a1d3b357f20e882ff4f91eb004618a662bec7c5a37a61583e3e22b",
+      "git_blob": "6489c7bc779265b58e47dbcaaaa85a3a847a74c9",
+      "provenance": "embedded source map in exact approved running image; no source import/server operation"
+    },
+    {
+      "source": "src/storage/object.ts",
+      "bytes": 64215,
+      "sha256": "09cd255af5e073990abe572a5b2c7d2cd485222b42e7ddbf1c5b89b316ddd4d2",
+      "git_blob": "5c616e0f079b67f2f4433ecb24602a15a82fe274",
+      "provenance": "embedded source map in exact approved running image; no source import/server operation"
+    },
+    {
+      "source": "src/storage/renderer/asset.ts",
+      "bytes": 822,
+      "sha256": "bc619dbded5a1799ecccd2dfdc62a56eb96cc12f8d7581fd2ab68d2052f7f7a2",
+      "git_blob": "1984ba26cf08428132c55036234ac4c132076fec",
+      "provenance": "embedded source map in exact approved running image; no source import/server operation"
+    },
+    {
+      "source": "src/storage/renderer/cache-control.ts",
+      "bytes": 2363,
+      "sha256": "b60c40dd3071e629540d0b330c3ebf7b599973f47c1f722edb408675cf91f94b",
+      "git_blob": "5a0f17400200c7b327a5a151942d6dfaf3076f2f",
+      "provenance": "embedded source map in exact approved running image; no source import/server operation"
+    },
+    {
+      "source": "src/storage/renderer/head.ts",
+      "bytes": 3305,
+      "sha256": "33798711401e7871a07eab432885e58b1e709c220a3722f77b32c0528270aa53",
+      "git_blob": "4cec227f27d166d1a9082bace2e75f53ea35316f",
+      "provenance": "embedded source map in exact approved running image; no source import/server operation"
+    },
+    {
+      "source": "src/storage/renderer/image.ts",
+      "bytes": 25566,
+      "sha256": "d37dcb2a4a38ec938520266835ead64bfb40da706636d17c2c17d3ec1101ba93",
+      "git_blob": "195c5030880ea34bc6818f7ca7409cc1094b3d07",
+      "provenance": "embedded source map in exact approved running image; no source import/server operation"
+    },
+    {
+      "source": "src/storage/renderer/index.ts",
+      "bytes": 98,
+      "sha256": "bf54f24458cc6db26e329a81359fd437e7c95015cea3cc81be6b76cbb0ebfb52",
+      "git_blob": "ae66b7079bb270ff3fe7bf259e26b2396f24916b",
+      "provenance": "embedded source map in exact approved running image; no source import/server operation"
+    },
+    {
+      "source": "src/storage/renderer/info.ts",
+      "bytes": 2072,
+      "sha256": "b3ef55176e3dc4f2042bd05c4651a84895f01c103e79d31e049e21e4029f964c",
+      "git_blob": "768d28505646b51d166d26bb101339c9f4c11fc2",
+      "provenance": "embedded source map in exact approved running image; no source import/server operation"
+    },
+    {
+      "source": "src/storage/renderer/renderer.ts",
+      "bytes": 10818,
+      "sha256": "c63b9927d45d10331b46ec7fbc0a85f0eb0980118133c76cba6c38ecac3d33cd",
+      "git_blob": "391f3efdcdcbf47636f972acf54250af3aaae706",
+      "provenance": "embedded source map in exact approved running image; no source import/server operation"
+    },
+    {
+      "source": "src/storage/storage.ts",
+      "bytes": 11123,
+      "sha256": "8b01c75be892b01930f3516dd5d19bc5a87f44a7cfe4fc35f73eae8d58c891c0",
+      "git_blob": "b48c04b9db8ae938164118aa4614bfa32eec6aa4",
+      "provenance": "embedded source map in exact approved running image; no source import/server operation"
+    },
+    {
+      "source": "src/storage/uploader.ts",
+      "bytes": 23565,
+      "sha256": "ba8e13a6133266ed7c7614ca3dc78676a12df09d9447ce8c04a3d498cb0c381c",
+      "git_blob": "5cadd7c72dc3752bb68689156dbc16c61568ecb9",
+      "provenance": "embedded source map in exact approved running image; no source import/server operation"
+    },
+    {
+      "source": "src/storage/database/pg.ts",
+      "bytes": 104499,
+      "sha256": "d3bcfa58b849cfe17e7fa311ecc3b119f50e0b41fc43e10024d761b03851496e",
+      "git_blob": "311f41091baf72d15d521e4494b318fd56b83a34",
+      "provenance": "embedded source map in exact approved running image; no source import/server operation"
+    },
+    {
+      "source": "src/internal/database/tenant.ts",
+      "bytes": 14847,
+      "sha256": "01b6b2041cabd893624849645bc059f71643923af4e86f08a860a86a75b5b440",
+      "git_blob": "d23da4f01c3b079ec35f5292e4b2a5876393332a",
+      "provenance": "embedded source map in exact approved running image; no source import/server operation"
+    },
+    {
+      "source": "src/http/routes/operations.ts",
+      "bytes": 5022,
+      "sha256": "159f80fbd4c5ceac4c70f0a750451b58c49b7e0fe472b00180fecbdd03489e29",
+      "git_blob": "52469e2279268f59305295a931d091bc249df2f1",
+      "provenance": "embedded source map in exact approved running image; no source import/server operation"
+    },
+    {
+      "source": "src/storage/backend/file.ts",
+      "bytes": 26742,
+      "sha256": "5ab31cc86536f4c594729d1be3af72cd14ad65880293442941bc6c68177a2050",
+      "git_blob": "91368d66af37eb2a1d63419d109f260d970d4ce0",
+      "provenance": "embedded source map in exact approved running image; no source import/server operation"
+    },
+    {
+      "source": "src/storage/locator.ts",
+      "bytes": 1065,
+      "sha256": "e0722dfaa6c00b66a9a914e9753601e5d7c63d99b39c10e6322a3b0f818bf965",
+      "git_blob": "772f8d9b446630442a5ff16cb9f75c78a26b08ce",
+      "provenance": "embedded source map in exact approved running image; no source import/server operation"
+    },
+    {
+      "source": "src/storage/protocols/tus/file-store.ts",
+      "bytes": 6432,
+      "sha256": "d9dee357d7594fa165fc549f05f3c2f95a4a69769f7dec602dcab4fa056236ad",
+      "git_blob": "bf267904d15d1f419e3b40575f06f2989b613de0",
+      "provenance": "embedded source map in exact approved running image; no source import/server operation"
+    },
+    {
+      "source": "src/http/plugins/storage.ts",
+      "bytes": 1676,
+      "sha256": "38311ca8042e2a5f3be778ce6eb9be45aa2267cd2026b52883f9ec9f4fb85305",
+      "git_blob": "deafd97c51db90e569f58d01ce2dd2aeba80f355",
+      "provenance": "embedded source map in exact approved running image; no source import/server operation"
+    },
+    {
+      "source": "src/storage/index.ts",
+      "bytes": 151,
+      "sha256": "4e3bb5bbd91b541c6e6239ded04c8325150315737c02ab20964a6b909b3a51c2",
+      "git_blob": "c3ff68510633cbc8549419dfdabc51730fe25092",
+      "provenance": "embedded source map in exact approved running image; no source import/server operation"
+    }
+  ],
+  "principal_matrix": [
+    {
+      "operation": "HTTP bearer verification",
+      "login_principal": "existing real GoTrue-issued authenticated session",
+      "database_role": "authenticated",
+      "source": [
+        "src/http/plugins/jwt.ts",
+        "src/http/plugins/db.ts"
+      ]
+    },
+    {
+      "operation": "bucket limits/private metadata lookup",
+      "login_principal": "supabase_storage_admin pool login",
+      "database_role": "service_role via configured provider SERVICE_KEY payload",
+      "required_policy": "SELECT exact run bucket only; no bucket INSERT/UPDATE policy",
+      "source": [
+        "src/storage/object.ts",
+        "src/http/routes/object/getObjectInfo.ts",
+        "src/http/routes/object/getObject.ts",
+        "src/internal/database/pg-connection.ts"
+      ]
+    },
+    {
+      "operation": "upload(false) permission probe and precommit recheck",
+      "login_principal": "same provider pool",
+      "database_role": "authenticated original verified caller via asCaller; rolled-back permission subtransaction",
+      "required_policy": "object INSERT; actor and bucket/path exact; later object SELECT for readback; no consumer UPDATE",
+      "source": [
+        "src/storage/uploader.ts",
+        "src/storage/database/pg.ts"
+      ]
+    },
+    {
+      "operation": "final DISABLED-bucket record write",
+      "login_principal": "same provider pool",
+      "database_role": "service_role",
+      "required_policy": "SELECT/INSERT exact object; existing table UPDATE privilege needed syntactically by ON CONFLICT DO UPDATE and locking reads; UPDATE RLS policy intentionally absent for first/new row",
+      "source": [
+        "src/storage/uploader.ts",
+        "src/storage/database/pg.ts"
+      ]
+    },
+    {
+      "operation": "private info/download object authorization",
+      "login_principal": "same provider pool",
+      "database_role": "authenticated caller after service_role bucket lookup",
+      "required_policy": "SELECT exact actor/object; binary renderer is filesystem backend",
+      "source": [
+        "src/http/routes/object/getObjectInfo.ts",
+        "src/http/routes/object/getObject.ts",
+        "src/storage/renderer/info.ts"
+      ]
+    },
+    {
+      "operation": "upsert/update negative attempt",
+      "login_principal": "same provider pool",
+      "database_role": "authenticated caller permission probe before final write",
+      "required_policy": "no consumer UPDATE policy; denial must be observed, not inferred from source",
+      "source": [
+        "src/storage/uploader.ts",
+        "src/http/routes/object/updateObject.ts"
+      ]
+    },
+    {
+      "operation": "foreign user / anonymous request",
+      "database_role": "other real authenticated sub / anon; same internal service bucket lookup",
+      "required_policy": "no foreign or anon object permission; anon schema USAGE remains absent",
+      "source": [
+        "src/http/plugins/jwt.ts",
+        "src/http/routes/object/getObject.ts"
+      ]
+    },
+    {
+      "operation": "exact run cleanup only",
+      "database_role": "separate custodian service_role; never passed off as consumer",
+      "required_policy": "SELECT/DELETE exact object and private bucket; provider sets delete safety latch; metadata/file observers required",
+      "source": [
+        "src/storage/object.ts",
+        "src/storage/storage.ts",
+        "src/internal/database/postgres/scope.ts"
+      ]
+    }
+  ],
+  "narrower_principal": "Verified JWT role is supported by provider role switching; no existing accepted narrower user/SERVICE_KEY binding is present. Changing users.role/SERVICE_KEY/config or minting claims is outside this proposal. No fabricated JWT/authority/fallback.",
+  "observation_boundary": "SOURCE_DERIVED; actual per-request SQL principal and native ABI NOT_RUN",
+  "existing_configuration_role_metadata": {
+    "anon_key": {
+      "role": "anon",
+      "signature_matches_existing_local_configuration": true,
+      "not_expired_at_observation": true
+    },
+    "service_key": {
+      "role": "service_role",
+      "signature_matches_existing_local_configuration": true,
+      "not_expired_at_observation": true
+    }
+  },
+  "credential_boundary": "Only role/signature/expiry result reported; no JWT value, decoded payload, new key or user session. Live configured selector match checked by existing stack custody.",
+  "compiled_modules": [
+    {
+      "path": "/app/dist/http/plugins/db.js",
+      "bytes": 8202,
+      "sha256": "9a8a24037eb79c2036e918bb9acf2cd47e8bbe9255d95aa15ce0b913f798705e"
+    },
+    {
+      "path": "/app/dist/http/plugins/jwt.js",
+      "bytes": 4568,
+      "sha256": "d2e82fcb1694de51ade4155656809e51392f36d07bfad0a5da2d740ca53156f0"
+    },
+    {
+      "path": "/app/dist/http/plugins/storage.js",
+      "bytes": 3187,
+      "sha256": "2241ddec9a966e41247448ca8e1006af04b807a5a0be8b82d67c1e6c19bb9db1"
+    },
+    {
+      "path": "/app/dist/http/routes/object/createObject.js",
+      "bytes": 3442,
+      "sha256": "3555e87463aeaff6523245108dfcc936103e8881f2679310b8d207673b3625e3"
+    },
+    {
+      "path": "/app/dist/http/routes/object/deleteObject.js",
+      "bytes": 2456,
+      "sha256": "712c47ffaa45c1252408de64fce24cb8e458daa44d859e3442c536099305c64b"
+    },
+    {
+      "path": "/app/dist/http/routes/object/deleteObjects.js",
+      "bytes": 3309,
+      "sha256": "8de7fad4b2491bbb8938852f61513f39fabdce0b458bcad3842dd51d2e8a4bdf"
+    },
+    {
+      "path": "/app/dist/http/routes/object/getObject.js",
+      "bytes": 4141,
+      "sha256": "fb1f8c43f73ee5bda4eeb8068949226af8d0a6db3b123c19c79fe427f6a50a5e"
+    },
+    {
+      "path": "/app/dist/http/routes/object/getObjectInfo.js",
+      "bytes": 6811,
+      "sha256": "763bdb7e83e8d8246550bcd34907e3769ce785a6591ed46abce0c836afa7398a"
+    },
+    {
+      "path": "/app/dist/http/routes/object/updateObject.js",
+      "bytes": 3385,
+      "sha256": "16cd4b5b390d6de6b0cc1b55495c237124c83c2e350ddd88b68e4313562188d3"
+    },
+    {
+      "path": "/app/dist/http/routes/operations.js",
+      "bytes": 5842,
+      "sha256": "fdd1bbccaf5ebe320a3b376625a0172e80b9813c7f163894b03ab2eb78951c36"
+    },
+    {
+      "path": "/app/dist/internal/database/pg-connection.js",
+      "bytes": 22826,
+      "sha256": "fd3326e0f6a836eb38e0fc5db4964c98e41a39f501208dfe7e22d35877f18634"
+    },
+    {
+      "path": "/app/dist/internal/database/postgres/scope.js",
+      "bytes": 3182,
+      "sha256": "e97539ca1272c6ebe6f014e80fe1086506aff7461b286c59277f3594cac1117e"
+    },
+    {
+      "path": "/app/dist/internal/database/tenant.js",
+      "bytes": 13863,
+      "sha256": "c8680b3a9d0d124d6b2955d2c981d5afb4a7a3eefe0017a7e69893c76966c79d"
+    },
+    {
+      "path": "/app/dist/storage/backend/file.js",
+      "bytes": 23398,
+      "sha256": "e16eeb965ea2dd6ad7dcd474db4c3004632f2e05df2c1d9e6a9ea865e5a19f1b"
+    },
+    {
+      "path": "/app/dist/storage/database/pg.js",
+      "bytes": 91146,
+      "sha256": "0b1b8394ff8fdb934e149c2119509a0c1f4de71b0bdf9380cef0734099bc9d77"
+    },
+    {
+      "path": "/app/dist/storage/index.js",
+      "bytes": 2251,
+      "sha256": "128bfb8ae0be030ebce836487abb1496fc6fee7b6e5e70a4e61903446349eaf7"
+    },
+    {
+      "path": "/app/dist/storage/locator.js",
+      "bytes": 1828,
+      "sha256": "58cc5e4b60bc938677f482d30ef703d0c0a4c0f70bac66fa8f518f9ee3030a6d"
+    },
+    {
+      "path": "/app/dist/storage/object.js",
+      "bytes": 51339,
+      "sha256": "19b29ac1bfce04a655863dd6efdf763a88c3b6a5f615f34ba42f241b81be9155"
+    },
+    {
+      "path": "/app/dist/storage/protocols/tus/file-store.js",
+      "bytes": 7847,
+      "sha256": "4dbb47ee8c5dc54552fc319d0ef6e938d545183c419403f1c9b00026626c5476"
+    },
+    {
+      "path": "/app/dist/storage/renderer/asset.js",
+      "bytes": 1707,
+      "sha256": "d5fb3840a1e2e114205880609d951051555970a74d33bc70714778ef74dee701"
+    },
+    {
+      "path": "/app/dist/storage/renderer/cache-control.js",
+      "bytes": 3009,
+      "sha256": "88f69917e26ebc25286694fb5c528dcce5744d82d792db1a151b60a8973bc347"
+    },
+    {
+      "path": "/app/dist/storage/renderer/head.js",
+      "bytes": 3959,
+      "sha256": "3185aa5a33324344405d798530a33c4d80aaa9b2acd52511f00c461c62d93774"
+    },
+    {
+      "path": "/app/dist/storage/renderer/image.js",
+      "bytes": 23704,
+      "sha256": "59f65dff2a17686580ac04e27a18b0f07d844ca0a1a872604373ed9649b52190"
+    },
+    {
+      "path": "/app/dist/storage/renderer/index.js",
+      "bytes": 1385,
+      "sha256": "5bd87fae95e06ee1ed8645c3758052dddaef9ee1b11754925132fe8cc82e3e87"
+    },
+    {
+      "path": "/app/dist/storage/renderer/info.js",
+      "bytes": 2669,
+      "sha256": "97e32732a518b279548c0a2259edc965e97a3e01b58523fe92219595644ec778"
+    },
+    {
+      "path": "/app/dist/storage/renderer/renderer.js",
+      "bytes": 9248,
+      "sha256": "25691134e07f3461c3d57c762efc4900374efda0be4bc837851a8a40c199d405"
+    },
+    {
+      "path": "/app/dist/storage/storage.js",
+      "bytes": 10797,
+      "sha256": "32a160f025e2fb3c58ae35d9d422f2d5d4ac23b72d0a68a03e583e916b80c285"
+    },
+    {
+      "path": "/app/dist/storage/uploader.js",
+      "bytes": 17829,
+      "sha256": "081c8c73cd9ab87650c658a4872e3f5f8a9e599dcfedb9bf43cf60d5b0cecb2e"
+    }
+  ],
+  "compiled_observation": "Selected compiled JS bytes also pinned in the same read-only image; no app import. Source-mapped principal analysis remains static, not observed per-request database identity."
+}

@@ -1,0 +1,545 @@
+{
+  "task": "CORE-CANONICAL-SQLSTATE-BOUNDARY-12",
+  "base": "6110229e72f5a81b2d3c3a1ff7090aa93741a2bc",
+  "canonical_source_base": "847fa09039578eace8361ed00a4eedf815e03ded",
+  "iteration_parent": "6110229e72f5a81b2d3c3a1ff7090aa93741a2bc",
+  "correction": "CORE12-F01/R1; literal replacement plus full-definition round-trip on8 functions",
+  "scope": "T10-D04 only",
+  "execution_authorization": null,
+  "execution_target": null,
+  "executor": null,
+  "runtime_binding": null,
+  "historical_slots": "BLOCKED",
+  "status": "NOT_RUN_NOT_PASS",
+  "sources": [
+    {
+      "path": "supabase/install/v14-operations/foundation.sql",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 736073,
+      "sha256": "da5a4e3ac421f71674ddc309feff3c0d03d6ebc6f168911d48f41b799c73ae35",
+      "git_blob": "5fcdf690888d6bec186b654eeafb826601572d27"
+    },
+    {
+      "path": "supabase/install/v14-operations/building-provisioning.sql",
+      "ref": "847fa09039578eace8361ed00a4eedf815e03ded",
+      "bytes": 262457,
+      "sha256": "258c27e4505235a761b1e2557c33548af0067c11eebfa0c88972783df7025171",
+      "git_blob": "45737a8100b3542ad787ea4414090d0f304fc123"
+    }
+  ],
+  "roots": [
+    "app_private.check_workspace_native_permission_v2",
+    "app_private.check_workspace_native_permission_v2_at_v1"
+  ],
+  "closure": {
+    "named_routines": [
+      "app_private.check_direct_effective_permission_v2",
+      "app_private.check_direct_effective_permission_v2_at_v1",
+      "app_private.check_effective_permission_v2",
+      "app_private.check_effective_permission_v2_at_v1",
+      "app_private.check_workspace_native_permission_v2",
+      "app_private.check_workspace_native_permission_v2_at_v1",
+      "app_private.customer_mfa_required",
+      "app_private.customer_mfa_required_at_v1",
+      "app_private.native_workspace_scope_for_membership_v2",
+      "app_private.native_workspace_scope_for_membership_v2_at_v1",
+      "app_private.resolve_workspace_from_customer_context_v1",
+      "app_private.resolve_workspace_from_customer_context_v1_at_v1",
+      "app_private.resolve_workspace_native_context_v2",
+      "app_private.resolve_workspace_native_context_v2_at_v1",
+      "app_private.workspace_context_covers_role_scope_v1",
+      "app_private.workspace_context_covers_role_scope_v1_at_v1",
+      "app_private.workspace_member_role_authority_active_v1",
+      "app_private.workspace_member_role_authority_active_v1_at_v1",
+      "app_private.workspace_role_identity_source_current_v1",
+      "app_private.workspace_role_identity_source_current_v1_at_v1",
+      "app_private.workspace_role_scope_contains_v1",
+      "app_private.workspace_role_scope_overlaps_v1"
+    ],
+    "edges": [
+      {
+        "caller": "app_private.check_workspace_native_permission_v2",
+        "callee": "app_private.check_effective_permission_v2"
+      },
+      {
+        "caller": "app_private.check_workspace_native_permission_v2_at_v1",
+        "callee": "app_private.check_effective_permission_v2_at_v1"
+      },
+      {
+        "caller": "app_private.check_effective_permission_v2",
+        "callee": "app_private.resolve_workspace_from_customer_context_v1"
+      },
+      {
+        "caller": "app_private.check_effective_permission_v2",
+        "callee": "app_private.resolve_workspace_native_context_v2"
+      },
+      {
+        "caller": "app_private.check_effective_permission_v2",
+        "callee": "app_private.workspace_member_role_authority_active_v1"
+      },
+      {
+        "caller": "app_private.check_effective_permission_v2",
+        "callee": "app_private.check_direct_effective_permission_v2"
+      },
+      {
+        "caller": "app_private.check_effective_permission_v2_at_v1",
+        "callee": "app_private.resolve_workspace_from_customer_context_v1_at_v1"
+      },
+      {
+        "caller": "app_private.check_effective_permission_v2_at_v1",
+        "callee": "app_private.resolve_workspace_native_context_v2_at_v1"
+      },
+      {
+        "caller": "app_private.check_effective_permission_v2_at_v1",
+        "callee": "app_private.workspace_member_role_authority_active_v1_at_v1"
+      },
+      {
+        "caller": "app_private.check_effective_permission_v2_at_v1",
+        "callee": "app_private.check_direct_effective_permission_v2_at_v1"
+      },
+      {
+        "caller": "app_private.resolve_workspace_native_context_v2",
+        "callee": "app_private.customer_mfa_required"
+      },
+      {
+        "caller": "app_private.resolve_workspace_native_context_v2",
+        "callee": "app_private.native_workspace_scope_for_membership_v2"
+      },
+      {
+        "caller": "app_private.workspace_member_role_authority_active_v1",
+        "callee": "app_private.workspace_role_scope_contains_v1"
+      },
+      {
+        "caller": "app_private.workspace_member_role_authority_active_v1",
+        "callee": "app_private.workspace_context_covers_role_scope_v1"
+      },
+      {
+        "caller": "app_private.workspace_member_role_authority_active_v1",
+        "callee": "app_private.workspace_role_identity_source_current_v1"
+      },
+      {
+        "caller": "app_private.workspace_member_role_authority_active_v1",
+        "callee": "app_private.workspace_member_role_authority_active_v1"
+      },
+      {
+        "caller": "app_private.check_direct_effective_permission_v2",
+        "callee": "app_private.native_workspace_scope_for_membership_v2"
+      },
+      {
+        "caller": "app_private.check_direct_effective_permission_v2",
+        "callee": "app_private.workspace_member_role_authority_active_v1"
+      },
+      {
+        "caller": "app_private.resolve_workspace_native_context_v2_at_v1",
+        "callee": "app_private.customer_mfa_required_at_v1"
+      },
+      {
+        "caller": "app_private.resolve_workspace_native_context_v2_at_v1",
+        "callee": "app_private.native_workspace_scope_for_membership_v2_at_v1"
+      },
+      {
+        "caller": "app_private.workspace_member_role_authority_active_v1_at_v1",
+        "callee": "app_private.workspace_role_scope_contains_v1"
+      },
+      {
+        "caller": "app_private.workspace_member_role_authority_active_v1_at_v1",
+        "callee": "app_private.workspace_context_covers_role_scope_v1_at_v1"
+      },
+      {
+        "caller": "app_private.workspace_member_role_authority_active_v1_at_v1",
+        "callee": "app_private.workspace_role_identity_source_current_v1_at_v1"
+      },
+      {
+        "caller": "app_private.workspace_member_role_authority_active_v1_at_v1",
+        "callee": "app_private.workspace_member_role_authority_active_v1_at_v1"
+      },
+      {
+        "caller": "app_private.check_direct_effective_permission_v2_at_v1",
+        "callee": "app_private.native_workspace_scope_for_membership_v2_at_v1"
+      },
+      {
+        "caller": "app_private.check_direct_effective_permission_v2_at_v1",
+        "callee": "app_private.workspace_member_role_authority_active_v1_at_v1"
+      },
+      {
+        "caller": "app_private.native_workspace_scope_for_membership_v2",
+        "callee": "app_private.workspace_member_role_authority_active_v1"
+      },
+      {
+        "caller": "app_private.workspace_role_identity_source_current_v1",
+        "callee": "app_private.workspace_context_covers_role_scope_v1"
+      },
+      {
+        "caller": "app_private.workspace_role_identity_source_current_v1",
+        "callee": "app_private.workspace_role_scope_overlaps_v1"
+      },
+      {
+        "caller": "app_private.native_workspace_scope_for_membership_v2_at_v1",
+        "callee": "app_private.workspace_member_role_authority_active_v1_at_v1"
+      },
+      {
+        "caller": "app_private.workspace_role_identity_source_current_v1_at_v1",
+        "callee": "app_private.workspace_context_covers_role_scope_v1_at_v1"
+      },
+      {
+        "caller": "app_private.workspace_role_identity_source_current_v1_at_v1",
+        "callee": "app_private.workspace_role_scope_overlaps_v1"
+      }
+    ],
+    "unmapped": [],
+    "external_qualified_calls": [
+      "auth.jwt",
+      "auth.uid",
+      "pg_catalog.isfinite"
+    ],
+    "method": "pinned-source lexical named calls; no dynamic EXECUTE allowed; external Auth/system primitives unchanged; NOT parser/compile/overload/catalog proof"
+  },
+  "targets": [
+    {
+      "signature": "app_private.check_effective_permission_v2(uuid,text,text,text,uuid,uuid)",
+      "source": "supabase/install/v14-operations/foundation.sql",
+      "line": 6110,
+      "end_line": 6400,
+      "byte_offset": 315161,
+      "before": {
+        "bytes": 11542,
+        "sha256": "bf228a3d596dc190eb7dbc9b1630da2109e316379f94b00228cbe85e6b180d5d",
+        "git_blob": "1eaa4a985094451d088d1dda6fe23873ff21e419"
+      },
+      "after": {
+        "bytes": 11576,
+        "sha256": "6e06bf6d505488865c1c578e68afcf809a8ceca5cb7f9a17877dab6bc73016db",
+        "git_blob": "16f4b533c8ce41637d27d4224e014d101b68e420"
+      },
+      "before_body": {
+        "bytes": 11223,
+        "sha256": "8f00424daca0ede92c652b5137a498b19797db611cb0b20054413041869d57c9",
+        "git_blob": "42bbb83ebe3b0ca2e86743933f7ae969f7c8304e"
+      },
+      "after_body": {
+        "bytes": 11257,
+        "sha256": "e0ca913af05edc8320b7201343d10f3aa442a57586d3419cd68e4547b477f092",
+        "git_blob": "fc558ece398ea3a179baad64ce0040a4cf02fa21"
+      },
+      "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
+    },
+    {
+      "signature": "app_private.check_effective_permission_v2_at_v1(uuid,text,text,text,uuid,uuid,timestamptz)",
+      "source": "supabase/install/v14-operations/building-provisioning.sql",
+      "line": 1491,
+      "end_line": 1767,
+      "byte_offset": 88062,
+      "before": {
+        "bytes": 11487,
+        "sha256": "5549d89feadc019b43ae8eb469e3e4d52907df88aa31b94bb40cc4e57e6caeb1",
+        "git_blob": "c6a8fde57ddc96efac470cfde498a83a19399635"
+      },
+      "after": {
+        "bytes": 11532,
+        "sha256": "72fa1fd10d51b2e689177629642624cfa417be89432c04972ff291389293f3ea",
+        "git_blob": "079fbfff163ea1828967e2bd90154bc8b2efd96b"
+      },
+      "before_body": {
+        "bytes": 11131,
+        "sha256": "c24b1a4d049d3466d86d693f0d9a19ded0bdd85296384e17fc44fca0ff0b4d63",
+        "git_blob": "a30db5e24d820a4104e1aaabbe9ac8c84e7b85ba"
+      },
+      "after_body": {
+        "bytes": 11165,
+        "sha256": "e82983f82b06ca498015ddf2821ab43fa40e2b0eb04dc36cbaa1057151227528",
+        "git_blob": "2fbef18079d59f1db441c7b2d3b6745369da2c07"
+      },
+      "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
+    },
+    {
+      "signature": "app_private.workspace_context_covers_role_scope_v1(uuid,uuid,text,uuid)",
+      "source": "supabase/install/v14-operations/foundation.sql",
+      "line": 5056,
+      "end_line": 5095,
+      "byte_offset": 258969,
+      "before": {
+        "bytes": 1918,
+        "sha256": "601bf84e6dc4fe0f9c8ac441d62a8627fb1bd5577b8f6e9dc327d142c45f3694",
+        "git_blob": "5d1763be64e0c6d29ad1f252fc920bbfb7f639de"
+      },
+      "after": {
+        "bytes": 1952,
+        "sha256": "f430b5fae2816a9c1af7b0836437c5a184052ff284a6ebe4b3507f9db4523a62",
+        "git_blob": "3f8485ea22f0ae8edbc1cc5c6ceb250d78c164a9"
+      },
+      "before_body": {
+        "bytes": 1644,
+        "sha256": "f0928f38cb5d10127d103c95938c4ebfbbaf5b2ffe3a390afa4865b57cd23e10",
+        "git_blob": "7883db06c707168cb37947a6004335833da3cc05"
+      },
+      "after_body": {
+        "bytes": 1678,
+        "sha256": "9949d588f2ab98dbc4a95db587e427f82f00b2bd2e5f71f139c7af3511f2db18",
+        "git_blob": "a5fe6f39b7baa6c1ac35c3a7fadfa6858320b471"
+      },
+      "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
+    },
+    {
+      "signature": "app_private.workspace_context_covers_role_scope_v1_at_v1(uuid,uuid,text,uuid,timestamptz)",
+      "source": "supabase/install/v14-operations/building-provisioning.sql",
+      "line": 695,
+      "end_line": 738,
+      "byte_offset": 48792,
+      "before": {
+        "bytes": 2087,
+        "sha256": "878f90d79711170d615b77465e0793a3cfd81239c40ade286604f849ad08e0d2",
+        "git_blob": "1603d2bb2d1c2877b145029db8f0649de1a296a6"
+      },
+      "after": {
+        "bytes": 2132,
+        "sha256": "62a73a4caae457a190edc3245f144531f7da7e54a90a517f67eace6b304320a4",
+        "git_blob": "b52be6c38a161e0c57ea3cadeebd2a877e1e80a8"
+      },
+      "before_body": {
+        "bytes": 1790,
+        "sha256": "5f60bb3c24d48a03c679bd7224696feb2c2f5040158b9d2e3333987954fe662e",
+        "git_blob": "82ef628d59d6c2c5216eeb203a226aa22fdbe1a5"
+      },
+      "after_body": {
+        "bytes": 1824,
+        "sha256": "c85ef4ec54a679dffd982f4252557a9b784fbb125cab37ef8050706f67ccbcf3",
+        "git_blob": "c2d5138852e6a63d5642407bbdf1f981aa0f25ee"
+      },
+      "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
+    },
+    {
+      "signature": "app_private.workspace_member_role_authority_active_v1(uuid,uuid,uuid,text,uuid,uuid[])",
+      "source": "supabase/install/v14-operations/foundation.sql",
+      "line": 5316,
+      "end_line": 5406,
+      "byte_offset": 272961,
+      "before": {
+        "bytes": 6278,
+        "sha256": "013a97671946d8b8e7742d7ef87aaae617612c8775992cfa39e70a8ab070e35e",
+        "git_blob": "62106799e029cbdd04fe7c107a92c425b5b344ee"
+      },
+      "after": {
+        "bytes": 6312,
+        "sha256": "438194470fdc319d816a33ab00f2d08505a1fe746aab0c83635a633999fe7343",
+        "git_blob": "fbf17d4cc5fd9f3f99b80b6db524b6acf300c786"
+      },
+      "before_body": {
+        "bytes": 5917,
+        "sha256": "8cdc0a8b98478147a11db0da64ecb6656feacf5a0c1cf7709433a36735f3257b",
+        "git_blob": "1588715a0945d6d82cd60bd70be176b81dfe7bdd"
+      },
+      "after_body": {
+        "bytes": 5951,
+        "sha256": "5b62320bd3c4fa799405f9dfccbb37aa612db79531588578b968f0f8b5a3769f",
+        "git_blob": "9d0770d2e74acb68f92774576869edb7045720c2"
+      },
+      "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
+    },
+    {
+      "signature": "app_private.workspace_member_role_authority_active_v1_at_v1(uuid,uuid,uuid,text,uuid,uuid[],timestamptz)",
+      "source": "supabase/install/v14-operations/building-provisioning.sql",
+      "line": 804,
+      "end_line": 891,
+      "byte_offset": 55244,
+      "before": {
+        "bytes": 6327,
+        "sha256": "f4468bc75b1c547d704ecdf6af7c9abd84c7d1f7f049e40900650218357b75e3",
+        "git_blob": "0dae8e9be57ef208af1a98308534f8c463168f3b"
+      },
+      "after": {
+        "bytes": 6372,
+        "sha256": "9e6775012e11173f982f437dd1d0ad5f2ac3c8c003aace69fd8d22e2451d6502",
+        "git_blob": "5e036d4853d3613f0ab7e5da08369a750a203dcb"
+      },
+      "before_body": {
+        "bytes": 5975,
+        "sha256": "8b50fb008031e95bd99d5660777c5868b90fee7e5e69c445bded6c7328676c38",
+        "git_blob": "68fa049ab15a8d420c0d94e93de04ef1d2371125"
+      },
+      "after_body": {
+        "bytes": 6009,
+        "sha256": "a69b967e373ffc99a8c2a5992ce73c0c15b6ae7cf5ee90107d4fb096cf370e9c",
+        "git_blob": "77fbf9fe36b315da6f017e20874c2d086eb830cc"
+      },
+      "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
+    },
+    {
+      "signature": "app_private.workspace_role_identity_source_current_v1(uuid,uuid,uuid,uuid,uuid,uuid,uuid,text,uuid)",
+      "source": "supabase/install/v14-operations/foundation.sql",
+      "line": 5239,
+      "end_line": 5299,
+      "byte_offset": 267757,
+      "before": {
+        "bytes": 4303,
+        "sha256": "cc0d37123d4e7db07e09d0521d5bc16d5fa4d11889aeab403d1e4b433304d3ce",
+        "git_blob": "cfc2580e95c07864b2c3d3ced1b3c14714ad1902"
+      },
+      "after": {
+        "bytes": 4337,
+        "sha256": "356d51b464284c5dc705344a63811ddbcd3e09871ea54293978eb9837848311f",
+        "git_blob": "8e07c687fe544360d82e30fd9ff8df0d5b8501e2"
+      },
+      "before_body": {
+        "bytes": 3902,
+        "sha256": "58c63fb293ae7354f69bddb6f0dac572a0d2913281ca96634d093e2d84dd85e4",
+        "git_blob": "bac7f912c2cff018beae88ddc761772cc4ee670c"
+      },
+      "after_body": {
+        "bytes": 3936,
+        "sha256": "460ed1455bcb7f1cbfbe46cd52cb716d699aa56aa9175d646b0b5d16d7b87e78",
+        "git_blob": "dd26278592ad0b9d09e2da8a46b8afd2de49a9e4"
+      },
+      "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
+    },
+    {
+      "signature": "app_private.workspace_role_identity_source_current_v1_at_v1(uuid,uuid,uuid,uuid,uuid,uuid,uuid,text,uuid,timestamptz)",
+      "source": "supabase/install/v14-operations/building-provisioning.sql",
+      "line": 740,
+      "end_line": 802,
+      "byte_offset": 50881,
+      "before": {
+        "bytes": 4361,
+        "sha256": "04a030f42f5deb27e40584566824a862013a11edf7ba7ca7e895afcca3c464d8",
+        "git_blob": "53dbe37b1e2e32d66b28fec858f723687566e0ea"
+      },
+      "after": {
+        "bytes": 4406,
+        "sha256": "26de80dafc384ab9700d8b2de0efd274ca81c90bae21c86e5ebc99717c544313",
+        "git_blob": "27e380cfd20e03d6f67385b15316d5ae8f0ef528"
+      },
+      "before_body": {
+        "bytes": 3950,
+        "sha256": "01f6a216814ad9902a68e9c922574ccbb61c26b01db9a2e159d813cae035a886",
+        "git_blob": "923e63b31d9a001b621483f5f17e180cd64cfe91"
+      },
+      "after_body": {
+        "bytes": 3984,
+        "sha256": "5216f63f910d921463447dc72b85ac7763b5d29cd8f2996beefdfa0e26865045",
+        "git_blob": "c97ec6fbc444933d259795dd5cdd04f30fb96c0a"
+      },
+      "body_edit": "one insertion after EXCEPTION; WHEN SQLSTATE40001 THEN bare RAISE; existing OTHERS false unchanged",
+      "declaration_edit": "CREATE OR REPLACE only; signature/header/owner/ACL/security/search_path policy unchanged",
+      "definition_round_trip": "PASS: remove only inserted clause + normalize CREATE prefix => exact full original definition, including delimiters/header/suffix"
+    }
+  ],
+  "pg_only": {
+    "file": "supabase/proposals/core-canonical-sqlstate-boundary-v1/pg-only-boundary.test.sql",
+    "target_database": "core_sqlstate_boundary_proof",
+    "principal": "existing ordinary executor, non-superuser/non-BYPASSRLS with TEMP and own pg_temp function rights; actual identity NULL; no role/grant creation in packet",
+    "objects": "16 pg_temp boundary wrappers + temp matrix, final ROLLBACK; ordinary EXECUTE ACL owner-only after PUBLIC revoke; function default-ACL rows must be absent, no defaults modified",
+    "cases": [
+      {
+        "code": null,
+        "control": true,
+        "result": true
+      },
+      {
+        "code": null,
+        "control": false,
+        "result": false
+      },
+      {
+        "code": "40001",
+        "control": false,
+        "before_state": null,
+        "after_state": "40001",
+        "result": false
+      },
+      {
+        "code": "57014",
+        "control": false,
+        "before_state": "57014",
+        "after_state": "57014",
+        "result": false
+      },
+      {
+        "code": "42501",
+        "control": false,
+        "before_state": null,
+        "after_state": null,
+        "result": false
+      },
+      {
+        "code": "22023",
+        "control": false,
+        "before_state": null,
+        "after_state": null,
+        "result": false
+      },
+      {
+        "code": "42P01",
+        "control": false,
+        "before_state": null,
+        "after_state": null,
+        "result": false
+      },
+      {
+        "code": "40P01",
+        "control": false,
+        "before_state": null,
+        "after_state": null,
+        "result": false
+      },
+      {
+        "code": "XX000",
+        "control": false,
+        "before_state": null,
+        "after_state": null,
+        "result": false
+      },
+      {
+        "code": "P0001",
+        "control": false,
+        "before_state": null,
+        "after_state": null,
+        "result": false
+      },
+      {
+        "code": "P0004",
+        "control": false,
+        "before_state": "P0004",
+        "after_state": "P0004",
+        "result": false
+      }
+    ],
+    "planned_calls": 176,
+    "proof": "future real PL/pgSQL RAISE/exception/GET STACKED DIAGNOSTICS for exact extracted clauses only; NOT full canonical evaluator or native SSI concurrency",
+    "rollback": "outer final ROLLBACK; separate same-backend ACK and fresh observer absence required; no retry on UNKNOWN"
+  },
+  "delta": {
+    "file": "supabase/proposals/core-canonical-sqlstate-boundary-v1/delta.sql",
+    "default": "unconditional55000 guard before catalog reads/DDL; BEGIN/final ROLLBACK; not installable/activation-approved",
+    "privilege": "actual ownership/effective owner rights plus schema CREATE, exact profile must be independently reviewed; no superuser/SET/GRANT assumptions",
+    "preserve": [
+      "all8 existing OIDs/owners/ACLs/attributes except prosrc",
+      "all pg_default_acl",
+      "target pg_depend",
+      "ordinary errors false",
+      "57014/P0004 propagate as before",
+      "Core11/evaluator policy/store/managed Auth unchanged except proposed40001 body branch"
+    ],
+    "unknown": "failure/mismatch/timeout/cancel => stop and rollback; unknown settlement not success, no blind retry"
+  },
+  "not_run": [
+    "all SQL parsing/compile/execution",
+    "PG/Auth/native SSI/concurrency",
+    "full canonical authorization semantics",
+    "owner/ACL/RLS/hosted grant proof",
+    "actual timeout/backend cancellation and genuine concurrent SSI40001",
+    "installation/activation"
+  ]
+}

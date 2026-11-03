@@ -1,0 +1,184 @@
+{
+  "contract": "service-functional-request-runtime-dependency.v1",
+  "task_id": "SERVICE-FUNCTIONAL-REQUEST-09",
+  "base": "ec639884452cc0cb6dfef520339791a5c20e9b39",
+  "consumer_owner": "SERVICE",
+  "state": "SERVICE_BOUNDARY_IMPLEMENTED_DEPENDENCY_NOT_DELIVERED",
+  "http_binding": {
+    "path": "src/lib/customer/service-v14-execution/runtime-binding.ts",
+    "contract_version": "service-functional-request-runtime.v1",
+    "signature": "bind(request: Request) -> Promise<ServiceOfferingRequestFlowPortsV1 | null>",
+    "lifetime": "one verified server request; ports and principal must not be shared across requests",
+    "failure": "null or any binding error -> RUNTIME_BINDING_INACTIVE; no legacy RPC or service_role fallback"
+  },
+  "core15": {
+    "owner": "Core",
+    "required_contract": "core15-service-request-runtime.v1",
+    "operations": [
+      {
+        "name": "open_preflight_scope",
+        "signature": "(session, context_id, workspace_id, offering_id, published_revision_id) -> caller-owned serializable CoreTransactionScopeV1",
+        "requirements": [
+          "same physical connection and transaction for scope reads",
+          "Workspace/service_request Offering aggregate lock before post-wait authority observations",
+          "canonical services.orders.request authority request identity",
+          "current session check and authority revision bound to actor/context/workspace",
+          "rollback-only settlement for GET/preflight"
+        ]
+      },
+      {
+        "name": "resolve_provider_agreement",
+        "signature": "(scope: CoreTransactionScopeV1, input: ProviderAgreementVerificationV1Input) -> Promise<ProviderAgreementVerificationV1>",
+        "requirements": [
+          "accepted provider-agreement-verification.v1 store and reader",
+          "exact Offering disclosure binding without calling S01 from its own witness",
+          "post-wait session, authority, disclosure, source and clock rechecks",
+          "SQLSTATE 40001 preserved unchanged to the trusted transaction caller"
+        ]
+      },
+      {
+        "name": "execute_request",
+        "signature": "CoreTransactionHostV1.execute(CoreTransactionCommandV2, ServiceV14 CoreTransactionProvidersV2)",
+        "requirements": [
+          "one serializable transaction",
+          "original command idempotency and exact replay",
+          "atomic request mutation, idempotency receipt, audit and outbox",
+          "unknown commit remains READBACK_REQUIRED and is never reported committed"
+        ]
+      }
+    ],
+    "principal": {
+      "source": "verified server session and canonical transaction authority only",
+      "fields_exposed_to_service": ["actor_id", "authority_version"],
+      "session_fields_held_by_core_platform": ["session_id", "assurance_level", "expires_at", "currentness"],
+      "prohibited": ["client actor", "user_metadata authority", "AAL-only authority", "request boolean allow", "historical receipt as current authority"]
+    },
+    "store": {
+      "required_relations": [
+        "platform.provider_agreement_heads_v1",
+        "platform.provider_agreement_versions_v1",
+        "platform.idempotency_keys",
+        "audit.events",
+        "platform.outbox_events"
+      ],
+      "required_selectors": [
+        "app_private.canonical_authority_revision_v1",
+        "app_private.check_workspace_native_permission_v2",
+        "app_private.require_request_session_current_at_v1"
+      ],
+      "required_service_functions": [
+        "app_private.resolve_service_v14_execution_source_v1",
+        "app_private.apply_service_v14_execution_v1"
+      ]
+    }
+  },
+  "platform12": {
+    "owner": "Platform",
+    "required_contract": "platform12-service-request-database.v1",
+    "operations": [
+      {
+        "name": "authenticate_http_request",
+        "signature": "(request: Request) -> verified current server session | null",
+        "requirements": ["verified token", "actor/session equality", "expiry", "current session", "no secret returned to SERVICE"]
+      },
+      {
+        "name": "lease_role_scoped_connection",
+        "signature": "(verified session, context_id, workspace_id) -> owned physical pg connection lease",
+        "requirements": [
+          "fixed reviewed runtime/executor identity",
+          "SET LOCAL request claims/context/workspace only inside transaction",
+          "identity and role assertion on checkout, BEGIN and settlement",
+          "poisoned/unknown connections quarantined instead of reused"
+        ]
+      },
+      {
+        "name": "read_request_history",
+        "signature": "(current session, context_id, workspace_id) -> same committed service_catalog.requests row",
+        "requirements": ["RLS/current authority", "same Request ID", "survives API process restart", "foreign/revoked denial without write"]
+      }
+    ],
+    "minimum_database_access": {
+      "connection": ["CONNECT to the owned isolated development database", "USAGE on required schemas"],
+      "read": [
+        "platform.customer_workspaces",
+        "identity.context_grants",
+        "identity.memberships",
+        "identity.membership_parties",
+        "platform.module_definitions",
+        "portfolio.parties",
+        "service_catalog.definitions",
+        "service_catalog.offerings",
+        "service_catalog.revisions",
+        "service_catalog.requests",
+        "platform.provider_agreement_heads_v1",
+        "platform.provider_agreement_versions_v1",
+        "platform.idempotency_keys",
+        "app_private.canonical_authority_revision_v1"
+      ],
+      "execute": [
+        "app_private.check_workspace_native_permission_v2",
+        "app_private.require_request_session_current_at_v1",
+        "app_private.resolve_service_v14_execution_source_v1",
+        "app_private.apply_service_v14_execution_v1"
+      ],
+      "write_through_core_host_only": [
+        "service_catalog.requests",
+        "platform.idempotency_keys",
+        "audit.events",
+        "platform.outbox_events"
+      ],
+      "explicitly_not_required": [
+        "service_role",
+        "BYPASSRLS",
+        "SUPERUSER",
+        "schema CREATE",
+        "table ownership",
+        "Finance/Booking/Operations writes",
+        "positive PUBLIC/anon/authenticated grants to app_private functions"
+      ]
+    }
+  },
+  "service": {
+    "implemented_ports": [
+      "loadOffering(input) -> Promise<ServiceOfferingRequestSnapshotV1 | null>",
+      "resolvePrincipal(input) -> Promise<{actor_id, authority_version} | null>",
+      "resolveProviderAgreement(input) -> Promise<ProviderAgreementVerificationV1>",
+      "resolveCanonicalResource(input) -> Promise<CanonicalResourceReferenceV1>",
+      "transactionalReaders: ServiceV14CanonicalReaders",
+      "host: CoreTransactionHostV1",
+      "now() -> exact PostgreSQL timestamp string"
+    ],
+    "implemented_guards": [
+      "published exact revision/version/provider/agreement binding",
+      "non-reservation and workspace-wide independent of BK01",
+      "inclusive start/exclusive end with PostgreSQL microsecond precision",
+      "fresh clock after final effective wait",
+      "SQLSTATE 40001 propagation at trusted boundaries",
+      "same endpoint/body/key pending retry",
+      "no Order, Quote acceptance, fulfillment or payment"
+    ],
+    "activation_location": "SERVICE_FUNCTIONAL_REQUEST_RUNTIME_BINDING in src/lib/customer/service-v14-execution/runtime-binding.ts",
+    "missing_input": "one accepted request-local binding implementing both exact producer contract literals"
+  },
+  "connected_acceptance_after_delivery": [
+    "browser -> V14 API -> Core host commit -> same Request readback",
+    "readback after API restart",
+    "two Workspace isolation",
+    "denial/revoke/expiry/revision drift produce zero writes",
+    "unknown result retry uses identical endpoint/body/key and produces no second effect",
+    "FA/EN/RO browser usability"
+  ],
+  "current_evidence": {
+    "source_boundary": "IMPLEMENTED",
+    "core15_runtime": "MISSING_NOT_RUN_NOT_PASS",
+    "platform12_runtime": "MISSING_NOT_RUN_NOT_PASS",
+    "connected_database": "NOT_RUN_NOT_PASS",
+    "connected_browser": "NOT_RUN_NOT_PASS"
+  },
+  "automation": {
+    "classification": "نیازمند بررسی",
+    "automatable": "source/toolchain checks and isolated connected acceptance after exact dependencies arrive",
+    "human_roles": ["Core producer/store acceptance", "Platform role/database acceptance", "SERVICE integration acceptance"],
+    "value_criterion": "durable same-request readback after restart with zero-write denial and exact-key unknown recovery"
+  }
+}

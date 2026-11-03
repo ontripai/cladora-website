@@ -1,0 +1,65 @@
+{
+  "contract": "cladora-source-delivery-manifest.v1",
+  "task_id": "SERVICE-QUOTE-UNKNOWN-SCOPE-11",
+  "base": "c82e51c0f639d97e1023459a7a70da3c6a8fefcf",
+  "branch": "codex/program-service-offering-request-02",
+  "status": "SOURCE_IMPLEMENTED_OFFLINE_MOUNTED_PROOF",
+  "behavior": {
+    "unknown": "lost response preserves the exact endpoint/body/idempotency key across denied/conflict retry and successful GET",
+    "rejected": "403/409 without a preceding unknown result is distinct and may be released only after explicit successful refresh",
+    "success": "only a successful response matching expected_request_version confirms the current POST",
+    "scope": "Context, Workspace, or dashboard transport identity creates a new panel lifetime; old reads and commands cannot cross it"
+  },
+  "evidence": {
+    "before": "FAIL_SAVE_NEW_DRAFT_AFTER_LOST_ACK_CONFLICT_SUCCESSFUL_GET",
+    "mounted_component": "PASS_22_OF_22_FA_EN_RO_CONTROLLED_HTTP",
+    "same_wire_retry": "PASS_EXACT_ENDPOINT_BODY_KEY",
+    "typescript": "PASS_NPX_TSC_NOEMIT",
+    "eslint_scoped": "PASS",
+    "diff_check": "PASS",
+    "native_http_database_auth": "NOT_RUN_NOT_PASS",
+    "task09_connected_runtime": "OPEN_NOT_RUN_NOT_PASS",
+    "versions": {
+      "node": "24.19.0",
+      "typescript": "5.9.3",
+      "eslint": "9.39.5",
+      "react": "19.2.8",
+      "jsdom": "26.1.0",
+      "next": "16.4.1"
+    }
+  },
+  "automation": {
+    "classification": "نیازمند بررسی",
+    "input": "Quote draft POST outcome, refresh result, and account/Context/Workspace identity",
+    "automatable_part": "correlate an in-memory pending command with its exact wire request and fence stale reads by operation generation",
+    "human_decision_role": "SERVICE owner determines whether a future canonical receipt/lookup can resolve UNKNOWN",
+    "execution_conditions": "same component lifetime, exact command bytes/key, current scope, and validated response correlation",
+    "exception_owner": "Core/Finance only if the public receipt or canonical lookup contract changes",
+    "formal_dependency": "existing quote POST/read schemas and dashboard transport identity",
+    "value_criterion": "no unknown command is forgotten, re-keyed, duplicated, or replayed under another identity"
+  },
+  "outputs": [
+    {
+      "path": "src/components/customer/CustomerServiceQuotes.tsx",
+      "bytes": 18623,
+      "sha256": "740f47c66f27d8934364b4928496c9f1b6e2dff4908df05a9c678dc8148a9727",
+      "preimage": {
+        "state": "present",
+        "base": "c82e51c0f639d97e1023459a7a70da3c6a8fefcf",
+        "bytes": 15761,
+        "sha256": "0a139893c40818f5431254206b77b78795e59df8f1503efae5bd1d38e47ae553"
+      }
+    },
+    {
+      "path": "scripts/test-service-quote-ui-014.mjs",
+      "bytes": 13590,
+      "sha256": "8a8135a303413f10ed217c4942460d90a032c13b48b31c75164f2147e75fedf8",
+      "preimage": {
+        "state": "present",
+        "base": "c82e51c0f639d97e1023459a7a70da3c6a8fefcf",
+        "bytes": 10306,
+        "sha256": "7b7a4876653d2cfdbc8eb4fd5e26c313768d933abf1aaf02420f56fe0c6c22a3"
+      }
+    }
+  ]
+}

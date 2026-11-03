@@ -1,0 +1,257 @@
+{
+  "format": "platform-functional-dev-stack-evidence.v1",
+  "task_id": "PLATFORM-FUNCTIONAL-DEV-STACK-12",
+  "status": "PARTIAL_REAL_INFRASTRUCTURE_DELIVERED_DOMAIN_HOLD",
+  "environment_id": "cladora-dev-060aa7164cda472785cf68662625aa8c",
+  "target": "OWNED_LOCAL_SYNTHETIC_PERSISTENT_NOT_STAGING",
+  "database": "postgres",
+  "schemas": [
+    "auth",
+    "storage",
+    "extensions",
+    "platform_dev"
+  ],
+  "actual_versions": {
+    "pg": "17.11",
+    "auth": "v2.197.0",
+    "rest": "v16.4",
+    "storage": "v1.82.1",
+    "gateway": "1.28.0-alpine",
+    "scanner": "1.4.4_base"
+  },
+  "running_services": {
+    "pg": {
+      "running": true,
+      "image_id": "sha256:99445113a4a19e82dd3713c65bd9f6fb5bf972065ab043df8d1e1c93e957da9a"
+    },
+    "auth": {
+      "running": true,
+      "image_id": "sha256:1181bff5ba4ce440013a63cef9f4cf13024c432d705c9b1fbc9e5b949e852f48"
+    },
+    "rest": {
+      "running": true,
+      "image_id": "sha256:1ad5f2ea5501150ec9c7953ae9bf04111ced39a53ca01fc0f08af6d0b7ba67be"
+    },
+    "storage": {
+      "running": true,
+      "image_id": "sha256:ed2afc0194b24a697cfa9b245c60d5fd0b41a9ba5a255083418cd643577098a3"
+    },
+    "gateway": {
+      "running": true,
+      "image_id": "sha256:c318e336065b17ff460aeac6d14bce5d0b13e35f25d5cb1843b635359fc00c9a"
+    }
+  },
+  "checks": {
+    "user_0_login_current_session_own_workspace": true,
+    "user_1_login_current_session_own_workspace": true,
+    "anonymous_denied": 401,
+    "unrelated_write_denied": 403,
+    "unrelated_read_empty": true,
+    "durable_note_readback": true,
+    "storage_provider_health": true
+  },
+  "ordinary_pg_checks": {
+    "ordinary_login_success_settlement": true,
+    "foreign_error_rollback_and_context_clear": true,
+    "server_statement_cancellation_rollback_and_context_clear": true,
+    "same_backend_reuse_no_actor_or_claim_leak": true,
+    "unknown_connection_destroyed_not_reused": true,
+    "fresh_observer_clean_identity": true,
+    "unknown_backend_absence_independently_observed": true
+  },
+  "terminal_events": {
+    "source": "actual pg driver commandComplete/readyForQuery",
+    "acknowledged_rollbacks": 4,
+    "ready": "I",
+    "private_proof_sha256": "430abd905307e6773a63379956ac6ed5dc9f5c44c950f4ed7b1e1df41ad528b2"
+  },
+  "unknown_connection": {
+    "outcome": "UNKNOWN_NO_TERMINAL_ACK",
+    "rollback_ack": false,
+    "client_destroyed_not_reused": true,
+    "backend_absence_observed": true,
+    "no_replay": true
+  },
+  "current_runtime_roles": [
+    {
+      "role": "anon",
+      "superuser": false,
+      "bypassrls": false,
+      "createdb": false,
+      "createrole": false,
+      "replication": false
+    },
+    {
+      "role": "authenticated",
+      "superuser": false,
+      "bypassrls": false,
+      "createdb": false,
+      "createrole": false,
+      "replication": false
+    },
+    {
+      "role": "supabase_auth_admin",
+      "superuser": false,
+      "bypassrls": false,
+      "createdb": false,
+      "createrole": false,
+      "replication": false
+    },
+    {
+      "role": "authenticator",
+      "superuser": false,
+      "bypassrls": false,
+      "createdb": false,
+      "createrole": false,
+      "replication": false
+    },
+    {
+      "role": "service_role",
+      "superuser": false,
+      "bypassrls": false,
+      "createdb": false,
+      "createrole": false,
+      "replication": false
+    },
+    {
+      "role": "supabase_storage_admin",
+      "superuser": false,
+      "bypassrls": false,
+      "createdb": false,
+      "createrole": false,
+      "replication": false
+    }
+  ],
+  "authenticator_memberships": [
+    {
+      "member": "authenticator",
+      "role": "anon",
+      "admin": false,
+      "inherit": false,
+      "set": true
+    },
+    {
+      "member": "authenticator",
+      "role": "authenticated",
+      "admin": false,
+      "inherit": false,
+      "set": true
+    }
+  ],
+  "canonical_runtime_role": null,
+  "persistence": {
+    "result": "PASS_REAL_LOCAL_RESTART_PERSISTENCE",
+    "same_system_database_and_note": true,
+    "postmaster_restart_observed": true,
+    "login_after_restart": true,
+    "receipt_sha256": "8ec0d20b8d07621d5ac1b1e459f8c04708a7d907737c61fe5272409ae5eb9e61"
+  },
+  "backup": {
+    "state": "ACKNOWLEDGED",
+    "receipt_sha256": "d784ee048bdb98950fbd138a2f017d11914c8283171e7ade0975993222ed8b0e",
+    "pg_custom_dump_globals_and_stopped_storage_tar": true,
+    "archive_structure_validation": "PASS",
+    "restore": "NOT_RUN"
+  },
+  "storage": {
+    "health_http": 200,
+    "provider_migrations": true,
+    "persistent_volume_uid": 1000,
+    "document_upload_download_acl": "NOT_RUN_CORE_DOCUMENTS_PLAN_REQUIRED",
+    "documents20_live_config": "MATCH; actual upload NOT_RUN",
+    "documents_contract_head": "e38b0d39dbb840a508b5e1d47e9d93d3060c6411"
+  },
+  "scanner": {
+    "engine_version": "ClamAV 1.4.4",
+    "engine_exit": 0,
+    "engine_helper_cleanup": "ACKNOWLEDGED_HELPER_REMOVED",
+    "official_signatures": "NOT_AVAILABLE",
+    "scan": "NOT_RUN",
+    "queue": "NOT_BOUND"
+  },
+  "access": {
+    "same_executor_http": "VERIFIED_REAL",
+    "same_executor_pg": "VERIFIED_REAL_ORDINARY",
+    "http_origin": "http://127.0.0.1:55421",
+    "pg_host": "127.0.0.1",
+    "pg_port": 55422,
+    "external_egress": "INTERNAL_NETWORK_NO_PG_DEFAULT_ROUTE",
+    "cross_seat_route": "NOT_CONFIGURED_NOT_VERIFIED",
+    "second_executor_fresh_rebuild": "NOT_RUN",
+    "private_credentials": "OUTSIDE_GIT_OWNER_CUSTODY"
+  },
+  "cleanup": {
+    "persistent_data": "INTENTIONALLY_RETAINED",
+    "service_containers_retained": 5,
+    "named_volumes_retained": 2,
+    "helper_containers_remaining": 0,
+    "helper_anonymous_volume_cleanup": "POSITIVE_ENGINE_CID_MOUNT_PROVENANCE_ACKNOWLEDGED_REMOVED",
+    "test_cleanup_deletes_product_data": false
+  },
+  "limits": {
+    "host_transport_concurrency": 8,
+    "http_seconds": 20,
+    "http_response_bound_bytes": 23068672,
+    "http_body_bound_bytes": 22020096,
+    "pg_connection_seconds": 120,
+    "pg_buffer_each_bytes": 65536,
+    "document_file_bytes": 20971520
+  },
+  "gates": {
+    "core15_install_manifest": "NOT_DELIVERED",
+    "canonical_principal_membership_workspace": "NOT_CREATED_BY_THIS_FIXTURE",
+    "service_request_local_domain_binding": "HOLD",
+    "airprop_admitted_executor": "HOLD_NOT_AUTHENTICATOR",
+    "sensitive_aal2": "NOT_PROVED_AAL1_ONLY",
+    "product_receipt_restart": "NOT_RUN",
+    "documents11_storage_scanner_binding": "HOLD",
+    "hosted_mail_and_production": "OUTSIDE_SCOPE"
+  },
+  "prior_failures_preserved": [
+    "CID variable shadowing before setup",
+    "empty grouped diagnostic returned no row",
+    "Auth bootstrap function ownership",
+    "gateway config mode/temp directories",
+    "Storage volume UID",
+    "HTTP nc EOF context cancellation; signup500 and zero-user observation",
+    "backup local CID variable shadowing before dump",
+    "unknown PG backend retained by old EOF relay; corrected and actual absence checked"
+  ],
+  "old_evidence_and_source_preserved": true,
+  "automation": {
+    "classification": "نیازمند بررسی",
+    "input": "pinned infrastructure plus reviewed Core/consumer contracts",
+    "automatable": "owned lifecycle, hash/identity/backup checks",
+    "human_owner": "Platform/Core/coordinator; Documents for signatures",
+    "conditions": "exact target/private custody/role graph",
+    "exception": "UNKNOWN/drift -> Platform no blind retry",
+    "dependency": "Core15/Service09/AIRPROP06/Documents11",
+    "value": "durable isolated real development access; estimate UNKNOWN"
+  },
+  "local_capabilities": {
+    "extensions": [
+      {
+        "name": "plpgsql",
+        "version": "1.0",
+        "schema": "pg_catalog"
+      },
+      {
+        "name": "pgcrypto",
+        "version": "1.3",
+        "schema": "extensions"
+      },
+      {
+        "name": "uuid-ossp",
+        "version": "1.1",
+        "schema": "extensions"
+      }
+    ],
+    "btree_gist": {
+      "available": "1.7",
+      "installed": null
+    },
+    "core_schemas_absent": true,
+    "auth_migration_table": true,
+    "storage_migration_table": true
+  }
+}

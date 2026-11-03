@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef, useLayoutEffect } from "react";
 import {
   Archive,
   ChevronLeft,
@@ -19,6 +19,10 @@ import {
   X,
   FileCode,
 } from "lucide-react";
+import { serializeDocumentsUploadSnapshotV1 } from "@/lib/customer/documents-upload-snapshot-v1";
+import { createClient } from "@/lib/supabase/client";
+import { documentsUploadIntentAckV1Schema, matchesDocumentsUploadFinalizationAckV1,
+  type DocumentsUploadUiBindingV1 } from "@/lib/customer/documents-upload-ui-contract-v1";
 import type { Language } from "@/types";
 import { useCustomerContext } from "./CustomerContextProvider";
 
@@ -60,7 +64,11 @@ const copy = {
     streamStep: "2. Sending the file for checks…",
     finalizeStep: "3. Waiting for document registration…",
     uploadSuccess: "File uploaded and registered. This does not confirm its contents, acceptance of work or payment.",
-    uploadFailed: "Upload could not be confirmed: ",
+    uploadUnknown: "The result is unknown. Do not upload again or start a new attempt. Keep this page open and ask support to check this attempt.",
+    uploadNotReady: "Upload is unavailable. No file was sent. Wait for the service to reopen; do not retry this attempt.",
+    uploadScopeChanged: "Your account or workspace changed. This attempt is paused. Return to the original account and context and ask support to check it; do not upload again.",
+    uploadIdentity: "Your session could not be checked. Check your sign-in before starting an upload.",
+    uploadInvalid: "Check the file type, size, title and selected property before uploading.",
     cancel: "Cancel",
     confirmUpload: "Upload this file",
     loading: "Loading document details you can view…",
@@ -120,7 +128,11 @@ const copy = {
     streamStep: "2. Se trimite fișierul pentru verificări…",
     finalizeStep: "3. Se așteaptă înregistrarea documentului…",
     uploadSuccess: "Fișier încărcat și înregistrat. Acest lucru nu confirmă conținutul, acceptarea lucrării ori plata.",
-    uploadFailed: "Încărcarea nu a putut fi confirmată: ",
+    uploadUnknown: "Rezultatul este necunoscut. Nu încărca din nou și nu începe altă încercare. Păstrează pagina deschisă și cere asistenței să verifice această încercare.",
+    uploadNotReady: "Încărcarea nu este disponibilă. Niciun fișier nu a fost trimis. Așteaptă redeschiderea serviciului; nu repeta această încercare.",
+    uploadScopeChanged: "Contul sau spațiul de lucru s-a schimbat. Încercarea este suspendată. Revino la contul și contextul inițial și cere verificarea; nu încărca din nou.",
+    uploadIdentity: "Sesiunea nu a putut fi verificată. Verifică autentificarea înainte de încărcare.",
+    uploadInvalid: "Verifică tipul, dimensiunea, titlul fișierului și proprietatea selectată înainte de încărcare.",
     cancel: "Anulează",
     confirmUpload: "Încarcă acest fișier",
     loading: "Se încarcă detaliile documentelor pe care le poți vedea…",
@@ -180,7 +192,11 @@ const copy = {
     streamStep: "۲. ارسال فایل برای بررسی…",
     finalizeStep: "۳. در انتظار ثبت سند…",
     uploadSuccess: "فایل بارگذاری و ثبت شد. این به معنی تأیید محتوا، پذیرش کار یا پرداخت نیست.",
-    uploadFailed: "بارگذاری تأیید نشد: ",
+    uploadUnknown: "نتیجه مشخص نیست. فایل را دوباره بارگذاری نکنید و تلاش تازه نسازید. صفحه را باز نگه دارید و از پشتیبانی بخواهید همین تلاش را بررسی کند.",
+    uploadNotReady: "بارگذاری فعلاً آماده نیست. فایلی ارسال نشد. منتظر بازگشایی سرویس بمانید؛ این تلاش را تکرار نکنید.",
+    uploadScopeChanged: "حساب یا فضای کاری تغییر کرد و این تلاش متوقف شد. به حساب و زمینهٔ قبلی برگردید و درخواست بررسی بدهید؛ دوباره بارگذاری نکنید.",
+    uploadIdentity: "نشست بررسی نشد. پیش از شروع بارگذاری، ورود خود را بررسی کنید.",
+    uploadInvalid: "نوع و اندازهٔ فایل، عنوان و ملک انتخابی را پیش از بارگذاری بررسی کنید.",
     cancel: "انصراف",
     confirmUpload: "بارگذاری این فایل",
     loading: "در حال دریافت جزئیات سندهایی که می‌توانید ببینید…",
@@ -217,6 +233,9 @@ const copy = {
   },
 } as const;
 
+// A single non-secret tab barrier survives a component remount. It is NOT a
+// receipt, idempotency ledger or recovery authority; it can only block dispatch.
+const unresolvedUploadKey = "cladora.documents-upload-unresolved.v1";
 const views: View[] = ["documents", "versions", "categories", "retention", "holds", "evidence", "links", "history"];
 const hidden = new Set(["id", "document_id", "entity_id", "scanning_status"]);
 
@@ -246,6 +265,10 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Download & Hold feedback
+  const [actionNotice, setActionNotice] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+
   // Upload modal state
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
@@ -257,14 +280,82 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
   const [uploadPropertiesContextId, setUploadPropertiesContextId] = useState("");
   const [uploadPropertiesError, setUploadPropertiesError] = useState(false);
   const availableUploadProperties = uploadPropertiesContextId === active?.context_id ? uploadProperties : null;
-  const [uploadStep, setUploadStep] = useState<string | null>(null);
-  const [uploadError, setUploadError] = useState("");
-  const [uploadSuccess, setUploadSuccess] = useState(false);
+  type UploadPhase = "idle" | "intent" | "upload" | "finalization" | "UNKNOWN" | "NOT_READY" | "confirmed";
+  const [uploadPhase, setUploadPhase] = useState<UploadPhase>(() => {
+    try { return typeof window !== "undefined" && window.sessionStorage.getItem(unresolvedUploadKey) ? "UNKNOWN" : "idle"; }
+    catch { return "NOT_READY"; }
+  });
+  const [uploadError, setUploadError] = useState<"uploadUnknown" | "uploadNotReady" | "uploadScopeChanged" | "uploadIdentity" | "uploadInvalid" | "">(
+    uploadPhase === "UNKNOWN" ? "uploadUnknown" : uploadPhase === "NOT_READY" ? "uploadNotReady" : "");
+  const flight = useRef(false);
+  const attempt = useRef<{ key: string; finalizationKey: string; scope: string;
+    metadata: string; intent: DocumentsUploadUiBindingV1 | null } | null>(null);
+  const scope = JSON.stringify([active?.context_id, active?.membership_id,
+    dashboard?.contextId === active?.context_id ? dashboard?.workspace_id : null]);
+  const currentScope = useRef(scope);
+  const generation = useRef(0);
+  const actor = useRef<string | null>(null);
+  const [authEpoch, setAuthEpoch] = useState(0);
+  const uploadLocked = uploadPhase !== "idle";
+  const uploadStep = uploadPhase === "intent" ? t.intentStep : uploadPhase === "upload" ? t.streamStep
+    : uploadPhase === "finalization" ? t.finalizeStep : null;
+  useLayoutEffect(() => {
+    if (currentScope.current === scope) return;
+    currentScope.current = scope;
+    generation.current += 1;
+    setIsUploadOpen(false);
+    setUploadFile(null);
+    setUploadTitle("");
+    setUploadPropertyId("");
+    setUploadProperties(null);
+    setUploadPropertiesContextId("");
+    setSelected(null);
+    setActionNotice(null);
+    setActionError(null);
+    setData(null);
+    if (attempt.current || flight.current) {
+      setUploadPhase("UNKNOWN");
+      setUploadError("uploadScopeChanged");
+    }
+  }, [scope]);
+  useEffect(() => {
+    try {
+      const { data } = createClient().auth.onAuthStateChange((event, session) => {
+        const next = session?.user.id ?? null;
+        const changed = actor.current !== next;
+        actor.current = next;
+        if (!changed && event !== "SIGNED_OUT") return;
+        generation.current += 1;
+        setAuthEpoch(n => n + 1);
+        setIsUploadOpen(false);
+        setUploadFile(null);
+        setUploadTitle("");
+        setUploadProperties(null);
+        setSelected(null);
+        setActionNotice(null);
+        setActionError(null);
+        setData(null);
+        if (attempt.current || flight.current) {
+          setUploadPhase("UNKNOWN");
+          setUploadError("uploadScopeChanged");
+        }
+      });
+      return () => data.subscription.unsubscribe();
+    } catch { /* Every submit still requires getUser; failure never dispatches. */ }
+  }, []);
+  useEffect(() => () => { generation.current += 1; }, []);
+  useEffect(() => {
+    if (!uploadLocked || uploadPhase === "confirmed" || uploadPhase === "NOT_READY") return;
+    const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [uploadLocked, uploadPhase]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!isUploadOpen || !active || !canUpload) return;
     const controller = new AbortController();
+    const started = generation.current;
     fetch(`/api/customer/v1/documents/upload-properties?context_id=${encodeURIComponent(active.context_id)}`,
       { cache: "no-store", credentials: "same-origin", signal: controller.signal })
       .then(async (response) => {
@@ -272,23 +363,19 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
         return response.json() as Promise<{ properties: { id: string; name: string }[] }>;
       })
       .then((body) => {
-        if (!controller.signal.aborted) {
+        if (!controller.signal.aborted && generation.current === started) {
           setUploadProperties(body.properties);
           setUploadPropertiesContextId(active.context_id);
-          setUploadPropertyId(body.properties.length === 1 ? body.properties[0].id : "");
+          if (!attempt.current) setUploadPropertyId(body.properties.length === 1 ? body.properties[0].id : "");
           setUploadPropertiesError(false);
         }
       })
-      .catch(() => { if (!controller.signal.aborted) {
+      .catch(() => { if (!controller.signal.aborted && generation.current === started) {
         setUploadPropertiesContextId(active.context_id);
         setUploadPropertiesError(true);
       } });
     return () => controller.abort();
-  }, [isUploadOpen, active, canUpload]);
-
-  // Download & Hold feedback
-  const [actionNotice, setActionNotice] = useState<string | null>(null);
-  const [actionError, setActionError] = useState<string | null>(null);
+  }, [isUploadOpen, active, canUpload, authEpoch]);
 
   const load = useCallback(async () => {
     if (!active) {
@@ -296,6 +383,7 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
       setData(null);
       return;
     }
+    const started = generation.current;
     setLoading(true);
     setError("");
     try {
@@ -318,19 +406,20 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
       });
       if (!response.ok) throw new Error();
       const body = (await response.json()) as Response;
+      if (generation.current !== started) return;
       setData(body);
       if (initialDocumentId && body.rows[0]) setSelected(body.rows[0]);
     } catch {
-      setError(t.error);
+      if (generation.current === started) setError(t.error);
     } finally {
-      setLoading(false);
+      if (generation.current === started) setLoading(false);
     }
   }, [active, view, offset, query, status, classification, from, to, initialDocumentId, t.error]);
 
   useEffect(() => {
     const timer = setTimeout(() => void load(), 150);
     return () => clearTimeout(timer);
-  }, [load]);
+  }, [load, authEpoch]);
 
   const setActiveView = (next: View) => {
     setView(next);
@@ -338,81 +427,103 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
     setSelected(null);
   };
 
-  // Perform Handshake Upload
+  // Single in-memory attempt. No automatic retry, remount recovery, re-upload or
+  // key rotation is offered: only a future authorized same-attempt readback can
+  // resolve UNKNOWN. Files/secrets are never persisted to browser storage.
   const handleUploadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!uploadFile || !active || !canUpload || !availableUploadProperties || uploadPropertiesError) return;
-    if (uploadPropertyId && !availableUploadProperties.some((property) => property.id === uploadPropertyId)) return;
-
-    setUploadError("");
-    setUploadSuccess(false);
-
+    if (flight.current || attempt.current || uploadLocked) return;
     try {
-      // Step 1: Create Upload Intent
-      setUploadStep(t.intentStep);
+      if (window.sessionStorage.getItem(unresolvedUploadKey)) {
+        setUploadPhase("UNKNOWN"); setUploadError("uploadUnknown"); return;
+      }
+    } catch { setUploadPhase("NOT_READY"); setUploadError("uploadNotReady"); return; }
+    if (!uploadFile || !active || !canUpload || !availableUploadProperties || uploadPropertiesError) return;
+    if (uploadPropertyId && !availableUploadProperties.some(p => p.id === uploadPropertyId)) return;
+    const workspace = dashboard?.contextId === active.context_id ? dashboard.workspace_id : null;
+    if (!workspace) { setUploadError("uploadIdentity"); return; }
+    flight.current = true; // BEFORE the first await or React render.
+    const started = generation.current;
+    const same = () => generation.current === started && currentScope.current === scope;
+    const file = uploadFile;
+    let metadata: string;
+    try { metadata = serializeDocumentsUploadSnapshotV1({ context_id: active.context_id, workspace_id: workspace, filename: file.name,
+      declared_mime: file.type, size_bytes: file.size, title: uploadTitle || file.name,
+      document_type: uploadType, classification: uploadClassification, property_id: uploadPropertyId || null });
+    } catch { flight.current = false; setUploadError("uploadInvalid"); return; }
+    setUploadError("");
+    setUploadPhase("intent");
+    try {
+      const { data, error: identityError } = await createClient().auth.getUser();
+      if (!same()) return;
+      if (identityError || !data.user || (actor.current && actor.current !== data.user.id)) {
+        setUploadError("uploadIdentity"); setUploadPhase("idle"); return;
+      }
+      actor.current = data.user.id;
+      // A MIME fallback would change the command and mislabel the selected file.
+      const valid = /^(application\/(pdf|msword|vnd\.ms-excel|vnd\.openxmlformats-officedocument\.(wordprocessingml\.document|spreadsheetml\.sheet))|image\/(jpeg|png|webp)|text\/plain)$/.test(file.type)
+        && file.size > 0 && file.size <= 20 * 1024 * 1024
+        && !/\.(exe|sh|bat|cmd|js|mjs|ts|html?|svg|php|py|zip|tar|gz|rar)$/i.test(file.name);
+      if (!valid) { setUploadError("uploadInvalid"); setUploadPhase("idle"); return; }
+      const record = { key: crypto.randomUUID(), finalizationKey: crypto.randomUUID(), scope,
+        metadata, intent: null as DocumentsUploadUiBindingV1 | null };
+      attempt.current = record;
+      // Only a literal barrier is persisted: never file bytes, metadata, keys,
+      // identities, paths, raw receipts or credentials. It cannot enable retry.
+      window.sessionStorage.setItem(unresolvedUploadKey, "pending");
+      const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(metadata));
+      if (!same()) return;
+      const requestHash = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
       const intentRes = await fetch("/api/customer/v1/documents/upload-intent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({
-          context_id: active.context_id,
-          filename: uploadFile.name,
-          declared_mime: uploadFile.type || "application/pdf",
-          size_bytes: uploadFile.size,
-        }),
+        method: "POST", headers: { "Content-Type": "application/json" }, signal: AbortSignal.timeout(30_000),
+        cache: "no-store", credentials: "same-origin",
+        body: JSON.stringify({ ...JSON.parse(metadata), idempotency_key: record.key, request_sha256: requestHash }),
       });
-
-      if (!intentRes.ok) {
-        const errJson = await intentRes.json().catch(() => ({}));
-        throw new Error(errJson?.error?.message || "Failed to create upload intent");
+      const intentBody: unknown = await intentRes.json();
+      if (!same()) return;
+      // The unchanged, known maintenance reply precedes every write/byte read.
+      if (intentRes.status === 503 && (intentBody as { error?: { code?: string } })?.error?.code === "CANONICAL_DOCUMENT_WRITER_UNAVAILABLE") {
+        window.sessionStorage.removeItem(unresolvedUploadKey);
+        setUploadPhase("NOT_READY"); setUploadError("uploadNotReady"); return;
       }
-
-      const intentData = await intentRes.json();
-      const intentId = intentData.intent_id;
-      if (!intentId || !intentData.object_path) throw new Error("Missing upload intent path");
-
-      // Step 2 & 3: Bounded streaming upload & finalize
-      setUploadStep(t.streamStep);
-      const formData = new FormData();
-      formData.append("context_id", active.context_id);
-      formData.append("intent_id", intentId);
-      formData.append("object_path", intentData.object_path);
-      formData.append("title", uploadTitle || uploadFile.name);
-      formData.append("document_type", uploadType);
-      formData.append("classification", uploadClassification);
-      if (uploadPropertyId) formData.append("property_id", uploadPropertyId);
-      formData.append("declared_mime", uploadFile.type || "application/pdf");
-      formData.append("file", uploadFile);
-
-      setUploadStep(t.finalizeStep);
+      const parsed = documentsUploadIntentAckV1Schema.safeParse(intentBody);
+      if (!intentRes.ok || !parsed.success) throw new Error("unconfirmed intent");
+      const intent = parsed.data;
+      if (intent.context_id !== active.context_id || intent.workspace_id !== workspace
+        || intent.actor_id !== data.user.id || intent.idempotency_key !== record.key
+        || intent.request_sha256 !== requestHash) throw new Error("intent binding");
+      record.intent = intent;
+      setUploadPhase("upload");
+      const form = new FormData();
+      for (const [key, value] of Object.entries(JSON.parse(metadata))) form.append(key, value === null ? "null" : String(value));
+      form.append("intent_id", intent.intent_id);
+      form.append("idempotency_key", record.finalizationKey);
+      form.append("request_sha256", requestHash);
+      form.append("file", file);
       const uploadRes = await fetch("/api/customer/v1/documents/upload", {
-        method: "POST",
-        credentials: "same-origin",
-        body: formData,
+        method: "POST", cache: "no-store", credentials: "same-origin", body: form, signal: AbortSignal.timeout(30_000),
       });
-
-      if (!uploadRes.ok) {
-        const errJson = await uploadRes.json().catch(() => ({}));
-        throw new Error(errJson?.error?.message || "Server upload processing failed");
-      }
-
-      setUploadSuccess(true);
-      setUploadStep(null);
-      setTimeout(() => {
-        setIsUploadOpen(false);
-        setUploadFile(null);
-        setUploadTitle("");
-        void load();
-      }, 1500);
-    } catch (err: any) {
-      setUploadError(err?.message || "Upload failed");
-      setUploadStep(null);
+      if (!same()) return;
+      setUploadPhase("finalization");
+      const ack: unknown = await uploadRes.json();
+      if (!same()) return;
+      if (!uploadRes.ok || !matchesDocumentsUploadFinalizationAckV1(ack, intent, record.finalizationKey)) throw new Error("unconfirmed finalization");
+      window.sessionStorage.removeItem(unresolvedUploadKey);
+      setUploadPhase("confirmed");
+      setUploadFile(null);
+      // Confirmation is registration only, never scan/content/download authority.
+      void load();
+    } catch {
+      if (same()) { setUploadPhase("UNKNOWN"); setUploadError("uploadUnknown"); }
+    } finally {
+      flight.current = false; // attempt remains pinned even after denial or ACK loss.
     }
   };
 
   // Perform Authorized Download
   const handleDownload = async (docId: string, isAdminInspection: boolean = false) => {
     if (!active) return;
+    const started = generation.current;
     setActionNotice(t.downloading);
     setActionError(null);
 
@@ -428,6 +539,7 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
       });
 
       const data = await res.json();
+      if (generation.current !== started) return;
       if (!res.ok) {
         throw new Error(data?.error?.message || "Download authorization denied");
       }
@@ -437,6 +549,7 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
         window.open(data.download_url, "_blank", "noopener,noreferrer");
       }
     } catch (err: any) {
+      if (generation.current !== started) return;
       setActionNotice(null);
       setActionError(err?.message || "Download failed");
     }
@@ -518,6 +631,12 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
             {canUpload && <button
               type="button"
               onClick={() => {
+                if (uploadPhase === "confirmed") {
+                  attempt.current = null;
+                  setUploadPhase("idle");
+                  setUploadTitle("");
+                  setUploadError("");
+                }
                 setUploadProperties(null);
                 setUploadPropertiesContextId("");
                 setUploadPropertiesError(false);
@@ -764,7 +883,7 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
 
       {/* Upload Modal */}
       {isUploadOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#102A43]/45 p-4" role="dialog" aria-modal="true">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#102A43]/45 p-4" role="dialog" aria-modal="true" aria-label={t.uploadTitle}>
           <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl border border-[#CBD5E1]">
             <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-3">
               <h2 className="text-base font-bold text-[#102A43] flex items-center gap-2">
@@ -775,15 +894,14 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
                 type="button"
                 onClick={() => {
                   setIsUploadOpen(false);
-                  setUploadStep(null);
-                  setUploadError("");
                 }}
               >
                 <X className="h-5 w-5 text-[#64748B]" />
               </button>
             </div>
 
-            <form onSubmit={handleUploadSubmit} className="mt-4 space-y-4">
+            <form onSubmit={handleUploadSubmit} className="mt-4 space-y-4" data-upload-phase={uploadPhase}>
+              <fieldset disabled={uploadLocked} className="space-y-4">
               {/* File Input */}
               <div>
                 <label className="block text-xs font-bold text-[#334155]">{t.fileLabel}</label>
@@ -821,7 +939,7 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
               <div>
                 <label htmlFor="upload-property" className="block text-xs font-bold text-[#334155]">{t.property}</label>
                 <select id="upload-property" value={uploadPropertyId}
-                  disabled={!availableUploadProperties || uploadPropertiesError || !!uploadStep}
+                  disabled={!availableUploadProperties || uploadPropertiesError || uploadLocked}
                   onChange={(e) => setUploadPropertyId(e.target.value)}
                   className="mt-1 w-full rounded-lg border border-[#CBD5E1] p-2 text-xs">
                   <option value="">{t.noProperty}</option>
@@ -861,6 +979,7 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
                 </div>
               </div>
 
+              </fieldset>
               {/* Progress & Feedback */}
               {uploadStep && (
                 <div className="rounded-xl border border-teal-200 bg-teal-50 p-3 text-xs text-teal-800 flex items-center gap-2">
@@ -869,12 +988,12 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
                 </div>
               )}
               {uploadError && (
-                <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
-                  {t.uploadFailed} {uploadError}
+                <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-700">
+                  {t[uploadError]}
                 </div>
               )}
-              {uploadSuccess && (
-                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800 font-bold">
+              {uploadPhase === "confirmed" && (
+                <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800 font-bold">
                   {t.uploadSuccess}
                 </div>
               )}
@@ -890,7 +1009,7 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
                 </button>
                 <button
                   type="submit"
-                  disabled={Boolean(uploadStep) || !uploadFile || !availableUploadProperties || uploadPropertiesError}
+                  disabled={uploadLocked || !uploadFile || !availableUploadProperties || uploadPropertiesError}
                   className="rounded-lg bg-[#0E9F8E] px-4 py-2 text-xs font-bold text-white shadow hover:bg-[#0A6E62] disabled:opacity-50"
                 >
                   {t.confirmUpload}
