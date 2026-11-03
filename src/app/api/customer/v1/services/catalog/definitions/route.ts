@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { uuidSchema, idempotencyKeySchema } from '@/lib/customer/workspace-composition-schema';
+import { isApplicationJson, parseJsonWithLimit } from '@/lib/security/request-body';
 const headers = { 'Cache-Control': 'no-store, private', Pragma: 'no-cache', Vary: 'Cookie' };
+const MAX_BODY_BYTES = 8 * 1024;
 const labels = z.strictObject({ ro: z.string().trim().min(1).max(200), en: z.string().trim().min(1).max(200), fa: z.string().trim().min(1).max(200) });
 const schema = z.strictObject({ context_id: uuidSchema, workspace_id: uuidSchema, code: z.string().regex(/^[a-z][a-z0-9_]{1,63}$/), labels, idempotency_key: idempotencyKeySchema });
 const fail = (code: string, status: number) => NextResponse.json({ error: { code } }, { status, headers });
@@ -25,13 +27,13 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const origin = request.headers.get('origin');
   if (origin && origin !== request.nextUrl.origin) return fail('INVALID_ORIGIN', 403);
-  if (request.nextUrl.search || request.headers.get('content-type')?.split(';')[0].trim().toLowerCase() !== 'application/json') return fail('INVALID_REQUEST', 400);
+  if (request.nextUrl.search || !isApplicationJson(request.headers.get('content-type'))) return fail('INVALID_REQUEST', 400);
   const client = await createClient();
   const { data: auth, error: authError } = await client.auth.getClaims();
   if (authError || !auth?.claims?.sub) return fail('UNAUTHORIZED', 401);
-  let body: unknown;
-  try { body = await request.json(); } catch { return fail('INVALID_REQUEST', 400); }
-  const parsed = schema.safeParse(body);
+  const body = await parseJsonWithLimit<unknown>(request, MAX_BODY_BYTES);
+  if (body.errorResponse) return fail(body.errorResponse.status === 413 ? 'PAYLOAD_TOO_LARGE' : 'INVALID_REQUEST', body.errorResponse.status);
+  const parsed = schema.safeParse(body.data);
   if (!parsed.success) return fail('INVALID_REQUEST', 400);
   const { data, error } = await client.schema('customer_api').rpc('create_service_definition_v1' as never, { p_request: parsed.data } as never);
   if (error) return rpcFail(error.code);
