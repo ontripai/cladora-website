@@ -1,0 +1,90 @@
+{
+  "contract": "ce-functional-guide-13.connection-requirements.v1",
+  "classification": "CE_CONSUMER_REQUIREMENTS_NOT_OFFICIAL_CORE15_ABI",
+  "task": "CE-FUNCTIONAL-GUIDE-13",
+  "shared_base": "ec639884452cc0cb6dfef520339791a5c20e9b39",
+  "platform12": {
+    "head": "794f5a12c3928ae0a3585ab679a3cbe60aab49a3",
+    "report": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-6602456960",
+    "manifest_path": "docs/testing/functional-dev-stack-12.manifest.json",
+    "manifest_bytes": 8797,
+    "manifest_sha256": "d8946081bfa3542c8bbb88229bc1bc3c8a3e827e48a9cb7143cb935c8eae543f",
+    "identity": "MATCH_FROM_OFFICIAL_GIT_OBJECT",
+    "state": "PARTIAL_SAME_ENV_INFRA_ONLY; canonical domain schema/roles/consumer binding HOLD",
+    "consumer_environment": "NOT_RECONSTRUCTED_OR_ADMITTED_IN_CE",
+    "versions": {
+      "postgres": "17.11",
+      "GoTrue": "2.197.0",
+      "PostgREST": "16.4",
+      "Storage": "1.82.1"
+    },
+    "auth": "real AAL1 only reported by Platform; no fake AAL2 or cross-Seat secret transfer"
+  },
+  "Core15": {
+    "state": "AWAITING_OFFICIAL_FULLSHA_ABI_INSTALL_MANIFEST",
+    "known_current_source": "3e9593af25433dcf32042f624731f514d09ec35b/Core14",
+    "required_capabilities": [
+      "verified request-local server session/actor/tenant/Context/Workspace and canonical current permission/entitlement",
+      "same live transaction post-wait and terminal authority/session/revoke/expiry gate for a Guide with NO document target",
+      "canonical C03 parsed-command request hash/key, reservation, receipt/audit/outbox and same-backend settlement",
+      "original-wire UNKNOWN/replay/read boundary; historical MATCH must not grant current disclosure",
+      "creation contract/mapping for existing create_guide expected_version0 without fake positive-version save or prior row"
+    ],
+    "CE_adoption_points": [
+      "experience-guide-functional-http-v1.ts probe() read/currentness",
+      "same module execute: existing createCorePostgresTransactionHostV1 + createCe012SaveWriterExecutorV1; rebind ONLY to actual compatible Core15 producer",
+      "same module create: existing request validated but503; CE creation UI/producer mapping still to implement after official contract"
+    ],
+    "not_created": [
+      "new Core host/evaluator",
+      "invented Core15 API names",
+      "new permission/role/entitlement",
+      "legacy fallback"
+    ]
+  },
+  "Platform12": {
+    "state": "DOMAIN_BINDING_AND_CONSUMER_LOCAL_ADMISSION_HOLD",
+    "target": "owned isolated persistent synthetic development; never populated staging/Production",
+    "connection": "existing CorePlatformRoleBoundPoolV1 direct/session_pooler, verified runtime/executor role safety lease; real Supabase SSR environment bindings, no secrets in chat/Git",
+    "schema": [
+      "platform.tenants/customer_workspaces/idempotency_keys/outbox_events",
+      "audit.events",
+      "identity contexts/memberships and canonical authority_revision",
+      "experience.guides/guide_steps/guide_references exact versioned storage and child guard",
+      "experience.guide_save_receipts_v1 typed projection with same-tx deferred Core relation",
+      "canonical *_at session/context/permission helpers and CE audience helper"
+    ],
+    "migration_references": [
+      "supabase/migrations/20261014082947_experience_guide_storage_lifecycle_v1.sql",
+      "supabase/migrations/20261014132000_experience_guide_child_publish_lock_v1.sql",
+      "supabase/proposals/ce012_save_writer_relation_v1.sql REVIEW_ONLY_GUARD_PRESERVED; not an installer"
+    ],
+    "permission_mapping": {
+      "module": "experience_guides",
+      "entitlement": "module.experience_guides",
+      "read": "experience.guide.read",
+      "write": "experience.guide.manage",
+      "status": "EXISTING_CONTRACT_NAMES_NOT_INSTALLED_OR_GRANTED_BY_CE"
+    },
+    "session": "actual provider-issued signed session/real assurance per canonical Core15 policy; actual getUser/getSession/assurance; NOT a caller JWT or service_role/owner fallback",
+    "native_acceptance": [
+      "UI create/save -> actual Core15 transaction -> durable version read after reload/process restart",
+      "version conflict/duplicate command/C03 same-wire replay",
+      "denial/revoke/expiry across real waits and scope/RLS checks",
+      "UNKNOWN with no second save and real receipt/settlement evidence"
+    ],
+    "allowed_now": "source preparation only; install/connection/native tests await official Core15 and verified consumer development target"
+  },
+  "Documents": {
+    "optional": true,
+    "null_reference": "no module/factory/authority dependency in save writer",
+    "sensitive_reference": "NOT_READY until official current Documents producer/disclosure; no private label/target exposed by new read projection"
+  },
+  "current_defaults": {
+    "role_bound_pool": null,
+    "can_create": false,
+    "reference_editing": false,
+    "native_acceptance": "NOT_RUN_NOT_PASS",
+    "task_completed": false
+  }
+}

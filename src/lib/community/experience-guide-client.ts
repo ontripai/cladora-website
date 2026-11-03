@@ -26,8 +26,8 @@ export function toExperienceGuideView(item: GuideReadItem, lang: Language) {
     audience_label: audienceLabels[lang][item.audience.kind], status: item.status, version: item.version,
     steps: item.steps.map((step) => ({ id: step.id, title: step.title, body: step.body,
       references: step.references.map((reference) => ({ id: reference.id, label: reference.label })) })),
-    // Editing stays closed until the Documents-owned named target selector is accepted.
-    can_edit: false,
+    // Server projection owns this permission; reference-dependent edits stay closed there.
+    can_edit: item.can_edit,
   };
 }
 

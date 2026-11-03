@@ -90,6 +90,9 @@ function commandMatches(c: CoreTransactionCommandV2, g: Ce012GuideSaveCommandV1)
     && c.evaluation_purpose === 'experience.guide.command' && c.idempotency_key === g.idempotency_key
     && c.input_fingerprint === g.payload_fingerprint && fingerprintCe012GuideSavePayload(g) === g.payload_fingerprint;
 }
+/** Descriptor identity comparison only; never an authority decision. */
+export const ce012SaveCoreBindingMatchesV1=commandMatches;
+
 function authorityMatches(s: CoreTransactionScopeV1, c: CoreTransactionCommandV2,
   a: CurrentAuthorityTransactionDecisionReceiptV1) {
   return s.transaction_id === c.transaction_id && s.workspace_id === c.workspace_id && s.actor_id === c.actor_id
@@ -156,7 +159,10 @@ export function createCe012SaveWriterProviderV1(guideValue: unknown,
   }>();
   async function evaluate(scope: CoreTransactionScopeV1, command: CoreTransactionCommandV2,
     authority: CurrentAuthorityTransactionDecisionReceiptV1, replay: z.infer<typeof ce012GuideCommandReceiptV1Schema> | null) {
-    must(documents?.documentsCe012ReferenceProviderVersionV1 === CE012_SAVE_PROVIDER_CODE);
+    // A Guide without a document has no Documents authority dependency.
+    if (guide.payload.document_target !== null) {
+      must(documents?.documentsCe012ReferenceProviderVersionV1 === CE012_SAVE_PROVIDER_CODE);
+    }
     must(commandMatches(command, guide) && authorityMatches(scope, command, authority));
     const bound = scopeIdentity(scope);
     const member = await scope.query<{ id: string }>(CE012_SAVE_MEMBERSHIP_SQL,
@@ -178,8 +184,10 @@ export function createCe012SaveWriterProviderV1(guideValue: unknown,
       coreTransactionalAuthority: { async recheckAfterLock(request) {
         return bindCanonicalCurrentAuthorityObservationV1(request, await resolveAuthority(scope, request));
       } },
-      documentsImmutableSelector: documents!.createDocumentsCe012ReferenceProviderV1(
-        scope, command, authority, guide, replay === null ? 'new_command' : 'replay'),
+      documentsImmutableSelector: guide.payload.document_target === null
+        ? { async select() { throw new Ce012SaveWriterNotReadyV1(); } }
+        : documents!.createDocumentsCe012ReferenceProviderV1(
+          scope, command, authority, guide, replay === null ? 'new_command' : 'replay'),
     });
     const linked = await bridge.evaluate(guide, { decision_id: authority.decision_id,
       authority_version: authority.authority_version, transaction_context: authority.transaction_context },

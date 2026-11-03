@@ -1,0 +1,414 @@
+{
+  "task": "CE-FUNCTIONAL-GUIDE-13",
+  "status": "READ_CUTOVER_CORRECTION_SOURCE_DELIVERED_NATIVE_ACCEPTANCE_OPEN",
+  "worker": "CLADORA-CE-WORKER-01",
+  "shared_base": "ec639884452cc0cb6dfef520339791a5c20e9b39",
+  "actual_parent": "3102fc6861c7c3ce971a95007206c5e08cf732e7",
+  "prior_published_head": "0191e0415297a76f3073cbeef7396f4799d3a25c",
+  "base_adoption": "FAST_FORWARD",
+  "branch": "codex/program-ce-independent-base-02",
+  "source": [
+    {
+      "path": "src/app/api/customer/v1/experience/guides/route.ts",
+      "bytes": 4249,
+      "sha256": "841f45715db23c61af35a545c40dd000eb144ce40972d46c08d105246b3bfaa7",
+      "git_blob": "9ee7b933e2b5948d8b09ca826cbf7828ce3c7c47"
+    },
+    {
+      "path": "src/components/customer/CustomerExperienceGuidePage.tsx",
+      "bytes": 9346,
+      "sha256": "27f9b5b3a336d7778adc6d1532f06d6ca59e125c8db724edb95f6265093e9bb4",
+      "git_blob": "3a12fc9e0e03199d3e3b146d4747e6270fe7dc9c"
+    },
+    {
+      "path": "src/lib/community/experience-guide-functional-http-v1.ts",
+      "bytes": 11736,
+      "sha256": "c66da0f66bce831cf450724aec1991eae54517f3a5350346776ccde6c579f2b1",
+      "git_blob": "962fc061811061ad8e02b0c819b4faa8407a5082"
+    },
+    {
+      "path": "scripts/test-ce-guide-read-cutover-01.mjs",
+      "bytes": 10742,
+      "sha256": "46848d9b46a46abad158d6cea624180fd12fb6d71a3a92cf568ec13b0c4b62a9",
+      "git_blob": "f219dbdcb99608354cb7780dfd0092cf4e3b5228"
+    },
+    {
+      "path": "docs/contracts/ce-functional-guide-13/README.md",
+      "bytes": 14700,
+      "sha256": "738a94ad83145942c617446e5ad75f161c9d2c906452c4796dbfd60be9ed08a8",
+      "git_blob": "646210b4aacbad8462cb3d29053dceedfc7159e6"
+    }
+  ],
+  "manifest_self": "bound by final Git tree/external delivery, excluded from own inventory hash",
+  "evidence": {
+    "exact_toolchain": {
+      "next": "16.4.1",
+      "zod": "4.6.6",
+      "typescript": "5.9.3",
+      "method": "existing isolated exact toolchain; NO_INSTALL this correction"
+    },
+    "before": "controlled original3102 Page hides Guide: accepted reader200, unconfigured draft reader503; COUNTEREXAMPLE_NOT_PASS",
+    "new_targeted_groups": 6,
+    "controlled_mounted_result": "PASS",
+    "full_typecheck": "PASS unchanged ES5 config in verification copy",
+    "scoped_lint": "PASS 3 product TS/TSX + new harness",
+    "syntax_diff_identity": "PASS; old GET body and POST byte-identical",
+    "old16": "NOT_RERUN",
+    "build": "NOT_RERUN; earlier unchanged next/font failure retained",
+    "native_browser_auth_db_restart": "NOT_RUN_NOT_PASS"
+  },
+  "evidence_hashes": {
+    "before.txt": {
+      "path": "/workspace/work/ce-guide-read-cutover-01/before.txt",
+      "bytes": 433,
+      "sha256": "602622cc442904ea51ff14f112bf8bbc4f9d0cd6c507cf7d6d62ae9c1214ce0c",
+      "git_blob": "0f54a5b09a400ca664473ac4248c5326e711f0aa"
+    },
+    "after.txt": {
+      "path": "/workspace/work/ce-guide-read-cutover-01/after.txt",
+      "bytes": 1485,
+      "sha256": "22a103385ec3d27400fb64d2c65ea81afcde46bba521df1643d716e8a85507f3",
+      "git_blob": "109b3c70818496358f55aaeb1915b3fdc96398bc"
+    },
+    "typecheck.txt": {
+      "path": "/workspace/work/ce-guide-read-cutover-01/typecheck.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "lint.txt": {
+      "path": "/workspace/work/ce-guide-read-cutover-01/lint.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "identity.json": {
+      "path": "/workspace/work/ce-guide-read-cutover-01/identity.json",
+      "bytes": 329,
+      "sha256": "fb03592bcf3b81fecda1718130824b1f471f2441095fa40fca13216726960bb0",
+      "git_blob": "9b8b410dfda7db1b04abeb94c6055fc0db43fbe3"
+    }
+  },
+  "blockers": {
+    "core15": "official FullSHA/ABI not delivered; inspected current Core remote3e9593af25433dcf32042f624731f514d09ec35b is Core14",
+    "development_target": "Platform12 partial infrastructure794f5a12 officially reported elsewhere; CE-local owned domain PG/Auth/lease not reconstructed/admitted; domain schema/roles/currentness binding still HOLD",
+    "creation": "existing positive-version save contract edits an existing Guide; no silent version0/adoption/legacy substitution",
+    "functional_flow": "real create/save/readback/reload/process restart/security/recovery still OPEN"
+  },
+  "preservation": [
+    "CE010/CE011/G1/G2 source",
+    "Core/Docs/Platform owner source from Shared Base unchanged",
+    "previous CE012 schemas/editor/checkpoints/fingerprint/receipt",
+    "package/lock/vendor/config"
+  ],
+  "automation": "نیازمند بررسی",
+  "inventory_seal": "9d9353a8bcace27a55d98f9ca5b6bba2660f41655c1d6ad7f9560da463aac7ab",
+  "history": {
+    "first_source_checkpoint": {
+      "head": "0b72e40791997c57ce2c08048bcd5a70b36cb3d7",
+      "parent": "ec639884452cc0cb6dfef520339791a5c20e9b39",
+      "source": [
+        {
+          "path": "src/lib/community/experience-guide-save-writer-v1.ts",
+          "bytes": 27453,
+          "sha256": "6bc23cc3403da9970664c8446e0a100f56155306992d70cf8db56ab126eeebfb",
+          "git_blob": "da99f2b6efdec45c8ae514c68ada8e3411ddada1"
+        },
+        {
+          "path": "scripts/test-ce-functional-guide13.mjs",
+          "bytes": 6163,
+          "sha256": "7636c8f6475693fc1b8b8bc8aada8dbe4c0bb4eb95d4a6bbf4ab7e1a9c76fc04",
+          "git_blob": "27743d1ceb4e4df55ac1721ca4458b856a2aec36"
+        },
+        {
+          "path": "docs/contracts/ce-functional-guide-13/README.md",
+          "bytes": 6873,
+          "sha256": "5f3f721dab9b25b22466d56f107e23775631bf2e6954a3f6b500cfb4bb796431",
+          "git_blob": "0c381150b31a4dee176819ff17a5f78f6e8dbf5f"
+        }
+      ],
+      "evidence": {
+        "exact_toolchain": {
+          "next": "16.4.1",
+          "zod": "4.6.6",
+          "typescript": "5.9.3",
+          "method": "isolated npm ci from unchanged Base package/lock/vendor; previous cache untouched"
+        },
+        "affected_controlled_groups": 6,
+        "controlled_result": "PASS",
+        "full_typecheck": "PASS exact toolchain in verification copy",
+        "scoped_lint": "PASS exact toolchain",
+        "syntax_diff": "PASS",
+        "native_auth_db_restart": "NOT_RUN_NOT_PASS",
+        "old_suites": "NOT_RERUN CE010/CE011/G1/G2/CE27/Core23"
+      },
+      "inventory_seal": "53abd65426eecdf14b1b165ab8d28a94093fdc3a0166ce89255c858cf310be4c"
+    },
+    "reviewed3102": {
+      "task": "CE-FUNCTIONAL-GUIDE-13",
+      "status": "CONNECTED_EDIT_SOURCE_DELIVERED_FUNCTIONAL_NATIVE_ACCEPTANCE_OPEN",
+      "worker": "CLADORA-CE-WORKER-01",
+      "shared_base": "ec639884452cc0cb6dfef520339791a5c20e9b39",
+      "actual_parent": "0b72e40791997c57ce2c08048bcd5a70b36cb3d7",
+      "prior_published_head": "0191e0415297a76f3073cbeef7396f4799d3a25c",
+      "base_adoption": "FAST_FORWARD",
+      "branch": "codex/program-ce-independent-base-02",
+      "source": [
+        {
+          "path": "src/lib/community/experience-guide-save-writer-v1.ts",
+          "bytes": 27586,
+          "sha256": "49de9fc3ca5a867eb1c4b22692afd635d04cec4f17aa87106da33dd88552a7ed",
+          "git_blob": "15c210dd2882c70121bd4f13b00dabacf7cbde25"
+        },
+        {
+          "path": "scripts/test-ce-functional-guide13.mjs",
+          "bytes": 6163,
+          "sha256": "7636c8f6475693fc1b8b8bc8aada8dbe4c0bb4eb95d4a6bbf4ab7e1a9c76fc04",
+          "git_blob": "27743d1ceb4e4df55ac1721ca4458b856a2aec36"
+        },
+        {
+          "path": "docs/contracts/ce-functional-guide-13/README.md",
+          "bytes": 10672,
+          "sha256": "80e4b1ed3ee964fcaf2ca2154c8f72171f03fd7452667f535f0432211934face",
+          "git_blob": "40c2db389cea54270d09b8ab4997933b79d03861"
+        },
+        {
+          "path": "src/lib/community/experience-guide-functional-http-v1.ts",
+          "bytes": 10870,
+          "sha256": "97e03ab4f55021c66088ffe9137e3d2f3eed29126c07f828d72da11c8b7d30c1",
+          "git_blob": "3b86db1f04dbb38a58dd27dcc94b35c7b83c410a"
+        },
+        {
+          "path": "src/lib/community/experience-guide-functional-client.ts",
+          "bytes": 5924,
+          "sha256": "53e56510717da6778c1bc5bde37bb6080dc11e81fe5f3061120a33668bcacf27",
+          "git_blob": "5c8af8f2ee7f4a4519aedf49b98896bdf694c569"
+        },
+        {
+          "path": "src/lib/community/experience-guide-client.ts",
+          "bytes": 2348,
+          "sha256": "cdca7fe2c8cd058ebbe76b65879240263bb6738f2e0e01822ec6b9f9c8e3531d",
+          "git_blob": "eb3465f556a84ff27a39b07ed12b207985fcf333"
+        },
+        {
+          "path": "src/components/customer/CustomerExperienceGuide.tsx",
+          "bytes": 10739,
+          "sha256": "559c0a292b07391a26d0ce44270ec338cea50a3ace484809269c2bf140b2c739",
+          "git_blob": "ef70051aa5b2c47c38a9f81711d4f69ad9f08c25"
+        },
+        {
+          "path": "src/components/customer/CustomerExperienceGuidePage.tsx",
+          "bytes": 9143,
+          "sha256": "c8eee6a13e4480c687e30169864bfbe829b9833830db3a6083678ec9d80ecf69",
+          "git_blob": "7bda74ee8bf75328f136a03ffcac1aae9c2c21e2"
+        },
+        {
+          "path": "src/app/api/customer/v1/experience/guides/draft/route.ts",
+          "bytes": 305,
+          "sha256": "0b02e20e800bce93510beb8e7b6523a266b9784dde9a9149d1b1d0bdbd2af9cd",
+          "git_blob": "254be2a69c9feecb8f940889688178a7b44a91bf"
+        },
+        {
+          "path": "scripts/test-ce-functional-guide13-flow.mjs",
+          "bytes": 14871,
+          "sha256": "613620d0f65098ab25293075d85c6df7b5bd234b8f6f6f637edcba20c0da43a9",
+          "git_blob": "4ecaf3c99383b36f640f1943436159c7ccfe5b8b"
+        },
+        {
+          "path": "docs/contracts/ce-functional-guide-13/connection-requirements.json",
+          "bytes": 4979,
+          "sha256": "aa1794e05f3da3466ea524f4916bdd74082ff57fe7a280e84015549a31bc1d59",
+          "git_blob": "2c0876426ae91caab0837d65a5e0ef0a398a915c"
+        }
+      ],
+      "manifest_self": "bound by final Git tree/external delivery, excluded from own inventory hash",
+      "evidence": {
+        "exact_toolchain": {
+          "next": "16.4.1",
+          "zod": "4.6.6",
+          "typescript": "5.9.3",
+          "method": "isolated npm ci from unchanged Base package/lock/vendor; previous cache untouched"
+        },
+        "affected_controlled_groups": 6,
+        "controlled_result": "PASS",
+        "full_typecheck": "PASS exact toolchain in verification copy",
+        "scoped_lint": "PASS exact toolchain",
+        "syntax_diff": "PASS",
+        "native_auth_db_restart": "NOT_RUN_NOT_PASS",
+        "old_suites": "NOT_RERUN CE010/CE011/G1/G2/CE27/Core23",
+        "connected_source_groups": 10,
+        "mounted_actual_components": "Guide editor EN/RO/FA and actual Page -> handler -> Core executor; controlled transport/authentication/role rows only",
+        "typecheck": "PASS full final successor source, exact Next16.4.1/Zod4.6.6/TS5.9.3 and unchanged ES5 config",
+        "lint": "PASS final successor source, scoped; no suppression/config change",
+        "build": "FAILED unchanged shared layout next/font Google loader.js:122:78 null reading1; no workaround or repeat",
+        "g2_13": "coordinator evidence consumed, NOT_RERUN",
+        "execution_detail": "9 current connected groups passed; additional server descriptor negative1 and affected execute positive1 passed after identity guard. Previous accepted suites NOT_RERUN."
+      },
+      "evidence_hashes": {
+        "controlled.txt": {
+          "bytes": 850,
+          "sha256": "d431fd81b5cf6d4e5897613266f941ad06e73f089075955945ab7a2be6cb229a",
+          "git_blob": "ae4f45021e1f7b78d580f15dbbabafef7dceab85"
+        },
+        "flow-source-final.txt": {
+          "bytes": 1086,
+          "sha256": "2ea157a2952d36a245d8ad6a279cee585bc1783273d2d985cfc7108e7ca1d768",
+          "git_blob": "3fe291bfc5909f57b8981f5d4206447a3215fc8e"
+        },
+        "typecheck-delivery.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        "lint-delivery.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        "build.txt": {
+          "bytes": 1145,
+          "sha256": "c110a3574bb8fcfd0858dd758455cf65941e70f12e165bc77b71f547011de558",
+          "git_blob": "682fb93ef3fba923e5b35de0c11dcb85edfb7a8d"
+        },
+        "descriptor-final.txt": {
+          "bytes": 253,
+          "sha256": "6d52d7e1cc7b44b27889d569b9c99a391f3948561ed1790c1d44ea1258a96399",
+          "git_blob": "a74ceb6aeaaede8bca3f27d1f7c96a614dfffb47"
+        },
+        "execute-final.txt": {
+          "bytes": 284,
+          "sha256": "667ec09ec3469ac9c76a3f198f108b3f34ebe4c696def0a8214d343e2b6d4b24",
+          "git_blob": "04ad4f1dbfa482f71347bb84fc5a3265c376a37f"
+        },
+        "typecheck-successor.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        },
+        "lint-successor.txt": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+        }
+      },
+      "blockers": {
+        "core15": "official FullSHA/ABI not delivered; inspected current Core remote3e9593af25433dcf32042f624731f514d09ec35b is Core14",
+        "development_target": "Platform12 partial infrastructure794f5a12 officially reported elsewhere; CE-local owned domain PG/Auth/lease not reconstructed/admitted; domain schema/roles/currentness binding still HOLD",
+        "creation": "existing positive-version save contract edits an existing Guide; no silent version0/adoption/legacy substitution",
+        "functional_flow": "real create/save/readback/reload/process restart/security/recovery still OPEN"
+      },
+      "preservation": [
+        "CE010/CE011/G1/G2 source",
+        "Core/Docs/Platform owner source from Shared Base unchanged",
+        "previous CE012 schemas/editor/checkpoints/fingerprint/receipt",
+        "package/lock/vendor/config"
+      ],
+      "automation": "نیازمند بررسی",
+      "inventory_seal": "98e15b6fb717ad4350c3df708d4e9e4f974cb3bb5134c09e63ddc835e8fb63cc",
+      "history": {
+        "first_source_checkpoint": {
+          "head": "0b72e40791997c57ce2c08048bcd5a70b36cb3d7",
+          "parent": "ec639884452cc0cb6dfef520339791a5c20e9b39",
+          "source": [
+            {
+              "path": "src/lib/community/experience-guide-save-writer-v1.ts",
+              "bytes": 27453,
+              "sha256": "6bc23cc3403da9970664c8446e0a100f56155306992d70cf8db56ab126eeebfb",
+              "git_blob": "da99f2b6efdec45c8ae514c68ada8e3411ddada1"
+            },
+            {
+              "path": "scripts/test-ce-functional-guide13.mjs",
+              "bytes": 6163,
+              "sha256": "7636c8f6475693fc1b8b8bc8aada8dbe4c0bb4eb95d4a6bbf4ab7e1a9c76fc04",
+              "git_blob": "27743d1ceb4e4df55ac1721ca4458b856a2aec36"
+            },
+            {
+              "path": "docs/contracts/ce-functional-guide-13/README.md",
+              "bytes": 6873,
+              "sha256": "5f3f721dab9b25b22466d56f107e23775631bf2e6954a3f6b500cfb4bb796431",
+              "git_blob": "0c381150b31a4dee176819ff17a5f78f6e8dbf5f"
+            }
+          ],
+          "evidence": {
+            "exact_toolchain": {
+              "next": "16.4.1",
+              "zod": "4.6.6",
+              "typescript": "5.9.3",
+              "method": "isolated npm ci from unchanged Base package/lock/vendor; previous cache untouched"
+            },
+            "affected_controlled_groups": 6,
+            "controlled_result": "PASS",
+            "full_typecheck": "PASS exact toolchain in verification copy",
+            "scoped_lint": "PASS exact toolchain",
+            "syntax_diff": "PASS",
+            "native_auth_db_restart": "NOT_RUN_NOT_PASS",
+            "old_suites": "NOT_RERUN CE010/CE011/G1/G2/CE27/Core23"
+          },
+          "inventory_seal": "53abd65426eecdf14b1b165ab8d28a94093fdc3a0166ce89255c858cf310be4c"
+        }
+      },
+      "native_binding": "NULL_UNCONFIGURED; no official Core15 or Platform12 producer delivered",
+      "creator": "existing create_guide schema recognized; real producer absent ->503/can_create=false, no fake version1 or receipt",
+      "browser_persistence": "in-memory per-scope draft/UNKNOWN retention only; reload/resume proof remains open",
+      "read_projection": "current content_version, private references redacted; only single-step/no-reference manageable drafts editable by current composer",
+      "official_dependencies": {
+        "Core15": "AWAITING official FullSHA/ABI; present Core14 generic host used in source model only",
+        "Platform12": "partial actual infrastructure794f5a12 identity matched; domain schema/roles/Core15 consumer binding and CE-local reconstruction still HOLD",
+        "CorePlatformRoleBoundPoolV1": "existing direct/session_pooler profile, no new role/grant/owner selected"
+      },
+      "no_prohibited_backend_actions": true,
+      "latest_platform12": {
+        "head": "794f5a12c3928ae0a3585ab679a3cbe60aab49a3",
+        "report": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-6602456960",
+        "manifest_path": "docs/testing/functional-dev-stack-12.manifest.json",
+        "manifest_bytes": 8797,
+        "manifest_sha256": "d8946081bfa3542c8bbb88229bc1bc3c8a3e827e48a9cb7143cb935c8eae543f",
+        "identity": "MATCH_FROM_OFFICIAL_GIT_OBJECT",
+        "state": "PARTIAL_SAME_ENV_INFRA_ONLY; canonical domain schema/roles/consumer binding HOLD",
+        "consumer_environment": "NOT_RECONSTRUCTED_OR_ADMITTED_IN_CE",
+        "versions": {
+          "postgres": "17.11",
+          "GoTrue": "2.197.0",
+          "PostgREST": "16.4",
+          "Storage": "1.82.1"
+        },
+        "auth": "real AAL1 only reported by Platform; no fake AAL2 or cross-Seat secret transfer"
+      }
+    }
+  },
+  "native_binding": "NULL_UNCONFIGURED; no official Core15 or Platform12 producer delivered",
+  "creator": "existing create_guide schema recognized; real producer absent ->503/can_create=false, no fake version1 or receipt",
+  "browser_persistence": "in-memory per-scope draft/UNKNOWN retention only; reload/resume proof remains open",
+  "read_projection": "current content_version, private references redacted; only single-step/no-reference manageable drafts editable by current composer",
+  "official_dependencies": {
+    "Core15": "AWAITING official FullSHA/ABI; present Core14 generic host used in source model only",
+    "Platform12": "partial actual infrastructure794f5a12 identity matched; domain schema/roles/Core15 consumer binding and CE-local reconstruction still HOLD",
+    "CorePlatformRoleBoundPoolV1": "existing direct/session_pooler profile, no new role/grant/owner selected"
+  },
+  "no_prohibited_backend_actions": true,
+  "latest_platform12": {
+    "head": "794f5a12c3928ae0a3585ab679a3cbe60aab49a3",
+    "report": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-6602456960",
+    "manifest_path": "docs/testing/functional-dev-stack-12.manifest.json",
+    "manifest_bytes": 8797,
+    "manifest_sha256": "d8946081bfa3542c8bbb88229bc1bc3c8a3e827e48a9cb7143cb935c8eae543f",
+    "identity": "MATCH_FROM_OFFICIAL_GIT_OBJECT",
+    "state": "PARTIAL_SAME_ENV_INFRA_ONLY; canonical domain schema/roles/consumer binding HOLD",
+    "consumer_environment": "NOT_RECONSTRUCTED_OR_ADMITTED_IN_CE",
+    "versions": {
+      "postgres": "17.11",
+      "GoTrue": "2.197.0",
+      "PostgREST": "16.4",
+      "Storage": "1.82.1"
+    },
+    "auth": "real AAL1 only reported by Platform; no fake AAL2 or cross-Seat secret transfer"
+  },
+  "finding_response": {
+    "id": "CE13-READ-CUTOVER-01",
+    "before": "Page unconditional draft GET ->503 hides accepted Guide",
+    "after": "server-selected reader before execution; default accepted GET; editor only configured successful strict response plus current can_edit",
+    "denial": "no HTTP status based fallback, no legacy write fallback",
+    "reference_resolution": "existing separately-authorized operation preserved",
+    "native_admission": "OPEN; default role_bound_pool=null"
+  }
+}
