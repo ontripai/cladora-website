@@ -25,10 +25,11 @@ assert.equal(sha256('src/lib/customer/documents-reference-tx-selector-v1.ts'),
   'dd0834afe07bb61f7d00e43ace31e73faa9b9e6754a5f4e6a281bb0104ebfcca');
 assert.equal(sha256('src/lib/core/transaction-replay-provider-hook-v1.ts'),
   'eb20fa622ba10b9cde6ea8d4d64f1ad9f9eea93f7fba354d03f6959156487dd4');
-// Reviewed Core14 successor 3e9593af25433dcf32042f624731f514d09ec35b.
+// Core15 session checkpoint a0a37f3c573558d14be2e62ba27e6e5475b9c4fe
+// supersedes Core14 3e9593af25433dcf32042f624731f514d09ec35b (cc0d8eb09dde1fae9c736820a66c984cc0a7bd66c1de29f8996496b7f7f74cb8).
 // Historical host pin: 5ae0d49cde0850c3d8b2c55bc2398d685e1c833d2e9a9e176ee8eab8d1cdce06.
 assert.equal(sha256('src/lib/core/postgres-transaction-host-v1.ts'),
-  'cc0d8eb09dde1fae9c736820a66c984cc0a7bd66c1de29f8996496b7f7f74cb8');
+  '9436c082f8ce8a054d8300f55bd49ac4b6120240cf06fa6ca94190b5c6c1858a');
 
 assert.match(migration, /before insert on documents\.upload_intents/i);
 assert.match(migration, /before update of status,consumed_at on documents\.upload_intents/i);
