@@ -15,14 +15,20 @@ assert.equal(sha256('supabase/migrations/20261013063739_document_reference_exact
   '988a8ddea361421cf6d75700ac3b0332c59ef0e10862201d2c2da0db48f91c51');
 assert.equal(sha256('supabase/migrations/20261014083050_document_workspace_binding_writer_v1.sql'),
   '1e7b64b5e623b9ca9f3eee43e1b41ac61f9fe9be008d1c59fa90e68d9ed3804d');
+// Reviewed CE012 successor d10d8b9dddee3055a75304cc29f9b16cea68702f adds the
+// historical selector; existing current-only consumers keep their gate.
+// Historical authority pin: 207508432524698b701f5808d4b74ee4c007950d262c238dc7164f734f47b5b5.
 assert.equal(sha256('src/lib/customer/documents-reference-authority-v1.ts'),
-  '207508432524698b701f5808d4b74ee4c007950d262c238dc7164f734f47b5b5');
+  '444c9b2c7b11be04ef6867887ebc77f7a0308414daee33ab41ecbf6eb9870b81');
 assert.equal(sha256('src/lib/customer/documents-reference-tx-selector-v1.ts'),
-  '51d80abfd0fda5d005d7c54b734b2bc8e2a168a6d3d87b0e05050146fa7089c7');
+  // Historical selector pin: 51d80abfd0fda5d005d7c54b734b2bc8e2a168a6d3d87b0e05050146fa7089c7.
+  'dd0834afe07bb61f7d00e43ace31e73faa9b9e6754a5f4e6a281bb0104ebfcca');
 assert.equal(sha256('src/lib/core/transaction-replay-provider-hook-v1.ts'),
   'eb20fa622ba10b9cde6ea8d4d64f1ad9f9eea93f7fba354d03f6959156487dd4');
+// Reviewed Core14 successor 3e9593af25433dcf32042f624731f514d09ec35b.
+// Historical host pin: 5ae0d49cde0850c3d8b2c55bc2398d685e1c833d2e9a9e176ee8eab8d1cdce06.
 assert.equal(sha256('src/lib/core/postgres-transaction-host-v1.ts'),
-  '5ae0d49cde0850c3d8b2c55bc2398d685e1c833d2e9a9e176ee8eab8d1cdce06');
+  'cc0d8eb09dde1fae9c736820a66c984cc0a7bd66c1de29f8996496b7f7f74cb8');
 
 assert.match(migration, /before insert on documents\.upload_intents/i);
 assert.match(migration, /before update of status,consumed_at on documents\.upload_intents/i);

@@ -34,6 +34,7 @@ const load = createB2Loader({
   './CustomerAirpropDiligence': { CustomerAirpropDiligence: () => null },
   // Valuation is a sibling consumer; this suite probes B2/opportunity error bodies.
   './CustomerAirpropValuation': { CustomerAirpropValuation: () => null },
+  './CustomerAirpropListings': { CustomerAirpropListings: () => null },
   './CustomerContextProvider': { useCustomerContext: () => ({ active, registerUnsavedGuard }) },
 });
 const { CustomerAirpropWorkspace } = load('src/components/customer/CustomerAirpropWorkspace.tsx');
