@@ -1,0 +1,90 @@
+{
+  "schema": "ce-benefit-handoff-integration-overlay.v1",
+  "historical_inventory": "docs/architecture/references/CLADORA-CE-BENEFIT-PRESENTATION-AND-SERVICE-HANDOFF-05-INVENTORY.json",
+  "historical_inventory_sha256": "88b54b42fc1348020c0f55d46d5a94962ad474b6bf89047f65f0bfe6ef287240",
+  "integrated_source": "1d17c2483eeebf2b0f187fa9ac48ccb9e4757842",
+  "scope": "Exact reviewed owner-source successors; the historical inventory and benefit-scope classifications remain unchanged. Functional domain authority and native acceptance are separate.",
+  "classification": "SOURCE_RECONCILIATION_NOT_NATIVE_ACCEPTANCE",
+  "changes": [
+    {
+      "path": "src/app/[lang]/community-experience/page.tsx",
+      "before_sha256": "c1cbb155f3324cc0adbbc24ecc6032c109f172ffab3f420ff9b41c381a6f67c1",
+      "after_sha256": "d3a2e825561576d5457e4f17293b1055d11346990afa6c43887e97dec32917fc",
+      "after_bytes": 83358,
+      "source_commit": "f0b88ac1d9376c46d08c554f3a6b8d0c5f938982",
+      "source_git_blob": "dc78bc64f460501a0ebfaeffa100b10a590e5e0a"
+    },
+    {
+      "path": "src/components/customer/CustomerCommunityBase.tsx",
+      "before_sha256": "b4a55a3a3eba8db53918b52a0bb890f4fa50bace6984ab93da57c13241075737",
+      "after_sha256": "11df1b836e6e20167d0d36eece50aa9b88da0ad6bc0a702ab2efc0d4df335a2b",
+      "after_bytes": 18315,
+      "source_commit": "1a28c1cb724d24738483801784b8a594b9f6572f",
+      "source_git_blob": "1af99bb789808a3a6b7bb4ff45adfe55b1942270"
+    },
+    {
+      "path": "src/components/customer/CustomerCommunityBasePage.tsx",
+      "before_sha256": "8fb78db10593f808482e0610fbb5d156079109db8253cbd8e3ed5690e3e2241e",
+      "after_sha256": "2db6b57ce6e99fbf9792e6fbf5e20f68b4f026cde150e812a875c41c848f51ce",
+      "after_bytes": 25335,
+      "source_commit": "1a28c1cb724d24738483801784b8a594b9f6572f",
+      "source_git_blob": "55d41e16f12e5e1dec5ae658c25be627abd4cc25"
+    },
+    {
+      "path": "src/components/customer/CustomerEventInterestPage.tsx",
+      "before_sha256": "0bd1499c315df3280c8be02103c8ecd6f699719d94c438132364a640dd554e60",
+      "after_sha256": "e13d40405299885a4141e65e7c5adea9ad479e84075a8f4ce6c71304d493acdd",
+      "after_bytes": 22325,
+      "source_commit": "1a28c1cb724d24738483801784b8a594b9f6572f",
+      "source_git_blob": "10dd029844c4f0562f587667556dbc1acd9e7ed9"
+    },
+    {
+      "path": "src/components/customer/CustomerExperienceGuide.tsx",
+      "before_sha256": "1e828b9ef4cc7070b45f13e1d44cf7cf10aded9c56b1815eb8c65abd59c22744",
+      "after_sha256": "559c0a292b07391a26d0ce44270ec338cea50a3ace484809269c2bf140b2c739",
+      "after_bytes": 10739,
+      "source_commit": "1a28c1cb724d24738483801784b8a594b9f6572f",
+      "source_git_blob": "ef70051aa5b2c47c38a9f81711d4f69ad9f08c25"
+    },
+    {
+      "path": "src/components/customer/CustomerExperienceGuidePage.tsx",
+      "before_sha256": "362eb704d41d6f165c53c35584e9dba7495d892c3ce5ecf7e3dc4aee96dffeed",
+      "after_sha256": "db0b81e32df9099b69ec050051488ba50abd6c175ee72286d394a78b230115df",
+      "after_bytes": 10115,
+      "source_commit": "1a28c1cb724d24738483801784b8a594b9f6572f",
+      "source_git_blob": "246edffa41679f2c2a537a027bf209fc3b630a0a"
+    },
+    {
+      "path": "src/lib/community/experience-guide-client.ts",
+      "before_sha256": "a4c1a1c36c1676b9a68dbc68df4351ecfd5f29780c15e0369c55d4d60dbabfcc",
+      "after_sha256": "cdca7fe2c8cd058ebbe76b65879240263bb6738f2e0e01822ec6b9f9c8e3531d",
+      "after_bytes": 2348,
+      "source_commit": "1a28c1cb724d24738483801784b8a594b9f6572f",
+      "source_git_blob": "eb3465f556a84ff27a39b07ed12b207985fcf333"
+    },
+    {
+      "path": "src/components/customer/CustomerServiceCatalog.tsx",
+      "before_sha256": "4c49be39ead51d554d4fbde6fc39f713fac2bbc87b95748f863ce6fcf7910efc",
+      "after_sha256": "dbdc5b9f54ab2af5cd076d1b2a88b1164dd9f1c2f76659131f23a3676abee32a",
+      "after_bytes": 14479,
+      "source_commit": "ca547a7dfc49f125652f9405f9255b2ba5d5479d",
+      "source_git_blob": "7b836a6dc800f4129ec2519b21257d1787d97537"
+    },
+    {
+      "path": "src/components/customer/CustomerServiceRequests.tsx",
+      "before_sha256": "8cfb6baf8fca620b19491519e3adfefd2275f3bf1f475e8f525666a06ea9516d",
+      "after_sha256": "84bfe5237c2ab138d359b94bdede9f9b76763781c24a3b4e069d88a00154bb6a",
+      "after_bytes": 21975,
+      "source_commit": "ca547a7dfc49f125652f9405f9255b2ba5d5479d",
+      "source_git_blob": "00100a5fcf9f5169324116638713c37bc6d4ff72"
+    },
+    {
+      "path": "src/app/[lang]/layout.tsx",
+      "before_sha256": "aa6a13cc0ba7b0faf51e732ff8937ebd64d0e542fa723f526cfb95943a6c2ee0",
+      "after_sha256": "3ec3abd1bbd39e1780044c53ff7f5f15c9e7f0df7702d3d091c1ae5bc338118a",
+      "after_bytes": 8133,
+      "source_commit": "41b5179939973adfcd18ea3546082faa98c7bdc5",
+      "source_git_blob": "84d53512ea23531bd377f27faa06b2b2fcfa3f6c"
+    }
+  ]
+}

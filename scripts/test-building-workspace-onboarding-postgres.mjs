@@ -7,6 +7,9 @@ const proofSqlstates=new Set(['42501','23505','40001','55006','08006','57P01']);
 const failureCategories=new Set(['sql-error','assertion-failed','operation-failed']);
 const cleanupStages=new Set(['rollback','client-end','source-end','owned-database','admin-end']);
 const failureDetail='proof or cleanup failed; sensitive output withheld';
+const proofCheckpoints=new Set(['source-lease','source-quiescence','concurrent-create','create-count',
+ 'payload-collision','collision-zero-write','revision-race','revision-state','revision-audit',
+ 'exact-replay','successor','superseded-replay','foreign-denial','revoke-denial','revoke-zero-write']);
 
 function sanitizedOutcome(error){
  const sqlstate=proofSqlstates.has(error?.code)?error.code:null;
@@ -35,7 +38,8 @@ export function parseProofFailureRecord(value){
  const outcome=value=>keys(value,['category','sqlstate'])&&failureCategories.has(value.category)&&code(value.sqlstate)
   &&(value.category==='sql-error')===(value.sqlstate!==null);
  const legacy=keys(value,['suite','result','sqlstate','detail']);
- if(!legacy&&!keys(value,['suite','result','sqlstate','detail','primary','cleanup']))return null;
+ const checkpointed=keys(value,['suite','result','sqlstate','detail','primary','cleanup','checkpoint'])&&proofCheckpoints.has(value.checkpoint);
+ if(!legacy&&!checkpointed&&!keys(value,['suite','result','sqlstate','detail','primary','cleanup']))return null;
  if(value.suite!=='building-setup-postgres'||value.result!=='FAIL'||value.detail!==failureDetail||!code(value.sqlstate))return null;
  const record={suite:'building-setup-postgres',result:'FAIL',sqlstate:value.sqlstate,detail:failureDetail};
  if(legacy)return record;
@@ -47,7 +51,7 @@ export function parseProofFailureRecord(value){
  if(value.primary===null&&value.cleanup.length===0)return null;
  const expectedCode=value.primary?.sqlstate??value.cleanup.find(item=>item.sqlstate)?.sqlstate??null;
  if(value.sqlstate!==expectedCode)return null;
- return {...record,primary:value.primary===null?null:{category:value.primary.category,sqlstate:value.primary.sqlstate},
+ return {...record,...(checkpointed?{checkpoint:value.checkpoint}:{}),primary:value.primary===null?null:{category:value.primary.category,sqlstate:value.primary.sqlstate},
   cleanup:value.cleanup.map(item=>({stage:item.stage,category:item.category,sqlstate:item.sqlstate}))};
 }
 
@@ -114,7 +118,7 @@ export async function runPostgresProof({commandProof='legacy',sessionId=null}={}
 // A TEMPLATE source must have NO connected clients, including this runner.
 // Read its lease on a short-lived connection; create/drop from maintenance DB.
 const owned=`cladora_setup_proof_${randomUUID().replaceAll('-','')}`,admin=new pg.Client({connectionString:new URL('/postgres',url).href}),clients=[];
-let created=false,checks=0,receipt,inspector;
+let created=false,checks=0,receipt,inspector,checkpoint='source-lease';
 const payload={association:{name:'Synthetic concurrent proof'},building:{name:'Synthetic block',code:'B223',floors:1},currency:'RON',period_start:'2026-01-01',period_end:'2026-01-31',units:[{code:'U1',floor:0,area_m2:50}],opening_balances:[]};
 const creationKey=`proof-${randomUUID()}`;
 async function call(name,args,actor=fixture.actor){
@@ -138,47 +142,50 @@ return withProofCleanup(async()=>{
  const source=new pg.Client({connectionString:url});
  await withProofCleanup(async()=>{await source.connect();assert.equal((await source.query("select current_setting('cladora.synthetic_setup_lease',true) lease")).rows[0].lease,lease,'source fixture lease must match before clone');},
   [{stage:'source-end',run:()=>source.end()}]);
- assert.equal((await admin.query('select count(*)::integer n from pg_stat_activity where datname=$1',[target.pathname.slice(1)])).rows[0].n,0,'source fixture has no active sessions; never terminate another connection');
+ checkpoint='source-quiescence';assert.equal((await admin.query('select count(*)::integer n from pg_stat_activity where datname=$1',[target.pathname.slice(1)])).rows[0].n,0,'source fixture has no active sessions; never terminate another connection');
  // Names derive only from validated source DB and task-owned random identifier.
  await admin.query(`create database "${owned}" template "${target.pathname.slice(1)}"`);created=true;
  inspector=new pg.Client({connectionString:new URL(`/${owned}`,url).href});await inspector.connect();
  const args=[fixture.context,fixture.workspace,creationKey,JSON.stringify(payload)];
- const creation=await Promise.allSettled([call('create_building_setup_v2',args),call('create_building_setup_v2',args)]);
+ checkpoint='concurrent-create';const creation=await Promise.allSettled([call('create_building_setup_v2',args),call('create_building_setup_v2',args)]);
  assert.equal(creation.filter(r=>r.status==='fulfilled').length,2,'both creation sessions complete');
  const both=creation.map(r=>r.value);assert.deepEqual(both[0],both[1]);checks++;
- assert.equal((await inspector.query('select count(*)::integer n from platform.building_setup_runs where idempotency_key=$1',[creationKey])).rows[0].n,1);checks++;
+ checkpoint='create-count';assert.equal((await inspector.query('select count(*)::integer n from platform.building_setup_runs where idempotency_key=$1',[creationKey])).rows[0].n,1);checks++;
  const run=both[0].run_id,key=(rev,suffix)=>`setup-${run}-r${rev}-${suffix}`;
  const changed={...payload,building:{...payload.building,name:'Different'}};
  let before=await fingerprint();
- await assert.rejects(call('create_building_setup_v2',[fixture.context,fixture.workspace,creationKey,JSON.stringify(changed)]),e=>e.code==='23505');checks++;
- assert.deepEqual(await fingerprint(),before,'payload collision is zero-write across all guarded stores');checks++;
- const race=await Promise.allSettled([call('update_building_setup_units_v2',[fixture.context,fixture.workspace,run,1,key(1,'race-update'),JSON.stringify([{code:'U1',floor:0,area_m2:70}])]),call('rehearse_building_setup_v2',[fixture.context,fixture.workspace,run,1,key(1,'race-rehearse')])]);
+ checkpoint='payload-collision';await assert.rejects(call('create_building_setup_v2',[fixture.context,fixture.workspace,creationKey,JSON.stringify(changed)]),e=>e.code==='23505');checks++;
+ checkpoint='collision-zero-write';assert.deepEqual(await fingerprint(),before,'payload collision is zero-write across all guarded stores');checks++;
+ checkpoint='revision-race';const race=await Promise.allSettled([call('update_building_setup_units_v2',[fixture.context,fixture.workspace,run,1,key(1,'race-update'),JSON.stringify([{code:'U1',floor:0,area_m2:70}])]),call('rehearse_building_setup_v2',[fixture.context,fixture.workspace,run,1,key(1,'race-rehearse')])]);
  assert.equal(race.filter(r=>r.status==='fulfilled').length,1);assert.equal(race.find(r=>r.status==='rejected').reason.code,'40001');checks++;
- assert.equal((await inspector.query('select revision from platform.building_setup_runs where id=$1',[run])).rows[0].revision,2);checks++;
- assert.equal((await inspector.query("select count(*)::integer n from audit.events where entity_type='building_setup_run' and entity_id=$1",[run])).rows[0].n,1);checks++;
+ checkpoint='revision-state';assert.equal((await inspector.query('select revision from platform.building_setup_runs where id=$1',[run])).rows[0].revision,2);checks++;
+ checkpoint='revision-audit';assert.equal((await inspector.query("select count(*)::integer n from audit.events where entity_type='building_setup_run' and entity_id=$1",[run])).rows[0].n,1);checks++;
  const winner=race.find(r=>r.status==='fulfilled').value;
  const replay=winner.operation==='update'?()=>call('update_building_setup_units_v2',[fixture.context,fixture.workspace,run,1,key(1,'race-update'),JSON.stringify([{code:'U1',floor:0,area_m2:70}])]):()=>call('rehearse_building_setup_v2',[fixture.context,fixture.workspace,run,1,key(1,'race-rehearse')]);
- before=await fingerprint();assert.deepEqual(await replay(),winner);checks++;
+ checkpoint='exact-replay';before=await fingerprint();assert.deepEqual(await replay(),winner);checks++;
  assert.deepEqual(await call('create_building_setup_v2',args),both[0]);checks++;
  assert.deepEqual(await fingerprint(),before,'exact receipts return without another data/audit write');checks++;
- const next=winner.operation==='update'?'rehearse_building_setup_v2':'submit_building_setup_v2';await call(next,[fixture.context,fixture.workspace,run,2,key(2,'next')]);
+ checkpoint='successor';const next=winner.operation==='update'?'rehearse_building_setup_v2':'submit_building_setup_v2';await call(next,[fixture.context,fixture.workspace,run,2,key(2,'next')]);
  before=await fingerprint();
- if(commandProof==='g2'){
+ checkpoint='superseded-replay';if(commandProof==='g2'){
   assert.equal((await inspector.query("select count(*)::integer n from platform.building_setup_command_coverage where run_id=$1 and epoch_id='building-g2-pm169-v1' and from_expected_revision=1",[run])).rows[0].n,1,'coverage must come from this creation, never backfill');checks++;
   assert.deepEqual(await replay(),winner,'covered superseded command returns original immutable receipt');checks++;
   assert.deepEqual(await fingerprint(),before,'durable replay after successor is zero-write');checks++;
  } else {await assert.rejects(replay(),e=>e.code==='40001');checks++;}
- await assert.rejects(call('get_building_setup_attempt_v2',[fixture.context,fixture.workspace,creationKey],'c2200000-0000-4000-8000-000000000004'),e=>e.code==='42501');checks++;
+ checkpoint='foreign-denial';await assert.rejects(call('get_building_setup_attempt_v2',[fixture.context,fixture.workspace,creationKey],'c2200000-0000-4000-8000-000000000004'),e=>e.code==='42501');checks++;
  assert.deepEqual(await fingerprint(),before,'superseded receipt and borrowed Context denial are zero-write');checks++;
  // Fixture-only revoke outside the measured denied-call window; never change
  // roles or rewrite an evaluator to manufacture an authorized positive.
  await inspector.query('update identity.context_grants set ends_at=clock_timestamp() where id=$1',[fixture.context]);
- before=await fingerprint();await assert.rejects(call('create_building_setup_v2',args),e=>e.code==='42501');checks++;
- assert.deepEqual(await fingerprint(),before,'a prior creation receipt cannot bypass Context revoke');checks++;
+ checkpoint='revoke-denial';before=await fingerprint();await assert.rejects(call('create_building_setup_v2',args),e=>e.code==='42501');checks++;
+ checkpoint='revoke-zero-write';assert.deepEqual(await fingerprint(),before,'a prior creation receipt cannot bypass Context revoke');checks++;
  receipt={result:'PASS',checks,boundary:'ACTUAL_POSTGRES_ROLE_WITH_FIXTURE_JWT_CLAIMS_NOT_ISSUED_AUTH',concurrent_creation:true,concurrent_revision:true,fingerprinted_tables:tables.length,real_auth_http:'NOT_RUN_NOT_PASS'};
 return {...receipt,owned_database_cleanup:'PASS'};
 },[{stage:'owned-database',run:()=>cleanupOwnedDatabase({admin,name:owned,created,clients:[...clients,...(inspector?[inspector]:[])]})},
- {stage:'admin-end',run:()=>admin.end()}]);
+ {stage:'admin-end',run:()=>admin.end()}]).catch(error=>{
+  if(error instanceof ProofFailure&&proofCheckpoints.has(checkpoint))error.diagnostic.checkpoint=checkpoint;
+  throw error;
+ });
 
 }
 

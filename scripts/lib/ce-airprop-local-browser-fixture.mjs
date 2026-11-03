@@ -153,7 +153,9 @@ export function observeCeRequests(context, origin, emit = () => {}, { bodyMs = 5
   const records = new Map(); const waiters = new Set(); const pending = new Set();
   const cancellation = new AbortController();
   const kind = url => url.pathname === '/api/customer/v2/airprop/opportunities' ? 'opportunity'
-    : url.pathname === '/api/customer/v2/airprop/artifact-b2' ? 'b2' : url.pathname === '/api/customer/v1/workspace/targets' ? 'targets' : 'other_api';
+    : url.pathname === '/api/customer/v2/airprop/artifact-b2' ? 'b2'
+      : url.pathname === '/api/customer/v2/airprop/listings' ? 'listing'
+        : url.pathname === '/api/customer/v1/workspace/targets' ? 'targets' : 'other_api';
   const notify = () => { for (const waiter of waiters) waiter(); };
   const request = req => {
     const url = new URL(req.url());
@@ -205,6 +207,28 @@ export function observeCeRequests(context, origin, emit = () => {}, { bodyMs = 5
         return await read(row);
       } finally { waiters.delete(changed); }
     },
+    async verifyUnavailableListings() {
+      const rows = [...records.values()].filter(row => row.kind === 'listing');
+      let changed;
+      const finished = new Promise(resolve => {
+        changed = () => { if (rows.every(row => row.state !== 'started')) resolve(); };
+        waiters.add(changed); changed();
+      });
+      try {
+        await bounded(() => finished, { ms: 15_000, stage: 'listing_dependency_completion', emit, signal: cancellation.signal });
+        let verified = 0, cancelled = 0;
+        for (const row of rows) {
+          if (row.state === 'cancelled') { cancelled++; continue; }
+          assert.equal(row.state, 'finished', 'failed Listing transport is not a NOT_READY proof');
+          const result = await read(row);
+          assert.equal(result.status, 503);
+          assert.equal(result.body?.error?.code, 'LISTING_SOURCE_NOT_READY');
+          assert.match(row.response.headers()['cache-control'] ?? '', /no-store/);
+          verified++;
+        }
+        return { verified, cancelled };
+      } finally { waiters.delete(changed); }
+    },
     stop() {
       emit({ stage: 'observer_stopped', pending_readers: pending.size, unfinished_requests: [...records.values()].filter(row => row.state === 'started').length });
       cancellation.abort();
@@ -226,7 +250,7 @@ export function observeCeRequests(context, origin, emit = () => {}, { bodyMs = 5
 export async function installCeErrorBodyDrain(context, emit = () => {}) {
   await context.exposeBinding('__ceBodyDrainDiagnostic', (_, event) => {
     if (!['passive_ui_body_drained', 'passive_ui_body_deadline', 'passive_ui_body_cancelled', 'passive_ui_body_failed'].includes(event?.stage)
-        || !['opportunity', 'b2'].includes(event?.endpoint)
+        || !['opportunity', 'b2', 'listing'].includes(event?.endpoint)
         || !Number.isInteger(event?.status) || event.status < 400 || event.status > 599) return;
     emit({ stage: event.stage, endpoint: event.endpoint, status: event.status });
   });
@@ -243,7 +267,8 @@ export async function installCeErrorBodyDrain(context, emit = () => {}) {
         const url = new URL(typeof input === 'string' || input instanceof URL ? input : input.url, location.href);
         const method = String(init?.method ?? input?.method ?? 'GET').toUpperCase();
         const endpoint = url.pathname === '/api/customer/v2/airprop/opportunities' ? 'opportunity'
-          : url.pathname === '/api/customer/v2/airprop/artifact-b2' ? 'b2' : null;
+          : url.pathname === '/api/customer/v2/airprop/artifact-b2' ? 'b2'
+            : url.pathname === '/api/customer/v2/airprop/listings' ? 'listing' : null;
         if (url.origin !== location.origin || method !== 'GET' || !endpoint || response.status < 400
             || !url.searchParams.get('context_id') || !url.searchParams.get('workspace_id')) return response;
         let reader;
