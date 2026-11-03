@@ -93,8 +93,8 @@ export function CustomerContextProvider({ children }: { children: React.ReactNod
       try {
         const response = await fetch('/api/customer/v1/contexts', { cache: 'no-store' });
         if (seq !== contextsSeq.current || cancelled) return;
-        if (response.status === 401) {
-          setError('session_expired');
+        if (response.status === 401 || response.status === 403) {
+          setError(response.status === 401 ? 'session_expired' : 'forbidden');
           setContexts([]);
           setActiveId('');
           activeIdRef.current = '';
