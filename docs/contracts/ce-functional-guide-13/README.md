@@ -114,3 +114,70 @@ Only the isolated Node toolchain setup above. Actual task acceptance remains OPE
 رسمی همان producer/lease/schema؛ ارزش اندازه‌گیری‌نشده؛ طبقه‌بندی مجوز نیست.
 
 Machine-readable exact requirements and current Platform12 identity: `connection-requirements.json`. This is a CE consumer handoff, NOT an official Core15 ABI, install permission or connection credential. No native action was started after reading Platform’s partial report.
+
+
+## CE13-READ-CUTOVER-01 — scoped correction on reviewed3102
+
+The preceding checkpoint is retained as history. Its unconditional Page read at
+`/api/customer/v1/experience/guides/draft` is superseded here: with the default
+`role_bound_pool=null`, that route returns503 while the accepted `/guides` reader
+can return200. The controlled BEFORE counterexample reproduces the hidden Guide;
+it is evidence of the regression, not a PASS or hosted/native observation.
+
+The Page now reads `/guides`. That server route selects the accepted reader
+**before execution** while the official functional server composition is absent.
+With an explicitly configured role-bound pool, the same selector chooses the
+functional reader. Its successful strict envelope carries the server response
+marker `X-Cladora-Guide-Read: functional-v1`; only this response plus the current
+Guide's `can_edit` exposes the existing editor. Plain legacy `can_edit:true` does
+not enable a writer. This marker is composition metadata, never authorization;
+every write still passes the unchanged official server/host checks. The actual
+default composition remains unconfigured, creator remains503/can_create=false.
+
+There is no error-based fallback: configured401/403/503 remains that result. A
+legacy denial never tries the functional reader. A write denial removes read/
+edit admission without any legacy read or write attempt. `reference_id` retains
+its original separately-authorized reference resolver; list cutover does not
+replace that operation. The old reader body and legacy POST are byte-identical
+to3102; this client never calls legacy POST. No weaker authority path is added.
+
+The existing per-scope command sessions retain UNKNOWN and submitted wire across
+explicitly selected read-mode/locale changes. A successful GET never resolves
+UNKNOWN. Explicit retry reuses the exact existing wire/key, not a new command.
+The writer, executor, fingerprints, receipts, schema, Core/Docs and CE010/CE011
+source are unchanged; document-free Guide reading remains independent.
+
+### Targeted evidence and repeatable commands
+
+Use the already admitted exact toolchain, without installation:
+
+```sh
+node scripts/test-ce-guide-read-cutover-01.mjs --toolchain=/path/to/exact-toolchain --before
+node scripts/test-ce-guide-read-cutover-01.mjs --toolchain=/path/to/exact-toolchain
+```
+
+The new harness loads only the fixture setup prefix from the prior connected
+harness; none of its10 groups execute. It loads the actual Page, accepted route,
+functional handler and Core executor, with modeled Auth/pool/RPC transport.
+
+| Targeted group | Observation |
+| --- | --- |
+| Accepted reader200 / writer503 | Before: Guide hidden. After: visible in EN/RO/FA; editor absent |
+| Configured composition | Actual selector/handler and mounted editor save through draft POST; no legacy read/write |
+| Configured401/403/503 | No fallback, no Guide/editor disclosure |
+| Existing reader401/403 | Denial preserved; no second reader |
+| Revoke after accepted configured read | Write denied, Guide/editor hidden; zero commit and no legacy path |
+| UNKNOWN across explicit server-mode/locale changes | Plain read does not clear pending; explicit same-wire replay commits only once |
+
+All six new grouped checks PASS on Next16.4.1/Zod4.6.6; full unchanged-target
+TypeScript5.9.3 and scoped lint PASS. Syntax/diff and old GET-body/POST byte
+identity checks PASS. The16 prior successful controls and unrelated suites were
+NOT_RERUN. The previous unchanged next/font build failure remains recorded above;
+no repeat build or workaround. Native browser, actual Auth/DB, restart/reload
+persistence and Guide creation remain NOT_RUN_NOT_PASS/open. No SQL, install,
+backend connection, grant, activation or deployment was performed.
+
+Automation classification remains «نیازمند بررسی»; read-cutover regression checks
+can inform review, but official Core15 and Platform12 admission remain required
+for authorized native save/readback. This classification creates no execution
+authority.

@@ -39,6 +39,7 @@ export function CustomerExperienceGuidePage({ lang }: { lang: Language }) {
 function GuideWorkspace({lang,contextId,workspaceId,owner,cache,generation}:{lang:Language;contextId:string;workspaceId:string;owner:()=>object|null;cache:GuideScopeCache;generation:object}){
  const fetch=useDashboardFetch(),t=copy[lang];
  const [guides,setGuides]=useState<GuideReadItem[]|null>(null),[selectedId,setSelectedId]=useState('');
+ const [editingReady,setEditingReady]=useState(false);
  const [readOwner,setReadOwner]=useState<object|null>(null);
  const [failure,setFailure]=useState<GuideLoadFailure|null>(null),[attempt,setAttempt]=useState(0);
  const sessions=cache.sessions;
@@ -46,18 +47,20 @@ function GuideWorkspace({lang,contextId,workspaceId,owner,cache,generation}:{lan
  useEffect(()=>{const abort=new AbortController(),epoch=owner();
   const valid=()=>!abort.signal.aborted&&epoch!==null&&owner()===epoch;
   void (async()=>{try{
-   const response=await fetch(`/api/customer/v1/experience/guides/draft?${new URLSearchParams({context_id:contextId,workspace_id:workspaceId})}`,{cache:'no-store',credentials:'same-origin',signal:abort.signal});
+   const response=await fetch(`/api/customer/v1/experience/guides?${new URLSearchParams({context_id:contextId,workspace_id:workspaceId})}`,{cache:'no-store',credentials:'same-origin',signal:abort.signal});
    if(!response.ok)throw Error(classifyGuideResponse(response.status));
-   const body=await response.json();if(body?.contract!=='ce012-functional-guide.v1')throw Error('retry');
-   const parsed=guideReadResponseSchema.parse(body.projection);
+   const body=await response.json();
+   const connected=response.headers.get('X-Cladora-Guide-Read')==='functional-v1';
+   if(connected&&body?.contract!=='ce012-functional-guide.v1')throw Error('retry');
+   const parsed=guideReadResponseSchema.parse(connected?body.projection:body);
    if(parsed.guides.some(g=>g.workspace_id!==workspaceId))throw Error('retry');
-   if(valid()){setReadOwner(epoch);setGuides(parsed.guides);setFailure(null);setSelectedId(id=>parsed.guides.some(g=>g.guide_id===id)?id:parsed.guides[0]?.guide_id??'');}
+   if(valid()){setEditingReady(connected);setReadOwner(epoch);setGuides(parsed.guides);setFailure(null);setSelectedId(id=>parsed.guides.some(g=>g.guide_id===id)?id:parsed.guides[0]?.guide_id??'');}
   }catch(e){if(valid()){setGuides(null);setFailure(e instanceof Error&&['session','denied','not_ready'].includes(e.message)?e.message as GuideLoadFailure:'retry');}}})();
   return()=>abort.abort();
  },[contextId,workspaceId,owner,fetch,attempt]);
  const selected=guides?.find(g=>g.guide_id===selectedId)??null;
  let commands:ReturnType<typeof createCe012GuideHttpCommandsV1>|null=null;
- if(selected?.can_edit){
+ if(editingReady&&selected?.can_edit){
   // Retain unresolved wire across read/locale refresh. A new accepted version gets
   // a separate slot only after success; readback never resolves an UNKNOWN.
   const key=selected.guide_id,slot=sessions.get(key);

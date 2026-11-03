@@ -77,7 +77,8 @@ export function createCe012FunctionalHandlersV1(deps:Ce012FunctionalDependencies
    if(Array.from(url.searchParams.keys()).some(k=>url.searchParams.getAll(k).length!==1))return fail(400,'INVALID_REQUEST');
    const s=await session(request);if(!s)return fail(401,'UNAUTHORIZED');const p=await probe(s,q,true);
    const fresh=await session(request);if(!fresh||fresh.actor_id!==s.actor_id)return fail(401,'UNAUTHORIZED');
-   return json(200,{contract:'ce012-functional-guide.v1',projection:p.data,can_create:false,reference_editing:false});
+   const response=json(200,{contract:'ce012-functional-guide.v1',projection:p.data,can_create:false,reference_editing:false});
+   response.headers.set('X-Cladora-Guide-Read','functional-v1');return response;
   }catch(e){return e instanceof z.ZodError?fail(400,'INVALID_REQUEST'):error(e);}},
   async POST(request:NextRequest){if(!hasTrustedMutationOrigin(request))return fail(403,'BAD_ORIGIN');
    if(!isApplicationJson(request.headers.get('content-type')))return fail(415,'UNSUPPORTED_MEDIA_TYPE');
@@ -111,4 +112,18 @@ export function createCe012FunctionalHandlersV1(deps:Ce012FunctionalDependencies
    }catch(e){if((e as {code?:string})?.code==='CE012_SAVE_UNKNOWN')return json(202,{outcome:'unknown'});
     return e instanceof z.ZodError?fail(400,'INVALID_REQUEST'):error(e);}}
  };
+}
+
+/** Server-selected cutover, never an HTTP-error fallback. The existing reader
+ * remains authoritative until the official server composition is configured.
+ * A configured reader's401/403/503 is returned unchanged. Reference resolution
+ * remains its existing separately-authorized operation; this cutover is list-only.
+ */
+export function createCe012GuideReadCutoverV1(
+ existing:(request:NextRequest)=>Promise<Response>,
+ dependencies:Ce012FunctionalDependenciesV1=ce012FunctionalDependenciesV1,
+):(request:NextRequest)=>Promise<Response>{
+ if(dependencies.role_bound_pool===null)return existing;
+ const configured=createCe012FunctionalHandlersV1(dependencies).GET;
+ return request=>request.nextUrl.searchParams.has('reference_id')?existing(request):configured(request);
 }
