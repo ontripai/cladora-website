@@ -1,0 +1,117 @@
+{
+  "contract": "core15-service-domain-install.v1",
+  "parent": "a0a37f3c573558d14be2e62ba27e6e5475b9c4fe",
+  "required_native": [
+    "Core300 foundation via ordinary installer v3"
+  ],
+  "incidental_native": [
+    "assets already committed; not a Service dependency"
+  ],
+  "excluded_native": {
+    "maintenance": "OC1 rejects extra cladora_rpc_owner helper/table ACL; rolled back; not required for workspace-wide Request",
+    "building": "no Service prerequisite edge"
+  },
+  "scope": "workspace-wide non-reservation resource=null; DW02/Unit not required or enabled",
+  "units": [
+    {
+      "id": "catalog",
+      "path": "supabase/migrations/20261003200211_20261003141918_service_catalog_persistence_v1.sql",
+      "order": 1,
+      "source_sha256": "64090bf0948e7f4b01188df9c81704a5af7a4a24dfbfa7ada3ed9a5ccebb4293",
+      "source_bytes": 21639,
+      "payload_sha256": "c1524e989288523dffe6c47f24634ec87667bcc12e547daf3c9f539d165d9694",
+      "payload_bytes": 24608
+    },
+    {
+      "id": "module-registry",
+      "path": "supabase/migrations/20260917120000_workspace_dynamic_composition.sql",
+      "order": 2,
+      "source_sha256": "5d96ea037185f6a4b302455cd060ff598cac6435d05ce97e89d2e6c9d41189a6",
+      "source_bytes": 64157,
+      "payload_sha256": "79625a1e5f87e3a06c87b48d7fe207e3b3d57ecaf822be2fcd96f84c59b83389",
+      "payload_bytes": 5241
+    },
+    {
+      "id": "request",
+      "path": "supabase/migrations/20261004182557_20261004181358_service_request_persistence_v1.sql",
+      "order": 3,
+      "source_sha256": "dde8935e1568c9def4a0f743fe871ce5c265118a87c00e658d8162a4bb387db6",
+      "source_bytes": 11755,
+      "payload_sha256": "d622dc5e217c0aeaadb34351f1ba3f119aea720dbb2a2f5e7321a14513d6dab5",
+      "payload_bytes": 14724
+    },
+    {
+      "id": "service-v14",
+      "path": "supabase/hosted-service-v14-execution/forward.sql",
+      "order": 4,
+      "source_sha256": "b215663375d29ade089e60a1d84e0459919b21add895d8bd5cb2054372e37737",
+      "source_bytes": 15006,
+      "payload_sha256": "b516333d13ff3e461d3667a056ae6fd0b017e924a5aac133f416730b07622f34",
+      "payload_bytes": 17975
+    },
+    {
+      "id": "subject-validity",
+      "path": "supabase/migrations/20260829005200_customer_occupancy_parties_ownership_lease_registry.sql",
+      "order": 5,
+      "source_sha256": "1b78c4f78f1ee9d5aae4a8d8001d1056a6c97b4d642d26165f754680e9c38b56",
+      "source_bytes": 26722,
+      "payload_sha256": "b138ba7bbb74c90c1b092fbcee4c3d017c91dac5b562a11dce9646b05c060d00",
+      "payload_bytes": 3810
+    },
+    {
+      "id": "request-version",
+      "path": "supabase/migrations/20261013062342_service_request_subject_context_v1.sql",
+      "order": 6,
+      "source_sha256": "c8555ccaacd3964c7667d82bcbe904619fdda697a2e37f44870242c8cbc58e04",
+      "source_bytes": 6001,
+      "payload_sha256": "3840f3b6bb2f36704fe905c6552dd1c8ee852e94cbe84ccbc0dfd51c6b65a97f",
+      "payload_bytes": 8970
+    },
+    {
+      "id": "s01-store",
+      "path": "supabase/install/core-functional-runtime-v1/01-s01-store.sql",
+      "order": 7,
+      "source_sha256": "f7ed99779d1f69d18893392a1c593fe966086cc4adbfa838365a0c35f427ee0e",
+      "source_bytes": 16609,
+      "payload_sha256": "09a467d8379579f8e6ef457d8ee4c96ac6678333fb1ae4c9f058b78fb23aafbe",
+      "payload_bytes": 19592
+    },
+    {
+      "id": "canonical-sqlstate",
+      "path": "supabase/install/core-functional-runtime-v1/03-canonical-sqlstate.sql",
+      "order": 8,
+      "source_sha256": "4a10c4ad0002d0e98e8ccdfe8df8d90ef4772e9f06741548adb866d5de4c1c8e",
+      "source_bytes": 57080,
+      "payload_sha256": "178132a9826dc46d97c0e3351d1823ad7e2df34ed2e1ac5deebc73705540912d",
+      "payload_bytes": 60624
+    },
+    {
+      "id": "session-authority-delegation",
+      "path": "supabase/install/core-functional-runtime-v1/service-native-v3/06-session-authority-delegation.sql",
+      "order": 9,
+      "source_sha256": "8bf60e32e685fd5c8042bb287b2c76a0cc4085950e077d6d4fcebd862ef367d7",
+      "source_bytes": 3862,
+      "payload_sha256": "8bf60e32e685fd5c8042bb287b2c76a0cc4085950e077d6d4fcebd862ef367d7",
+      "payload_bytes": 3862
+    },
+    {
+      "id": "owner-execute-bindings",
+      "path": "supabase/install/core-functional-runtime-v1/service-native-v3/08-owner-execute-bindings.sql",
+      "order": 10,
+      "source_sha256": "22d268ab5c0799666b5545f27296e1d93e743bbd211d9fe280aca995b58d52ca",
+      "source_bytes": 2158,
+      "payload_sha256": "22d268ab5c0799666b5545f27296e1d93e743bbd211d9fe280aca995b58d52ca",
+      "payload_bytes": 2158
+    },
+    {
+      "id": "runtime-access",
+      "path": "supabase/install/core-functional-runtime-v1/service-native-v3/07-runtime-access.sql",
+      "order": 11,
+      "source_sha256": "da89067ca7326cb27b4dea8a751cba47ae3c0c1e4df38ce79967fab57aec3d1c",
+      "source_bytes": 12669,
+      "payload_sha256": "da89067ca7326cb27b4dea8a751cba47ae3c0c1e4df38ce79967fab57aec3d1c",
+      "payload_bytes": 12669
+    }
+  ],
+  "status": "PAYLOAD_GENERATION_ONLY; native execution evidence is separate in service-cut manifest"
+}

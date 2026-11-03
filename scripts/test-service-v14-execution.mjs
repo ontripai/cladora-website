@@ -128,6 +128,7 @@ function scope(sourceOverrides = {}) {
       workspace_id: ids.workspace, tenant_id: id(90), actor_id: ids.actor, attempt: 1,
       async query(text, values) {
         calls.push({ text, values });
+        if(text.includes('pg_catalog.to_jsonb(pg_catalog.clock_timestamp())'))return{rows:[{database_transaction_id:'901',actor_id:ids.actor,workspace_id:ids.workspace,evaluated_at:'2026-10-26T10:00:00.000123+00:00'}],rowCount:1};
         if (text.includes('resolve_service_v14_execution_source_v1')) {
           return { rows: [{ source }], rowCount: 1 };
         }
@@ -142,6 +143,7 @@ function scope(sourceOverrides = {}) {
 
 let passed = 0;
 async function check(name, fn) {
+  if(process.argv.includes('--clock-only')&&!['provider agreement and canonical resource accept only exact current bindings','changed replay current state is rejected','provider and replay evidence use the exact same-scope server clock'].includes(name))return;
   await fn();
   passed += 1;
   process.stdout.write(`PASS ${name}\n`);
@@ -402,6 +404,14 @@ await check('mutation uses the private mapper only after provider acceptance', a
   const mutation = await dispatch.providers.mutate(harness.value, dispatch.command);
   assert.equal(mutation.mutation_id, ids.request);
   assert.equal(harness.calls.at(-1).text.includes('apply_service_v14_execution_v1'), true);
+});
+
+await check('provider and replay evidence use the exact same-scope server clock',async()=>{
+ const dispatch=requestDispatch(),harness=scope(),expected='2026-10-26T10:00:00.000123+00:00';
+ const evidence=await dispatch.providers.validateProviders(harness.value,dispatch.command,authority(dispatch.command));
+ assert.equal(evidence.evaluated_at,expected);
+ const replay=await dispatch.providers.validateReplay(harness.value,dispatch.command,authority(dispatch.command),{receipt_id:ids.receipt,contract_version:'core-transaction-receipt.v2'});
+ assert.equal(replay.evaluated_at,expected);assert.equal(harness.calls.filter(x=>x.text.includes('pg_catalog.to_jsonb(pg_catalog.clock_timestamp())')).length,2);
 });
 
 await check('changed replay current state is rejected', async () => {

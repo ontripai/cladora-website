@@ -12,7 +12,7 @@ export function createCoreServiceFunctionalBindingV1(options:Readonly<{pool:Pool
   core_contract:CORE15_SERVICE_REQUEST_RUNTIME_V1,database_contract:'platform12-service-request-database.v1' as const,
   async bind(request:Request):Promise<ServiceOfferingRequestFlowPortsV1|null>{
    if(request.signal.aborted)return null;
-   const discovery=createCoreFunctionalCommandRuntimeV1({...options,offering:null});
+   const discovery=createCoreFunctionalCommandRuntimeV1({...options,offering:null,request});
    await discovery.verifyServerSession();
    let selected:ServiceOfferingRequestPreflightInputV1|null=null;
    let active:ReturnType<typeof createCoreFunctionalCommandRuntimeV1>|null=null;
@@ -48,7 +48,7 @@ export function createCoreServiceFunctionalBindingV1(options:Readonly<{pool:Pool
       published_revision_id:snapshot.published_revision_id,published_revision_version:snapshot.published_revision_version,
       provider_party_id:snapshot.provider_party_id,provider_agreement_id:snapshot.provider_agreement_id,
       provider_agreement_version:snapshot.provider_agreement_version,requested_service_scope:'service.request.create',permission_code:'services.orders.request'};
-     active=createCoreFunctionalCommandRuntimeV1({...options,offering});return snapshot;
+     active=createCoreFunctionalCommandRuntimeV1({...options,offering,request});return snapshot;
     });},
     resolvePrincipal(input){return scoped(async()=>{const s=same(input),r=runtime();const output=await r.withRequestScope(
      {context_id:s.context_id,workspace_id:s.workspace_id,offering_id:s.offering_id},(_scope,p)=>p.resolvePrincipal(input));lastClock=output.completed_at;return output.value;});},

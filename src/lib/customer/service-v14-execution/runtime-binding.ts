@@ -1,6 +1,7 @@
 import 'server-only';
 import type { ServiceOfferingRequestFlowPortsV1 } from './application-flow';
 import type { ServiceOfferingRequestFlowPortResolverV1 } from './http';
+import { getCore15PrivateServiceDevelopmentBindingV1 } from '../../core/private-service-development-binding-v1';
 
 export const SERVICE_FUNCTIONAL_REQUEST_RUNTIME_CONTRACT_V1 =
   'service-functional-request-runtime.v1' as const;
@@ -20,7 +21,7 @@ export interface ServiceFunctionalRequestRuntimeBindingV1 {
 
 /** Populated only by the accepted Core15 + Platform12 composition package. */
 export const SERVICE_FUNCTIONAL_REQUEST_RUNTIME_BINDING:
-  ServiceFunctionalRequestRuntimeBindingV1 | null = null;
+  ServiceFunctionalRequestRuntimeBindingV1 | null = getCore15PrivateServiceDevelopmentBindingV1();
 
 /**
  * Activation boundary. The application route is intentionally fail-closed until

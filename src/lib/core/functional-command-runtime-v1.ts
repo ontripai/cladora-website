@@ -9,6 +9,7 @@ import type {CoreTransactionScopeV1,CoreTransactionCommandV1} from './postgres-t
 import type {Pool,PoolClient,QueryResultRow} from 'pg';
 import {createClient} from '../supabase/server';
 import {getPublicSupabaseEnv} from '../supabase/env';
+import {createCoreFunctionalRequestAuthV1} from './functional-request-auth-v1';
 import {createCorePostgresTransactionHostV1,CORE_SERVER_REPLAY_EXPIRY_SQL_V1,coreTransactionCommandV1Schema,coreTransactionCommandV2Schema,
  type CoreTransactionHostV1,type CoreTransactionProvidersV1,type CoreTransactionProvidersV2} from './postgres-transaction-host-v1';
 import {CORE_S01_SQL} from './service-s01/provider-agreement-reader-v1';
@@ -35,6 +36,7 @@ const fail=(code:string):never=>{throw new CoreFunctionalRuntimeUnavailableV1(co
 export const CORE_FUNCTIONAL_RUNTIME_SQL=Object.freeze({
  principal:`select pg_backend_pid() as backend_pid,current_user::text as principal,session_user::text as login,current_database() as database_name,
   (select oid::integer from pg_database where datname=current_database()) as database_oid,
+  (select obj_description(oid,'pg_namespace') from pg_namespace where nspname='core_runtime') as backend_marker,
   current_setting('server_version_num')::integer as server_version_num,
   r.rolsuper,r.rolbypassrls,r.rolcreaterole,r.rolcreatedb,r.rolreplication,
   exists(select 1 from pg_auth_members m where m.member=r.oid) as privileged_membership,
@@ -51,16 +53,18 @@ export const CORE_FUNCTIONAL_RUNTIME_SQL=Object.freeze({
  resolve:'select workspace_id::text,tenant_id::text,membership_id::text from app_private.resolve_workspace_native_context_v2($1::uuid,$2::uuid)',
  checkpoint:'select app_private.core_functional_checkpoint_v1($1::uuid,$2::uuid,$3::text,$4::text,$5::bigint)',
 });
-const principalSchema=z.strictObject({backend_pid:z.number().int().positive().safe(),principal:role,login:role,database_name:z.string(),database_oid:z.number().int(),server_version_num:z.number().int(),
+const principalSchema=z.strictObject({backend_pid:z.number().int().positive().safe(),principal:role,login:role,database_name:z.string(),database_oid:z.number().int(),server_version_num:z.number().int(),backend_marker:z.string().nullable().optional(),
  rolsuper:z.literal(false),rolbypassrls:z.literal(false),rolcreaterole:z.literal(false),rolcreatedb:z.literal(false),rolreplication:z.literal(false),privileged_membership:z.literal(false),database_create:z.literal(false),schema_create:z.literal(false),table_owner:z.literal(false)});
 /** Must be constructed by the server from Platform's verified target manifest,
  * never an HTTP payload. No default URL, env-secret discovery, alternate target,
  * service-role client, caller Auth callback or authority provider is accepted.
  */
-export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool;target:CoreFunctionalDevelopmentTargetV1;offering:CoreS01ServiceOfferingBindingV1|null}>){
+export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool;target:CoreFunctionalDevelopmentTargetV1;offering:CoreS01ServiceOfferingBindingV1|null;request?:Request}>){
  const producers=createCoreFunctionalProducersV1(options.offering);
  const target=Object.freeze(coreFunctionalDevelopmentTargetV1Schema.parse(options.target));
- if(!/^cladora_dev_[a-z0-9_]+$/.test(target.database_name))fail('DEVELOPMENT_DATABASE_REQUIRED');
+ const platform12=target.database_name==='postgres'&&/^core15-dev:[a-f0-9]{32}$/.test(target.backend_id)
+  &&target.host==='127.0.0.1'&&target.port===55422&&target.auth_origin==='http://127.0.0.1:55421';
+ if(!/^cladora_dev_[a-z0-9_]+$/.test(target.database_name)&&!platform12)fail('DEVELOPMENT_DATABASE_REQUIRED');
  const origin=new URL(target.auth_origin);
  if(!['127.0.0.1','localhost','[::1]'].includes(origin.hostname)||!['http:','https:'].includes(origin.protocol)
    ||origin.username||origin.password||origin.pathname!=='/'||origin.search||origin.hash
@@ -82,7 +86,9 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
  async function authenticate(){
   // Fixed official server Auth client. getClaims alone/user_metadata are not proof.
   if(new URL(getPublicSupabaseEnv().url).origin!==origin.origin)fail('AUTH_TARGET_MISMATCH');
-  const auth=await bounded(createClient(),10000);
+  const auth=await bounded(options.request
+   ?Promise.resolve(createCoreFunctionalRequestAuthV1(options.request,origin.origin,getPublicSupabaseEnv().publishableKey))
+   :createClient(),10000);
   const [user,claimed]=await bounded(Promise.all([auth.auth.getUser(),auth.auth.getClaims()]),10000);
   const verifiedActor=user.data.user?.id;
   if(user.error||claimed.error||!verifiedActor)return fail('AUTHENTICATION_REQUIRED');
@@ -100,6 +106,7 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
     const result=await raw(CORE_FUNCTIONAL_RUNTIME_SQL.principal),who=principalSchema.parse(result.rows[0]);
     if(result.rowCount!==1||who.principal!==target.runtime_role||who.login!==target.runtime_role
       ||who.database_oid!==target.database_oid||who.database_name!==target.database_name
+      ||(platform12&&who.backend_marker!==target.backend_id)
       ||who.server_version_num<170000||who.server_version_num>=180000||(backend!==undefined&&who.backend_pid!==backend))fail('NATIVE_TARGET_MISMATCH');
     backend=who.backend_pid;
    };
