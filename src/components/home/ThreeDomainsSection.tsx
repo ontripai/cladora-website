@@ -63,10 +63,10 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
               </h3>
               <p className="text-xs sm:text-sm text-[#52667A] leading-relaxed">
                 {lang === 'ro'
-                  ? 'Datele clădirii și ale apartamentelor, spațiile fiecărei asociații, dosarele locatarilor, arhiva de documente, calculul clar al cotelor de întreținere și istoricul verificabil al tuturor plăților.'
+                  ? 'Identitatea imobilului și a spațiilor, granițele Workspace, dosarele persoanelor, seiful de documente, jurnalul contabil cu dublă înregistrare, mesageria oficială și pistele de audit securizate.'
                   : lang === 'fa'
-                  ? 'مشخصات ساختمان و واحدها، تفکیک اطلاعات هر مجتمع، پرونده ساکنان، بایگانی اسناد، محاسبه شفاف شارژ و تاریخچهٔ مستند و قابل بررسی پرداخت‌ها.'
-                  : 'Building and unit records, dedicated association spaces, resident profiles, document vault, clear fee calculations, and an auditable payment history.'}
+                  ? 'هویت ملک، واحدها و تجهیزات؛ مرزهای Workspace و حدود اختیار اعضا؛ اسناد و نسخه‌ها؛ دفاتر مالی و تسهیم هزینه‌ها؛ مکاتبات رسمی و ثبت امن و ساختاریافته سوابق.'
+                  : 'Property and unit registry, workspace boundaries, document vault, double-entry analytical ledger, official notices, and tamper-evident audit history.'}
               </p>
             </div>
 
@@ -78,7 +78,7 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
                 {lang === 'ro' ? 'Arhivă Documente & Contracte' : lang === 'fa' ? 'بایگانی اسناد و قراردادها' : 'Document & Contract Vault'}
               </span>
               <span className="px-3 py-1.5 rounded-xl bg-white border border-[#CBD5E1]">
-                {lang === 'ro' ? 'Evidență Plăți & Întreținere' : lang === 'fa' ? 'دفاتر هزینه‌ها و شارژ' : 'Fee & Ledger Tracking'}
+                {lang === 'ro' ? 'Contabilitate & Alocări' : lang === 'fa' ? 'دفاتر مالی و تسهیم' : 'Double-entry Ledger'}
               </span>
               <span className="px-3 py-1.5 rounded-xl bg-white border border-[#CBD5E1]">
                 {lang === 'ro' ? 'Istoric Verificabil' : lang === 'fa' ? 'سوابق قابل استناد' : 'Verifiable History'}

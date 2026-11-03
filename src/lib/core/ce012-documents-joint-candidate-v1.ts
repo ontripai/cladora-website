@@ -14,8 +14,7 @@ export interface CoreDocumentsJointOwnerModuleV1 {DOCUMENTS_CE012_TARGET_DISCLOS
 export async function observeCoreDocumentsJointCandidateV1(scope:CoreTransactionScopeV1,input:unknown,binding:CoreCe012TerminalBindingV1){
  // Fixed path, no configurable import/registry. The file is supplied by the
  // separately pinned owner assembly, NOT fabricated/copied into this branch.
- const path='../customer/documents-ce012-target-disclosure-port-v1';
- const owner:CoreDocumentsJointOwnerModuleV1=await import(path);
+ const owner:CoreDocumentsJointOwnerModuleV1=await import('../customer/documents-ce012-target-disclosure-port-v1');
  if(owner.DOCUMENTS_CE012_TARGET_DISCLOSURE_PORT_V1!=='documents-ce012-target-disclosure-port.v1'
    ||typeof owner.createDocumentsCe012TargetDisclosurePortV1!=='function')throw new Error('core_docs_joint_export_unavailable');
  const port=owner.createDocumentsCe012TargetDisclosurePortV1(scope,input);

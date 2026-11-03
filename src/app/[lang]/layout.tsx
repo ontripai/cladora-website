@@ -211,11 +211,15 @@ export default async function LangLayout(
     ],
   };
 
+  const fontVariables = isFa
+    ? `${vazirmatn.variable} ${inter.variable}`
+    : `${inter.variable} ${manrope.variable}`;
+
   return (
     <html 
       lang={locale.code} 
       dir={locale.direction}
-      className="scroll-smooth"
+      className={`${fontVariables} scroll-smooth`}
     >
       <head>
         <script
