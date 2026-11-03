@@ -1,9 +1,15 @@
 # ADR-CLD-052: Real Authenticated Service Product E2E Interface Specification
 
-- **Status:** Accepted / Verified
+- **Status:** PROPOSED_INTERFACE_SPECIFICATION / CONTROLLED_SIMULATION_PASS / HOLD_CONNECTED_BROWSER_E2E
 - **Task ID:** `ANTIGRAVITY-REAL-AUTHENTICATED-SERVICE-08`
+- **Task Verdict:** `CHANGES_REQUESTED_SCOPED_EVIDENCE` (Task remains OPEN)
 - **Package:** `CLADORA-FIRST-SERVICE-PRODUCT-E2E-01`
 - **Owner:** Antigravity
+- **Evidence Qualification:**
+  - **Source Contracts & Static Verification:** PASS
+  - **Controlled JSDOM AppShell/Service Lifecycle Simulation:** PASS
+  - **Connected Browser Playwright E2E against live Core/Platform:** NOT_RUN (Pending consumable delivery of Core15/Platform12)
+  - **Physical Device & WCAG Complete Scan:** NOT_RUN
 - **Domain Boundaries:**
   - **Service Domain Owner:** Service catalog schema, offerings, service request forms, quotes, publications, and `/api/customer/v1/services/*` API endpoints.
   - **Core Domain Owner:** Shared producer, PostgreSQL transaction host, authenticated session runtime, and private development bindings (`src/lib/core/*`).
@@ -16,6 +22,11 @@
 In package `CLADORA-FIRST-SERVICE-PRODUCT-E2E-01`, a test user authenticates with real Auth (not mock, not browser authority injection, not fake responses), selects an authorized Context/Workspace, and navigates via the existing application navigation (`CustomerAppShell`) to the SERVICE catalog and request form (`/app/services`).
 
 This ADR defines and enforces the strict ownership boundaries, interface contracts, lifecycle guarantees, and data isolation requirements across the end-to-end journey.
+
+> [!IMPORTANT]
+> **Evidence Scope Notice:**
+> Source contracts, route classifications, and controlled JSDOM component lifecycle executions (including `CustomerAppShell` dynamic mounting, context switching, 403/401 denial eviction, logout, and late response fencing) have PASSED in test suite `scripts/test-real-authenticated-service-08.mjs`.
+> Live connected browser execution (Playwright against deployed Core/Platform backend) is classified as `NOT_RUN` and will proceed once the integrated Core15 + Platform12 consumable stack is delivered. No product code changes are required for this boundary adjustment.
 
 ---
 
