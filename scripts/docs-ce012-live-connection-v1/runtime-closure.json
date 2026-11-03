@@ -1,0 +1,1478 @@
+{
+  "contract": "documents-ce012-runtime-closure.v1",
+  "source_base": "f3b0a7626de1ffcbbe1b01350a252b92c3e841dc",
+  "offline_inventory_base": "d10d8b9dddee3055a75304cc29f9b16cea68702f",
+  "installation_policy": "catalog-source-lineage-not-global-migration-replay",
+  "migration_metadata": "advisory-only",
+  "functions": [
+    {
+      "signature": "app_private.acquire_ce_guide_role_safety_lease_v1()",
+      "source_kind": "repository",
+      "body_sha256": "c80634f4f74f0df6f80b1fe8840c799bba4d7ab3cc1fff769cc5cbde779dedf5",
+      "source_path": "supabase/migrations/20261015100000_core_platform_role_bound_pool_v1.sql",
+      "source_sha256": "ff944f72f3a5396c57afeeaec0406ec480f859d00ef8736b00c64f14d905e641"
+    },
+    {
+      "signature": "app_private.assert_ce_guide_role_safety_v1()",
+      "source_kind": "repository",
+      "body_sha256": "f5088a69a6bcef0c4e3e95bf3d0885238bd7d5fde7e233542037cc14dec61e9d",
+      "source_path": "supabase/migrations/20261015100000_core_platform_role_bound_pool_v1.sql",
+      "source_sha256": "ff944f72f3a5396c57afeeaec0406ec480f859d00ef8736b00c64f14d905e641"
+    },
+    {
+      "signature": "app_private.bump_canonical_authority_revision_v1()",
+      "source_kind": "repository",
+      "body_sha256": "e81a9e847ba3ab6768a027b7f33689d8f136b3f81fc17e83f1a531ee4f6ad60f",
+      "source_path": "supabase/migrations/20261025214155_building_setup_command_receipts_v1.sql",
+      "source_sha256": "254e17c9e5f21ce4e50786d3325c2cc84759097b16cb53028602d1e8db5e02e3"
+    },
+    {
+      "signature": "app_private.check_direct_effective_permission_v2(uuid,uuid,text,text,text,uuid,uuid)",
+      "source_kind": "repository",
+      "body_sha256": "9b7457df9b1cd47d9aa43b70e868c555cce97edfe905c2b2cad9832733b2dbd6",
+      "source_path": "supabase/migrations/20261025214155_building_setup_command_receipts_v1.sql",
+      "source_sha256": "254e17c9e5f21ce4e50786d3325c2cc84759097b16cb53028602d1e8db5e02e3"
+    },
+    {
+      "signature": "app_private.check_effective_permission_v2(uuid,text,text,text,uuid,uuid)",
+      "source_kind": "repository",
+      "body_sha256": "8f00424daca0ede92c652b5137a498b19797db611cb0b20054413041869d57c9",
+      "source_path": "supabase/migrations/20261025214155_building_setup_command_receipts_v1.sql",
+      "source_sha256": "254e17c9e5f21ce4e50786d3325c2cc84759097b16cb53028602d1e8db5e02e3"
+    },
+    {
+      "signature": "app_private.check_workspace_native_permission_v2(uuid,uuid,text,text)",
+      "source_kind": "repository",
+      "body_sha256": "ad512bd9cf2bf231a9332623d3d7b1d5cc318ecc3efd582faec60c3ebe4a0e95",
+      "source_path": "supabase/migrations/20261025214155_building_setup_command_receipts_v1.sql",
+      "source_sha256": "254e17c9e5f21ce4e50786d3325c2cc84759097b16cb53028602d1e8db5e02e3"
+    },
+    {
+      "signature": "app_private.core_platform_ce_guide_document_allowed_v1(uuid,uuid)",
+      "source_kind": "repository",
+      "body_sha256": "26e677deff493dd630824176aa15a6e573acd49c8b36e026e2c0bdbc5f7d1a3d",
+      "source_path": "supabase/migrations/20261015100000_core_platform_role_bound_pool_v1.sql",
+      "source_sha256": "ff944f72f3a5396c57afeeaec0406ec480f859d00ef8736b00c64f14d905e641"
+    },
+    {
+      "signature": "app_private.core_platform_ce_guide_identity_allowed_v1(text,uuid,uuid)",
+      "source_kind": "repository",
+      "body_sha256": "bade25d98150d2f77fead861b24c7071101d733a6ba9afe921c85e124f9ffc55",
+      "source_path": "supabase/migrations/20261015100000_core_platform_role_bound_pool_v1.sql",
+      "source_sha256": "ff944f72f3a5396c57afeeaec0406ec480f859d00ef8736b00c64f14d905e641"
+    },
+    {
+      "signature": "app_private.core_platform_ce_guide_ledger_allowed_v1(uuid,uuid,text,uuid)",
+      "source_kind": "repository",
+      "body_sha256": "8a1a1333a8991525d1bf05a1927d888393cd40687fed49185a1faf108455bb32",
+      "source_path": "supabase/migrations/20261015100000_core_platform_role_bound_pool_v1.sql",
+      "source_sha256": "ff944f72f3a5396c57afeeaec0406ec480f859d00ef8736b00c64f14d905e641"
+    },
+    {
+      "signature": "app_private.core_platform_ce_guide_role_safety_valid_v1()",
+      "source_kind": "repository",
+      "body_sha256": "7070b2c0acdd2b01a70e3a7ea19f85cb8bbf31f28564c89f75b453fffe6eef07",
+      "source_path": "supabase/migrations/20261015100000_core_platform_role_bound_pool_v1.sql",
+      "source_sha256": "ff944f72f3a5396c57afeeaec0406ec480f859d00ef8736b00c64f14d905e641"
+    },
+    {
+      "signature": "app_private.core_platform_ce_guide_scope_allowed_v1(uuid,uuid,text,text)",
+      "source_kind": "repository",
+      "body_sha256": "a7a0b524ac570cdf8b7798e4506c0ba7d35d196b53682e87c874966c92bb2f86",
+      "source_path": "supabase/migrations/20261015100000_core_platform_role_bound_pool_v1.sql",
+      "source_sha256": "ff944f72f3a5396c57afeeaec0406ec480f859d00ef8736b00c64f14d905e641"
+    },
+    {
+      "signature": "app_private.customer_mfa_required()",
+      "source_kind": "repository",
+      "body_sha256": "e36b759f7da693b6b7a534b6e1603918d2990b5efceef3ed91224e8c373c839f",
+      "source_path": "supabase/migrations/20261025214155_building_setup_command_receipts_v1.sql",
+      "source_sha256": "254e17c9e5f21ce4e50786d3325c2cc84759097b16cb53028602d1e8db5e02e3"
+    },
+    {
+      "signature": "app_private.guard_authority_revision_v1()",
+      "source_kind": "repository",
+      "body_sha256": "8cd211b50e7c7280bc76ca44c637bbb3294a2f8be85e019e74a6796a630c5140",
+      "source_path": "supabase/migrations/20261025214155_building_setup_command_receipts_v1.sql",
+      "source_sha256": "254e17c9e5f21ce4e50786d3325c2cc84759097b16cb53028602d1e8db5e02e3"
+    },
+    {
+      "signature": "app_private.native_workspace_scope_for_membership_v2(uuid,uuid,uuid)",
+      "source_kind": "repository",
+      "body_sha256": "e03bd53c4b28eb540fd42ed08ccabb8793f48b18cfbfff198f6bb60bf8b6e238",
+      "source_path": "supabase/migrations/20261025214155_building_setup_command_receipts_v1.sql",
+      "source_sha256": "254e17c9e5f21ce4e50786d3325c2cc84759097b16cb53028602d1e8db5e02e3"
+    },
+    {
+      "signature": "app_private.resolve_workspace_from_customer_context_v1(uuid,boolean)",
+      "source_kind": "repository",
+      "body_sha256": "cedb3d8afe2432fb01397a5c041042010e9a59605b18760f737e4f94e4de6adb",
+      "source_path": "supabase/migrations/20261025214155_building_setup_command_receipts_v1.sql",
+      "source_sha256": "254e17c9e5f21ce4e50786d3325c2cc84759097b16cb53028602d1e8db5e02e3"
+    },
+    {
+      "signature": "app_private.resolve_workspace_native_context_v2(uuid,uuid)",
+      "source_kind": "repository",
+      "body_sha256": "9aa35ef5341aac517c394f69e6fb0cdbe5249583c8034b6ba2ac3495390b2536",
+      "source_path": "supabase/migrations/20261025214155_building_setup_command_receipts_v1.sql",
+      "source_sha256": "254e17c9e5f21ce4e50786d3325c2cc84759097b16cb53028602d1e8db5e02e3"
+    },
+    {
+      "signature": "app_private.workspace_context_covers_role_scope_v1(uuid,uuid,text,uuid)",
+      "source_kind": "repository",
+      "body_sha256": "f0928f38cb5d10127d103c95938c4ebfbbaf5b2ffe3a390afa4865b57cd23e10",
+      "source_path": "supabase/migrations/20261025214155_building_setup_command_receipts_v1.sql",
+      "source_sha256": "254e17c9e5f21ce4e50786d3325c2cc84759097b16cb53028602d1e8db5e02e3"
+    },
+    {
+      "signature": "app_private.workspace_member_role_authority_active_v1(uuid,uuid,uuid,text,uuid,uuid[])",
+      "source_kind": "repository",
+      "body_sha256": "8cdc0a8b98478147a11db0da64ecb6656feacf5a0c1cf7709433a36735f3257b",
+      "source_path": "supabase/migrations/20261025214155_building_setup_command_receipts_v1.sql",
+      "source_sha256": "254e17c9e5f21ce4e50786d3325c2cc84759097b16cb53028602d1e8db5e02e3"
+    },
+    {
+      "signature": "app_private.workspace_role_identity_source_current_v1(uuid,uuid,uuid,uuid,uuid,uuid,uuid,text,uuid)",
+      "source_kind": "repository",
+      "body_sha256": "58c63fb293ae7354f69bddb6f0dac572a0d2913281ca96634d093e2d84dd85e4",
+      "source_path": "supabase/migrations/20261025214155_building_setup_command_receipts_v1.sql",
+      "source_sha256": "254e17c9e5f21ce4e50786d3325c2cc84759097b16cb53028602d1e8db5e02e3"
+    },
+    {
+      "signature": "app_private.workspace_role_scope_contains_v1(text,uuid,uuid,uuid,text,uuid,uuid,uuid)",
+      "source_kind": "repository",
+      "body_sha256": "ebd3ac9d0052b960b6e0257ea4f423c3461441bd2f29671fd0df61f09e0eb125",
+      "source_path": "supabase/migrations/20261025214155_building_setup_command_receipts_v1.sql",
+      "source_sha256": "254e17c9e5f21ce4e50786d3325c2cc84759097b16cb53028602d1e8db5e02e3"
+    },
+    {
+      "signature": "app_private.workspace_role_scope_overlaps_v1(text,uuid,uuid,uuid,text,uuid,uuid,uuid)",
+      "source_kind": "repository",
+      "body_sha256": "1a92d34a89f3885dcbf7e48f1101807efbb679441ef378b2067b94fc3b7a83ca",
+      "source_path": "supabase/migrations/20261025214155_building_setup_command_receipts_v1.sql",
+      "source_sha256": "254e17c9e5f21ce4e50786d3325c2cc84759097b16cb53028602d1e8db5e02e3"
+    },
+    {
+      "signature": "auth.jwt()",
+      "source_kind": "supabase_managed",
+      "body_sha256": null,
+      "source_path": null,
+      "source_sha256": null
+    },
+    {
+      "signature": "auth.uid()",
+      "source_kind": "supabase_managed",
+      "body_sha256": null,
+      "source_path": null,
+      "source_sha256": null
+    },
+    {
+      "signature": "communications.context_covers_unit(uuid,uuid)",
+      "source_kind": "repository",
+      "body_sha256": "3dada973eab7a8337e958b72f7ad14235580a60314e6e147d63a1d9f6eb2af83",
+      "source_path": "supabase/migrations/20260927211151_role_scoped_conversations_core.sql",
+      "source_sha256": "4693937718a07c2d71571229e4e415be8fcaa124f5d322b1376f0975a228fb80"
+    },
+    {
+      "signature": "communications.context_membership(uuid)",
+      "source_kind": "repository",
+      "body_sha256": "ac3597db5658732b258f157058fba5fc0586c640c844666bfb50ef680245462a",
+      "source_path": "supabase/migrations/20260927211151_role_scoped_conversations_core.sql",
+      "source_sha256": "4693937718a07c2d71571229e4e415be8fcaa124f5d322b1376f0975a228fb80"
+    },
+    {
+      "signature": "communications.member_covers_unit(uuid,uuid,uuid)",
+      "source_kind": "repository",
+      "body_sha256": "cd8e0b93fde5af0b5a854ae528a74afdf1fe508c1a590365b49cb0eb9611d65f",
+      "source_path": "supabase/migrations/20261015100000_core_platform_role_bound_pool_v1.sql",
+      "source_sha256": "ff944f72f3a5396c57afeeaec0406ec480f859d00ef8736b00c64f14d905e641"
+    },
+    {
+      "signature": "documents.customer_document_scope_matches(text,uuid,uuid,uuid,uuid)",
+      "source_kind": "repository",
+      "body_sha256": "fc94d6490a7409485d8e16af0f6243da9612adb60fb0ad35727d067d4ce113e2",
+      "source_path": "supabase/migrations/20260829005100_customer_document_vault_secure_evidence.sql",
+      "source_sha256": "d7f41f90b94336bfaae4fea2c6a35be77eb30dd5640fe9c87fbe01f9d7ecaaf1"
+    },
+    {
+      "signature": "documents.protect_document_version()",
+      "source_kind": "repository",
+      "body_sha256": "037fdbd9287371b61bcbbc6fab3191f813ffaae25df3fa542d93d9406ba0b37a",
+      "source_path": "supabase/migrations/20260927211439_document_vault_clamav_attestation.sql",
+      "source_sha256": "ac040ce45f823141e57fbd545de40e4ef0016964844a5595f5dd9d6f08cfc992"
+    },
+    {
+      "signature": "documents.protect_scan_attestation()",
+      "source_kind": "repository",
+      "body_sha256": "80112bfeba18187df73d4e2c836e29badd6196e93cfd187f36b1dca56c87ea64",
+      "source_path": "supabase/migrations/20260927211439_document_vault_clamav_attestation.sql",
+      "source_sha256": "ac040ce45f823141e57fbd545de40e4ef0016964844a5595f5dd9d6f08cfc992"
+    },
+    {
+      "signature": "documents.reject_document_workspace_rebind_v1()",
+      "source_kind": "repository",
+      "body_sha256": "fc22f302cfd5d2761e88b4244110f49e2018c04e14aa92d4b1062c45117da2ca",
+      "source_path": "supabase/migrations/20261014083050_document_workspace_binding_writer_v1.sql",
+      "source_sha256": "1e7b64b5e623b9ca9f3eee43e1b41ac61f9fe9be008d1c59fa90e68d9ed3804d"
+    }
+  ],
+  "relations": [
+    {
+      "name": "app_private.canonical_authority_revision_v1",
+      "columns": [
+        "singleton",
+        "revision"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "app_private.confirmed_auth_user_ids_v1",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "audit.events",
+      "columns": [
+        "id",
+        "tenant_id"
+      ],
+      "purpose": "measurement"
+    },
+    {
+      "name": "auth.sessions",
+      "columns": [
+        "id",
+        "user_id",
+        "not_after"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "auth.users",
+      "columns": [
+        "id",
+        "email_confirmed_at"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "documents.access_events",
+      "columns": [
+        "id",
+        "tenant_id"
+      ],
+      "purpose": "measurement"
+    },
+    {
+      "name": "documents.document_links",
+      "columns": [
+        "id",
+        "tenant_id",
+        "document_id",
+        "entity_type",
+        "entity_id"
+      ],
+      "purpose": "measurement"
+    },
+    {
+      "name": "documents.document_permissions",
+      "columns": [
+        "id",
+        "tenant_id",
+        "document_id",
+        "membership_id",
+        "permission",
+        "valid_from",
+        "valid_until"
+      ],
+      "purpose": "measurement"
+    },
+    {
+      "name": "documents.document_scan_attestations",
+      "columns": [
+        "id",
+        "tenant_id",
+        "version_id",
+        "provider",
+        "verdict",
+        "content_sha256",
+        "scanned_at",
+        "recorded_at"
+      ],
+      "purpose": "measurement"
+    },
+    {
+      "name": "documents.document_versions",
+      "columns": [
+        "id",
+        "tenant_id",
+        "document_id",
+        "version",
+        "scanning_status",
+        "checksum_status",
+        "sha256"
+      ],
+      "purpose": "measurement"
+    },
+    {
+      "name": "documents.documents",
+      "columns": [
+        "id",
+        "tenant_id",
+        "workspace_id",
+        "current_version",
+        "status",
+        "deleted_at",
+        "archived_at",
+        "disposition_status",
+        "property_id",
+        "classification",
+        "document_type"
+      ],
+      "purpose": "measurement"
+    },
+    {
+      "name": "documents.lifecycle_events",
+      "columns": [
+        "id",
+        "tenant_id"
+      ],
+      "purpose": "measurement"
+    },
+    {
+      "name": "documents.upload_intents",
+      "columns": [
+        "id",
+        "tenant_id"
+      ],
+      "purpose": "measurement"
+    },
+    {
+      "name": "experience.guide_references",
+      "columns": [
+        "id",
+        "tenant_id"
+      ],
+      "purpose": "measurement"
+    },
+    {
+      "name": "experience.guide_steps",
+      "columns": [
+        "id",
+        "tenant_id"
+      ],
+      "purpose": "measurement"
+    },
+    {
+      "name": "experience.guides",
+      "columns": [
+        "id",
+        "tenant_id",
+        "workspace_id",
+        "version",
+        "status"
+      ],
+      "purpose": "measurement"
+    },
+    {
+      "name": "identity.context_grants",
+      "columns": [
+        "id",
+        "tenant_id",
+        "membership_id",
+        "scope_type",
+        "property_id",
+        "building_id",
+        "unit_id",
+        "starts_at",
+        "ends_at"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "identity.membership_parties",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "identity.memberships",
+      "columns": [
+        "id",
+        "tenant_id",
+        "user_id",
+        "role_id",
+        "status",
+        "starts_at",
+        "ends_at"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "identity.permissions",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "identity.role_permissions",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "identity.roles",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "maintenance.vendor_contracts",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "maintenance.vendor_portal_memberships",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "maintenance.vendors",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "occupancy.leases",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "platform.customer_workspaces",
+      "columns": [
+        "id",
+        "tenant_id",
+        "archived_at",
+        "lifecycle_status"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "platform.idempotency_keys",
+      "columns": [
+        "tenant_id",
+        "actor_id",
+        "key",
+        "request_hash",
+        "response_ref",
+        "expires_at"
+      ],
+      "purpose": "measurement"
+    },
+    {
+      "name": "platform.jurisdiction_domain_artifact_receipt_evidence",
+      "columns": [
+        "id",
+        "tenant_id"
+      ],
+      "purpose": "measurement"
+    },
+    {
+      "name": "platform.module_definitions",
+      "columns": [
+        "id",
+        "code",
+        "entitlement_key",
+        "is_active",
+        "lifecycle_status",
+        "valid_from",
+        "valid_to"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "platform.module_operating_model_compatibilities",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "platform.module_permission_bindings",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "platform.module_property_profile_compatibilities",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "platform.operating_models",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "platform.outbox_events",
+      "columns": [
+        "id",
+        "tenant_id"
+      ],
+      "purpose": "measurement"
+    },
+    {
+      "name": "platform.platform_customer_assignments",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "platform.platform_role_assignments",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "platform.platform_users",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "platform.property_profiles",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "platform.tenants",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "platform.workspace_delegation_permissions",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "platform.workspace_delegations",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "platform.workspace_entitlements",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "platform.workspace_member_role_authority_sources",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "platform.workspace_member_roles",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "platform.workspace_modules",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "platform.workspace_property_bindings",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "platform.workspace_role_modules",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "platform.workspace_role_permissions",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "platform.workspace_roles",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "platform.workspace_taxonomy_assignments",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "portfolio.buildings",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "portfolio.ownerships",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "portfolio.parties",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "portfolio.properties",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    },
+    {
+      "name": "portfolio.units",
+      "columns": [
+        "id"
+      ],
+      "purpose": "authority_visibility_or_session"
+    }
+  ],
+  "sequences": [
+    "audit.events_id_seq"
+  ],
+  "roles": [
+    "cladora_ce_guide_runtime",
+    "cladora_ce_guide_executor",
+    "cladora_rpc_owner",
+    "supabase_auth_admin",
+    "anon",
+    "authenticated",
+    "service_role"
+  ],
+  "required_role_edges": [
+    {
+      "role": "cladora_ce_guide_executor",
+      "member": "cladora_ce_guide_runtime",
+      "admin": false,
+      "inherit": false,
+      "set": true
+    }
+  ],
+  "required_triggers": [
+    {
+      "table": "documents.documents",
+      "name": "document_workspace_binding_immutable_v1",
+      "function": "documents.reject_document_workspace_rebind_v1()",
+      "enabled_modes": [
+        "O",
+        "A"
+      ]
+    },
+    {
+      "table": "documents.document_versions",
+      "name": "document_versions_immutable",
+      "function": "documents.protect_document_version()",
+      "enabled_modes": [
+        "O",
+        "A"
+      ]
+    },
+    {
+      "table": "documents.document_scan_attestations",
+      "name": "document_scan_attestation_immutable",
+      "function": "documents.protect_scan_attestation()",
+      "enabled_modes": [
+        "O",
+        "A"
+      ]
+    },
+    {
+      "table": "app_private.canonical_authority_revision_v1",
+      "name": "canonical_authority_revision_guard",
+      "function": "app_private.guard_authority_revision_v1()",
+      "enabled_modes": [
+        "A"
+      ]
+    },
+    {
+      "table": "app_private.canonical_authority_revision_v1",
+      "name": "canonical_authority_revision_truncate_guard",
+      "function": "app_private.guard_authority_revision_v1()",
+      "enabled_modes": [
+        "A"
+      ]
+    },
+    {
+      "table": "identity.context_grants",
+      "name": "canonical_authority_revision_changed",
+      "function": "app_private.bump_canonical_authority_revision_v1()",
+      "enabled_modes": [
+        "A"
+      ]
+    },
+    {
+      "table": "identity.memberships",
+      "name": "canonical_authority_revision_changed",
+      "function": "app_private.bump_canonical_authority_revision_v1()",
+      "enabled_modes": [
+        "A"
+      ]
+    },
+    {
+      "table": "identity.permissions",
+      "name": "canonical_authority_revision_changed",
+      "function": "app_private.bump_canonical_authority_revision_v1()",
+      "enabled_modes": [
+        "A"
+      ]
+    },
+    {
+      "table": "identity.role_permissions",
+      "name": "canonical_authority_revision_changed",
+      "function": "app_private.bump_canonical_authority_revision_v1()",
+      "enabled_modes": [
+        "A"
+      ]
+    },
+    {
+      "table": "identity.roles",
+      "name": "canonical_authority_revision_changed",
+      "function": "app_private.bump_canonical_authority_revision_v1()",
+      "enabled_modes": [
+        "A"
+      ]
+    },
+    {
+      "table": "platform.customer_workspaces",
+      "name": "canonical_authority_revision_changed",
+      "function": "app_private.bump_canonical_authority_revision_v1()",
+      "enabled_modes": [
+        "A"
+      ]
+    },
+    {
+      "table": "platform.module_definitions",
+      "name": "canonical_authority_revision_changed",
+      "function": "app_private.bump_canonical_authority_revision_v1()",
+      "enabled_modes": [
+        "A"
+      ]
+    },
+    {
+      "table": "platform.module_operating_model_compatibilities",
+      "name": "canonical_authority_revision_changed",
+      "function": "app_private.bump_canonical_authority_revision_v1()",
+      "enabled_modes": [
+        "A"
+      ]
+    },
+    {
+      "table": "platform.module_permission_bindings",
+      "name": "canonical_authority_revision_changed",
+      "function": "app_private.bump_canonical_authority_revision_v1()",
+      "enabled_modes": [
+        "A"
+      ]
+    },
+    {
+      "table": "platform.module_property_profile_compatibilities",
+      "name": "canonical_authority_revision_changed",
+      "function": "app_private.bump_canonical_authority_revision_v1()",
+      "enabled_modes": [
+        "A"
+      ]
+    },
+    {
+      "table": "platform.operating_models",
+      "name": "canonical_authority_revision_changed",
+      "function": "app_private.bump_canonical_authority_revision_v1()",
+      "enabled_modes": [
+        "A"
+      ]
+    },
+    {
+      "table": "platform.property_profiles",
+      "name": "canonical_authority_revision_changed",
+      "function": "app_private.bump_canonical_authority_revision_v1()",
+      "enabled_modes": [
+        "A"
+      ]
+    },
+    {
+      "table": "platform.workspace_delegation_permissions",
+      "name": "canonical_authority_revision_changed",
+      "function": "app_private.bump_canonical_authority_revision_v1()",
+      "enabled_modes": [
+        "A"
+      ]
+    },
+    {
+      "table": "platform.workspace_delegations",
+      "name": "canonical_authority_revision_changed",
+      "function": "app_private.bump_canonical_authority_revision_v1()",
+      "enabled_modes": [
+        "A"
+      ]
+    },
+    {
+      "table": "platform.workspace_entitlements",
+      "name": "canonical_authority_revision_changed",
+      "function": "app_private.bump_canonical_authority_revision_v1()",
+      "enabled_modes": [
+        "A"
+      ]
+    },
+    {
+      "table": "platform.workspace_member_role_authority_sources",
+      "name": "canonical_authority_revision_changed",
+      "function": "app_private.bump_canonical_authority_revision_v1()",
+      "enabled_modes": [
+        "A"
+      ]
+    },
+    {
+      "table": "platform.workspace_member_roles",
+      "name": "canonical_authority_revision_changed",
+      "function": "app_private.bump_canonical_authority_revision_v1()",
+      "enabled_modes": [
+        "A"
+      ]
+    },
+    {
+      "table": "platform.workspace_modules",
+      "name": "canonical_authority_revision_changed",
+      "function": "app_private.bump_canonical_authority_revision_v1()",
+      "enabled_modes": [
+        "A"
+      ]
+    },
+    {
+      "table": "platform.workspace_property_bindings",
+      "name": "canonical_authority_revision_changed",
+      "function": "app_private.bump_canonical_authority_revision_v1()",
+      "enabled_modes": [
+        "A"
+      ]
+    },
+    {
+      "table": "platform.workspace_role_modules",
+      "name": "canonical_authority_revision_changed",
+      "function": "app_private.bump_canonical_authority_revision_v1()",
+      "enabled_modes": [
+        "A"
+      ]
+    },
+    {
+      "table": "platform.workspace_role_permissions",
+      "name": "canonical_authority_revision_changed",
+      "function": "app_private.bump_canonical_authority_revision_v1()",
+      "enabled_modes": [
+        "A"
+      ]
+    },
+    {
+      "table": "platform.workspace_roles",
+      "name": "canonical_authority_revision_changed",
+      "function": "app_private.bump_canonical_authority_revision_v1()",
+      "enabled_modes": [
+        "A"
+      ]
+    },
+    {
+      "table": "platform.workspace_taxonomy_assignments",
+      "name": "canonical_authority_revision_changed",
+      "function": "app_private.bump_canonical_authority_revision_v1()",
+      "enabled_modes": [
+        "A"
+      ]
+    },
+    {
+      "table": "portfolio.buildings",
+      "name": "canonical_authority_revision_changed",
+      "function": "app_private.bump_canonical_authority_revision_v1()",
+      "enabled_modes": [
+        "A"
+      ]
+    },
+    {
+      "table": "portfolio.units",
+      "name": "canonical_authority_revision_changed",
+      "function": "app_private.bump_canonical_authority_revision_v1()",
+      "enabled_modes": [
+        "A"
+      ]
+    }
+  ],
+  "rls_relations": [
+    "app_private.canonical_authority_revision_v1",
+    "audit.events",
+    "documents.access_events",
+    "documents.document_links",
+    "documents.document_permissions",
+    "documents.document_scan_attestations",
+    "documents.document_versions",
+    "documents.documents",
+    "documents.lifecycle_events",
+    "documents.upload_intents",
+    "experience.guide_references",
+    "experience.guide_steps",
+    "experience.guides",
+    "identity.context_grants",
+    "identity.membership_parties",
+    "identity.memberships",
+    "identity.permissions",
+    "identity.role_permissions",
+    "identity.roles",
+    "maintenance.vendor_contracts",
+    "maintenance.vendor_portal_memberships",
+    "maintenance.vendors",
+    "occupancy.leases",
+    "platform.customer_workspaces",
+    "platform.idempotency_keys",
+    "platform.jurisdiction_domain_artifact_receipt_evidence",
+    "platform.module_definitions",
+    "platform.module_operating_model_compatibilities",
+    "platform.module_permission_bindings",
+    "platform.module_property_profile_compatibilities",
+    "platform.operating_models",
+    "platform.outbox_events",
+    "platform.platform_customer_assignments",
+    "platform.platform_role_assignments",
+    "platform.platform_users",
+    "platform.property_profiles",
+    "platform.tenants",
+    "platform.workspace_delegation_permissions",
+    "platform.workspace_delegations",
+    "platform.workspace_entitlements",
+    "platform.workspace_member_role_authority_sources",
+    "platform.workspace_member_roles",
+    "platform.workspace_modules",
+    "platform.workspace_property_bindings",
+    "platform.workspace_role_modules",
+    "platform.workspace_role_permissions",
+    "platform.workspace_roles",
+    "platform.workspace_taxonomy_assignments",
+    "portfolio.buildings",
+    "portfolio.ownerships",
+    "portfolio.parties",
+    "portfolio.properties",
+    "portfolio.units"
+  ],
+  "source_inputs": [
+    {
+      "path": "supabase/migrations/20260825000100_platform_tenants_settings_outbox.sql",
+      "bytes": 3577,
+      "sha256": "3b319718248d45960d4cf3500a4cd47adf01a18daad5156ed5412e3138fc5c8e"
+    },
+    {
+      "path": "supabase/migrations/20260825000200_identity_roles_memberships_contexts.sql",
+      "bytes": 7477,
+      "sha256": "89d896867abee568267b7c43a34f2df274be896fdd0e93b2e8999e569d13a413"
+    },
+    {
+      "path": "supabase/migrations/20260825000300_portfolio_properties_buildings_units.sql",
+      "bytes": 7862,
+      "sha256": "53e3f36a9656a2a16b686ee8eb830cfae49f6297f14820b5199630db97cf65a4"
+    },
+    {
+      "path": "supabase/migrations/20260825000400_occupancy_parties_leases_access.sql",
+      "bytes": 5995,
+      "sha256": "27a362bbe255aa0a9db32f600ac01017fecf548b992529e1903bb5c1283d00a3"
+    },
+    {
+      "path": "supabase/migrations/20260825001500_maintenance_vendors_procurement_sla.sql",
+      "bytes": 9072,
+      "sha256": "c4cde3bc77df5213ea436855a5f2001182d1d9ce40b04354c1424f971c6e1751"
+    },
+    {
+      "path": "supabase/migrations/20260825001900_documents_vault_legal_records.sql",
+      "bytes": 6872,
+      "sha256": "c5533819e44344d06619f2887c2a24d16fbfa7b9ccd31e6eb87f21dda5a04375"
+    },
+    {
+      "path": "supabase/migrations/20260825002000_migration_hub_audit_hardening.sql",
+      "bytes": 9713,
+      "sha256": "fb6a645266bfc0520315c39dc120252363fe78b8fd0316307b55bcfb1093a86b"
+    },
+    {
+      "path": "supabase/migrations/20260825002200_platform_control_plane_users_roles.sql",
+      "bytes": 5340,
+      "sha256": "4577d2f267f2baf4a89ad2c474c0ce8f0bb1f84327897439a26620e36150b8b8"
+    },
+    {
+      "path": "supabase/migrations/20260825002300_customer_workspaces_assignments_lifecycle.sql",
+      "bytes": 20867,
+      "sha256": "63f5e2d9aeecaf8f7e2ea062fe725eaa8c6ceb91c03dbd18ad11968cf9662d10"
+    },
+    {
+      "path": "supabase/migrations/20260825002400_subscription_plans_contracts_entitlements.sql",
+      "bytes": 20387,
+      "sha256": "3062f48655184dd0b32f7fb9fab93bf493fb8278aca097268f1ab7ce85126c8d"
+    },
+    {
+      "path": "supabase/migrations/20260825002500_provisioning_support_access_audit_control.sql",
+      "bytes": 15280,
+      "sha256": "b526c88177710b952c6cc6b04fa1b44706f641b7ad4bbf3066720ec4aa16d6ff"
+    },
+    {
+      "path": "supabase/migrations/20260825002600_platform_control_plane_performance_hardening.sql",
+      "bytes": 4089,
+      "sha256": "54cf4d4fcbef3d61494b5ef913835798133c64665a91a8ee25e440285b7705b5"
+    },
+    {
+      "path": "supabase/migrations/20260825002800_primary_admin_invitation_acceptance.sql",
+      "bytes": 9117,
+      "sha256": "fb46f108d400f1cd1c846d6f2a48d709b6de21b00b67907b3422e55b3520cd43"
+    },
+    {
+      "path": "supabase/migrations/20260825002900_workspace_onboarding_completion_activation_gate.sql",
+      "bytes": 9533,
+      "sha256": "26420f24581735607db5e0b9b82b9d74ad72ce3ef3967bf108016d1f8dcb3fa0"
+    },
+    {
+      "path": "supabase/migrations/20260825003100_rls_auth_initplan_performance.sql",
+      "bytes": 1217,
+      "sha256": "17b6b93b6479fdfbb0bb16b6c8298c48547b56a722500fa56521b49376c23971"
+    },
+    {
+      "path": "supabase/migrations/20260829003500_auditor_assignment_scoped_reads.sql",
+      "bytes": 4330,
+      "sha256": "316b6ee052fcb4ff545c65df9a7708e643e227d5bb4229fdef985811d080346d"
+    },
+    {
+      "path": "supabase/migrations/20260829003600_operational_users_assignments.sql",
+      "bytes": 9979,
+      "sha256": "38818c07d8b4ad1ac91378ff9748209890f69358ba3fcb1981743480ebb209ca"
+    },
+    {
+      "path": "supabase/migrations/20260829003900_operational_audit_trail_security_explorer.sql",
+      "bytes": 9621,
+      "sha256": "9a590fdd929d23c813a936c45d8b237fb8abff5a81d63b1ca729acad75d07738"
+    },
+    {
+      "path": "supabase/migrations/20260829004300_customer_accounting_ledger_dashboard.sql",
+      "bytes": 13619,
+      "sha256": "0bd66435b0e1e4174b1dd6e8da433bba66298cb0308fdc15580069319a60944c"
+    },
+    {
+      "path": "supabase/migrations/20260829005100_customer_document_vault_secure_evidence.sql",
+      "bytes": 26150,
+      "sha256": "d7f41f90b94336bfaae4fea2c6a35be77eb30dd5640fe9c87fbe01f9d7ecaaf1"
+    },
+    {
+      "path": "supabase/migrations/20260829005200_customer_occupancy_parties_ownership_lease_registry.sql",
+      "bytes": 26722,
+      "sha256": "1b78c4f78f1ee9d5aae4a8d8001d1056a6c97b4d642d26165f754680e9c38b56"
+    },
+    {
+      "path": "supabase/migrations/20260909133706_secure_documents_evidence_vault.sql",
+      "bytes": 59270,
+      "sha256": "2ce2159b0b8cfb6c80323e6260ce28a8e0773ce8be2e143ab22d835b2a087e71"
+    },
+    {
+      "path": "supabase/migrations/20260913191543_security_advisory_closure.sql",
+      "bytes": 12504,
+      "sha256": "e11f306835f6c7baa7a2e5d6f52b11cc77df81fa257bcdea52ff58922354ab08"
+    },
+    {
+      "path": "supabase/migrations/20260915120000_workspace_taxonomy.sql",
+      "bytes": 60714,
+      "sha256": "1161449c53bd173ff81b600d0ff077ab29d35d9aa4b043914107ffda0710edba"
+    },
+    {
+      "path": "supabase/migrations/20260916120000_workspace_taxonomy_mutation.sql",
+      "bytes": 33657,
+      "sha256": "57474646523ccc07885bb03237ba815a7ea74e91d7f221dd5ec52279e6590129"
+    },
+    {
+      "path": "supabase/migrations/20260917120000_workspace_dynamic_composition.sql",
+      "bytes": 64157,
+      "sha256": "5d96ea037185f6a4b302455cd060ff598cac6435d05ce97e89d2e6c9d41189a6"
+    },
+    {
+      "path": "supabase/migrations/20260918120000_workspace_local_roles_permissions.sql",
+      "bytes": 108886,
+      "sha256": "4e7b2bce8fb56e30a31d1019c634888231ba636785cd31333816ac5d9a24b598"
+    },
+    {
+      "path": "supabase/migrations/20260919120000_workspace_delegations_approvals.sql",
+      "bytes": 110726,
+      "sha256": "6642cb689c504a08a0ea456365353e57f1dcce9331a7003f9c8ed245416e87fd"
+    },
+    {
+      "path": "supabase/migrations/20260920070757_statutory_accounting_simple_entry.sql",
+      "bytes": 16924,
+      "sha256": "2642868ca89b0cea56fa0b0d9bf0da6a830c328c1d52b0bcc4437702018ce2bb"
+    },
+    {
+      "path": "supabase/migrations/20260921172651_retention_archive_legal_hold_discovery_r9.sql",
+      "bytes": 123183,
+      "sha256": "f23ad93220d27b3c8a95e6fbbec2f92d904ee5aec1c1e8dbd7923feb9ab72629"
+    },
+    {
+      "path": "supabase/migrations/20260923060219_retention_operations_read_model_dry_run.sql",
+      "bytes": 17621,
+      "sha256": "dbe7c3dc7a3eb395b1aab4ec430f947b1f56989683b4f8bae4dac652d69fb67b"
+    },
+    {
+      "path": "supabase/migrations/20260924145706_platform_workspace_tenant_names.sql",
+      "bytes": 937,
+      "sha256": "492c87177d7df59de066e79f088aa3e71d0c2a5a582bb64dafd70548cdb93a76"
+    },
+    {
+      "path": "supabase/migrations/20260924161209_workspace_access_bases.sql",
+      "bytes": 28428,
+      "sha256": "e58cb1f3ecb88f4402370771b0b45c5d25cbe859c1f14fd5b77e89b3bf27a87e"
+    },
+    {
+      "path": "supabase/migrations/20260924173808_fix_platform_tenant_workspace_read.sql",
+      "bytes": 500,
+      "sha256": "9d8c694a56d3c12c2f9152456d0eb8d7881b36b03973afa0ed55328694ebc95e"
+    },
+    {
+      "path": "supabase/migrations/20260927211151_role_scoped_conversations_core.sql",
+      "bytes": 16372,
+      "sha256": "4693937718a07c2d71571229e4e415be8fcaa124f5d322b1376f0975a228fb80"
+    },
+    {
+      "path": "supabase/migrations/20260927211232_verified_company_vendor_conversations.sql",
+      "bytes": 14918,
+      "sha256": "e33c92254c6175b64656a75532fc15800a31269592b501f8851fd5b3878a0ad1"
+    },
+    {
+      "path": "supabase/migrations/20260927211243_private_conversation_document_sharing.sql",
+      "bytes": 12333,
+      "sha256": "8262ee692fa04cd0c602f41621993cfe710d6d60c0f87b6215b08480528a13e5"
+    },
+    {
+      "path": "supabase/migrations/20260927211349_scope_conversation_vault_upload_to_property.sql",
+      "bytes": 3219,
+      "sha256": "f5f265fb1e096f62774643da41b6782cbaca08099cf4c8633780e7a9f4289248"
+    },
+    {
+      "path": "supabase/migrations/20260927211439_document_vault_clamav_attestation.sql",
+      "bytes": 8656,
+      "sha256": "ac040ce45f823141e57fbd545de40e4ef0016964844a5595f5dd9d6f08cfc992"
+    },
+    {
+      "path": "supabase/migrations/20260927211448_document_vault_scan_queue.sql",
+      "bytes": 9324,
+      "sha256": "4a840d34bd7bf03c0a5ca68050fefcc62250232f02ceba695ca4c58793973700"
+    },
+    {
+      "path": "supabase/migrations/20261003151604_20261003083859_workspace_scoped_effective_permission.sql",
+      "bytes": 27835,
+      "sha256": "71d50145e550e32d8750e4101acbd02baf4ad6d5d2b02c88122bce0245f9ff17"
+    },
+    {
+      "path": "supabase/migrations/20261004190314_maintenance_read_context_authority.sql",
+      "bytes": 13367,
+      "sha256": "2da1fc23c444392c03a37ef1851f04490a7982d36287afd83ff6f5f4af557e12"
+    },
+    {
+      "path": "supabase/migrations/20261007090005_workspace_role_authority_lineage_v1.sql",
+      "bytes": 88061,
+      "sha256": "70dcb870619e49bdededf0a074f392e4334c63257f670e2ee38674cfe4d6c1d4"
+    },
+    {
+      "path": "supabase/migrations/20261012190924_core_canonical_authority_revision_v1.sql",
+      "bytes": 10871,
+      "sha256": "f0bf04bb256985c507760de498be2c8d96546ebbd262d39161acd64d35566512"
+    },
+    {
+      "path": "supabase/migrations/20261013063739_document_reference_exact_workspace_v1.sql",
+      "bytes": 1045,
+      "sha256": "988a8ddea361421cf6d75700ac3b0332c59ef0e10862201d2c2da0db48f91c51"
+    },
+    {
+      "path": "supabase/migrations/20261014082947_experience_guide_storage_lifecycle_v1.sql",
+      "bytes": 7351,
+      "sha256": "5d951a6938d8737041c6c7272f2dc40d1abe289d005afc85a7c871330116a0e5"
+    },
+    {
+      "path": "supabase/migrations/20261014083050_document_workspace_binding_writer_v1.sql",
+      "bytes": 2336,
+      "sha256": "1e7b64b5e623b9ca9f3eee43e1b41ac61f9fe9be008d1c59fa90e68d9ed3804d"
+    },
+    {
+      "path": "supabase/migrations/20261014200948_document_null_workspace_creation_closure_v1.sql",
+      "bytes": 3843,
+      "sha256": "5d8b2b6d68868001e7fdc6085c87aabe5568917d271a84192734c9643e8496e8"
+    },
+    {
+      "path": "supabase/migrations/20261015100000_core_platform_role_bound_pool_v1.sql",
+      "bytes": 42427,
+      "sha256": "ff944f72f3a5396c57afeeaec0406ec480f859d00ef8736b00c64f14d905e641"
+    },
+    {
+      "path": "supabase/migrations/20261015183000_core_jurisdiction_profile_v1.sql",
+      "bytes": 19483,
+      "sha256": "924b577b18e6e70d149272e3f193c23d4c5d83db81b2f1f3b51950e0d1ce74c7"
+    },
+    {
+      "path": "supabase/migrations/20261015203723_core_jurisdiction_domain_artifact_resolver_v1.sql",
+      "bytes": 21604,
+      "sha256": "483c88f52f884e7b3a1af5dd2671f5a2ac72f539c55a361a7801a545f0c0c7b8"
+    },
+    {
+      "path": "supabase/migrations/20261018060834_database_advisor_performance_hardening_v1.sql",
+      "bytes": 5831,
+      "sha256": "0ee2e9c82375b134c78485ba51b6dc97b4b0523925208e1db06cb9d0b063acab"
+    },
+    {
+      "path": "supabase/migrations/20261018094131_documents_canonical_storage_identity_v1.sql",
+      "bytes": 13225,
+      "sha256": "34b1ea7f98ef235db3113775d3bee660f8de021768a8217ba2dcc208aceacf8b"
+    },
+    {
+      "path": "supabase/migrations/20261018130000_documents_replacement_promotion_after_clean_v1.sql",
+      "bytes": 5332,
+      "sha256": "896d54f54b6a531f7c65a45198257b99471c8c05afc216cb8768247d8215d249"
+    },
+    {
+      "path": "supabase/migrations/20261018163000_service_subject_link_role_bound_pool_privileged_v1.sql",
+      "bytes": 63567,
+      "sha256": "f48ca618b0ff959b5f6e15c73ec9b778d91c189c1772787b2b57edacabeb4a24"
+    },
+    {
+      "path": "supabase/migrations/20261025214155_building_setup_command_receipts_v1.sql",
+      "bytes": 732202,
+      "sha256": "254e17c9e5f21ce4e50786d3325c2cc84759097b16cb53028602d1e8db5e02e3"
+    }
+  ],
+  "call_edges": [
+    [
+      "app_private.acquire_ce_guide_role_safety_lease_v1",
+      "app_private.assert_ce_guide_role_safety_v1"
+    ],
+    [
+      "app_private.assert_ce_guide_role_safety_v1",
+      "app_private.core_platform_ce_guide_role_safety_valid_v1"
+    ],
+    [
+      "app_private.check_direct_effective_permission_v2",
+      "app_private.native_workspace_scope_for_membership_v2"
+    ],
+    [
+      "app_private.check_direct_effective_permission_v2",
+      "app_private.workspace_member_role_authority_active_v1"
+    ],
+    [
+      "app_private.check_direct_effective_permission_v2",
+      "auth.jwt"
+    ],
+    [
+      "app_private.check_effective_permission_v2",
+      "app_private.check_direct_effective_permission_v2"
+    ],
+    [
+      "app_private.check_effective_permission_v2",
+      "app_private.resolve_workspace_from_customer_context_v1"
+    ],
+    [
+      "app_private.check_effective_permission_v2",
+      "app_private.resolve_workspace_native_context_v2"
+    ],
+    [
+      "app_private.check_effective_permission_v2",
+      "app_private.workspace_member_role_authority_active_v1"
+    ],
+    [
+      "app_private.check_effective_permission_v2",
+      "auth.jwt"
+    ],
+    [
+      "app_private.check_workspace_native_permission_v2",
+      "app_private.check_effective_permission_v2"
+    ],
+    [
+      "app_private.core_platform_ce_guide_document_allowed_v1",
+      "app_private.core_platform_ce_guide_scope_allowed_v1"
+    ],
+    [
+      "app_private.core_platform_ce_guide_identity_allowed_v1",
+      "app_private.core_platform_ce_guide_scope_allowed_v1"
+    ],
+    [
+      "app_private.core_platform_ce_guide_ledger_allowed_v1",
+      "app_private.core_platform_ce_guide_scope_allowed_v1"
+    ],
+    [
+      "app_private.core_platform_ce_guide_role_safety_valid_v1",
+      "app_private.check_workspace_native_permission_v2"
+    ],
+    [
+      "app_private.core_platform_ce_guide_role_safety_valid_v1",
+      "auth.jwt"
+    ],
+    [
+      "app_private.core_platform_ce_guide_role_safety_valid_v1",
+      "auth.uid"
+    ],
+    [
+      "app_private.core_platform_ce_guide_role_safety_valid_v1",
+      "communications.context_covers_unit"
+    ],
+    [
+      "app_private.core_platform_ce_guide_role_safety_valid_v1",
+      "communications.member_covers_unit"
+    ],
+    [
+      "app_private.core_platform_ce_guide_role_safety_valid_v1",
+      "documents.customer_document_scope_matches"
+    ],
+    [
+      "app_private.core_platform_ce_guide_scope_allowed_v1",
+      "app_private.check_workspace_native_permission_v2"
+    ],
+    [
+      "app_private.customer_mfa_required",
+      "auth.uid"
+    ],
+    [
+      "app_private.native_workspace_scope_for_membership_v2",
+      "app_private.workspace_member_role_authority_active_v1"
+    ],
+    [
+      "app_private.native_workspace_scope_for_membership_v2",
+      "auth.uid"
+    ],
+    [
+      "app_private.resolve_workspace_from_customer_context_v1",
+      "auth.uid"
+    ],
+    [
+      "app_private.resolve_workspace_native_context_v2",
+      "app_private.customer_mfa_required"
+    ],
+    [
+      "app_private.resolve_workspace_native_context_v2",
+      "app_private.native_workspace_scope_for_membership_v2"
+    ],
+    [
+      "app_private.resolve_workspace_native_context_v2",
+      "auth.jwt"
+    ],
+    [
+      "app_private.resolve_workspace_native_context_v2",
+      "auth.uid"
+    ],
+    [
+      "app_private.workspace_member_role_authority_active_v1",
+      "app_private.workspace_context_covers_role_scope_v1"
+    ],
+    [
+      "app_private.workspace_member_role_authority_active_v1",
+      "app_private.workspace_member_role_authority_active_v1"
+    ],
+    [
+      "app_private.workspace_member_role_authority_active_v1",
+      "app_private.workspace_role_identity_source_current_v1"
+    ],
+    [
+      "app_private.workspace_member_role_authority_active_v1",
+      "app_private.workspace_role_scope_contains_v1"
+    ],
+    [
+      "app_private.workspace_role_identity_source_current_v1",
+      "app_private.workspace_context_covers_role_scope_v1"
+    ],
+    [
+      "app_private.workspace_role_identity_source_current_v1",
+      "app_private.workspace_role_scope_overlaps_v1"
+    ],
+    [
+      "communications.context_covers_unit",
+      "communications.context_membership"
+    ],
+    [
+      "communications.context_membership",
+      "auth.uid"
+    ]
+  ],
+  "compatibility": {
+    "contract": "documents-ce012-bounded-compatibility.v1",
+    "unknown_impact": "BLOCKED",
+    "unrelated_versions": "neither-presence-nor-absence-is-a-gate",
+    "guard300": "unchanged-canonical-source-and-runtime-safety",
+    "required_catalog_components": [
+      "schemas",
+      "functions",
+      "relations",
+      "columns",
+      "constraints",
+      "triggers",
+      "policies",
+      "types",
+      "roles",
+      "role_edges",
+      "effective_acl",
+      "dependencies",
+      "defaults"
+    ]
+  },
+  "unresolved_dependencies": [
+    "CE/Core jointly accepted save-host mapping and real committed receipt",
+    "Platform admitted native PG17/Auth profile, installation lineage, observer and optional conflict identity"
+  ],
+  "metadata_only_invariant_functions": [
+    "documents.reject_document_workspace_rebind_v1",
+    "documents.protect_document_version",
+    "documents.protect_scan_attestation",
+    "app_private.guard_authority_revision_v1",
+    "app_private.bump_canonical_authority_revision_v1"
+  ],
+  "type_dependency_rule": "scoped relation columns + function arguments/results, recursively domain/array/composite; type owner/ACL/enum/domain/support metadata sealed",
+  "ownership_acl_rule": "full scoped owners, schema/column/function/sequence ACL and transitive effective privileges; canonical role-pool/guard300 unchanged",
+  "lineage_rule": "source_inputs are artifact preimage anchors, never installation/replay instructions; scoped catalog postimage must be independently reviewed against these bytes"
+}
