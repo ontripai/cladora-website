@@ -157,7 +157,9 @@
     "health_http": 200,
     "provider_migrations": true,
     "persistent_volume_uid": 1000,
-    "document_upload_download_acl": "NOT_RUN_CORE_DOCUMENTS_PLAN_REQUIRED"
+    "document_upload_download_acl": "NOT_RUN_CORE_DOCUMENTS_PLAN_REQUIRED",
+    "documents20_live_config": "MATCH; actual upload NOT_RUN",
+    "documents_contract_head": "e38b0d39dbb840a508b5e1d47e9d93d3060c6411"
   },
   "scanner": {
     "engine_version": "ClamAV 1.4.4",
@@ -189,10 +191,11 @@
   "limits": {
     "host_transport_concurrency": 8,
     "http_seconds": 20,
-    "http_response_bound_bytes": 20971520,
-    "http_body_bound_bytes": 16777216,
+    "http_response_bound_bytes": 23068672,
+    "http_body_bound_bytes": 22020096,
     "pg_connection_seconds": 120,
-    "pg_buffer_each_bytes": 65536
+    "pg_buffer_each_bytes": 65536,
+    "document_file_bytes": 20971520
   },
   "gates": {
     "core15_install_manifest": "NOT_DELIVERED",

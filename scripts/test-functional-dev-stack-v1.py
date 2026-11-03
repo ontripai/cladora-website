@@ -32,6 +32,11 @@ class StackTests(unittest.TestCase):
   self.assertEqual(c['services']['auth']['environment']['GOTRUE_EXTERNAL_PHONE_ENABLED'],'false')
   for service in c['services'].values():self.assertNotIn('SUPABASE_ACCESS_TOKEN',service['environment'])
   self.assertNotIn('aal',json.loads(__import__('base64').urlsafe_b64decode(m.jwt_key('x'*64,'anon').split('.')[1]+'===')))
+ def test_documents20_file_and_separate_bounded_http_envelopes(self):
+  c=self.config();self.assertEqual(c['services']['storage']['environment']['FILE_SIZE_LIMIT'],'20971520')
+  self.assertEqual(m.PROFILE['http_envelope_limit_bytes'],21*1024*1024)
+  self.assertEqual(m.PROFILE['http_raw_response_limit_bytes'],22*1024*1024)
+  self.assertIn('client_max_body_size 21m;', (m.HERE/'gateway.conf').read_text())
  def test_private_state_and_source_drift_failclosed(self):
   with tempfile.TemporaryDirectory() as t,patch.object(m,'PRIVATE',Path(t)):
    with self.assertRaisesRegex(RuntimeError,'PRIVATE_FILE_CUSTODY'):m.state()

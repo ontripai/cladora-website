@@ -1,6 +1,6 @@
 {
   "format": "platform-functional-dev-stack-delivery.v1",
-  "parent": "26ad9b1f9ed0fe94df54330d0fc314fdd5c8e8d1",
+  "parent": "ddd4905d1dd43b4587a658063aeba8a99ca00d4c",
   "parent_parents": [
     "864ffa05eec12f463330c4a21d14640fc6423ac9",
     "ec639884452cc0cb6dfef520339791a5c20e9b39"
@@ -9,15 +9,15 @@
   "source_files": [
     {
       "path": "docs/testing/PLATFORM-FUNCTIONAL-DEV-STACK-12.md",
-      "bytes": 14292,
-      "sha256": "5aa460c91c3c2772566a2123b19acd7c57dafb783008a6a7d2daff6305b629bd",
-      "git_blob": "72c64792b565fa006e9b8b3b3cfd12c9d1603fb4"
+      "bytes": 14930,
+      "sha256": "c48f7a7ae38c188a80ab3ffe4dd5bc57577d0428cadb105e3681b96d5419e1ea",
+      "git_blob": "674a2ff609b09acb2b58a2612506280a7f857af5"
     },
     {
       "path": "docs/testing/functional-dev-stack-12.receipt.json",
-      "bytes": 7877,
-      "sha256": "323d9f90cdf1e9dca66e51eb760e7ef9f4b2a1fb9ba760f57e95956a53c296c2",
-      "git_blob": "6482d3dc799482fe5f358fb77ef7694d3747776b"
+      "bytes": 8052,
+      "sha256": "18e20ac54d622dae46b92c5bf5f509913d63fc50e61c9cc62b7046da175fd0ce",
+      "git_blob": "70165a1af88998a97a1c3670a106b0f0812d8006"
     },
     {
       "path": "scripts/functional-dev-stack-v1/bootstrap.sql",
@@ -34,14 +34,14 @@
     {
       "path": "scripts/functional-dev-stack-v1/gateway.conf",
       "bytes": 707,
-      "sha256": "86fa5c71eafecfcfe98d05984e841c0d70ea7f3d63c4d52fcdf0ce6a7a6aa5a3",
-      "git_blob": "2be1d1bc7fb8c4275fb5110571a7b207686d7291"
+      "sha256": "dd60b2cd8e28bae75b0ba32943e65f236682d7a9e5ad43ca630e97bd8e23b8c1",
+      "git_blob": "c10b6298586b1c2971a871a3377f1266c6c66d05"
     },
     {
       "path": "scripts/functional-dev-stack-v1/profile.json",
-      "bytes": 1590,
-      "sha256": "1d3d7f7177c1083eff3fd32c12bed4fba2f452ba38170622bcb280b7e35366af",
-      "git_blob": "33b1d3e14d352bca26a9eb422676dba02d5cb23c"
+      "bytes": 1717,
+      "sha256": "5287f38709eb71e85915c9e23a18dd3f7cbb8276346f271ded1dd485de792218",
+      "git_blob": "ac6dc159b1700aab22bb2ca396a4e09027f8965d"
     },
     {
       "path": "scripts/functional-dev-stack-v1/provider-compatibility.sql",
@@ -51,39 +51,27 @@
     },
     {
       "path": "scripts/functional-dev-stack-v1/stack.py",
-      "bytes": 33420,
-      "sha256": "1fb22ab6684fad1c3f8aed647a6f1edfef65ddfe27bab19422d542b0d9c55a7a",
-      "git_blob": "a7cb760e29b461b5d5a6794e0ce14fe91d86fff6"
+      "bytes": 33551,
+      "sha256": "2049056db7bf4dc47c7d57b3bbaf0da5e57812a3b1fe55685a9d263533cc10f7",
+      "git_blob": "80372bb405b1a08e6e4bb53fc989dca912f3d89f"
     },
     {
       "path": "scripts/test-functional-dev-stack-v1.py",
-      "bytes": 5699,
-      "sha256": "154130738a31e9ab5052497029c0307ec3bacf49049ca3efc7722230c70531fb",
-      "git_blob": "8ced5293bfb2690b9032adcee7eeaf34c9156b69"
+      "bytes": 6105,
+      "sha256": "906e9020cfc2c2226272e458e038c816daf6d3d91b91af9e2dcf4bcc566c3539",
+      "git_blob": "3d9a01280ce5277f9c193155298773bb70e7af10"
     }
-  ],
-  "new_paths": [
-    "docs/testing/PLATFORM-FUNCTIONAL-DEV-STACK-12.md",
-    "docs/testing/functional-dev-stack-12.receipt.json",
-    "scripts/functional-dev-stack-v1/bootstrap.sql",
-    "scripts/functional-dev-stack-v1/connection-proof.mjs",
-    "scripts/functional-dev-stack-v1/gateway.conf",
-    "scripts/functional-dev-stack-v1/profile.json",
-    "scripts/functional-dev-stack-v1/provider-compatibility.sql",
-    "scripts/functional-dev-stack-v1/stack.py",
-    "scripts/test-functional-dev-stack-v1.py",
-    "docs/testing/functional-dev-stack-12.manifest.json"
   ],
   "manifest_self_identity": "outside-file delivery receipt; no circular self-hash",
   "source_seal": {
     "files": {
       "bootstrap.sql": "fd77a96615502200d51046c6ab98485e81763377dd605b21426503a8ee25a540",
-      "gateway.conf": "86fa5c71eafecfcfe98d05984e841c0d70ea7f3d63c4d52fcdf0ce6a7a6aa5a3",
-      "profile.json": "1d3d7f7177c1083eff3fd32c12bed4fba2f452ba38170622bcb280b7e35366af",
+      "gateway.conf": "dd60b2cd8e28bae75b0ba32943e65f236682d7a9e5ad43ca630e97bd8e23b8c1",
+      "profile.json": "5287f38709eb71e85915c9e23a18dd3f7cbb8276346f271ded1dd485de792218",
       "provider-compatibility.sql": "5e6214c55dde2c4e2328c19cb79fc5a9a3ae0d84ecaab9544c419ff40a34fd7d",
-      "stack.py": "1fb22ab6684fad1c3f8aed647a6f1edfef65ddfe27bab19422d542b0d9c55a7a"
+      "stack.py": "2049056db7bf4dc47c7d57b3bbaf0da5e57812a3b1fe55685a9d263533cc10f7"
     },
-    "sha256": "777a5f0de10fae668458ade588a6d17d570a342fb1a3e10e1c6c2e9cc517103b"
+    "sha256": "486de88c0aa8d0a60e0f412bcb1aad6c8496578aa06d52e9114de00957181682"
   },
   "images": {
     "pg": "docker.io/library/postgres@sha256:2cd2c0f809604aaeff6f0ec8f40aecbd025613107561015c69369a1a7f1d3416",
@@ -95,9 +83,9 @@
   },
   "profile": {
     "path": "scripts/functional-dev-stack-v1/profile.json",
-    "bytes": 1590,
-    "sha256": "1d3d7f7177c1083eff3fd32c12bed4fba2f452ba38170622bcb280b7e35366af",
-    "git_blob": "33b1d3e14d352bca26a9eb422676dba02d5cb23c"
+    "bytes": 1717,
+    "sha256": "5287f38709eb71e85915c9e23a18dd3f7cbb8276346f271ded1dd485de792218",
+    "git_blob": "ac6dc159b1700aab22bb2ca396a4e09027f8965d"
   },
   "consumers": [
     {
@@ -120,27 +108,38 @@
     },
     {
       "owner": "Documents11",
-      "status": "EXACT_INSTALL_QUEUE_SIGNATURE_PLAN_REQUIRED"
+      "commit": "e38b0d39dbb840a508b5e1d47e9d93d3060c6411",
+      "path": "docs/testing/documents-functional-upload-v1/connection-requirements.json",
+      "git_blob": "2cb91885b118c1229681c401d027a743456dd762",
+      "status": "20MiB transport configured; intent/RLS/scanner bindings HOLD"
     }
   ],
   "preservation": {
-    "tracked_before": 2614,
+    "tracked_before": 2624,
     "tracked_after_expected": 2624,
-    "modified_existing_files": [],
+    "modified_existing_files": [
+      "docs/testing/PLATFORM-FUNCTIONAL-DEV-STACK-12.md",
+      "docs/testing/functional-dev-stack-12.receipt.json",
+      "docs/testing/functional-dev-stack-12.manifest.json",
+      "scripts/functional-dev-stack-v1/profile.json",
+      "scripts/functional-dev-stack-v1/gateway.conf",
+      "scripts/functional-dev-stack-v1/stack.py",
+      "scripts/test-functional-dev-stack-v1.py"
+    ],
     "task11": "all 16 delivered files byte-identical",
     "product_package_lock": "unchanged",
     "native_installer_replay": false
   },
   "tests": {
-    "new_targeted_source_groups": 9,
-    "execution": "initial6 + new CID/HTTP/backup cases and only affected reruns",
+    "new_targeted_source_groups": 10,
+    "execution": "initial6 plus CID/HTTP/backup/Documents20 cases; only affected reruns",
     "syntax": "Python AST/JSON/new MJS PASS",
     "old_accepted_suites": "NOT_REPEATED",
     "native_summary": {
       "path": "docs/testing/functional-dev-stack-12.receipt.json",
-      "bytes": 7877,
-      "sha256": "323d9f90cdf1e9dca66e51eb760e7ef9f4b2a1fb9ba760f57e95956a53c296c2",
-      "git_blob": "6482d3dc799482fe5f358fb77ef7694d3747776b"
+      "bytes": 8052,
+      "sha256": "18e20ac54d622dae46b92c5bf5f509913d63fc50e61c9cc62b7046da175fd0ce",
+      "git_blob": "70165a1af88998a97a1c3670a106b0f0812d8006"
     }
   },
   "state": {
@@ -155,7 +154,9 @@
     "existing_instance": "do not repeat init/bootstrap/users; stop/start/status/backup only",
     "no_migration_replay": true,
     "clean_second_executor": "NOT_RUN",
-    "readme": "docs/testing/PLATFORM-FUNCTIONAL-DEV-STACK-12.md"
+    "readme": "docs/testing/PLATFORM-FUNCTIONAL-DEV-STACK-12.md",
+    "initial_checkpoint": "ddd4905d1dd43b4587a658063aeba8a99ca00d4c",
+    "successor": "apply only seven identified Platform-owned delta files; source installer/product/old task11 unchanged"
   },
   "automation": {
     "classification": "نیازمند بررسی",
@@ -166,5 +167,20 @@
     "exception": "UNKNOWN/drift -> Platform no blind retry",
     "dependency": "Core15/Service09/AIRPROP06/Documents11",
     "value": "durable isolated real development access; estimate UNKNOWN"
-  }
+  },
+  "initial_delivery_parent": "26ad9b1f9ed0fe94df54330d0fc314fdd5c8e8d1",
+  "relation": "additive Documents20 compatibility successor; initial checkpoint preserved",
+  "delivered_paths": [
+    "docs/testing/PLATFORM-FUNCTIONAL-DEV-STACK-12.md",
+    "docs/testing/functional-dev-stack-12.receipt.json",
+    "scripts/functional-dev-stack-v1/bootstrap.sql",
+    "scripts/functional-dev-stack-v1/connection-proof.mjs",
+    "scripts/functional-dev-stack-v1/gateway.conf",
+    "scripts/functional-dev-stack-v1/profile.json",
+    "scripts/functional-dev-stack-v1/provider-compatibility.sql",
+    "scripts/functional-dev-stack-v1/stack.py",
+    "scripts/test-functional-dev-stack-v1.py",
+    "docs/testing/functional-dev-stack-12.manifest.json"
+  ],
+  "new_paths": []
 }

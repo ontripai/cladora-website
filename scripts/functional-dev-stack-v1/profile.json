@@ -16,6 +16,9 @@
   "version_provenance": "supabase/cli v2.121.0 Dockerfile Git563c96ccd7ce0a7d1f4052750b391a1a46ca3836 for Auth/REST/Storage; official amd64 registry descriptors for additional images",
   "persistent_volumes": ["pgdata", "storage-data", "scanner-signatures"],
   "external_delivery": false,
+  "document_file_limit_bytes": 20971520,
+  "http_envelope_limit_bytes": 22020096,
+  "http_raw_response_limit_bytes": 23068672,
   "test_schema": "platform_dev",
   "domain_installation": "HOLD_CORE_EXACT_INSTALL_PLAN_REQUIRED",
   "scanner": "HOLD_OFFICIAL_SIGNATURES_AND_DOCUMENTS_QUEUE_BINDING_REQUIRED"

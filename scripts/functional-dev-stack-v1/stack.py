@@ -76,7 +76,7 @@ def configuration(s):
  storage=base_service(images['storage'],'384m')
  storage['environment'].update(ANON_KEY=s['anon_key'],SERVICE_KEY=s['service_key'],AUTH_JWT_SECRET=s['jwt_secret'],
   DATABASE_URL='postgres://supabase_storage_admin:'+s['storage_password']+'@pg:5432/postgres',POSTGREST_URL='http://rest:3000',
-  STORAGE_BACKEND='file',FILE_STORAGE_BACKEND_PATH='/var/lib/storage',FILE_SIZE_LIMIT='16777216',
+  STORAGE_BACKEND='file',FILE_STORAGE_BACKEND_PATH='/var/lib/storage',FILE_SIZE_LIMIT=str(PROFILE['document_file_limit_bytes']),
   TENANT_ID=PROJECT,REGION='local',GLOBAL_S3_BUCKET='local',ENABLE_IMAGE_TRANSFORMATION='false',
   STORAGE_PUBLIC_URL=PROFILE['origin']+'/storage/v1')
  # Named storage directory uses image's normal uid1000, not host/shared ownership repair.
@@ -223,7 +223,7 @@ def serve():
     state();need(self.command in ('GET','HEAD','POST','PUT','PATCH','DELETE','OPTIONS'),'METHOD_NOT_ALLOWED')
     need(self.path.startswith(('/auth/v1/','/rest/v1/','/storage/v1/')) and '://' not in self.path and '\\' not in self.path and '\r' not in self.path and '\n' not in self.path,'ROUTE_NOT_ALLOWED')
     need(not self.headers.get('Transfer-Encoding'),'REQUEST_TRANSFER_ENCODING_NOT_ALLOWED')
-    length=int(self.headers.get('Content-Length','0'));need(0<=length<=16*1024*1024,'REQUEST_BOUND')
+    length=int(self.headers.get('Content-Length','0'));need(0<=length<=PROFILE['http_envelope_limit_bytes'],'REQUEST_BOUND')
     self.connection.settimeout(15);body=self.rfile.read(length);need(len(body)==length,'REQUEST_SHORT_READ')
     allowed={'authorization','apikey','content-type','accept','accept-profile','content-profile','prefer','range','if-match','x-upsert','x-client-info','origin','access-control-request-method','access-control-request-headers'}
     headers=[f'{k}: {v}' for k,v in self.headers.items() if k.lower() in allowed]
@@ -231,7 +231,7 @@ def serve():
     reply=relay(raw)
     class Socket:
      def makefile(self,*args,**kwargs):return io.BytesIO(reply)
-    response=HTTPResponse(Socket());response.begin();data=response.read(16*1024*1024+1);need(len(data)<=16*1024*1024,'RESPONSE_BOUND')
+    response=HTTPResponse(Socket());response.begin();data=response.read(PROFILE['http_envelope_limit_bytes']+1);need(len(data)<=PROFILE['http_envelope_limit_bytes'],'RESPONSE_BOUND')
     self.send_response(response.status)
     for k,v in response.getheaders():
      if k.lower() not in ('connection','transfer-encoding','content-length','server','date','access-control-allow-origin','access-control-allow-credentials'):self.send_header(k,v)
@@ -307,7 +307,7 @@ def relay(raw):
     else:
      chunk=os.read(p.stdout.fileno(),65536)
      if not chunk:sel.unregister(p.stdout);continue
-     need(len(out)+len(chunk)<=20*1024*1024,'HTTP_RELAY_CAPTURE_BOUND_UNKNOWN');out.extend(chunk)
+     need(len(out)+len(chunk)<=PROFILE['http_raw_response_limit_bytes'],'HTTP_RELAY_CAPTURE_BOUND_UNKNOWN');out.extend(chunk)
   need(p.wait(timeout=max(0.01,deadline-time.monotonic()))==0,'HTTP_RELAY_PROCESS_UNKNOWN')
   return bytes(out)
  finally:

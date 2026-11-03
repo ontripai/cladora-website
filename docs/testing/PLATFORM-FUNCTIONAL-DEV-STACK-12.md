@@ -4,7 +4,9 @@ Shared Base `ec639884452cc0cb6dfef520339791a5c20e9b39` was merged normally into
 the assigned branch. The integration commit is
 `26ad9b1f9ed0fe94df54330d0fc314fdd5c8e8d1`, with parents task11
 `864ffa05eec12f463330c4a21d14640fc6423ac9` and Shared Base. This source delivery
-is a direct child of that integration. No reset/rebase/force/new branch occurred.
+started as its direct child `ddd4905d1dd43b4587a658063aeba8a99ca00d4c`.
+An additive successor aligns the newly delivered Documents11 20MiB limit;
+the actual final Parent is reported with the final commit. No reset/rebase/force/new branch occurred.
 
 ## What actually works
 
@@ -190,6 +192,12 @@ upload/download, immutable-version ACL, Core receipt or queue was installed or
 accepted. Those require Documents11/Core exact slice and role policy. Tightened
 provider roles remain NOBYPASSRLS; object behavior is NOT_RUN, not inferred from
 health or an administrative key.
+Documents11 exact `e38b0d39dbb840a508b5e1d47e9d93d3060c6411` connection-requirements
+were consumed after the initial checkpoint. Its 20MiB file bound is configured
+with distinct bounded 21MiB HTTP envelope and 22MiB raw response allowance. This
+does not change the canonical MIME/file limit or authorize a bucket/policy.
+The 20MiB document upload itself remains NOT_RUN pending the accepted intent/RLS
+slice; a configuration/readback check is not native object acceptance.
 
 The official pinned ClamAV image actually returned ClamAV1.4.4; the version helper
 exited0 and was removed. There is no validated signature database. No file scan,
@@ -203,7 +211,7 @@ Engine version is not scanner readiness.
 
 ## Evidence, limitations and automation
 
-Nine new targeted source tests passed across initial and affected runs; Python
+Ten new targeted source tests passed across initial and affected runs; Python
 syntax/JSON and new MJS syntax pass. No task11/ACL02/old health/materialization/
 backend suite was replayed. Native task12 evidence is new real infrastructure,
 with failures and source corrections retained, not retrospective relabelling.
