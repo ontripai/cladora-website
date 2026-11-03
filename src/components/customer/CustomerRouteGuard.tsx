@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ArrowLeft, ArrowRight, Loader2, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Loader2, Lock, ShieldAlert } from 'lucide-react';
 import type { Language } from '@/types';
 import { useCustomerContext } from './CustomerContextProvider';
 
@@ -42,6 +42,19 @@ const copy = {
   ro: {
     restrictedTitle: 'Acces Restricționat',
     restrictedBadge: 'Politici de Securitate CLADORA',
+    sessionExpiredTitle: 'Sesiune Expirată',
+    sessionExpiredBadge: 'Autentificare Necesară',
+    sessionExpiredMessage:
+      'Sesiunea dumneavoastră a expirat sau nu mai este validă. Vă rugăm să vă autentificați din nou pentru a continua.',
+    reloginButton: 'Autentificare din nou',
+    forbiddenTitle: 'Acces Nepermis',
+    forbiddenBadge: 'Permisiune Refuzată',
+    forbiddenMessage:
+      'Rolul sau nivelul de autorizare curent nu vă permite accesul la această resursă în spațiul de lucru selectat.',
+    noContextTitle: 'Niciun Spațiu de Lucru',
+    noContextBadge: 'Alocare în Așteptare',
+    emptyWorkspaceMessage:
+      'Contul dumneavoastră este activ, dar nu are încă niciun spațiu de lucru sau asociație alocată. Vă rugăm să contactați administratorul.',
     mockMessage:
       'Această secțiune este un modul demonstrativ / sandbox nelansat și nu este disponibilă în panoul de producție.',
     permissionMessage:
@@ -56,6 +69,19 @@ const copy = {
   en: {
     restrictedTitle: 'Access Restricted',
     restrictedBadge: 'CLADORA Security Policy',
+    sessionExpiredTitle: 'Session Expired',
+    sessionExpiredBadge: 'Sign In Required',
+    sessionExpiredMessage:
+      'Your session has expired or is no longer valid. Please sign in again to continue.',
+    reloginButton: 'Sign in again',
+    forbiddenTitle: 'Access Denied',
+    forbiddenBadge: 'Permission Denied',
+    forbiddenMessage:
+      'Your current role or authorization level does not permit access to this resource in the selected workspace.',
+    noContextTitle: 'No Workspace Assigned',
+    noContextBadge: 'Assignment Pending',
+    emptyWorkspaceMessage:
+      'Your account is active, but no workspace or association has been assigned yet. Please contact your property administrator.',
     mockMessage:
       'This section is an unreleased preview or sandbox module and is unavailable in the production customer panel.',
     permissionMessage:
@@ -70,6 +96,19 @@ const copy = {
   fa: {
     restrictedTitle: 'دسترسی محدود شده است',
     restrictedBadge: 'سیاست‌های امنیتی CLADORA',
+    sessionExpiredTitle: 'نشست کاری منقضی شده است',
+    sessionExpiredBadge: 'ورود مجدد الزامی است',
+    sessionExpiredMessage:
+      'نشست کاربری شما منقضی شده است یا دیگر معتبر نیست. لطفاً برای ادامه دوباره وارد حساب کاربری خود شوید.',
+    reloginButton: 'ورود مجدد به سامانه',
+    forbiddenTitle: 'دسترسی غیرمجاز',
+    forbiddenBadge: 'عدم دسترسی',
+    forbiddenMessage:
+      'نقش یا سطح دسترسی فعلی شما در فضای کاری انتخاب‌شده اجازه مشاهده این بخش را نمی‌دهد.',
+    noContextTitle: 'فضای کاری تخصیص نیافته است',
+    noContextBadge: 'در انتظار انتساب',
+    emptyWorkspaceMessage:
+      'حساب شما فعال است، اما هنوز هیچ فضا یا مجتمعی به آن تخصیص نیافته است. لطفاً با مدیر ساختمان یا مجموعه تماس بگیرید.',
     mockMessage:
       'این بخش یک ماژول آزمایشی / پیش‌نمایش توسعه است و در پنل عملیاتی پروداکشن در دسترس نیست.',
     permissionMessage:
@@ -88,33 +127,86 @@ export function AccessRestrictedCard({
   reason = 'permission',
 }: {
   lang: Language;
-  reason?: 'mock' | 'permission' | 'context' | 'unknown';
+  reason?: 'mock' | 'permission' | 'context' | 'unknown' | 'session_expired' | 'forbidden' | 'no_context';
 }) {
   const t = copy[lang] ?? copy.ro;
   const isRtl = lang === 'fa';
 
-  const message =
-    reason === 'mock'
-      ? t.mockMessage
-      : reason === 'context'
-      ? t.noContextMessage
-      : reason === 'unknown'
-      ? t.unknownMessage
-      : t.permissionMessage;
+  const isSessionExpired = reason === 'session_expired';
+  const isForbidden = reason === 'forbidden';
+  const isNoContext = reason === 'no_context';
+
+  const title = isSessionExpired
+    ? t.sessionExpiredTitle
+    : isForbidden
+    ? t.forbiddenTitle
+    : isNoContext
+    ? t.noContextTitle
+    : t.restrictedTitle;
+
+  const badge = isSessionExpired
+    ? t.sessionExpiredBadge
+    : isForbidden
+    ? t.forbiddenBadge
+    : isNoContext
+    ? t.noContextBadge
+    : t.restrictedBadge;
+
+  const message = isSessionExpired
+    ? t.sessionExpiredMessage
+    : isForbidden
+    ? t.forbiddenMessage
+    : isNoContext
+    ? t.emptyWorkspaceMessage
+    : reason === 'mock'
+    ? t.mockMessage
+    : reason === 'context'
+    ? t.noContextMessage
+    : reason === 'unknown'
+    ? t.unknownMessage
+    : t.permissionMessage;
+
+  const actionHref = isSessionExpired
+    ? `/${lang}/login?reason=session_expired`
+    : isNoContext
+    ? `/${lang}/profile`
+    : `/${lang}/app/dashboard`;
+
+  const actionLabel = isSessionExpired
+    ? t.reloginButton
+    : isNoContext
+    ? (lang === 'fa' ? 'مشاهده پروفایل من' : lang === 'ro' ? 'Profilul meu' : 'My profile')
+    : t.backToDashboard;
 
   return (
     <div className="flex min-h-[50vh] items-center justify-center p-4">
-      <div className="card-proptech max-w-lg w-full bg-white p-6 sm:p-8 text-center border-t-4 border-t-[#E5484D] shadow-elevated">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FEE2E2] text-[#E5484D]">
-          <ShieldAlert className="h-6 w-6" />
+      <div
+        className={`card-proptech max-w-lg w-full bg-white p-6 sm:p-8 text-center border-t-4 shadow-elevated ${
+          isSessionExpired ? 'border-t-amber-500' : 'border-t-[#E5484D]'
+        }`}
+      >
+        <div
+          className={`mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl ${
+            isSessionExpired
+              ? 'bg-amber-100 text-amber-700'
+              : 'bg-[#FEE2E2] text-[#E5484D]'
+          }`}
+        >
+          {isSessionExpired ? <Lock className="h-6 w-6" /> : <ShieldAlert className="h-6 w-6" />}
         </div>
 
-        <span className="inline-block rounded-full bg-[#FEF2F2] px-3 py-1 text-[10px] font-bold text-[#DC2626] uppercase tracking-wider">
-          {t.restrictedBadge}
+        <span
+          className={`inline-block rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider ${
+            isSessionExpired
+              ? 'bg-amber-100 text-amber-900'
+              : 'bg-[#FEF2F2] text-[#DC2626]'
+          }`}
+        >
+          {badge}
         </span>
 
         <h2 className="mt-3 text-xl font-display font-extrabold text-[#102A43]">
-          {t.restrictedTitle}
+          {title}
         </h2>
 
         <p className="mt-2 text-xs text-[#52667A] leading-relaxed">
@@ -123,11 +215,15 @@ export function AccessRestrictedCard({
 
         <div className="mt-6 flex justify-center">
           <Link
-            href={`/${lang}/app/dashboard`}
-            className="inline-flex items-center gap-2 rounded-xl bg-[#102A43] px-5 py-2.5 text-xs font-bold text-white transition hover:bg-[#243B53] shadow-sm"
+            href={actionHref}
+            className={`inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-xs font-bold text-white transition shadow-sm ${
+              isSessionExpired
+                ? 'bg-amber-700 hover:bg-amber-800'
+                : 'bg-[#102A43] hover:bg-[#243B53]'
+            }`}
           >
             {isRtl ? <ArrowRight className="h-4 w-4" /> : <ArrowLeft className="h-4 w-4" />}
-            <span>{t.backToDashboard}</span>
+            <span>{actionLabel}</span>
           </Link>
         </div>
       </div>
@@ -149,6 +245,16 @@ export function CustomerRouteGuard({
   // Normalize path by stripping language prefix e.g. /ro/app/accounting -> /app/accounting
   const rawPath = pathname.replace(/^\/(?:ro|en|fa)/, '');
   const appPath = rawPath === '/app' ? '/app/dashboard' : rawPath;
+
+  // 0. Explicit session expiration denial
+  if (state.error === 'session_expired') {
+    return <AccessRestrictedCard lang={lang} reason="session_expired" />;
+  }
+
+  // 0b. Explicit workspace permission / authorization denial
+  if (state.error === 'forbidden') {
+    return <AccessRestrictedCard lang={lang} reason="forbidden" />;
+  }
 
   const classification = classifyCustomerRoute(appPath);
 
@@ -195,7 +301,12 @@ export function CustomerRouteGuard({
 
   // 5. Context requirement (all other customer routes require an assigned context)
   if (!state.active || !state.dashboard) {
-    return <AccessRestrictedCard lang={lang} reason="context" />;
+    return (
+      <AccessRestrictedCard
+        lang={lang}
+        reason={state.contexts.length === 0 ? 'no_context' : 'context'}
+      />
+    );
   }
 
   // 6. Role-aware Persona canonical check

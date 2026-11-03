@@ -44,6 +44,13 @@ export function CustomerContextProvider({ children }: { children: React.ReactNod
   const [nonce, setNonce] = useState(0);
   const [pendingContextId, setPendingContextId] = useState<string | null>(null);
   const unsavedGuards = useRef(new Map<string, () => void>());
+  const activeIdRef = useRef(activeId);
+  const contextsSeq = useRef(0);
+  const dashboardSeq = useRef(0);
+
+  useEffect(() => {
+    activeIdRef.current = activeId;
+  }, [activeId]);
 
   const refresh = useCallback(() => setNonce((n) => n + 1), []);
   const registerUnsavedGuard = useCallback((key: string, dirty: boolean, discard: () => void) => {
@@ -55,77 +62,165 @@ export function CustomerContextProvider({ children }: { children: React.ReactNod
   }, []);
   const select = useCallback((id: string) => {
     if (id === activeId) return;
-    if (unsavedGuards.current.size) setPendingContextId(id);
-    else setActiveId(id);
-  }, [activeId]);
+    if (unsavedGuards.current.size) {
+      setPendingContextId(id);
+    } else {
+      setActiveId(id);
+      activeIdRef.current = id;
+      setDashboard(null);
+      if (!preview) sessionStorage.setItem(STORAGE_KEY, id);
+    }
+  }, [activeId, preview]);
   const cancelContextChange = useCallback(() => setPendingContextId(null), []);
   const confirmContextChange = useCallback(() => {
     if (pendingContextId === null) return;
+    const nextId = pendingContextId;
     Array.from(unsavedGuards.current.values()).forEach((discard) => discard());
     unsavedGuards.current.clear();
-    setActiveId(pendingContextId);
+    setActiveId(nextId);
+    activeIdRef.current = nextId;
+    setDashboard(null);
     setPendingContextId(null);
-  }, [pendingContextId]);
+    if (!preview) sessionStorage.setItem(STORAGE_KEY, nextId);
+  }, [pendingContextId, preview]);
 
   useEffect(() => {
     let cancelled = false;
+    const seq = ++contextsSeq.current;
     (async () => {
       setLoading(true);
       setError(null);
       try {
         const response = await fetch('/api/customer/v1/contexts', { cache: 'no-store' });
+        if (seq !== contextsSeq.current || cancelled) return;
+        if (response.status === 401) {
+          setError('session_expired');
+          setContexts([]);
+          setActiveId('');
+          activeIdRef.current = '';
+          setDashboard(null);
+          setPendingContextId(null);
+          unsavedGuards.current.clear();
+          if (!preview) sessionStorage.removeItem(STORAGE_KEY);
+          return;
+        }
         if (!response.ok) throw new Error('contexts');
         const body = (await response.json()) as { contexts: CustomerContext[] };
-        if (cancelled) return;
-        setContexts(body.contexts);
+        if (seq !== contextsSeq.current || cancelled) return;
+        const availableContexts = body.contexts || [];
+        setContexts(availableContexts);
+
+        if (availableContexts.length === 0) {
+          setActiveId('');
+          activeIdRef.current = '';
+          setDashboard(null);
+          setPendingContextId(null);
+          unsavedGuards.current.clear();
+          setError('no_context');
+          if (!preview) sessionStorage.removeItem(STORAGE_KEY);
+          return;
+        }
+
+        const currentActiveId = activeIdRef.current;
+        if (currentActiveId) {
+          const isStillValid = availableContexts.some((c) => c.context_id === currentActiveId);
+          if (isStillValid) {
+            // Valid current selection is preserved across refresh; unsaved guards protected
+            setPendingContextId((pending) =>
+              pending && availableContexts.some((c) => c.context_id === pending) ? pending : null
+            );
+            if (!preview) sessionStorage.setItem(STORAGE_KEY, currentActiveId);
+            return;
+          } else {
+            // Context revoked or deleted on the server; immediately close access and data
+            setActiveId('');
+            activeIdRef.current = '';
+            setDashboard(null);
+            setPendingContextId(null);
+            unsavedGuards.current.clear();
+            setError('forbidden');
+            if (!preview) sessionStorage.removeItem(STORAGE_KEY);
+            return;
+          }
+        }
+
+        // Initial load selection
         const requested = preview ? null : new URLSearchParams(window.location.search).get('context');
         const stored = preview ? null : sessionStorage.getItem(STORAGE_KEY);
-        setActiveId(
-          body.contexts.some((c) => c.context_id === requested)
+        const initialId =
+          availableContexts.some((c) => c.context_id === requested)
             ? requested ?? ''
-            : body.contexts.some((c) => c.context_id === stored)
+            : availableContexts.some((c) => c.context_id === stored)
             ? stored ?? ''
-            : body.contexts[0]?.context_id ?? ''
-        );
+            : availableContexts[0]?.context_id ?? '';
+
+        setActiveId(initialId);
+        activeIdRef.current = initialId;
+        if (initialId && !preview) {
+          sessionStorage.setItem(STORAGE_KEY, initialId);
+        }
       } catch {
-        if (!cancelled) setError('context');
+        if (seq === contextsSeq.current && !cancelled) setError('context');
       } finally {
-        if (!cancelled) setLoading(false);
+        if (seq === contextsSeq.current && !cancelled) setLoading(false);
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [fetch,preview]);
+  }, [fetch, preview, nonce]);
 
   useEffect(() => {
     if (!activeId) return;
     let cancelled = false;
+    const seq = ++dashboardSeq.current;
+    const targetContextId = activeId;
+
     (async () => {
       setLoading(true);
       setError(null);
       try {
-        if (!preview) sessionStorage.setItem(STORAGE_KEY, activeId);
+        if (!preview) sessionStorage.setItem(STORAGE_KEY, targetContextId);
         const response = await fetch(
-          `/api/customer/v1/dashboard?context_id=${encodeURIComponent(activeId)}`,
+          `/api/customer/v1/dashboard?context_id=${encodeURIComponent(targetContextId)}`,
           { cache: 'no-store' }
         );
+        if (seq !== dashboardSeq.current || cancelled || activeIdRef.current !== targetContextId) {
+          return;
+        }
+        if (response.status === 401) {
+          setDashboard(null);
+          setError('session_expired');
+          return;
+        }
+        if (response.status === 403) {
+          setDashboard(null);
+          setError('forbidden');
+          return;
+        }
         if (!response.ok) throw new Error('dashboard');
         const body = (await response.json()) as CustomerDashboardData;
-        if (!cancelled) setDashboard(body);
+        if (seq !== dashboardSeq.current || cancelled || activeIdRef.current !== targetContextId) {
+          return;
+        }
+        if (body && body.contextId === targetContextId) {
+          setDashboard(body);
+        }
       } catch {
-        if (!cancelled) {
+        if (seq === dashboardSeq.current && !cancelled && activeIdRef.current === targetContextId) {
           setDashboard(null);
           setError('dashboard');
         }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (seq === dashboardSeq.current && !cancelled && activeIdRef.current === targetContextId) {
+          setLoading(false);
+        }
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [activeId, nonce,fetch,preview]);
+  }, [activeId, nonce, fetch, preview]);
 
   const value = useMemo<State>(
     () => ({
