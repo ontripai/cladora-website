@@ -129,7 +129,7 @@ function ListingEditor({ lang, contextId, workspaceId, membershipId, registerDra
       void send(JSON.stringify(request));
     } catch { setMessage('invalid'); }
   }
-  return <section aria-label={t.title} className="space-y-3 rounded border p-4" dir={lang === 'fa' ? 'rtl' : 'ltr'}>
+  return <section aria-label={t.title} className="min-w-0 max-w-full space-y-3 rounded border p-4" dir={lang === 'fa' ? 'rtl' : 'ltr'}>
     <h2 className="text-lg font-semibold">{t.title}</h2><p>{t.limits}</p>
     <button type="button" onClick={() => void refresh()} disabled={busy}>{t.refresh}</button>
     {message && <p role="status">{t[message]}</p>}
@@ -138,11 +138,11 @@ function ListingEditor({ lang, contextId, workspaceId, membershipId, registerDra
     {recovery.state === 'uncertain' && <div><p>{t.unknown}</p><button type="button" disabled={!ready || busy || !retryAvailable} onClick={() => void send(recovery.wire)}>{t.retry}</button></div>}
     {!ready ? <p>{t.loading}</p> : view && <>
       {!view.can_edit && <p>{t.readOnly}</p>}
-      {!view.listings.length ? <p>{t.empty}</p> : <label>{t.choose}<select ref={selectRef} value={selected?.selection.listing_id ?? ''} disabled={pending || busy} onChange={event => {
+      {!view.listings.length ? <p>{t.empty}</p> : <label className="block min-w-0 max-w-full">{t.choose}<select className="block w-full min-w-0 max-w-full" ref={selectRef} value={selected?.selection.listing_id ?? ''} disabled={pending || busy} onChange={event => {
         const id = event.target.value;
         if (dirty) setSwitchTo(id); else select(view.listings.find(x => x.selection.listing_id === id) ?? null);
       }}><option value="">—</option>{view.listings.map(item => <option key={item.selection.listing_id} value={item.selection.listing_id}>{item.source_name}</option>)}</select></label>}
-      {selected && <div><h3>{t.source}: {selected.source_name}</h3><p>{t[selected.status]}</p><p>{t.party}: {t[selected.selection.party_kind]} · {t[selected.selection.relationship_kind]}</p>
+      {selected && <div className="min-w-0 max-w-full"><h3 className="[overflow-wrap:anywhere]">{t.source}: {selected.source_name}</h3><p>{t[selected.status]}</p><p>{t.party}: {t[selected.selection.party_kind]} · {t[selected.selection.relationship_kind]}</p>
         {row && !Object.values(row.actions).includes('allowed') && <p>{t.readOnly}</p>}
         {stale && <p role="alert">{t.stale}</p>}
         <label>{t.start}<input aria-label={t.start} type="datetime-local" value={from} onChange={e => setFrom(e.target.value)} disabled={pending || busy} /></label>
