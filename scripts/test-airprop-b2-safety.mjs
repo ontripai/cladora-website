@@ -237,6 +237,21 @@ const coreResult = validateProtectedDirectory({
   expectedProtectedCount: 13,
   expectedProtectedDigest: '7502bf811cb4959cd7f7c1ade651b8020b3e99cb0d76a0667caf7fbdedb2c3be',
   isProtected: path => ![
+    'airprop-read-host-v1.ts',
+    'authenticated-session-runtime-v1.ts',
+    'ce012-combined-stored-relation-v1.ts',
+    'ce012-documents-joint-candidate-v1.ts',
+    'ce012-host-terminal-checkpoint-v1.ts',
+    'ce012-replay-only-preflight-v1.ts',
+    'ce012-stored-relation-v1.ts',
+    'ce012-terminal-authority-port-v1.ts',
+    'functional-command-runtime-v1.ts',
+    'functional-producers-v1.ts',
+    'functional-read-queries-v1.json',
+    'service-functional-binding-v1.ts',
+    'service-s01/errors-v1.ts',
+    'service-s01/offering-disclosure-policy-v1.ts',
+    'service-s01/provider-agreement-reader-v1.ts',
     'communications-private-message-subject-provider-v1.ts',
     'communications-private-message-request-audience-provider-v1.ts',
     'current-unit-property-selector-v1.ts',
@@ -253,6 +268,66 @@ const coreResult = validateProtectedDirectory({
     'product-rights-v1.ts',
   ].includes(path),
   reviewedAdditions: {
+    'airprop-read-host-v1.ts': {
+      owner: 'Core / published source db8acfc08c4687f2f8e3bc140f380be6b4daab89; source pin only, native gates separate',
+      sha256: '4b13bfa4c920a68e7ec31b4a10f17a6e2bcf90721d255ccbc7e33eea34958c3c',
+    },
+    'authenticated-session-runtime-v1.ts': {
+      owner: 'Core / published source a0a37f3c573558d14be2e62ba27e6e5475b9c4fe; source pin only, native gates separate',
+      sha256: 'dd1e8c34380a3f1d991462c9f8b62e8442984d130ea9ca8aa1b004df814b3ca8',
+    },
+    'ce012-combined-stored-relation-v1.ts': {
+      owner: 'Core / published source acea0d067099dffe8cecacc36b78e2755f51ee13; source pin only, native gates separate',
+      sha256: '2d775a6cc629c6b4bb2934345509421a461713cdcc1ba6309680947bc5f46938',
+    },
+    'ce012-documents-joint-candidate-v1.ts': {
+      owner: 'Core / published source 304383ceb8a031bae04a53b3a15fe4d822ab860c; source pin only, native gates separate',
+      sha256: 'cef58f74dc0096c2520edb6cf3f1077d822f5c870a9359962f9e009463626f3a',
+    },
+    'ce012-host-terminal-checkpoint-v1.ts': {
+      owner: 'Core / published source 1971770a7ee92c2020387c5222b0c7da03a552d8; source pin only, native gates separate',
+      sha256: '4765e3d17fe12b41369a350afff7f62fc94bf03a3098d6c58c92ca63107bb29d',
+    },
+    'ce012-replay-only-preflight-v1.ts': {
+      owner: 'Core / published source 1971770a7ee92c2020387c5222b0c7da03a552d8; source pin only, native gates separate',
+      sha256: 'a898905cc40118903f2d3f1c7cbc11631f8c0fc5fd8d99e97d940331fa14e459',
+    },
+    'ce012-stored-relation-v1.ts': {
+      owner: 'Core / published source ef69fa82e19ab269701d6df9abd7bdfd67e3e50e; source pin only, native gates separate',
+      sha256: 'd6e8495f4f03c46076c3d4fb15c6174eccef8a4c161c644b5976ceeb2aed69f0',
+    },
+    'ce012-terminal-authority-port-v1.ts': {
+      owner: 'Core / published source 534be1a3d69a3b36d0f04edc555bf01c3d666842; source pin only, native gates separate',
+      sha256: 'c58e24ef2b00edb0524e43de145d8990ea4e6846b7d175399aaad7a9a7decf0a',
+    },
+    'functional-command-runtime-v1.ts': {
+      owner: 'Core / published source a0a37f3c573558d14be2e62ba27e6e5475b9c4fe; source pin only, native gates separate',
+      sha256: '36110c4747773d04380b2241b9b60749dfca9b75ac7b31accde140cc9c4f8d45',
+    },
+    'functional-producers-v1.ts': {
+      owner: 'Core / published source a0a37f3c573558d14be2e62ba27e6e5475b9c4fe; source pin only, native gates separate',
+      sha256: 'f44c68523edcb4c75589a7b040d6f380d5609788a6c12bb0fb661c74870ed887',
+    },
+    'functional-read-queries-v1.json': {
+      owner: 'Core / published source a0a37f3c573558d14be2e62ba27e6e5475b9c4fe; source pin only, native gates separate',
+      sha256: 'ef00194e555e28f9ce9601ae61435aba138f42999dcbd6f4bc9c62acac9d07c2',
+    },
+    'service-functional-binding-v1.ts': {
+      owner: 'Core / published source a0a37f3c573558d14be2e62ba27e6e5475b9c4fe; source pin only, native gates separate',
+      sha256: '769c49733f894773452665f39a024cc8a16b4b9e1269e9d8cac3e3405b1c254a',
+    },
+    'service-s01/errors-v1.ts': {
+      owner: 'Core / published source d13437a81d854ef0c7603cb4aeca97fcdd4999ed; source pin only, native gates separate',
+      sha256: 'be1b63b6c9f62ae9d152a2ddda10d18508bd7426e5b66f2b9d3566d8f2b05e07',
+    },
+    'service-s01/offering-disclosure-policy-v1.ts': {
+      owner: 'Core / published source 5437a97e97f422219b064197c06c3f17b244ebf4; source pin only, native gates separate',
+      sha256: '3d57e846dd782a4443b637a4bf9fc8337fda471f36d56ad3ae5eaab0830c3df6',
+    },
+    'service-s01/provider-agreement-reader-v1.ts': {
+      owner: 'Core / published source 5437a97e97f422219b064197c06c3f17b244ebf4; source pin only, native gates separate',
+      sha256: '977581d5c025287e7a88cc485a31d277fc412e8d7825087c871bfbdf2ecbeb8c',
+    },
     'communications-private-message-subject-provider-v1.ts': {
       owner: 'CE Communications / PR #377',
       sha256: '832a9481232662e3411a67ff9b2b81f8a5a842af4795381a1837faa5a2cb6248',
@@ -312,7 +387,9 @@ const coreResult = validateProtectedDirectory({
     'postgres-transaction-host-v1.ts': {
       owner: 'Core / PR #431',
       historicalSha256: 'eb89d03320549a721a54df10fa747f8977d9f42f6dfaa2e85ae89e1265c37d7c',
-      sha256: '5ae0d49cde0850c3d8b2c55bc2398d685e1c833d2e9a9e176ee8eab8d1cdce06',
+      // Previous accepted source hash: 5ae0d49cde0850c3d8b2c55bc2398d685e1c833d2e9a9e176ee8eab8d1cdce06.
+      // Exact published Core successor: a0a37f3c573558d14be2e62ba27e6e5475b9c4fe.
+      sha256: '9436c082f8ce8a054d8300f55bd49ac4b6120240cf06fa6ca94190b5c6c1858a',
     },
   },
   historicalProtectedCount: 16,
