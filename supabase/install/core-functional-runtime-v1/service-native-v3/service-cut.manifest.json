@@ -379,18 +379,18 @@
       "path": "scripts/prepare-core15-service-native-v3.mjs",
       "before": null,
       "after": {
-        "bytes": 2759,
-        "sha256": "e1f3047a6642535b68d7802621feb334cf100f4a8c26868e7fcf82277572575f",
-        "git_blob": "6aba04446110f6e8c9f7550018e480d15e895fe1"
+        "bytes": 2780,
+        "sha256": "74f40c9d8af96d0e073ed2d3421023d01a8ff356084e1e97949210a111cb3c98",
+        "git_blob": "4f0133abe75b457315a618f4ef4f147d53bd09d1"
       }
     },
     {
       "path": "scripts/prepare-core15-service-synthetic-fixture-v1.mjs",
       "before": null,
       "after": {
-        "bytes": 10712,
-        "sha256": "a0b2c045b6b5f49c3d39a38a95b3daba451b147e243f8a65b1172e87eb40f664",
-        "git_blob": "d50194bca5fd07bc534e6ecfa982ed534a016691"
+        "bytes": 10733,
+        "sha256": "c6c74c55aee2818fbd5d94a45d53fdafaa426ad027cc7ca4da3d977c3ec19ecb",
+        "git_blob": "b6e152790286252a14c4f3f050dd8e2fef473de7"
       }
     },
     {
@@ -732,7 +732,7 @@
     "retention": "NO_NEW_TTL_PURGE_CANCEL_POLICY"
   },
   "automation": {
-    "classification": "نیازمند بررسی",
+    "classification": "\u0646\u06cc\u0627\u0632\u0645\u0646\u062f \u0628\u0631\u0631\u0633\u06cc",
     "input": "pinned source and private owned target descriptor",
     "automatable": "offline pin/order/closure verification and private receipt projection",
     "human_decision_role": "coordinator reviews source, target custody and activation scope",
@@ -740,5 +740,33 @@
     "exception_owner": "Core/Platform on mismatch, timeout or settlement uncertainty",
     "formal_dependency": "Platform12 profile and canonical C01/C03/S01",
     "value": "detect stale payload/role profile before a privileged dispatch; no fabricated savings"
+  },
+  "integration_lineage": {
+    "contract": "core15-service-cut-lint-identifier-successor.v1",
+    "source_commit": "580de7be74d7bc1000119b0b940cff644c6437ab",
+    "native_manifest": "docs/verification/CORE15-SERVICE-CUT-580de7.manifest.json",
+    "native_manifest_sha256": "4c5fac4491094a5b96cecf703837ebc1280a98ea9f2e29e2f5e467115348fcb9",
+    "changes": [
+      {
+        "path": "scripts/prepare-core15-service-native-v3.mjs",
+        "identifier_before": "module",
+        "identifier_after": "profileModule",
+        "original_sha256": "e1f3047a6642535b68d7802621feb334cf100f4a8c26868e7fcf82277572575f",
+        "successor_sha256": "74f40c9d8af96d0e073ed2d3421023d01a8ff356084e1e97949210a111cb3c98",
+        "occurrences": 3
+      },
+      {
+        "path": "scripts/prepare-core15-service-synthetic-fixture-v1.mjs",
+        "identifier_before": "module",
+        "identifier_after": "serviceModule",
+        "original_sha256": "a0b2c045b6b5f49c3d39a38a95b3daba451b147e243f8a65b1172e87eb40f664",
+        "successor_sha256": "c6c74c55aee2818fbd5d94a45d53fdafaa426ad027cc7ca4da3d977c3ec19ecb",
+        "occurrences": 3
+      }
+    ],
+    "native_results": "INHERITED_ONLY_FOR_IDENTICAL_RUNTIME_AND_SQL_IMAGES; NOT_RERUN_FOR_IDENTIFIER_SUCCESSOR",
+    "runtime_source_bytes": "UNCHANGED",
+    "SQL_images": "UNCHANGED",
+    "native_dispatch": false
   }
 }

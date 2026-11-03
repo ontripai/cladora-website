@@ -20,12 +20,12 @@ try{
  await c.connect();const pre=await c.query("select current_user::text actor,(select count(*)::int from platform.customer_workspaces) workspaces,(select count(*)::int from service_catalog.requests) requests,(select rolsuper or rolbypassrls from pg_roles where rolname=current_user) privileged");assert.deepEqual(pre.rows,[{actor:'cladora_core_installer',workspaces:0,requests:0,privileged:false}]);
  await c.query('begin');await c.query("set local lock_timeout='5s'");await c.query("set local statement_timeout='20s'");
  const taxonomy=await c.query("select p.id profile,o.id model from platform.property_profiles p cross join platform.operating_models o where p.code='residential_condominium' and p.version=1 and p.is_active and o.code='association_managed' and o.version=1 and o.is_active");assert.equal(taxonomy.rowCount,1);
- const module=await c.query("select id from platform.module_definitions where code='services_orders' and version=1 and is_active and lifecycle_status='published'");assert.equal(module.rowCount,1);
+ const serviceModule=await c.query("select id from platform.module_definitions where code='services_orders' and version=1 and is_active and lifecycle_status='published'");assert.equal(serviceModule.rowCount,1);
  for(let i=0;i<2;i++){
   await c.query("insert into platform.tenants(id,legal_name,status,timezone) values($1,'Core15 synthetic owned fixture','active','UTC')",[record.tenants[i]]);
   await c.query("insert into platform.customer_workspaces(id,tenant_id,workspace_type,lifecycle_status,commercial_owner,environment) values($1,$2,'ASSOCIATION','ACTIVE','Core15 synthetic fixture','PILOT')",[record.workspaces[i],record.tenants[i]]);
   await c.query('insert into platform.workspace_taxonomy_assignments(tenant_id,customer_workspace_id,property_profile_id,operating_model_id,created_by) values($1,$2,$3,$4,$5)',[record.tenants[i],record.workspaces[i],taxonomy.rows[0].profile,taxonomy.rows[0].model,record.actors[0]]);
-  await c.query("insert into platform.workspace_modules(tenant_id,customer_workspace_id,module_definition_id,module_code,status,activated_by,reason) values($1,$2,$3,'services_orders','active',$4,'Owned synthetic fixture only')",[record.tenants[i],record.workspaces[i],module.rows[0].id,record.actors[0]]);
+  await c.query("insert into platform.workspace_modules(tenant_id,customer_workspace_id,module_definition_id,module_code,status,activated_by,reason) values($1,$2,$3,'services_orders','active',$4,'Owned synthetic fixture only')",[record.tenants[i],record.workspaces[i],serviceModule.rows[0].id,record.actors[0]]);
   await c.query("insert into platform.workspace_entitlements(customer_workspace_id,entitlement_key,value_type,boolean_value) values($1,'module.services_orders','boolean',true)",[record.workspaces[i]]);
   await c.query("insert into portfolio.parties(id,tenant_id,type,legal_name) values($1,$2,'person','Synthetic requester person')",[record.beneficiaries[i],record.tenants[i]]);
  }

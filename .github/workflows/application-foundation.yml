@@ -9,6 +9,8 @@ on:
       - 'scripts/test-core-functional-*.mjs'
       - 'scripts/test-core15-session-source-v1.mjs'
       - 'scripts/test-core15-service-cut-v1.mjs'
+      - 'scripts/test-core15-integration-lineage-v1.mjs'
+      - 'docs/verification/CORE15-SERVICE-CUT-580de7.manifest.json'
       - 'scripts/check-core15-service-cut-v1.mjs'
       - 'scripts/test-service-functional-request-runtime-binding-v1.mjs'
       - 'scripts/lib/core15-install-payload.mjs'
@@ -67,6 +69,8 @@ on:
       - 'scripts/test-core-functional-*.mjs'
       - 'scripts/test-core15-session-source-v1.mjs'
       - 'scripts/test-core15-service-cut-v1.mjs'
+      - 'scripts/test-core15-integration-lineage-v1.mjs'
+      - 'docs/verification/CORE15-SERVICE-CUT-580de7.manifest.json'
       - 'scripts/check-core15-service-cut-v1.mjs'
       - 'scripts/test-service-functional-request-runtime-binding-v1.mjs'
       - 'scripts/lib/core15-install-payload.mjs'
@@ -145,6 +149,7 @@ jobs:
           node scripts/test-core-functional-runtime-v1.mjs
           node scripts/test-core-functional-install-packet-v1.mjs
           node scripts/test-core15-session-source-v1.mjs
+          node scripts/test-core15-integration-lineage-v1.mjs
           node scripts/check-core15-service-cut-v1.mjs
           node scripts/test-core15-service-cut-v1.mjs
           node scripts/test-service-functional-request-runtime-binding-v1.mjs
