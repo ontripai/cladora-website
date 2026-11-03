@@ -24,10 +24,25 @@ const accessCopy = {
   en: { session: 'Your session needs verification. Sign in again.', denied: 'Service access is unavailable in this workspace. Ask the workspace administrator to check your access.', check: 'Check access again' },
   ro: { session: 'Sesiunea necesită verificare. Autentifică-te din nou.', denied: 'Accesul la servicii nu este disponibil în acest spațiu. Solicită administratorului să verifice accesul.', check: 'Verifică din nou accesul' },
 };
+const CORE_SERVICE_APP_READ_V1 = 'core-service-app-read.v1' as const;
 type LoadFailure = 'session' | 'denied' | 'retry';
 function classifyLoad(response: Response): LoadFailure { return response.status === 401 ? 'session' : [403, 404].includes(response.status) ? 'denied' : 'retry'; }
 function failureMessage(lang: Language, kind: LoadFailure) { return kind === 'session' ? accessCopy[lang].session : kind === 'denied' ? accessCopy[lang].denied : copy[lang].error; }
 const targetsSchema = z.strictObject({ workspaces: z.array(z.strictObject({ workspace_id: uuidSchema, workspace_type: z.string(), environment: z.string() })) });
+const assemblyBootstrapSchema = z.strictObject({
+  contract_version: z.literal(CORE_SERVICE_APP_READ_V1),
+  selections: z.array(z.strictObject({
+    context_id: uuidSchema,
+    membership_id: uuidSchema,
+    tenant_id: uuidSchema,
+    workspace_id: uuidSchema,
+    tenant_name: z.string().min(1),
+    role_code: z.string().min(1),
+    role_name: z.string().min(1),
+    workspace_type: z.string().min(1),
+    environment: z.string().min(1),
+  })),
+});
 const shape = serviceOfferingRevisionSchema.shape;
 const offeringsSchema = z.strictObject({ offerings: z.array(z.strictObject({ offering_id: uuidSchema, revision_id: uuidSchema,
   labels: shape.labels, description: shape.description, acquisition_mode: shape.acquisition_mode, price: shape.price,
@@ -37,14 +52,55 @@ const offeringsSchema = z.strictObject({ offerings: z.array(z.strictObject({ off
 })) });
 type Item = z.infer<typeof offeringsSchema>['offerings'][number];
 type Target = z.infer<typeof targetsSchema>['workspaces'][number];
+type AssemblySelection = z.infer<typeof assemblyBootstrapSchema>['selections'][number];
 
 export function CustomerServiceCatalog({ lang }: { lang: Language }) {
   const { active } = useCustomerContext();
   const t = copy[lang];
+  const assembly = process.env.NEXT_PUBLIC_CLADORA_OWNED_SERVICE_ASSEMBLY === 'v1';
   return <section dir={lang === 'fa' ? 'rtl' : 'ltr'} className="space-y-6">
     <header className="rounded-2xl border bg-white p-6"><h1 className="text-2xl font-bold text-[#102A43]">{t.title}</h1><p className="mt-2 text-sm text-[#52667A]">{t.subtitle}</p></header>
-    {active ? <WorkspaceChoice key={active.context_id} contextId={active.context_id} lang={lang} /> : <Notice text={t.noContext} />}
+    {assembly ? <AssemblyWorkspaceChoice lang={lang} />
+      : active ? <WorkspaceChoice key={active.context_id} contextId={active.context_id} lang={lang} /> : <Notice text={t.noContext} />}
   </section>;
+}
+function AssemblyWorkspaceChoice({ lang }: { lang: Language }) {
+  const fetch = useDashboardFetch();
+  const t = copy[lang];
+  const [selections, setSelections] = useState<AssemblySelection[] | null>(null);
+  const [selectedKey, setSelectedKey] = useState('');
+  const [error, setError] = useState<LoadFailure | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    const controller = new AbortController();
+    void (async () => {
+      try {
+        const response = await fetch('/api/customer/v1/services/assembly-bootstrap', {
+          credentials: 'same-origin', cache: 'no-store', signal: controller.signal,
+        });
+        if (!response.ok) throw new Error(classifyLoad(response));
+        const data = assemblyBootstrapSchema.parse(await response.json());
+        if (!controller.signal.aborted) setSelections(data.selections);
+      } catch (reason) {
+        if (!controller.signal.aborted) setError(reason instanceof Error && ['session', 'denied'].includes(reason.message)
+          ? reason.message as LoadFailure : 'retry');
+      }
+    })();
+    return () => controller.abort();
+  }, [attempt, fetch]);
+  if (error) return <Notice text={failureMessage(lang, error)} retry={error === 'session' ? undefined : () => {
+    setError(null); setSelections(null); setSelectedKey(''); setAttempt(value => value + 1);
+  }} retryLabel={error === 'denied' ? accessCopy[lang].check : t.retry} />;
+  if (selections === null) return <Notice text={t.loading} />;
+  if (!selections.length) return <Notice text={t.noTargets} />;
+  const selected = selections.find(item => `${item.context_id}:${item.workspace_id}` === selectedKey);
+  return <div className="space-y-5"><label className="block rounded-2xl border bg-white p-4"><span className="mb-2 block text-sm font-semibold">{t.choose}</span>
+    <select aria-label={t.choose} value={selectedKey} onChange={event => setSelectedKey(event.target.value)} className="w-full rounded-xl border p-3">
+      <option value="">{t.choose}</option>{selections.map(item => {
+        const key = `${item.context_id}:${item.workspace_id}`;
+        return <option key={`${key}:${item.membership_id}`} value={key}>{item.tenant_name} — {item.role_name} · {item.workspace_type} · {item.environment}</option>;
+      })}
+    </select></label>{selected ? <Offerings key={`${selected.context_id}:${selected.workspace_id}`} contextId={selected.context_id} workspaceId={selected.workspace_id} lang={lang} /> : null}</div>;
 }
 function WorkspaceChoice({ contextId, lang }: { contextId: string; lang: Language }) {
   const fetch = useDashboardFetch();
