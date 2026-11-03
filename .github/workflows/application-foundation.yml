@@ -21,6 +21,7 @@ on:
       - 'scripts/test-functional-dev-*.py'
       - 'scripts/test-storage-documents-*.mjs'
       - 'scripts/test-storage-documents-*.py'
+      - 'scripts/test-storage-acl-recovery-r2.py'
       - 'scripts/review-ops-populated-transition-01a/**'
       - 'scripts/lib/load-application-test-module.mjs'
       - 'scripts/lib/ce-guide-inactive-runtime-check.mjs'
@@ -81,6 +82,7 @@ on:
       - 'scripts/test-functional-dev-*.py'
       - 'scripts/test-storage-documents-*.mjs'
       - 'scripts/test-storage-documents-*.py'
+      - 'scripts/test-storage-acl-recovery-r2.py'
       - 'scripts/review-ops-populated-transition-01a/**'
       - 'scripts/lib/load-application-test-module.mjs'
       - 'scripts/lib/ce-guide-inactive-runtime-check.mjs'
@@ -161,6 +163,7 @@ jobs:
           python -B scripts/test-functional-dev-restore13.py
           python -B scripts/test-storage-documents-native-preflight-v1.py
           python -B scripts/test-storage-documents-abi15-r1.py
+          python -B scripts/test-storage-acl-recovery-r2.py
           node scripts/test-storage-documents-abi15-r1.mjs
           node scripts/test-storage-documents-abi15-capture-r1.mjs
       - run: npm run test:ce:member-benefit-terminology
