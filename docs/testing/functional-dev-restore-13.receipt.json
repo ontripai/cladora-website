@@ -1,0 +1,168 @@
+{
+  "format": "platform-dev-backup-restore-evidence.v1",
+  "task_id": "PLATFORM-DEV-BACKUP-RESTORE-13",
+  "parent": "794f5a12c3928ae0a3585ab679a3cbe60aab49a3",
+  "run": "cladora-restore13-5daa9f465410",
+  "status": "RESTORE_FIDELITY_PROVED_SECURITY_DRIFT_REMAINS",
+  "backup_receipt_sha256": "d784ee048bdb98950fbd138a2f017d11914c8283171e7ade0975993222ed8b0e",
+  "backup_files": {
+    "database.dump": {
+      "bytes": 241877,
+      "sha256": "bbad080435502bfbedd7e5b37481b07c682faaa3ea5c0007bac144b73166cbfa"
+    },
+    "storage.tar": {
+      "bytes": 10240,
+      "sha256": "8fd7c357cc1fc884feb0c551bb6cf1cb7b9c1f2ea9ea15fd3692ae89e7ea8e0a"
+    },
+    "helper.json": {
+      "bytes": 213,
+      "sha256": "a4e9f5406907ca6cd263f9bbcc49c8b4b8f063dc76f9eee971e2e3cd66e29ba2"
+    },
+    "globals.sql": {
+      "bytes": 2687,
+      "sha256": "a839c4052afc3acb72ea07c86a28e9d14bac2da4b440466fd52446374f618895"
+    }
+  },
+  "actual_restore": "MATCH_ACCEPTED_BACKUP",
+  "actual_stop_start_readback": "MATCH_ACCEPTED_BACKUP",
+  "comparisons": {
+    "restored-schema": {
+      "reference_sha256": "472694078eecdc4963d947d1a77fe9b741724b8f85bde24182eef363bab2ecfc",
+      "actual_sha256": "472694078eecdc4963d947d1a77fe9b741724b8f85bde24182eef363bab2ecfc",
+      "match": true
+    },
+    "restored-data": {
+      "reference_sha256": "dfd002d1a110773d877c6dad96a1350650afbcb8d81320810ed9450ac76013c6",
+      "actual_sha256": "dfd002d1a110773d877c6dad96a1350650afbcb8d81320810ed9450ac76013c6",
+      "match": true
+    },
+    "restored-globals": {
+      "reference_sha256": "75ba28b64b7df96575569241d7b3b3e674530f56f650210a85bf69e00dc6299e",
+      "actual_sha256": "75ba28b64b7df96575569241d7b3b3e674530f56f650210a85bf69e00dc6299e",
+      "match": true
+    },
+    "restarted-schema": {
+      "reference_sha256": "472694078eecdc4963d947d1a77fe9b741724b8f85bde24182eef363bab2ecfc",
+      "actual_sha256": "472694078eecdc4963d947d1a77fe9b741724b8f85bde24182eef363bab2ecfc",
+      "match": true
+    },
+    "restarted-data": {
+      "reference_sha256": "dfd002d1a110773d877c6dad96a1350650afbcb8d81320810ed9450ac76013c6",
+      "actual_sha256": "dfd002d1a110773d877c6dad96a1350650afbcb8d81320810ed9450ac76013c6",
+      "match": true
+    },
+    "restarted-globals": {
+      "reference_sha256": "75ba28b64b7df96575569241d7b3b3e674530f56f650210a85bf69e00dc6299e",
+      "actual_sha256": "75ba28b64b7df96575569241d7b3b3e674530f56f650210a85bf69e00dc6299e",
+      "match": true
+    },
+    "storage": {
+      "reference_sha256": "c68336dcd6ef25a8a2d21c4d5a5a80bac123d4fe12715da09ee41ac596cd734d",
+      "actual_sha256": "c68336dcd6ef25a8a2d21c4d5a5a80bac123d4fe12715da09ee41ac596cd734d",
+      "match": true
+    },
+    "original-preserved": {
+      "reference_sha256": "81f9e5439060d16d038c718a00f89a395821ff5c12e0dcaf4fe4f31980e90b0a",
+      "actual_sha256": "81f9e5439060d16d038c718a00f89a395821ff5c12e0dcaf4fe4f31980e90b0a",
+      "match": true
+    }
+  },
+  "input_reference": "accepted archive/globals before target restoration; not candidate-derived",
+  "snapshot_scope": {
+    "tables": 40,
+    "auth_users": 2,
+    "archived_auth_sessions": 8,
+    "platform_dev_workspaces": 2,
+    "platform_dev_notes": 1
+  },
+  "security": {
+    "state": "MISMATCH_HISTORICAL_BACKUP_NOT_RUNTIME_READY",
+    "historical_roles": [
+      {
+        "role": "service_role",
+        "bypassrls": true
+      },
+      {
+        "role": "supabase_storage_admin",
+        "bypassrls": true
+      }
+    ],
+    "no_runtime_activation": true
+  },
+  "historical_extra_membership": true,
+  "current_primary_hardened_role_metadata_unchanged": true,
+  "ordinary_database_login_and_rls": "OWN_ONE_FOREIGN_ZERO_REAL_DATABASE_LOGIN",
+  "new_auth_session_or_aal2": "NOT_RUN_NOT_CLAIMED",
+  "storage": {
+    "entries": 2,
+    "files": 0,
+    "scope": "EMPTY_DIRECTORY_ARCHIVE_ONLY_NO_DOCUMENT_RECOVERY"
+  },
+  "scanner": "NOT_RUN",
+  "domain_runtime": "NOT_RUN",
+  "cleanup": [
+    {
+      "kind": "container",
+      "role": "storage-observe",
+      "state": "ACKNOWLEDGED_ABSENT"
+    },
+    {
+      "kind": "container",
+      "role": "storage-extract",
+      "state": "ACKNOWLEDGED_ABSENT"
+    },
+    {
+      "kind": "container",
+      "role": "pg",
+      "state": "ACKNOWLEDGED_ABSENT"
+    },
+    {
+      "kind": "volume",
+      "state": "ACKNOWLEDGED_ABSENT"
+    },
+    {
+      "kind": "volume",
+      "state": "ACKNOWLEDGED_ABSENT"
+    }
+  ],
+  "cleanup_complete": true,
+  "resources_created": {
+    "containers": 3,
+    "volumes": 2
+  },
+  "remaining_owned_resources": 0,
+  "original_preserved": true,
+  "original_sealed_five_unchanged": true,
+  "original_backup_unchanged": true,
+  "globals_adapter": {
+    "omitted": "one redundant CREATE ROLE postgres only; fresh role observed; every ALTER/GRANT retained",
+    "original_sha256": "a839c4052afc3acb72ea07c86a28e9d14bac2da4b440466fd52446374f618895",
+    "send_sha256": "467027f945962374e472a19a96eca6e788d075c66a10bce6fd7a5e1b4ca69d14"
+  },
+  "native_helper_sha256": "6dea3be79b1f4a609b8c2ae36fe4ccd80f4a8caaca7b41168eb379dc0b2e1960",
+  "native_receipt": {
+    "bytes": 29810,
+    "sha256": "9273d0da59e70b8b73ccd6c0d144a9228aeb8018121804c54ad6f5476c91b74d",
+    "custody": "PRIVATE"
+  },
+  "first_preflight": {
+    "error": "ORIGINAL_CUSTODY_SHORTENED_DOCKER_ID",
+    "restore": "NOT_RUN",
+    "resource_mutations": 0,
+    "receipt_sha256": "bc4c372e3508e78b86642577cf0bd551470debba126cca6d1a4f997ee90dbe6b",
+    "preserved": true
+  },
+  "new_tests": 10,
+  "primary_error_actual_restore": null,
+  "operational_activation": "HOLD_HISTORICAL_PRIVILEGE_DRIFT_AND_PROVIDER_CONFIG_RECONCILIATION",
+  "automation": {
+    "classification": "نیازمند بررسی",
+    "input": "accepted task12 backup/receipt and sealed stack",
+    "automatable": "fixed restore/hash/compare/cleanup",
+    "human_role": "Platform/coordinator decide privilege/config reconciliation",
+    "conditions": "fresh owned isolated target/private custody",
+    "exception_owner": "Platform; UNKNOWN no replay",
+    "formal_dependency": "task12 backup; Core15 not required",
+    "value": "real recoverability plus surfaced security drift; estimate UNKNOWN"
+  }
+}
