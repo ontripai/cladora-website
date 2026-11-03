@@ -53,31 +53,62 @@
   },
   "integrated_inputs": {
     "core": "3e9593af25433dcf32042f624731f514d09ec35b",
-    "documents": "dc23327c6d14b1765bed113b36b0f5a599955818",
-    "ce": "0191e0415297a76f3073cbeef7396f4799d3a25c",
-    "service": "272ccce7b57f9b7e1994eadfc4a62dab636632e4",
-    "airprop": "f9d463f0f2ad713824312827fd954ce376219574",
+    "documents": "16daca595aa2fad8300c8d4d3d6ea4b28980fed8",
+    "ce": "1a28c1cb724d24738483801784b8a594b9f6572f",
+    "service": "ca547a7dfc49f125652f9405f9255b2ba5d5479d",
+    "airprop": "4b8d1e9e305f44268688197246d34ac65d972b40",
     "platform": "3d8cc8f757babbb986762318be81b01eed522442",
-    "public": "f0b88ac1d9376c46d08c554f3a6b8d0c5f938982"
+    "public": "f0b88ac1d9376c46d08c554f3a6b8d0c5f938982",
+    "authenticated_app": "41b5179939973adfcd18ea3546082faa98c7bdc5",
+    "coordinator_context_correction": "1d17c2483eeebf2b0f187fa9ac48ccb9e4757842"
   },
   "current_truth": {
-    "source_integration": "SERVICE_AIRPROP_DOCUMENTS_SOURCE_INTEGRATED_FULL_ES5_TYPECHECK_PASS",
+    "source_integration": "SERVICE_AIRPROP_DOCUMENTS_CE_AND_APP_SOURCE_INTEGRATED; VERIFIED_BUILD_SHA_RECORDED_BELOW",
     "service_runtime": "UNBOUND_REQUIRES_IMPLEMENTATION",
     "listing_read_control_runtime": "UNBOUND_REQUIRES_IMPLEMENTATION",
     "native_product_E2E": "NOT_READY",
     "production_release": "NOT_READY",
-    "production_build": "BLOCKED_UNRESOLVED_INTER_NEXT_FONT_GOOGLE_LOADER_FAILURE",
+    "production_build": "PASS_FOR_EXACT_VERIFIED_SOURCE_SHA",
     "latest_build_attempt": {
-      "head": "aee717b297538393c6f799fa96cf5eec6bba2502",
-      "exit": 1,
-      "generated_static_pages": 0,
-      "error": "next/font Inter: loader.js:122 null extension match",
+      "head": "1d17c2483eeebf2b0f187fa9ac48ccb9e4757842",
+      "next": "16.4.1",
+      "zod": "4.6.6",
+      "exit": 0,
+      "generated_static_pages": 605,
+      "full_typecheck": "PASS",
+      "network": "KERNEL_OUTBOUND_DENIED",
+      "credential_environment_inheritance": false,
+      "env_files": false,
       "font_mock": false,
       "framework_patch": false,
       "ignoreBuildErrors": false
     },
     "previous_build_evidence": "REVIEW105_PASS_604_PRESERVED_FOR_ITS_EXACT_HEAD_NOT_TRANSFERRED_TO_SUCCESSOR",
-    "documents_upload_download_runtime": "MAINTENANCE_REQUIRES_REAL_CORE_PLATFORM_COMPOSITION"
+    "documents_upload_download_runtime": "MAINTENANCE_REQUIRES_REAL_CORE_PLATFORM_COMPOSITION",
+    "previous_build_attempts": [
+      {
+        "head": "aee717b297538393c6f799fa96cf5eec6bba2502",
+        "exit": 1,
+        "generated_static_pages": 0,
+        "error": "next/font Inter: loader.js:122 null extension match",
+        "font_mock": false,
+        "framework_patch": false,
+        "ignoreBuildErrors": false
+      },
+      {
+        "head": "21312e9ec3bcb74e9ef81245560d2f065e2775e1",
+        "next": "16.4.1",
+        "zod": "4.6.6",
+        "exit": 1,
+        "generated_static_pages": 0,
+        "error": "Manrope Google Fonts fetch failed; emitted module diagnostic preserved",
+        "font_mock": false,
+        "framework_patch": false,
+        "ignoreBuildErrors": false
+      }
+    ],
+    "build_evidence_scope": "EXACT_SHA_ABOVE; later code changes require affected checks; metadata-only update does not change verified runtime bytes",
+    "authenticated_app": "SOURCE_INTEGRATED_WITH_CONTEXT_403_CORRECTION; REAL_BROWSER_AUTH_DB_ACCEPTANCE_OPEN"
   },
   "automation": {
     "classification": "نیازمند بررسی",
