@@ -12,19 +12,22 @@ const require=createRequire(import.meta.url);const cache=new Map();
 const uuid=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const party=uuid(1),requestId=uuid(2),revision=uuid(3),context=uuid(4),workspace=uuid(5);
 globalThis.FormData=window.FormData;
-let writes=[],lose=false,deferred=null,deny=false,historyFail=false,conflict=false,offline=false,session=false,requestVersion=7;
+let writes=[],lose=false,deferred=null,readDeferred=null,deny=false,historyFail=false,conflict=false,offline=false,session=false,requestVersion=7;
 const fetch=async(url,options)=>{
  if(options?.method==='POST'){const command=JSON.parse(options.body);writes.push(command);if(deferred)return deferred.promise;if(lose){lose=false;throw new Error('Lost reply');}return Response.json({quote_id:uuid(6),version:1,request_version:command.expected_request_version,status:'draft'},{status:conflict?409:200});}
+ const readContext=new URL(url,'https://cladora.test').searchParams.get('context_id');
+ if(readDeferred?.context===readContext)return readDeferred.promise;
  if(historyFail&&writes.length)throw new Error('History unavailable');
  if(offline)throw new Error('Offline');
  if(session)return Response.json({error:{code:'SESSION'}},{status:401});
- return Response.json({requests:[{request_id:requestId,request_version:requestVersion,published_revision_id:revision,beneficiary_party_id:party,beneficiary_label:'Verified person',provider_label:'Synthetic provider',description:'Synthetic request',quotes:[]}]},{status:deny?403:200});
+ return Response.json({requests:[{request_id:requestId,request_version:requestVersion,published_revision_id:revision,beneficiary_party_id:party,beneficiary_label:'Verified person',provider_label:'Synthetic provider',description:`Synthetic request ${readContext}`,quotes:[]}]},{status:deny?403:200});
 };
+let dashboardFetch=fetch;
 function load(file) {
   if (!existsSync(file) && file.pathname.endsWith('.ts')) file = new URL(file.href.replace(/\.ts$/, '.tsx'));
   if (cache.has(file.href)) return cache.get(file.href);
   const filename = fileURLToPath(file); const mod = new Module(filename);
-  mod.require = name => name.endsWith('DashboardTransport') ? { useDashboardFetch: () => fetch }
+  mod.require = name => name.endsWith('DashboardTransport') ? { useDashboardFetch: () => dashboardFetch }
     : name.startsWith('@/') ? load(new URL(`../src/${name.slice(2)}.ts`, import.meta.url))
     : name.startsWith('.') ? load(new URL(`${name}.ts`, file)) : require(name);
   mod._compile(ts.transpileModule(readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText, filename);
@@ -35,6 +38,7 @@ const {CustomerServiceQuotes}=load(new URL('../src/components/customer/CustomerS
 const {serviceQuoteAmountToMinor:minor,serviceQuoteMinorToAmount:major}=load(new URL('../src/lib/customer/service-quote-read-schema.ts',import.meta.url));
 const root=createRoot(document.getElementById('root'));let key=0;
 const render=async(lang='en')=>act(async()=>root.render(React.createElement(CustomerServiceQuotes,{key:++key,contextId:context,workspaceId:workspace,lang})));
+const renderScope=async(contextId,workspaceId,lang='en')=>act(async()=>root.render(React.createElement(CustomerServiceQuotes,{contextId,workspaceId,lang})));
 const fill=async()=>act(async()=>{
  const select=document.querySelector('select');select.value=requestId;select.dispatchEvent(new window.Event('change',{bubbles:true}));
 });
@@ -44,8 +48,12 @@ let cases=0;const check=async(name,fn)=>{await fn();cases++;console.log('PASS '+
 try{
  for(const lang of ['en','ro','fa'])await check(lang+' localized draft captures exact Request version, expiry and major amount',async()=>{writes=[];requestVersion=7;await render(lang);await fill();fields();await submit();assert.equal(writes.length,1);assert.equal(writes[0].expected_request_version,7);assert.equal(writes[0].payer_shares[0].party_id,party);assert.equal(writes[0].published_revision_id,revision);assert.equal(writes[0].total_minor,'12050');assert.equal(writes[0].scope,'Synthetic quote scope');assert.equal(writes[0].valid_until,new Date('2099-01-01T12:00').toISOString());});
  await check('Lost reply retries frozen command and blocks editing',async()=>{writes=[];lose=true;await render();await fill();fields();await submit();assert.match(document.body.textContent,/Result unknown/);assert.equal(document.querySelector('fieldset').disabled,true);await submit();assert.equal(writes.length,2);assert.deepEqual(writes[0],writes[1]);assert.match(document.body.textContent,/Draft saved/);});
+ for(const [lang,retry] of [['en','Retry the same draft'],['ro','Reîncearcă aceeași ofertă'],['fa','تکرار همان پیش‌نویس']])await check(`${lang} lost ACK followed by conflict and successful GET preserves the exact unknown command`,async()=>{writes=[];requestVersion=7;lose=true;await render(lang);await fill();fields();await submit();const unknown={...writes[0]};conflict=true;await submit();assert.deepEqual(writes[1],unknown);requestVersion=8;conflict=false;await act(async()=>document.querySelector('button[type="button"]').click());assert.equal(writes.length,2,'GET must not dispatch or mint a command');assert.equal(document.querySelector('button[type="submit"]').textContent,retry);await submit();assert.equal(writes.length,3);assert.deepEqual(writes[2],unknown);});
  await check('Confirmed write survives failed history refresh',async()=>{writes=[];historyFail=true;await render();await fill();fields();await submit();assert.match(document.body.textContent,/Draft saved/);assert.doesNotMatch(document.body.textContent,/Result unknown/);historyFail=false;});
  await check('Double submission sends once and obsolete reply stays hidden',async()=>{writes=[];let resolve;deferred={promise:new Promise(done=>{resolve=done;})};await render();await fill();fields();await act(async()=>{const form=document.querySelector('form');form.dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true}));form.dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true}));});assert.equal(writes.length,1);await render();await act(async()=>resolve(Response.json({quote_id:uuid(6),version:1,request_version:requestVersion,status:'draft'})));assert.doesNotMatch(document.body.textContent,/Draft saved/);deferred=null;});
+ await check('Context and Workspace changes fence delayed reads from the previous scope',async()=>{const oldContext=uuid(40),nextContext=uuid(41),nextWorkspace=uuid(42);let resolve;readDeferred={context:oldContext,promise:new Promise(done=>{resolve=done;})};await renderScope(oldContext,workspace);await renderScope(nextContext,nextWorkspace);assert.match(document.body.textContent,new RegExp(nextContext));await act(async()=>resolve(Response.json({requests:[{request_id:requestId,request_version:7,published_revision_id:revision,beneficiary_party_id:party,beneficiary_label:'Old person',provider_label:'Old provider',description:'OLD_SCOPE_RESPONSE',quotes:[]}]})));assert.doesNotMatch(document.body.textContent,/OLD_SCOPE_RESPONSE/);assert.match(document.body.textContent,new RegExp(nextContext));readDeferred=null;});
+ await check('Unknown command from an old scope is never replayed under a new scope',async()=>{const oldContext=uuid(43),nextContext=uuid(44),nextWorkspace=uuid(45);writes=[];lose=true;await renderScope(oldContext,workspace);await fill();fields();await submit();const old={...writes[0]};assert.equal(old.context_id,oldContext);await renderScope(nextContext,nextWorkspace);assert.doesNotMatch(document.body.textContent,/Result unknown/);await fill();fields();await submit();assert.equal(writes.length,2);assert.equal(writes[1].context_id,nextContext);assert.equal(writes[1].workspace_id,nextWorkspace);assert.notEqual(writes[1].idempotency_key,old.idempotency_key);assert.notDeepEqual(writes[1],old);});
+ await check('Account transport change fences the previous unknown command at the same scope',async()=>{writes=[];dashboardFetch=fetch;lose=true;await renderScope(context,workspace);await fill();fields();await submit();const old={...writes[0]};dashboardFetch=(url,options)=>fetch(url,options);await renderScope(context,workspace);assert.doesNotMatch(document.body.textContent,/Result unknown/);await fill();fields();await submit();assert.equal(writes.length,2);assert.notEqual(writes[1].idempotency_key,old.idempotency_key);assert.notDeepEqual(writes[1],old);dashboardFetch=fetch;});
  await check('Denied read hides form',async()=>{deny=true;await render();assert.equal(document.querySelector('form'),null);assert.match(document.body.textContent,/unavailable/);deny=false;});
  await check('Offline read offers retry without claiming denial',async()=>{offline=true;await render();assert.equal(document.querySelector('form'),null);assert.match(document.body.textContent,/Check your connection/);offline=false;await act(async()=>document.querySelector('button').click());assert.ok(document.querySelector('form'));});
  await check('Session read asks for sign-in',async()=>{session=true;await render();assert.equal(document.querySelector('form'),null);assert.match(document.body.textContent,/session needs verification/);session=false;});
