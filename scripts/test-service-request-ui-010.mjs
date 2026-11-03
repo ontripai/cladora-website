@@ -11,9 +11,10 @@ const {createRoot}=await import('react-dom/client');
 const require=createRequire(import.meta.url);const cache=new Map();
 const uuid=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const party=uuid(1),offering=uuid(2),revision=uuid(3),context=uuid(4),workspace=uuid(5);
-let writes=[],lose=false,deferred=null,deny=false,noParty=false,historyFail=false,readOffline=false,readUnauthorized=false,conflictOnce=false,writeStatus=0;
+let writes=[],postTargets=[],lose=false,deferred=null,deny=false,noParty=false,historyFail=false,readOffline=false,readUnauthorized=false,conflictOnce=false,writeStatus=0;
 const fetch=async(url,options)=>{
- if(options?.method==='POST'){writes.push(JSON.parse(options.body));if(deferred)return deferred.promise;if(writeStatus)return Response.json({error:{code:'DENIED'}},{status:writeStatus});if(conflictOnce){conflictOnce=false;return Response.json({error:{code:'CONFLICT'}},{status:409});}if(lose){lose=false;throw new Error('Lost reply');}return Response.json({request_id:uuid(6),status:'submitted'});}
+ if(options?.method==='POST'){postTargets.push(String(url));writes.push(JSON.parse(options.body));if(deferred)return deferred.promise;if(writeStatus)return Response.json({error:{code:'DENIED'}},{status:writeStatus});if(conflictOnce){conflictOnce=false;return Response.json({error:{code:'CONFLICT'}},{status:409});}if(lose){lose=false;throw new Error('Lost reply');}return Response.json({request_id:uuid(6),status:'submitted'});}
+ if(String(url).includes('/services/offering-request-flow?'))return Response.json({status:'ready',contract:'service-offering-request-flow.v1',source_kind:'workspace',resources:[]});
  if(historyFail&&writes.length)throw new Error('History unavailable');
  if(readOffline)throw new Error('Offline');
  if(readUnauthorized)return Response.json({error:{code:'SESSION'}},{status:401});
@@ -32,17 +33,25 @@ function load(file) {
 
 const {CustomerServiceRequests}=load(new URL('../src/components/customer/CustomerServiceRequests.tsx',import.meta.url));
 const root=createRoot(document.getElementById('root'));let key=0;
-let refreshed=0;const render=async(lang='en')=>act(async()=>root.render(React.createElement(CustomerServiceRequests,{key:++key,contextId:context,workspaceId:workspace,lang,onRefreshCatalog:async()=>{refreshed++;return [{offering_id:offering,revision_id:revision,acquisition_mode:'pre_quote'}];},offerings:[{offering_id:offering,revision_id:revision,labels:{en:'Test service',ro:'Serviciu de test',fa:'خدمت آزمایشی'},acquisition_mode:'pre_quote'}]})));
+const offeringItem=(revisionId=revision)=>({offering_id:offering,revision_id:revisionId,labels:{en:'Test service',ro:'Serviciu de test',fa:'خدمت آزمایشی'},acquisition_mode:'pre_quote'});
+let refreshed=0;let mountedLang='en';
+const props=(lang,items,contextId=context,workspaceId=workspace)=>({key,contextId,workspaceId,lang,onRefreshCatalog:async()=>{refreshed++;return [offeringItem()];},offerings:items});
+const render=async(lang='en')=>{mountedLang=lang;key++;return act(async()=>root.render(React.createElement(CustomerServiceRequests,props(lang,[offeringItem()]))));};
+const rerender=async(items,{contextId=context,workspaceId=workspace}={})=>act(async()=>root.render(React.createElement(CustomerServiceRequests,props(mountedLang,items,contextId,workspaceId))));
 const fill=async()=>act(async()=>{
  const selects=document.querySelectorAll('select');selects[0].value=offering;selects[0].dispatchEvent(new window.Event('change',{bubbles:true}));selects[1].value=party;selects[1].dispatchEvent(new window.Event('change',{bubbles:true}));
  const input=document.querySelector('textarea');Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype,'value').set.call(input,'Synthetic service request');input.dispatchEvent(new window.Event('input',{bubbles:true}));
 });
 const submit=async()=>act(async()=>document.querySelector('button').click());
 const authorityOnly=process.argv.includes('--authority-denial');
-let cases=0;const check=async(name,fn)=>{if(authorityOnly&&!/write denial|Authority revoked|Confirmed request stays/.test(name))return;await fn();cases++;console.log('PASS '+name);};
+const flowRetryOnly=process.argv.includes('--flow-retry');
+let cases=0;const check=async(name,fn)=>{if(authorityOnly&&!/write denial|Authority revoked|Confirmed request stays/.test(name))return;if(flowRetryOnly&&!/V14 pending|Context change/.test(name))return;await fn();cases++;console.log('PASS '+name);};
 try{
  for(const lang of ['en','ro','fa'])await check(lang+' localized request',async()=>{writes=[];await render(lang);await fill();await submit();assert.equal(writes.length,1);assert.equal(writes[0].beneficiary_party_id,party);assert.equal(writes[0].published_revision_id,revision);assert.equal(writes[0].description,'Synthetic service request');assert.equal(document.querySelector('textarea').value,'');});
  await check('Lost reply retries same command and blocks editing',async()=>{writes=[];lose=true;await render();await fill();await submit();assert.match(document.body.textContent,/result is unknown/);assert.equal(document.querySelector('textarea').disabled,true);await submit();assert.equal(writes.length,2);assert.deepEqual(writes[0],writes[1]);assert.match(document.body.textContent,/Request received/);});
+ await check('V14 pending after 503 keeps endpoint body and key when Offering disappears',async()=>{writes=[];postTargets=[];writeStatus=503;await render();await fill();await submit();assert.equal(postTargets[0],'/api/customer/v1/services/offering-request-flow');const first=structuredClone(writes[0]);writeStatus=0;await rerender([]);await submit();assert.deepEqual(postTargets,['/api/customer/v1/services/offering-request-flow','/api/customer/v1/services/offering-request-flow']);assert.deepEqual(writes[1],first);assert.equal(writes[1].idempotency_key,first.idempotency_key);});
+ await check('V14 pending after lost acknowledgement keeps endpoint across revision replacement',async()=>{writes=[];postTargets=[];lose=true;await render();await fill();await submit();const first=structuredClone(writes[0]);await rerender([offeringItem(uuid(33))]);await submit();assert.deepEqual(postTargets,['/api/customer/v1/services/offering-request-flow','/api/customer/v1/services/offering-request-flow']);assert.deepEqual(writes[1],first);assert.equal(writes[1].published_revision_id,revision);});
+ await check('Context change discards prior pending command and form data',async()=>{writes=[];postTargets=[];writeStatus=503;await render();await fill();await submit();writeStatus=0;await rerender([offeringItem()],{contextId:uuid(44),workspaceId:uuid(45)});assert.equal(document.querySelector('textarea')?.value,'');assert.doesNotMatch(document.body.textContent,/Retry the same request/);assert.equal(writes.length,1);});
  await check('Confirmed write survives failed history refresh',async()=>{writes=[];historyFail=true;await render();await fill();await submit();assert.match(document.body.textContent,/Request received/);assert.doesNotMatch(document.body.textContent,/result is unknown/);historyFail=false;});
  await check('Double click sends once and obsolete reply stays hidden',async()=>{writes=[];let resolve;deferred={promise:new Promise(done=>{resolve=done;})};await render();await fill();await act(async()=>{document.querySelector('button').click();document.querySelector('button').click();});assert.equal(writes.length,1);await render();await act(async()=>resolve(Response.json({request_id:uuid(6),status:'submitted'})));assert.doesNotMatch(document.body.textContent,/Request received/);deferred=null;});
  await check('Denied read hides form',async()=>{deny=true;await render();assert.equal(document.querySelector('textarea'),null);assert.match(document.body.textContent,/unavailable/);deny=false;});
