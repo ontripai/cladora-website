@@ -5,6 +5,7 @@ come only from the custodian's private candidate, never from a consumer request.
 """
 import re
 from pathlib import Path
+from recovery import CATALOGS, CONTRACT
 
 NON_DML = ('TRUNCATE', 'REFERENCES', 'TRIGGER', 'MAINTAIN')
 POLICIES = (
@@ -79,6 +80,19 @@ def wrap(body, target, review):
   target_guard(target) + 'DO $p15$ BEGIN\n' + definition_guard(review) + '\nEND $p15$;\n' + body + '\nCOMMIT;\n').encode()
 
 
+def recovery_sql(body, target, review):
+ # READ COMMITTED is essential: a writer which commits while LOCK waits must
+ # be visible to the subsequent complete prestate SELECT. No stale RR snapshot.
+ begin = ("BEGIN ISOLATION LEVEL READ COMMITTED;\nSET LOCAL lock_timeout='3s';\n"
+  "SET LOCAL statement_timeout='10s';\nSET LOCAL idle_in_transaction_session_timeout='5s';\n"
+  'LOCK TABLE ' + ','.join('pg_catalog.' + n for n in CATALOGS) +
+  ' IN SHARE ROW EXCLUSIVE MODE;\n').encode()
+ effect = (target_guard(target) + 'DO $p15$ BEGIN\n' + definition_guard(review) +
+  '\nEND $p15$;\n' + body + '\nRESET ROLE;\n').encode()
+ return {'recovery_begin': begin, 'recovery_state': Path(__file__).with_name('catalog-review.sql').read_bytes(),
+  'acl_recover': effect, 'recovery_commit': b'COMMIT;\n'}
+
+
 def render(v, review, f, target):
  validate(f)
  need(len(v['relations']) == 10 and len(v['functions']) == 20, 'CATALOG_SCOPE')
@@ -117,7 +131,8 @@ def render(v, review, f, target):
  # The original namespace ACL was NULL. SQL REVOKE restores effective owner ACL,
  # not that physical NULL representation. Never update pg_namespace to hide it.
  return {'sql': {'acl_apply': wrap(apply, target, review), 'fixture_create': wrap(fixture, target, review),
-  'fixture_drop_policies': wrap(drop, target, review), 'acl_recover': wrap(recover, target, review)},
+  'fixture_drop_policies': wrap(drop, target, review), **recovery_sql(recover, target, review)},
+  'atomic_recovery': CONTRACT,
   'policies': policy_names, 'harden_relations': [r['name'] for r in harden],
   'raw_namespace_recovery': 'NULL_TO_EXPLICIT_OWNER_ACL_REPRESENTATION_REMAINS',
   'effective_namespace_recovery': 'OWNER_USAGE_CREATE_ONLY_SAME_GRANTOR',

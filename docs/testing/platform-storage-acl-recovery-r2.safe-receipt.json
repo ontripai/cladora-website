@@ -1,0 +1,178 @@
+{
+  "format": "platform15-acl-recovery-r2-safe-receipt.v1",
+  "task": "PLATFORM-STORAGE-ACL-RECOVERY-RACE-R2",
+  "classification": "reported source/offline; native NOT_RUN; reviewer acceptance pending",
+  "observed_at": "2026-11-03T18:02:57.747826+00:00",
+  "base": "a8ccef2b537f8b3e2b393c16686f41afed64a75a",
+  "branch": "codex/program-local-runtime-lane-01",
+  "status": "SOURCE_SUCCESSOR_DELIVERED_EXECUTION_HOLD",
+  "request": {
+    "bytes": 7926,
+    "sha256": "b6bc312a7745efe87f64952662b47355d7f57ca9af1cd064cce8e732b5535483",
+    "public_payload": false,
+    "reconstruction": "fixed rebind.py from exact frozen private R1 inputs",
+    "target_pins": "DECLARED_EXPECTED_ONLY_NOT_FRESHLY_OBSERVED",
+    "authority": null,
+    "execution_binding": null
+  },
+  "source_seal": "33b8012891c8ea72d24b89f5806fd917524dc96cb0b54c14af07c12f6c39d6d2",
+  "sealed_files": 25,
+  "sql_materials": {
+    "acl_apply": {
+      "bytes": 10307,
+      "sha256": "f1736abcf35bbe222d703c438d638a33f13d724dc7d607eed6ec29664abbe09c"
+    },
+    "fixture_create": {
+      "bytes": 6188,
+      "sha256": "465457eddda40b72ba6adf53f48d6f30d89f0072ac6cbf970c6f34bab2a60a4e"
+    },
+    "fixture_drop_policies": {
+      "bytes": 4411,
+      "sha256": "8a6880713f35a190ad32cce79c76847a91fc9f54658949a7643995fa43a0385f"
+    },
+    "recovery_begin": {
+      "bytes": 593,
+      "sha256": "d24a61b18c65f76ec3404ae3d717e928bdc9f1407b93be82b64af6c23132015f"
+    },
+    "recovery_state": {
+      "bytes": 5219,
+      "sha256": "7fd7fa678c7166f7abab1d625f35c3a181a2fc22d1f930f97313f747808b627f"
+    },
+    "acl_recover": {
+      "bytes": 4672,
+      "sha256": "cdf3b767605755a5dbd98d0c0c6ea1aabfa8c718a5c26786f0a47e0f6b8554d2"
+    },
+    "recovery_commit": {
+      "bytes": 8,
+      "sha256": "e83e8c1f4ad612a5bd92067c29bdb9b1597fd541ebed41026079aabd6a4a5bf3"
+    }
+  },
+  "sql_executed": false,
+  "atomic_recovery": {
+    "format": "platform15-atomic-recovery.v2",
+    "isolation": "READ COMMITTED",
+    "catalogs": [
+      "pg_attribute",
+      "pg_attrdef",
+      "pg_authid",
+      "pg_auth_members",
+      "pg_class",
+      "pg_collation",
+      "pg_database",
+      "pg_default_acl",
+      "pg_enum",
+      "pg_language",
+      "pg_namespace",
+      "pg_operator",
+      "pg_policy",
+      "pg_proc",
+      "pg_range",
+      "pg_rewrite",
+      "pg_trigger",
+      "pg_type"
+    ],
+    "lock_mode": "SHARE ROW EXCLUSIVE",
+    "lock_timeout_seconds": 3,
+    "statement_timeout_seconds": 10,
+    "idle_in_transaction_timeout_seconds": 5,
+    "window_seconds": 20,
+    "terminal_seconds": 5,
+    "rollback_seconds": 5,
+    "phases": [
+      "recovery_begin",
+      "recovery_state",
+      "acl_recover",
+      "recovery_state",
+      "recovery_commit"
+    ],
+    "snapshot": "complete original catalog ABI; comparison under catalog locks on same backend",
+    "expiry": "original reviewed cleanup-only-after-expiry ceiling; no normal authority renewal; hard recovery window never extended",
+    "window": "coordinator-exclusive Storage ACL/DDL window required; database catalogs and cluster-wide role writers may wait",
+    "unknown": "no replay/rollback on quarantined or unidentified stream; close own relay and custodian follow-up"
+  },
+  "counterexample": {
+    "before": "Exact base Run.execute; modeled SQL boundaries; one recovery effect before observer detects independent ACL drift; failed overall, not false PASS",
+    "after": "Current Run.execute plus AtomicRecovery; same modeled drift; zero recovery body sends; modeled ROLLBACK/idle ACK",
+    "proof_boundary": "in-memory catalog/protocol model only; not Engine/native lock proof"
+  },
+  "checks": [
+    {
+      "group": "new_r2",
+      "source": "scripts/test-storage-acl-recovery-r2.py",
+      "unique_controls": 19,
+      "result": "PASS;19 unique new groups; only affected interactions repeated after source edits"
+    },
+    {
+      "group": "versioned_request_and_material_abi",
+      "source": "scripts/test-storage-documents-abi15-r1.py",
+      "unique_controls": 4,
+      "result": "PASS;test_no_request_approval_or_old_scope,test_exact_review_and_expiry_ceiling,test_png_and_fixed_payloads,test_recomputed_hash_cannot_admit_arbitrary_sql"
+    }
+  ],
+  "additional_checks": {
+    "syntax": "6 affected Python AST checks in memory PASS",
+    "render": "7 private materials exact reconstructed bytes/hash MATCH",
+    "request": "exact full private readback/reconstruction MATCH",
+    "inactive_admission": "HOLD_EXACT_NATIVE_AND_ACL_REVIEW_REQUIRED",
+    "diff_check": "PASS",
+    "registry": "EMPTY",
+    "run_claims": 0
+  },
+  "tool_evidence_chunks": [
+    "33fad8",
+    "a0f235",
+    "cd8b8e",
+    "12dd46",
+    "66357f"
+  ],
+  "preserved_predecessor": {
+    "bytes": 6177,
+    "sha256": "6bdfe4ab4504dd39fd41f1bf434d103ec2c01c0ae0f071d79c4a93def4d2339c",
+    "source_seal": "25c7181f417248b7bf31b0cfda7492809c11125a937c27a3ab2b9f4d65ff7a5c",
+    "materials": 4,
+    "status": "ARCHIVED_EXACT_NOT_RUN"
+  },
+  "preserved_drafts": {
+    "r2_draft1": "PRESERVED_NOT_RUN",
+    "r2_draft2": "PRESERVED_NOT_RUN"
+  },
+  "preservation": {
+    "sealed_stack_five": "UNCHANGED",
+    "wire": "UNCHANGED",
+    "native_sdk_worker": "UNCHANGED",
+    "catalog_query_and_audit": "UNCHANGED",
+    "acl_delta_and_recovery_statement_bodies": "UNCHANGED",
+    "sdk_pins_package_lock_dependencies": "UNCHANGED",
+    "Core_Docs": "UNCHANGED",
+    "preflight_restore13_raw_private_catalog_provider_receipts": "PRESERVED_UNCHANGED",
+    "target_services_images_config_volumes_users": "NO_OPERATION_PERFORMED",
+    "registry": "EMPTY",
+    "authority": null,
+    "execution_binding": null
+  },
+  "not_run": [
+    "Docker",
+    "PG parser/server/catalog lock test",
+    "target SQL/query",
+    "GRANT/REVOKE",
+    "native Storage/Auth/session",
+    "SDK object/denial/bytes path",
+    "real cleanup",
+    "staging/Production",
+    "Core domain installer"
+  ],
+  "remaining_gates": [
+    "Coordinator independent review of F01 source successor",
+    "Exact database/cluster-role catalog barrier impact and exclusive Storage ACL/DDL window approval",
+    "Underlying ACL delta and raw NULL-to-explicit equivalent owner ACL representation acceptance",
+    "Current target/source/tool/SDK re-admission and separately authorized one-use final request",
+    "Native SQL/lock/Auth/Storage/observer/cleanup evidence; capture/quota are ceilings not future-bound proof",
+    "Canonical Documents/AAL2/non-overwrite brand/conditional delete/restore/scanner/durable custody remain separate"
+  ],
+  "skills": {
+    "cloud_environment_runtime": "read; environment83/83 current/enforced; no environment mutation",
+    "supabase": "0.1.2; no native verification inferred from offline fix",
+    "supabase_postgres_best_practices": "1.1.1; short transaction/fixed ordering/bounded waits; no logging/config change"
+  },
+  "automation": "نیازمند بررسی; process record in report; no new automation task/engine"
+}

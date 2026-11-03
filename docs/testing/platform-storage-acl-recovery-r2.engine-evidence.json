@@ -1,0 +1,81 @@
+{
+  "format": "platform15-r2-official-engine-source-evidence.v1",
+  "version": "REL_17_11",
+  "commit": "083ac033419f690758508e08c1736089384bbee8",
+  "retrieval_utc": "2026-11-03T17:57:13.973137+00:00",
+  "basis": "Official source read only. No parser, server or catalog locking experiment. Byte pins plus immutable commit URLs; local native execution NOT_RUN.",
+  "sources": [
+    {
+      "path": "src/backend/catalog/aclchk.c",
+      "bytes": 143231,
+      "sha256": "997908f8407cdc77d1c41524b85ee56f35d10edb5083918bfc1008b3af73cda3",
+      "git_blob": "bc0e259f69f234be67c5d318216735ae01c5a7a0",
+      "url": "https://github.com/postgres/postgres/blob/083ac033419f690758508e08c1736089384bbee8/src/backend/catalog/aclchk.c",
+      "lines": [
+        "1831-1832",
+        "2156-2168",
+        "3371-3392"
+      ]
+    },
+    {
+      "path": "src/backend/commands/policy.c",
+      "bytes": 36291,
+      "sha256": "68cac355faeedd2584b703ffa486fd10bfa3d2b8553254fb0223229bfc7a4c38",
+      "git_blob": "9b5d0caadfa4f3c0e052e78c0adf5236f32ba9e1",
+      "url": "https://github.com/postgres/postgres/blob/083ac033419f690758508e08c1736089384bbee8/src/backend/commands/policy.c",
+      "lines": [
+        "341",
+        "435",
+        "662",
+        "866",
+        "1123"
+      ]
+    },
+    {
+      "path": "src/backend/commands/lockcmds.c",
+      "bytes": 8323,
+      "sha256": "1b308a6be724132c9198d43811225f648a556f367653ee1f48bc8454a8b7c8fd",
+      "git_blob": "cd20ae76badbc2a8a63734a4adb9c836f0e901a1",
+      "url": "https://github.com/postgres/postgres/blob/083ac033419f690758508e08c1736089384bbee8/src/backend/commands/lockcmds.c",
+      "lines": [
+        "42-62",
+        "70-111",
+        "278-302"
+      ]
+    },
+    {
+      "path": "src/backend/commands/alter.c",
+      "bytes": 30409,
+      "sha256": "a28242e83a61524af1d32be662f0abc9cc685153d651ce90040d15d526d0cd73",
+      "git_blob": "132283b1ef2ed8dae239ed0a41e52feea25469a9",
+      "url": "https://github.com/postgres/postgres/blob/083ac033419f690758508e08c1736089384bbee8/src/backend/commands/alter.c",
+      "lines": [
+        "917-933"
+      ]
+    },
+    {
+      "path": "src/backend/commands/user.c",
+      "bytes": 79707,
+      "sha256": "4dd9e32ba31d43675730f79a495905b317a1abf400a2e605371cba98777d40bc",
+      "git_blob": "aed01cf4cae9e39b7a1bc2517deededae9c49a84",
+      "url": "https://github.com/postgres/postgres/blob/083ac033419f690758508e08c1736089384bbee8/src/backend/commands/user.c",
+      "lines": [
+        "371",
+        "747",
+        "1108-1109",
+        "1695",
+        "1995"
+      ]
+    },
+    {
+      "path": "src/backend/storage/lmgr/lock.c",
+      "bytes": 144228,
+      "sha256": "fe2f7157babb85ec687c5a58fa37ff9c050dbfd3b669b2e81a1bc8584af3f1e2",
+      "git_blob": "e5e7ab55716a3a39d6b3d32820f911b19e06ae7f",
+      "url": "https://github.com/postgres/postgres/blob/083ac033419f690758508e08c1736089384bbee8/src/backend/storage/lmgr/lock.c",
+      "lines": [
+        "62-108"
+      ]
+    }
+  ]
+}

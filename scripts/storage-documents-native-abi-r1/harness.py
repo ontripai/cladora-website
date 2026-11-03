@@ -33,10 +33,11 @@ from local_runtime_consumer import AdmissionError, digest, unique_object, exact_
 from acl02_pg_wire import Wire
 from audit import fingerprint
 from plan import render, validate, NON_DML
+from recovery import AtomicRecovery, CONTRACT as RECOVERY_CONTRACT, expected_restoration
 
 PRIVATE = Path('/workspace/private/platform-storage-documents-native-abi-15/acl-r1')
 REGISTRY = HERE / 'reviews.json'
-PARENT = 'b7f61c027e9fd96afc663fc208d869760f14c791'
+PARENT = 'a8ccef2b537f8b3e2b393c16686f41afed64a75a'
 CONSUMER = '16daca595aa2fad8300c8d4d3d6ea4b28980fed8'
 LIMIT_SECONDS = 360
 
@@ -66,7 +67,7 @@ def write(p, v):
 
 
 def seal():
- for name, expected in {'audit': HERE/'audit.py', 'plan': HERE/'plan.py',
+ for name, expected in {'audit': HERE/'audit.py', 'plan': HERE/'plan.py', 'recovery': HERE/'recovery.py',
   'local_runtime_consumer': ROOT/'scripts/local_runtime_consumer.py',
   'acl02_pg_wire': ROOT/'scripts/acl02_pg_wire.py'}.items():
   need(Path(sys.modules[name].__file__).resolve() == expected, 'EXECUTABLE_MODULE_BINDING')
@@ -104,9 +105,11 @@ def admission(raw, records, current_seal, clock=time.time):
  v = json.loads(raw, object_pairs_hook=unique_object)
  exact_keys(v, ('format','parent','consumer','source_seal','fixture','target','sdk_versions','sql',
   'policies','harden_relations','authority','execution_binding','deadline_seconds','recovery_representation_gate',
-  'acl_lease','native_status','cleanup_followup','wire','allowed_sdk_sequence','capture','retention_private_days','tools','input_bytes'))
+  'acl_lease','native_status','cleanup_followup','wire','allowed_sdk_sequence','capture','retention_private_days','tools','input_bytes','atomic_recovery'))
  need(v['capture'] == json_read(HERE/'contract.json')['capture'] and v['retention_private_days'] == 30, 'CAPTURE_CONTRACT_BINDING')
- need(v['format'] == 'platform15-native-execution-candidate.v1' and v['authority'] is None
+ need(v['atomic_recovery'] == RECOVERY_CONTRACT and json_read(HERE/'contract.json')['atomic_recovery'] == RECOVERY_CONTRACT,
+  'ATOMIC_RECOVERY_CONTRACT_BINDING')
+ need(v['format'] == 'platform15-native-execution-candidate.v2' and v['authority'] is None
   and v['execution_binding'] is None and v['parent'] == PARENT and v['consumer'] == CONSUMER, 'REQUEST_SCOPE')
  need(v['source_seal'] == current_seal and v['sdk_versions'] == {'supabase': '2.112.4', 'storage': '2.112.4', 'auth': '2.112.4'}, 'REQUEST_PIN')
  validate(v['fixture'])
@@ -178,6 +181,7 @@ def semantic_namespace(v):
 
 
 def verify_materials(request, planned, directory):
+ need(request['atomic_recovery'] == planned['atomic_recovery'] == RECOVERY_CONTRACT, 'ATOMIC_RECOVERY_MATERIAL_BINDING')
  need(set(request['sql']) == set(planned['sql']), 'FIXED_SQL_STAGE_SET')
  need(request['policies'] == planned['policies'] and request['harden_relations'] == planned['harden_relations'], 'FIXED_POLICY_PRIVILEGE_PLAN')
  for stage, expected in planned['sql'].items():
@@ -228,10 +232,10 @@ def prepare():
   with os.fdopen(fd, 'wb') as out:
    need(out.write(payload) == len(payload), 'SQL_CANDIDATE_SHORT_WRITE'); out.flush(); os.fsync(out.fileno())
   inputs[stage] = {'bytes': len(payload), 'sha256': digest(payload)}
- value = {'format': 'platform15-native-execution-candidate.v1', 'parent': PARENT, 'consumer': CONSUMER,
+ value = {'format': 'platform15-native-execution-candidate.v2', 'parent': PARENT, 'consumer': CONSUMER,
   'source_seal': current, 'fixture': f, 'target': target,
   'sdk_versions': {'supabase': '2.112.4', 'storage': '2.112.4', 'auth': '2.112.4'},
-  'sql': inputs, 'policies': plan['policies'], 'harden_relations': plan['harden_relations'],
+  'sql': inputs, 'policies': plan['policies'], 'harden_relations': plan['harden_relations'], 'atomic_recovery': RECOVERY_CONTRACT,
   'authority': None, 'execution_binding': None, 'deadline_seconds': LIMIT_SECONDS,
   'recovery_representation_gate': plan['raw_namespace_recovery'], 'acl_lease': 'REQUIRES_COORDINATOR_EXCLUSIVE_STORAGE_ACL_WINDOW',
   'native_status': 'NOT_RUN', 'cleanup_followup': 'Platform; immediately on UNKNOWN, follow-up within1hour; no automatic retry',
@@ -295,6 +299,9 @@ class Run:
   need(cleanup or time.monotonic() < self.deadline, 'DEADLINE_BEFORE_EFFECT_UNKNOWN')
 
  def sql(self, stage, payload, commit=False, cleanup=False):
+  need(stage != 'acl-recover' and all(payload != self.plan['sql'][name]
+   for name in ('recovery_begin','acl_recover','recovery_commit')),
+   'ATOMIC_RECOVERY_REQUIRES_FIXED_SAME_CONNECTION_ADAPTER')
   self.gate(cleanup)
   connection = None
   result = None
@@ -335,6 +342,38 @@ class Run:
   pin = self.v['sql'][stage]
   need(b == self.plan['sql'][stage] and len(b) == pin['bytes'] and digest(b) == pin['sha256'], 'SQL_PAYLOAD_DRIFT')
   return b
+
+ def recover_acl(self, expected):
+  """No separate prestate connection can authorize the recovery mutation."""
+  connection = transaction = None
+  self.r['cleanup']['atomic_recovery'] = {'status': 'NOT_RUN'}
+  try:
+   self.gate(True)
+   connection = Wire(self.v['target']['services']['pg']['cid'], 'p15-' + self.fixture['run'][:12], self.fixture['run'],
+    'atomic-recovery', self.out, self.stack.DOCKER, self.stack.env(), lambda: self.gate(True))
+   ident = connection.identity(lambda: self.gate(True))
+   need(ident['version'] == 170011 and all(str(ident[k]) == str(self.v['target'][k])
+    for k in ('system_identifier', 'database_oid')), 'PHYSICAL_DATABASE_MISMATCH')
+   def persist(value):
+    self.r['cleanup']['atomic_recovery'] = {**value, 'physical_identity': ident}
+    self.save('atomic-recovery')
+   transaction = AtomicRecovery(connection, self.material, lambda: self.gate(True), persist,
+    expected, expected_restoration(self.original, expected))
+   transaction.run()
+  except BaseException as error:
+   self.r['primary_error'] = self.r['primary_error'] or str(error) or type(error).__name__
+   if transaction is None:
+    self.r['cleanup']['atomic_recovery'] = {'status': 'FAILED_OR_UNKNOWN', 'first_error': str(error) or type(error).__name__}
+   raise
+  finally:
+   if connection is not None:
+    try:
+     connection.close()
+     self.r['cleanup']['atomic_recovery']['close'] = {'state': 'acknowledged', 'scope': 'exact relay only; not rollback/residue proof'}
+    except Exception:
+     self.r['cleanup']['atomic_recovery']['close'] = {'state': 'unknown'}
+     self.r['primary_error'] = self.r['primary_error'] or 'ATOMIC_RECOVERY_RELAY_CLOSE_UNKNOWN'
+    self.save('atomic-recovery-close')
 
  def files(self, phase):
   self.gate(True)
@@ -459,20 +498,21 @@ class Run:
    if acl:
     try:
      # Only undo the exact owned ACL delta; foreign changes block automatic recovery.
-     v = self.catalog('recovery-prestate', True)
      expected = expected_post(self.original, self.v['harden_relations'])
      if fixture and not empty:
       expected = self.expected_catalog
-     need(fingerprint(v) == fingerprint(expected), 'ACL_RECOVERY_PRESTATE_MISMATCH')
-     self.sql('acl-recover', self.material('acl_recover'), True, True)
+     self.recover_acl(expected)
      final = self.catalog('recovery-observer', True)
+     observed = self.r['stages']['recovery-observer']['physical_identity']
+     actor = self.r['cleanup']['atomic_recovery']['physical_identity']
+     need(observed['pid'] != actor['pid'] and all(str(observed[k]) == str(actor[k])
+      for k in ('database_oid','system_identifier','database','version')), 'RECOVERY_INDEPENDENT_OBSERVER_IDENTITY')
      self.r['cleanup']['namespace_raw_null_restored'] = final['namespace']['acl'] is None
-     # Policies may remain on an owned bucket after failed native cleanup. Never call it complete.
-     compare = copy.deepcopy(final)
-     if fixture and not empty:
-      for rel in compare['relations']: rel['policies'] = None
-     need(fingerprint(semantic_namespace(compare)) == fingerprint(semantic_namespace(self.original)), 'EFFECTIVE_ACL_GRANTOR_RECOVERY_MISMATCH')
+     # Same exact expected policies survive both comparisons; no policy stripping.
+     need(fingerprint(final) == fingerprint(expected_restoration(self.original, expected)), 'EFFECTIVE_ACL_GRANTOR_RECOVERY_MISMATCH')
      self.r['cleanup']['acl'] = 'EFFECTIVE_PRIVILEGES_AND_GRANTORS_RESTORED_RAW_NULL_REPRESENTATION_CHANGED'
+     self.r['cleanup']['atomic_recovery']['observer'] = 'ACKNOWLEDGED_INDEPENDENT_EXACT_STATE'
+     self.r['cleanup']['atomic_recovery']['status'] = 'COMMIT_AND_INDEPENDENT_OBSERVER_ACKNOWLEDGED'
     except Exception as e:
      self.r['cleanup']['acl'] = 'FAILED_OR_UNKNOWN'
      self.r['primary_error'] = self.r['primary_error'] or str(e)

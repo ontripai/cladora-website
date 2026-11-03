@@ -40,13 +40,14 @@ def fixture():
 
 
 def request():
- return {'format':'platform15-native-execution-candidate.v1','parent':harness.PARENT,'consumer':harness.CONSUMER,
+ return {'format':'platform15-native-execution-candidate.v2','parent':harness.PARENT,'consumer':harness.CONSUMER,
   'source_seal':'c'*64,'fixture':fixture(),'target':{'synthetic':'UNIT_TEST_ONLY'},
   'sdk_versions':{'supabase':'2.112.4','storage':'2.112.4','auth':'2.112.4'},'sql':{'acl_apply':{'sha256':'d'*64}},
   'policies':[],'harden_relations':[],'authority':None,'execution_binding':None,'deadline_seconds':360,
   'recovery_representation_gate':'NULL_TO_EXPLICIT_OWNER_ACL_REPRESENTATION_REMAINS','acl_lease':'TEST_ONLY',
   'native_status':'NOT_RUN','cleanup_followup':'TEST_ONLY','wire':'TEST_ONLY','allowed_sdk_sequence':[],
-  'capture':json.loads((HERE/'contract.json').read_text())['capture'],'retention_private_days':30,'tools':{},'input_bytes':{}}
+  'capture':json.loads((HERE/'contract.json').read_text())['capture'],'retention_private_days':30,'tools':{},'input_bytes':{},
+  'atomic_recovery':harness.RECOVERY_CONTRACT}
 
 
 class Tests(unittest.TestCase):
@@ -132,8 +133,11 @@ class Tests(unittest.TestCase):
   self.assertLess(len(a),4096)
   self.assertNotEqual(a,b)
   p=plan.render(self.v,self.review,fixture(),self.target)
-  for b in p['sql'].values():
-   self.assertTrue(b.startswith(b'BEGIN;') and b.endswith(b'COMMIT;\n'))
+  for name,b in p['sql'].items():
+   if name in ('acl_apply','fixture_create','fixture_drop_policies'):
+    self.assertTrue(b.startswith(b'BEGIN;') and b.endswith(b'COMMIT;\n'))
+   elif name=='acl_recover':
+    self.assertNotIn(b'BEGIN;',b);self.assertNotIn(b'COMMIT;',b)
    self.assertNotRegex(b.decode(),r'\bCREATE\s+\w+\s+IF\s+NOT\s+EXISTS\b')
    self.assertNotIn(b'BYPASSRLS',b)
   self.assertNotIn(b'DELETE FROM',p['sql']['fixture_drop_policies'])
@@ -169,8 +173,9 @@ class Tests(unittest.TestCase):
 
  def test_recomputed_hash_cannot_admit_arbitrary_sql(self):
   b=b'UNIT_SOURCE_NOT_EXECUTED'
-  p={'sql':{'fixed':b},'policies':[],'harden_relations':[]}
-  r={'sql':{'fixed':{'bytes':len(b),'sha256':harness.digest(b)}},'policies':[],'harden_relations':[]}
+  p={'sql':{'fixed':b},'policies':[],'harden_relations':[],'atomic_recovery':harness.RECOVERY_CONTRACT}
+  r={'sql':{'fixed':{'bytes':len(b),'sha256':harness.digest(b)}},'policies':[],'harden_relations':[],
+   'atomic_recovery':harness.RECOVERY_CONTRACT}
   with tempfile.TemporaryDirectory() as d:
    root=Path(d);(root/'fixed.sql').write_bytes(b)
    harness.verify_materials(r,p,root)
