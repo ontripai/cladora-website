@@ -122,6 +122,9 @@ jobs:
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
     steps:
       - uses: actions/checkout@v5
+        with:
+          # Core coupling fixtures read sealed historical modules by full SHA.
+          fetch-depth: 0
       - uses: actions/setup-node@v5
         with:
           node-version: 22
