@@ -13,10 +13,13 @@ import type { AirpropB2Session } from './artifact-b2-api';
  * No production bridge is provided or enabled by this source slice. */
 export type ListingControlBridge = (actorId: string, request: ListingCommand) => Promise<
   { status: 'receipt'; value: unknown } | { status: 'denied' | 'conflict' | 'not_ready' | 'unknown_commit' }>;
+export type ListingRuntimePorts = { read: ListingSourceRead | null; control: ListingControlBridge | null };
+export type ListingRuntimeResolver = (session: AirpropB2Session, scope: { context_id: string; workspace_id: string }) => Promise<ListingRuntimePorts | null>;
 export function createListingFlowApi(composition: {
   session(): Promise<AirpropB2Session | null>;
   read: ListingSourceRead | null;
   control: ListingControlBridge | null;
+  resolveRuntime?: ListingRuntimeResolver;
 }) {
   return {
     async GET(request: NextRequest) {
@@ -25,9 +28,10 @@ export function createListingFlowApi(composition: {
       try {
         const session = await composition.session();
         if (!session) return diligenceFailure('UNAUTHORIZED', 401);
-        if (!composition.read) return diligenceFailure('LISTING_SOURCE_NOT_READY', 503);
-        const listings = await readListingFlow(composition.read, session.actor_id, scope.data);
-        const connected = composition.control !== null && session.aal === 'aal2';
+        const runtime = composition.resolveRuntime ? await composition.resolveRuntime(session, scope.data) : composition;
+        if (!runtime?.read) return diligenceFailure('LISTING_SOURCE_NOT_READY', 503);
+        const listings = await readListingFlow(runtime.read, session.actor_id, scope.data);
+        const connected = runtime.control !== null && session.aal === 'aal2';
         if (!connected) for (const listing of listings) listing.actions = unavailableListingActions();
         const canEdit = listings.some(row => listingActions.some(action => row.actions[action] === 'allowed'));
         const value = listingReadResponseSchema.parse({ version: 2, ...scope.data, listings,
@@ -49,8 +53,9 @@ export function createListingFlowApi(composition: {
         const session = await composition.session();
         if (!session) return diligenceFailure('UNAUTHORIZED', 401);
         if (session.aal !== 'aal2') return diligenceFailure('MFA_REQUIRED', 403);
-        if (!composition.control) return diligenceFailure('LISTING_COMMAND_NOT_READY', 503);
-        const result = await composition.control(session.actor_id, parsed.data);
+        const runtime = composition.resolveRuntime ? await composition.resolveRuntime(session, { context_id: parsed.data.command.context_id, workspace_id: parsed.data.command.workspace_id }) : composition;
+        if (!runtime?.control) return diligenceFailure('LISTING_COMMAND_NOT_READY', 503);
+        const result = await runtime.control(session.actor_id, parsed.data);
         if (result.status === 'receipt') {
           if (!matchesListingReceipt(result.value, parsed.data)) return diligenceFailure('LISTING_RESULT_UNKNOWN', 502);
           return NextResponse.json(result.value, { status: 200, headers: diligenceHeaders });
