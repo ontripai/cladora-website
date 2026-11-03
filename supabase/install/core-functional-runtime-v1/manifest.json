@@ -368,7 +368,7 @@
     "SERVICE-owned provider-binding.ts replay evidence currently uses JS clock; named-resource40001 catch must preserve serialization; Core does not re-stamp this evidence"
   ],
   "native_results": "NOT_RUN_NOT_PASS",
-  "automation": "نیازمند بررسی",
+  "automation": "\u0646\u06cc\u0627\u0632\u0645\u0646\u062f \u0628\u0631\u0631\u0633\u06cc",
   "consumer_contract_pins": [
     {
       "commit": "4c3abd7c26d8ae393fdb6acb3f88330c7b887097",
@@ -486,9 +486,9 @@
     },
     {
       "path": "scripts/test-core-functional-runtime-v1.mjs",
-      "bytes": 19438,
-      "sha256": "5ac8b13124a8dd661dc812902b6361e0dec331408546e292b571e1305647f784",
-      "git_blob": "a32eab980fa56c1c7a09590d978bc6a47dc65520"
+      "bytes": 20326,
+      "sha256": "4881b3895067cdcc1390ed566f5f92e4c7d4efe3467ff566d2b530b3d1c9e0a4",
+      "git_blob": "9163d22e82aeb1c3535f1f6d54c0d8ca8fe90b1d"
     },
     {
       "path": "scripts/test-core15-session-source-v1.mjs",
@@ -504,9 +504,9 @@
     },
     {
       "path": "src/lib/core/functional-command-runtime-v1.ts",
-      "bytes": 20371,
-      "sha256": "36110c4747773d04380b2241b9b60749dfca9b75ac7b31accde140cc9c4f8d45",
-      "git_blob": "5b64a2dadae9eec33e39e483474d4da4e8c17af7"
+      "bytes": 21051,
+      "sha256": "0a8f472e88d7b79fc55cc7e643852e66b8b9b0638de26a9c104840a23b352a75",
+      "git_blob": "751ea25bdae9022acd6b6c126e3726866bcd8d42"
     },
     {
       "path": "src/lib/core/functional-producers-v1.ts",
@@ -528,9 +528,9 @@
     },
     {
       "path": "src/lib/core/service-functional-binding-v1.ts",
-      "bytes": 6434,
-      "sha256": "769c49733f894773452665f39a024cc8a16b4b9e1269e9d8cac3e3405b1c254a",
-      "git_blob": "f9a69ea4261cd77da738df13cb34f151aaeda27f"
+      "bytes": 6450,
+      "sha256": "7951bb8f6f3a1507a8006fe3ff1d430a1f8b8be25c3e4793c3b1bcb498ba4ded",
+      "git_blob": "7c545113a92e12e8bac27bf9f87e4ebe6e7e872e"
     },
     {
       "path": "supabase/install/core-functional-runtime-v1/00-extensions.sql",
@@ -581,7 +581,7 @@
       "git_blob": "40212a66b464ac56e51b24944d7f291ecbc3ec9a"
     }
   ],
-  "inventory_seal_sha256": "1a29a2b19839a8f91b4eed960b77dbae2113d9567d9661400c8236f28c3e4992",
+  "inventory_seal_sha256": "db78ab0492dc0ec42f3495b3c25363ed1a06a242e2cdf801b21a7fa9e636f315",
   "native_target_binding": "core15-dev:<owned_backend_id>; GUCs are consistency only; independent Platform custody/actual DB OID/ordinary principal required",
   "session_cut": {
     "ABI": "core-authenticated-session-runtime.v1",
@@ -606,5 +606,62 @@
     "runtime_role": "cladora_core_runtime",
     "function_owner": "existing ordinary supabase_auth_admin Auth table owner, isolated from runtime",
     "staging_or_production": "NOT_TOUCHED"
+  },
+  "integration_lineage": {
+    "contract": "core15-session-inventory-successor.v1",
+    "original_manifest": "docs/verification/CORE15-SESSION-a0a37.manifest.json",
+    "original_manifest_sha256": "eca5ea7cb2a200e9153ba9a956ef37397c1a70c9ee01ba2bf0092635a3c2e1ba",
+    "original_commit": "a0a37f3c573558d14be2e62ba27e6e5475b9c4fe",
+    "runtime_source_successor": "580de7be74d7bc1000119b0b940cff644c6437ab",
+    "changes": [
+      {
+        "path": "scripts/test-core-functional-runtime-v1.mjs",
+        "before": {
+          "path": "scripts/test-core-functional-runtime-v1.mjs",
+          "bytes": 19438,
+          "sha256": "5ac8b13124a8dd661dc812902b6361e0dec331408546e292b571e1305647f784",
+          "git_blob": "a32eab980fa56c1c7a09590d978bc6a47dc65520"
+        },
+        "after": {
+          "path": "scripts/test-core-functional-runtime-v1.mjs",
+          "bytes": 20326,
+          "sha256": "4881b3895067cdcc1390ed566f5f92e4c7d4efe3467ff566d2b530b3d1c9e0a4",
+          "git_blob": "9163d22e82aeb1c3535f1f6d54c0d8ca8fe90b1d"
+        }
+      },
+      {
+        "path": "src/lib/core/functional-command-runtime-v1.ts",
+        "before": {
+          "path": "src/lib/core/functional-command-runtime-v1.ts",
+          "bytes": 20371,
+          "sha256": "36110c4747773d04380b2241b9b60749dfca9b75ac7b31accde140cc9c4f8d45",
+          "git_blob": "5b64a2dadae9eec33e39e483474d4da4e8c17af7"
+        },
+        "after": {
+          "path": "src/lib/core/functional-command-runtime-v1.ts",
+          "bytes": 21051,
+          "sha256": "0a8f472e88d7b79fc55cc7e643852e66b8b9b0638de26a9c104840a23b352a75",
+          "git_blob": "751ea25bdae9022acd6b6c126e3726866bcd8d42"
+        }
+      },
+      {
+        "path": "src/lib/core/service-functional-binding-v1.ts",
+        "before": {
+          "path": "src/lib/core/service-functional-binding-v1.ts",
+          "bytes": 6434,
+          "sha256": "769c49733f894773452665f39a024cc8a16b4b9e1269e9d8cac3e3405b1c254a",
+          "git_blob": "f9a69ea4261cd77da738df13cb34f151aaeda27f"
+        },
+        "after": {
+          "path": "src/lib/core/service-functional-binding-v1.ts",
+          "bytes": 6450,
+          "sha256": "7951bb8f6f3a1507a8006fe3ff1d430a1f8b8be25c3e4793c3b1bcb498ba4ded",
+          "git_blob": "7c545113a92e12e8bac27bf9f87e4ebe6e7e872e"
+        }
+      }
+    ],
+    "installer_units_and_session_native_evidence": "UNCHANGED",
+    "controlled_runtime_groups": 35,
+    "native_results": "ORIGINAL_SESSION_NINE_ONLY; broader Service proof belongs to separate580de7 cut; NOT_RERUN_BY_COORDINATOR"
   }
 }
