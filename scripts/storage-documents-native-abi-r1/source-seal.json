@@ -1,0 +1,28 @@
+{
+  "format": "platform15-source-seal.v1",
+  "files": {
+    "docs/testing/platform-storage-documents-native-abi-15.r1.acl-review.json": "3a760de6086a0a80faf2d8337120c4ddb46894cab005fc1f172dc3b318eb8fa3",
+    "docs/testing/platform-storage-documents-native-abi-15.r1.actor-helper.json": "122c374b16c4c225ffa3a2ca921ad623d449847b3873ade90788de7ad0609836",
+    "docs/testing/platform-storage-documents-native-abi-15.r1.provider-review.json": "b9232d4ca09bdf778201255c5ce83be2d787a5f0fb44bd762ff43ce5c3f9f916",
+    "scripts/acl02_pg_wire.py": "4fa852fbdb6047ec3c264e1fee53b6218d9db9abf8b462d29e10d24fc4b242c3",
+    "scripts/functional-dev-stack-v1/bootstrap.sql": "fd77a96615502200d51046c6ab98485e81763377dd605b21426503a8ee25a540",
+    "scripts/functional-dev-stack-v1/gateway.conf": "dd60b2cd8e28bae75b0ba32943e65f236682d7a9e5ad43ca630e97bd8e23b8c1",
+    "scripts/functional-dev-stack-v1/profile.json": "5287f38709eb71e85915c9e23a18dd3f7cbb8276346f271ded1dd485de792218",
+    "scripts/functional-dev-stack-v1/provider-compatibility.sql": "5e6214c55dde2c4e2328c19cb79fc5a9a3ae0d84ecaab9544c419ff40a34fd7d",
+    "scripts/functional-dev-stack-v1/stack.py": "2049056db7bf4dc47c7d57b3bbaf0da5e57812a3b1fe55685a9d263533cc10f7",
+    "scripts/local_runtime_consumer.py": "b240725de9119e0176e49fb0bc55f4917ef8df79a9383cb8d77ed97ca579d439",
+    "scripts/storage-documents-native-abi-r1/acl-delta.v1.sql": "38065bf28e7806b5c2825f29a5d44cedbb0ea231d43e112cdab8bada8f227534",
+    "scripts/storage-documents-native-abi-r1/acl-recovery.v1.sql": "05401abe88cf8283aa54232b7f4e66b23025f63ef57e3c8196df7f7f25a1d838",
+    "scripts/storage-documents-native-abi-r1/actor-helper-review.sql": "2cee5a4374310db628223ac66587cbfd8819020889ee77d358f57def15f5457a",
+    "scripts/storage-documents-native-abi-r1/audit.py": "84baa56d402b791e2ddb3dc32a2e493e5b1ab7f2f0f8c61851edcaf7f1c9b92f",
+    "scripts/storage-documents-native-abi-r1/catalog-review.sql": "7fd7fa678c7166f7abab1d625f35c3a181a2fc22d1f930f97313f747808b627f",
+    "scripts/storage-documents-native-abi-r1/contract.json": "f535ebfdbe48e996bb890871850237fa9088c8eab916c787520bb4b23e122f68",
+    "scripts/storage-documents-native-abi-r1/harness.py": "a32774e9a518fdbdac4af2657b3bdbf206976cbad078a83f74c76dfb82b027d9",
+    "scripts/storage-documents-native-abi-r1/native.mjs": "1fce00213df826c4cd580183a1589cbb5d2083ab5668aa75a59e01c7eea6c4fd",
+    "scripts/storage-documents-native-abi-r1/plan.py": "e3018bf21bc03951a8c1e71978255f8b5bd5847817d7c5fe1e611b673648440b",
+    "scripts/storage-documents-native-abi-r1/principal-review.sql": "4ccd90c627105a33f5ede5394e81609f4e84ff0381b2848da196c906c195778b",
+    "scripts/storage-documents-native-abi-r1/sdk-pins.json": "cd3ee3f2d5f871796c494c99af25e59b69c11f6d9be12fc8bd9101fe7789219c"
+  },
+  "sha256": "25c7181f417248b7bf31b0cfda7492809c11125a937c27a3ab2b9f4d65ff7a5c",
+  "self_hash": "outside-file; reviews kept outside executable seal"
+}

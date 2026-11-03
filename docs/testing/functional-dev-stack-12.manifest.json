@@ -1,0 +1,195 @@
+{
+  "format": "platform-functional-dev-stack-delivery.v1",
+  "parent": "ae71ec36c61d3d9cd8d5bb45076ce59e2d4c3ac8",
+  "parent_parents": [
+    "ddd4905d1dd43b4587a658063aeba8a99ca00d4c"
+  ],
+  "branch": "codex/program-local-runtime-lane-01",
+  "source_files": [
+    {
+      "path": "docs/testing/PLATFORM-FUNCTIONAL-DEV-STACK-12.md",
+      "bytes": 14930,
+      "sha256": "c48f7a7ae38c188a80ab3ffe4dd5bc57577d0428cadb105e3681b96d5419e1ea",
+      "git_blob": "674a2ff609b09acb2b58a2612506280a7f857af5"
+    },
+    {
+      "path": "docs/testing/functional-dev-stack-12.receipt.json",
+      "bytes": 8052,
+      "sha256": "18e20ac54d622dae46b92c5bf5f509913d63fc50e61c9cc62b7046da175fd0ce",
+      "git_blob": "70165a1af88998a97a1c3670a106b0f0812d8006"
+    },
+    {
+      "path": "scripts/functional-dev-stack-v1/bootstrap.sql",
+      "bytes": 3810,
+      "sha256": "fd77a96615502200d51046c6ab98485e81763377dd605b21426503a8ee25a540",
+      "git_blob": "48a3a15597e008376e9b2671aec507ff538fe7d4"
+    },
+    {
+      "path": "scripts/functional-dev-stack-v1/connection-proof.mjs",
+      "bytes": 6432,
+      "sha256": "459c8983af958f7c3b3d6f700bfdfcf42a4ecd6d5fd9b0656d6b796905d81f71",
+      "git_blob": "2116b958afeb12e6ff6dc0aed84499be1c908c5e"
+    },
+    {
+      "path": "scripts/functional-dev-stack-v1/gateway.conf",
+      "bytes": 707,
+      "sha256": "dd60b2cd8e28bae75b0ba32943e65f236682d7a9e5ad43ca630e97bd8e23b8c1",
+      "git_blob": "c10b6298586b1c2971a871a3377f1266c6c66d05"
+    },
+    {
+      "path": "scripts/functional-dev-stack-v1/profile.json",
+      "bytes": 1717,
+      "sha256": "5287f38709eb71e85915c9e23a18dd3f7cbb8276346f271ded1dd485de792218",
+      "git_blob": "ac6dc159b1700aab22bb2ca396a4e09027f8965d"
+    },
+    {
+      "path": "scripts/functional-dev-stack-v1/provider-compatibility.sql",
+      "bytes": 893,
+      "sha256": "5e6214c55dde2c4e2328c19cb79fc5a9a3ae0d84ecaab9544c419ff40a34fd7d",
+      "git_blob": "8c6109e61a4ffeb72d358caeb504cc0f6f4946fa"
+    },
+    {
+      "path": "scripts/functional-dev-stack-v1/stack.py",
+      "bytes": 33551,
+      "sha256": "2049056db7bf4dc47c7d57b3bbaf0da5e57812a3b1fe55685a9d263533cc10f7",
+      "git_blob": "80372bb405b1a08e6e4bb53fc989dca912f3d89f"
+    },
+    {
+      "path": "scripts/test-functional-dev-stack-v1.py",
+      "bytes": 6105,
+      "sha256": "906e9020cfc2c2226272e458e038c816daf6d3d91b91af9e2dcf4bcc566c3539",
+      "git_blob": "3d9a01280ce5277f9c193155298773bb70e7af10"
+    }
+  ],
+  "manifest_self_identity": "outside-file delivery receipt; no circular self-hash",
+  "source_seal": {
+    "files": {
+      "bootstrap.sql": "fd77a96615502200d51046c6ab98485e81763377dd605b21426503a8ee25a540",
+      "gateway.conf": "dd60b2cd8e28bae75b0ba32943e65f236682d7a9e5ad43ca630e97bd8e23b8c1",
+      "profile.json": "5287f38709eb71e85915c9e23a18dd3f7cbb8276346f271ded1dd485de792218",
+      "provider-compatibility.sql": "5e6214c55dde2c4e2328c19cb79fc5a9a3ae0d84ecaab9544c419ff40a34fd7d",
+      "stack.py": "2049056db7bf4dc47c7d57b3bbaf0da5e57812a3b1fe55685a9d263533cc10f7"
+    },
+    "sha256": "486de88c0aa8d0a60e0f412bcb1aad6c8496578aa06d52e9114de00957181682"
+  },
+  "images": {
+    "pg": "docker.io/library/postgres@sha256:2cd2c0f809604aaeff6f0ec8f40aecbd025613107561015c69369a1a7f1d3416",
+    "auth": "docker.io/supabase/gotrue@sha256:839f529492d116b4e8b7777c953a27c381d34c15a744b1bcefde5eefaa1f9f9f",
+    "rest": "docker.io/postgrest/postgrest@sha256:bee9e1efe9d90d8f6be359f756e039dbb6e1972474bc271b7c49c5a495911a41",
+    "gateway": "docker.io/library/nginx@sha256:09ab424a8c788f8d0fe3a64429f6d19dfa526885c8609b748d0943a75dcb9f8c",
+    "storage": "docker.io/supabase/storage-api@sha256:31c11d93a3c7840f97acba43f6df9894028dc85dd9c0781d23427e2009be5b76",
+    "scanner": "docker.io/clamav/clamav@sha256:67b6acaa32fe648079ea3b5558c6a3d090d75261a011e252d1842540ee686dd6"
+  },
+  "profile": {
+    "path": "scripts/functional-dev-stack-v1/profile.json",
+    "bytes": 1717,
+    "sha256": "5287f38709eb71e85915c9e23a18dd3f7cbb8276346f271ded1dd485de792218",
+    "git_blob": "ac6dc159b1700aab22bb2ca396a4e09027f8965d"
+  },
+  "consumers": [
+    {
+      "owner": "Service09",
+      "commit": "4c3abd7c26d8ae393fdb6acb3f88330c7b887097",
+      "path": "supabase/hosted-service-v14-execution/functional-request-runtime-dependency-v1.json",
+      "git_blob": "393003173a1bf3d653b7c9bfb79276af9a4ab4d7"
+    },
+    {
+      "owner": "AIRPROP06",
+      "commit": "4b8d1e9e305f44268688197246d34ac65d972b40",
+      "path": "docs/airprop/AIRPROP-FUNCTIONAL-LISTING-06.dependencies.json",
+      "git_blob": "9c45db5f486fa83bd3e610625794ae702d165a35"
+    },
+    {
+      "owner": "Core15",
+      "commit": null,
+      "install_manifest": null,
+      "status": "NOT_DELIVERED"
+    },
+    {
+      "owner": "Documents11",
+      "commit": "e38b0d39dbb840a508b5e1d47e9d93d3060c6411",
+      "path": "docs/testing/documents-functional-upload-v1/connection-requirements.json",
+      "git_blob": "2cb91885b118c1229681c401d027a743456dd762",
+      "status": "20MiB transport configured; intent/RLS/scanner bindings HOLD"
+    }
+  ],
+  "preservation": {
+    "tracked_before": 2624,
+    "tracked_after_expected": 2624,
+    "modified_existing_files": [
+      "docs/testing/functional-dev-stack-12.manifest.json"
+    ],
+    "task11": "all 16 delivered files byte-identical",
+    "product_package_lock": "unchanged",
+    "native_installer_replay": false
+  },
+  "tests": {
+    "new_targeted_source_groups": 10,
+    "execution": "initial6 plus CID/HTTP/backup/Documents20 cases; only affected reruns",
+    "syntax": "Python AST/JSON/new MJS PASS",
+    "old_accepted_suites": "NOT_REPEATED",
+    "native_summary": {
+      "path": "docs/testing/functional-dev-stack-12.receipt.json",
+      "bytes": 8052,
+      "sha256": "18e20ac54d622dae46b92c5bf5f509913d63fc50e61c9cc62b7046da175fd0ce",
+      "git_blob": "70165a1af88998a97a1c3670a106b0f0812d8006"
+    }
+  },
+  "state": {
+    "independent_pg_auth_api": "ACTUAL_SAME_EXECUTOR_VERIFIED",
+    "domain_runtime": "HOLD_CORE15",
+    "cross_seat": "NOT_VERIFIED",
+    "old_consumer_registries": "UNCHANGED_EMPTY",
+    "sensitive_aal2": "NOT_RUN_NOT_PASS"
+  },
+  "rebuild": {
+    "method": "exact source on consumer executor; own managed Docker/network checks; init/pull/bootstrap/start/users/verify using private generated state",
+    "existing_instance": "do not repeat init/bootstrap/users; stop/start/status/backup only",
+    "no_migration_replay": true,
+    "clean_second_executor": "NOT_RUN",
+    "readme": "docs/testing/PLATFORM-FUNCTIONAL-DEV-STACK-12.md",
+    "initial_checkpoint": "ddd4905d1dd43b4587a658063aeba8a99ca00d4c",
+    "successor": "apply only seven identified Platform-owned delta files; source installer/product/old task11 unchanged"
+  },
+  "automation": {
+    "classification": "نیازمند بررسی",
+    "input": "pinned infrastructure plus reviewed Core/consumer contracts",
+    "automatable": "owned lifecycle, hash/identity/backup checks",
+    "human_owner": "Platform/Core/coordinator; Documents for signatures",
+    "conditions": "exact target/private custody/role graph",
+    "exception": "UNKNOWN/drift -> Platform no blind retry",
+    "dependency": "Core15/Service09/AIRPROP06/Documents11",
+    "value": "durable isolated real development access; estimate UNKNOWN"
+  },
+  "initial_delivery_parent": "26ad9b1f9ed0fe94df54330d0fc314fdd5c8e8d1",
+  "relation": "metadata closeout child of the additive Documents20 source successor; native runtime source unchanged",
+  "delivered_paths": [
+    "docs/testing/PLATFORM-FUNCTIONAL-DEV-STACK-12.md",
+    "docs/testing/functional-dev-stack-12.receipt.json",
+    "scripts/functional-dev-stack-v1/bootstrap.sql",
+    "scripts/functional-dev-stack-v1/connection-proof.mjs",
+    "scripts/functional-dev-stack-v1/gateway.conf",
+    "scripts/functional-dev-stack-v1/profile.json",
+    "scripts/functional-dev-stack-v1/provider-compatibility.sql",
+    "scripts/functional-dev-stack-v1/stack.py",
+    "scripts/test-functional-dev-stack-v1.py",
+    "docs/testing/functional-dev-stack-12.manifest.json"
+  ],
+  "new_paths": [],
+  "integration_commit": "26ad9b1f9ed0fe94df54330d0fc314fdd5c8e8d1",
+  "integration_parents": [
+    "864ffa05eec12f463330c4a21d14640fc6423ac9",
+    "ec639884452cc0cb6dfef520339791a5c20e9b39"
+  ],
+  "source_successor_commit": "ae71ec36c61d3d9cd8d5bb45076ce59e2d4c3ac8",
+  "source_successor_parent": "ddd4905d1dd43b4587a658063aeba8a99ca00d4c",
+  "source_delta_paths": [
+    "docs/testing/PLATFORM-FUNCTIONAL-DEV-STACK-12.md",
+    "docs/testing/functional-dev-stack-12.receipt.json",
+    "docs/testing/functional-dev-stack-12.manifest.json",
+    "scripts/functional-dev-stack-v1/profile.json",
+    "scripts/functional-dev-stack-v1/gateway.conf",
+    "scripts/functional-dev-stack-v1/stack.py",
+    "scripts/test-functional-dev-stack-v1.py"
+  ]
+}

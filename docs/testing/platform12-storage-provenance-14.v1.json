@@ -1,0 +1,300 @@
+{
+  "contract": "platform12-storage-provenance-addendum.v1",
+  "task_id": "PLATFORM12-STORAGE-PROVENANCE-14",
+  "parent": "50d4f6f41f08d93a2d158051377e388be6fe6322",
+  "branch": "codex/program-local-runtime-lane-01",
+  "conclusion": "DIFFERENT_VERSION_IDENTIFIERS_NO_OBSERVED_PIN_MISMATCH",
+  "documentation_effect": "clarify service release vs internal npm manifest; existing sealed profile unchanged",
+  "profile_release": "v1.82.1",
+  "image_manifest_digest": "sha256:31c11d93a3c7840f97acba43f6df9894028dc85dd9c0781d23427e2009be5b76",
+  "image_config_digest": "sha256:ed2afc0194b24a697cfa9b245c60d5fd0b41a9ba5a255083418cd643577098a3",
+  "local_image_id": "sha256:ed2afc0194b24a697cfa9b245c60d5fd0b41a9ba5a255083418cd643577098a3",
+  "platform": {
+    "architecture": "amd64",
+    "os": "linux"
+  },
+  "image_oci_labels": null,
+  "image_build_version": "VERSION=1.82.1",
+  "container_version": "VERSION=1.82.1",
+  "runtime": {
+    "release_version": "1.82.1",
+    "node": "v24.21.0",
+    "process_arch": "x64",
+    "config_path": "/app/dist/config.js",
+    "config_sha256": "7d5c137386f34dac6a79b390731be878de05244ed4001cea6481ff41596d16b2",
+    "config_reads_VERSION": true
+  },
+  "package_manifest": {
+    "path": "/app/package.json",
+    "realpath": "/app/package.json",
+    "bytes": 9725,
+    "sha256": "f80f12401fcb54ad481a8a86a01faa564f87272f7ca17cebcca1d77d28b97cfd",
+    "name": "supa-storage",
+    "version": "1.11.2"
+  },
+  "package_lock_metadata": {
+    "path": "/app/package-lock.json",
+    "realpath": "/app/package-lock.json",
+    "bytes": 992577,
+    "sha256": "5e49d802934c5565dad1e65d1c034a2770100246eb8f219c6a0aabad147d33fa",
+    "name": "supa-storage",
+    "version": "1.11.2",
+    "lockfileVersion": 2,
+    "lock_root": {
+      "name": "supa-storage",
+      "version": "1.11.2"
+    }
+  },
+  "package_git_identities": [
+    {
+      "path": "/app/package.json",
+      "git_blob": "00d0524b59a13049dae0491022232e94b59a3089",
+      "sha256": "f80f12401fcb54ad481a8a86a01faa564f87272f7ca17cebcca1d77d28b97cfd",
+      "bytes": 9725
+    },
+    {
+      "path": "/app/package-lock.json",
+      "git_blob": "aa5e2c6f1d5b5d7bf08f715ad771c9180982099c",
+      "sha256": "5e49d802934c5565dad1e65d1c034a2770100246eb8f219c6a0aabad147d33fa",
+      "bytes": 992577
+    }
+  ],
+  "official_release": {
+    "repository": "supabase/storage",
+    "tag": "v1.82.1",
+    "git_commit": "a3a588586b937a24d1a5a4f2a0197cca78990469",
+    "release_id": 412642582,
+    "published_at_tehran": "2026-10-14T15:01:33+03:30",
+    "immutable": false,
+    "url": "https://github.com/supabase/storage/releases/tag/v1.82.1"
+  },
+  "checks": {
+    "registry_raw_digest_matches": true,
+    "config_digest_matches_local_image": true,
+    "official_tag_amd64_matches_approved_digest": true,
+    "package_bytes_match_official_release": true,
+    "lock_git_identity_matches_official_release_tree": true,
+    "five_embedded_sources_match_official_release": true,
+    "used_health_as_provenance": false
+  },
+  "official_source_files": [
+    {
+      "path": "package.json",
+      "bytes": 9725,
+      "sha256": "f80f12401fcb54ad481a8a86a01faa564f87272f7ca17cebcca1d77d28b97cfd",
+      "git_blob": "00d0524b59a13049dae0491022232e94b59a3089",
+      "url": "https://github.com/supabase/storage/blob/a3a588586b937a24d1a5a4f2a0197cca78990469/package.json",
+      "repository": "supabase/storage"
+    },
+    {
+      "path": "Dockerfile",
+      "bytes": 1926,
+      "sha256": "041cceef935c0e743f78edc1e7d7a3f1a56ef82893575719b2d831728e0cad08",
+      "git_blob": "e6cea51e55802913fe7ffb0fa6fc3578f43d621f",
+      "url": "https://github.com/supabase/storage/blob/a3a588586b937a24d1a5a4f2a0197cca78990469/Dockerfile",
+      "repository": "supabase/storage"
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "bytes": 9660,
+      "sha256": "f05d43a0e0954eb2841145e5ebb1c54d06dd1267363b82b8616612e06478eabd",
+      "git_blob": "7153bb9fb219577fc62c722b2008e91ddf8ca838",
+      "url": "https://github.com/supabase/storage/blob/a3a588586b937a24d1a5a4f2a0197cca78990469/.github/workflows/release.yml",
+      "repository": "supabase/storage"
+    },
+    {
+      "path": ".releaserc",
+      "bytes": 509,
+      "sha256": "d0094a7a70624bb4324a2c00014a596f6e6de3f1e3fd1252540d60fe6a85b7b1",
+      "git_blob": "5254650a2bebaefc4f3dfa22a9b310bc52f11ee2",
+      "url": "https://github.com/supabase/storage/blob/a3a588586b937a24d1a5a4f2a0197cca78990469/.releaserc",
+      "repository": "supabase/storage"
+    },
+    {
+      "path": "src/config.ts",
+      "bytes": 34926,
+      "sha256": "efed9ad95efec846629a87a1154401652e4461c0f4ac4614dcf8411582dd13b3",
+      "git_blob": "85dd039501a9c03ff461c5e7d95802ef1106fbb8",
+      "url": "https://github.com/supabase/storage/blob/a3a588586b937a24d1a5a4f2a0197cca78990469/src/config.ts",
+      "repository": "supabase/storage"
+    },
+    {
+      "path": "src/http/routes/object/createObject.ts",
+      "bytes": 2295,
+      "sha256": "6fce387ef8021d9b6f6a48665410f74cad5cfc7a98c0bbf818572f16fa60863a",
+      "git_blob": "133ef44816dfc3b0bb0652a82f53ab3ac3144ecc",
+      "url": "https://github.com/supabase/storage/blob/a3a588586b937a24d1a5a4f2a0197cca78990469/src/http/routes/object/createObject.ts",
+      "repository": "supabase/storage"
+    },
+    {
+      "path": "src/http/routes/object/getObjectInfo.ts",
+      "bytes": 6233,
+      "sha256": "53addba46449b606d5a3aafedc5584e18831214fcab122a187edae3e01a5c7aa",
+      "git_blob": "a6cd594fbb94e0bc8eb534d6868bbfe4a9b17bec",
+      "url": "https://github.com/supabase/storage/blob/a3a588586b937a24d1a5a4f2a0197cca78990469/src/http/routes/object/getObjectInfo.ts",
+      "repository": "supabase/storage"
+    },
+    {
+      "path": "src/http/routes/object/getObject.ts",
+      "bytes": 4026,
+      "sha256": "0c8feb32ba3408bd4fdc46da0cac7f08f9952ee4512e11f96e2e81b23ee5f390",
+      "git_blob": "b1b63186b5af5175eeedd139963655779be95f51",
+      "url": "https://github.com/supabase/storage/blob/a3a588586b937a24d1a5a4f2a0197cca78990469/src/http/routes/object/getObject.ts",
+      "repository": "supabase/storage"
+    },
+    {
+      "path": "src/storage/renderer/info.ts",
+      "bytes": 2072,
+      "sha256": "b3ef55176e3dc4f2042bd05c4651a84895f01c103e79d31e049e21e4029f964c",
+      "git_blob": "768d28505646b51d166d26bb101339c9f4c11fc2",
+      "url": "https://github.com/supabase/storage/blob/a3a588586b937a24d1a5a4f2a0197cca78990469/src/storage/renderer/info.ts",
+      "repository": "supabase/storage"
+    },
+    {
+      "path": "src/http/routes/object/index.ts",
+      "bytes": 1937,
+      "sha256": "09cbd9547dca48e56d95992fe67f74492d58c6c8fe59253fd6755d993776d798",
+      "git_blob": "1874303fe5ff1fa43f880a33fe15f8b1b77146ea",
+      "url": "https://github.com/supabase/storage/blob/a3a588586b937a24d1a5a4f2a0197cca78990469/src/http/routes/object/index.ts",
+      "repository": "supabase/storage"
+    },
+    {
+      "path": "build.js",
+      "bytes": 374,
+      "sha256": "500056527b3e00c6e17a9d215fc8874a939c1bb1d1192cb320fe7104f6b444a4",
+      "git_blob": "f00a62cfd596f45af951fc12a7bf5423090343e3",
+      "url": "https://github.com/supabase/storage/blob/a3a588586b937a24d1a5a4f2a0197cca78990469/build.js",
+      "repository": "supabase/storage"
+    },
+    {
+      "path": "src/lib/customer/documents-storage-readback-v1.ts",
+      "bytes": 5143,
+      "sha256": "570efc0616345157fc2b8710fc2bf130902da5a89c702480467325a55061066f",
+      "git_blob": "3e4f4fa01f826ef451f14f6e48f6e83e47f375a6",
+      "url": "https://github.com/ontripai/cladora-website/blob/e38b0d39dbb840a508b5e1d47e9d93d3060c6411/src/lib/customer/documents-storage-readback-v1.ts",
+      "repository": "ontripai/cladora-website"
+    }
+  ],
+  "embedded_source_matches": [
+    {
+      "map_path": "/app/dist/config.js.map",
+      "upstream": "src/config.ts",
+      "git_blob": "85dd039501a9c03ff461c5e7d95802ef1106fbb8",
+      "sha256": "efed9ad95efec846629a87a1154401652e4461c0f4ac4614dcf8411582dd13b3",
+      "match": true
+    },
+    {
+      "map_path": "/app/dist/http/routes/object/createObject.js.map",
+      "upstream": "src/http/routes/object/createObject.ts",
+      "git_blob": "133ef44816dfc3b0bb0652a82f53ab3ac3144ecc",
+      "sha256": "6fce387ef8021d9b6f6a48665410f74cad5cfc7a98c0bbf818572f16fa60863a",
+      "match": true
+    },
+    {
+      "map_path": "/app/dist/http/routes/object/getObjectInfo.js.map",
+      "upstream": "src/http/routes/object/getObjectInfo.ts",
+      "git_blob": "a6cd594fbb94e0bc8eb534d6868bbfe4a9b17bec",
+      "sha256": "53addba46449b606d5a3aafedc5584e18831214fcab122a187edae3e01a5c7aa",
+      "match": true
+    },
+    {
+      "map_path": "/app/dist/http/routes/object/getObject.js.map",
+      "upstream": "src/http/routes/object/getObject.ts",
+      "git_blob": "b1b63186b5af5175eeedd139963655779be95f51",
+      "sha256": "0c8feb32ba3408bd4fdc46da0cac7f08f9952ee4512e11f96e2e81b23ee5f390",
+      "match": true
+    },
+    {
+      "map_path": "/app/dist/storage/renderer/info.js.map",
+      "upstream": "src/storage/renderer/info.ts",
+      "git_blob": "768d28505646b51d166d26bb101339c9f4c11fc2",
+      "sha256": "b3ef55176e3dc4f2042bd05c4651a84895f01c103e79d31e049e21e4029f964c",
+      "match": true
+    }
+  ],
+  "documents_abi": {
+    "consumer_commit": "e38b0d39dbb840a508b5e1d47e9d93d3060c6411",
+    "readback_source_git_blob": "3e4f4fa01f826ef451f14f6e48f6e83e47f375a6",
+    "static_source": "UPLOAD_INFO_DOWNLOAD_SOURCE_PRESENT",
+    "upload_ack": "Id and Key emitted; schema only Key required; consumer must retain strict UUID failure",
+    "info_raw_fields": [
+      "id",
+      "name",
+      "version",
+      "bucket_id",
+      "size",
+      "content_type",
+      "etag"
+    ],
+    "client_required_fields": [
+      "id",
+      "name",
+      "bucketId",
+      "size",
+      "contentType",
+      "version",
+      "etag"
+    ],
+    "generation_etag": "nullable capability; no non-overwrite/current-authority proof",
+    "runtime_sdk_route_shape_and_authorized_bytes": "UNKNOWN_NOT_RUN",
+    "non_overwrite_custody": "UNKNOWN_NOT_PROVED",
+    "actual_restore_document_or_scanner": "NOT_PROVED",
+    "core15_independent_progress": "NOT_BLOCKED_BY_THIS_METADATA_CHECK"
+  },
+  "unknowns": {
+    "signed_whole_image_build_attestation": "UNKNOWN_NOT_VERIFIED",
+    "complete_reproducible_build": "UNKNOWN_NOT_RUN",
+    "connected_documents_abi": "UNKNOWN_NOT_RUN"
+  },
+  "preservation": {
+    "same_container_image_started_at": true,
+    "read_only_root": true,
+    "no_app_mount_overlay": true,
+    "sealed_five_unchanged": true,
+    "restore13_native_receipt_unchanged": true,
+    "storage_volume_names": [
+      "cladora-functional-dev-v1-storage-data"
+    ],
+    "mutations_executed": false
+  },
+  "mutations_or_disallowed_checks": {
+    "pull": false,
+    "image_change": false,
+    "bootstrap_users_restore": false,
+    "sql_auth": false,
+    "privilege_change": false,
+    "scan": false,
+    "health_replay": false,
+    "dependency_install": false,
+    "manual_ci_deployment": false
+  },
+  "inventory": {
+    "before": 2629,
+    "after_expected": 2631,
+    "existing_files_modified": [],
+    "new_paths": [
+      "docs/testing/PLATFORM12-STORAGE-PROVENANCE-14.v1.md",
+      "docs/testing/platform12-storage-provenance-14.v1.json"
+    ]
+  },
+  "addendum": {
+    "path": "docs/testing/PLATFORM12-STORAGE-PROVENANCE-14.v1.md",
+    "bytes": 8870,
+    "sha256": "2bf91807477f6be71a70299da3bef0016d15bd85dd9591d3c33222770dd6a370",
+    "git_blob": "d43d9611d8adc98f660ea33bd4ccd1c68841c503"
+  },
+  "self_identity": "external delivery receipt; no circular self-hash",
+  "automation": {
+    "classification": "نیازمند بررسی",
+    "input": "exact platform/digest and official release metadata",
+    "automatable": "digest/config/package/source-map comparisons with distinct namespaces",
+    "human_decision": "Platform/Documents/coordinator ABI and image acceptance",
+    "conditions": "read-only exact official references; unknown stays unknown",
+    "exception_owner": "Platform/coordinator",
+    "formal_dependency": "Storage official release and exact Documents consumer",
+    "value": "prevent false upgrade and ABI conclusions; estimate UNKNOWN"
+  },
+  "local_repo_digests": [
+    "supabase/storage-api@sha256:31c11d93a3c7840f97acba43f6df9894028dc85dd9c0781d23427e2009be5b76"
+  ]
+}

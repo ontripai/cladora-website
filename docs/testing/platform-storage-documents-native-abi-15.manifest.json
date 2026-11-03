@@ -1,0 +1,65 @@
+{
+  "format": "platform15.native-preflight-delivery.v1",
+  "parent": "432598c0c5b1ec4632161cf3f328d5092b7e68f2",
+  "branch": "codex/program-local-runtime-lane-01",
+  "status": "BLOCKED_SHARED_SCHEMA_USAGE_NATIVE_NOT_RUN",
+  "files": [
+    {
+      "path": "scripts/storage-documents-native-abi-v1/preflight.py",
+      "bytes": 6761,
+      "sha256": "facbc7633a02c318d7da5f9f14d5f49b050385263f05192666f576fceed1da50",
+      "git_blob": "11c4f6cbf50810b7426a3b248d59598c7b5d7395"
+    },
+    {
+      "path": "scripts/storage-documents-native-abi-v1/catalog-preflight.sql",
+      "bytes": 1500,
+      "sha256": "a0c615cdeea018cffbad173144a1a74ff2c90fc8d705b89bf5cb95e6cd572c2e",
+      "git_blob": "28602156b37468ff51c8b6efbb86b921112e95b0"
+    },
+    {
+      "path": "scripts/storage-documents-native-abi-v1/sdk-load.cjs",
+      "bytes": 3215,
+      "sha256": "601f7ab3f254fa555d5bcc94a17640ac29f3a6f9d10bd8d6692a3d4b76a26c65",
+      "git_blob": "35c975fec0394d28e4c931061993e9aaf4c45b1d"
+    },
+    {
+      "path": "scripts/test-storage-documents-native-preflight-v1.py",
+      "bytes": 2532,
+      "sha256": "1796b739f7f50713bbdbd26b078bc3b406c14a177a93aa5e5589ce356800bfcc",
+      "git_blob": "b2db4535b473d0c7fac0ccb166e507c1bc1d6cf8"
+    },
+    {
+      "path": "docs/testing/PLATFORM-STORAGE-DOCUMENTS-NATIVE-ABI-15.md",
+      "bytes": 10548,
+      "sha256": "fdf5c8bbaf29da704204a523346ffb9b4738a654d2ed47bf792d27e628f941b4",
+      "git_blob": "d5177958e00b548dceb0a64f4cb7ebda751f9260"
+    },
+    {
+      "path": "docs/testing/platform-storage-documents-native-abi-15.safe-receipt.json",
+      "bytes": 6847,
+      "sha256": "2634f6a64823582ca931f7506867a088ea708cc217989589cf15a20baa7335da",
+      "git_blob": "4ca356ef306698fe674a7670527048867ae891a8"
+    }
+  ],
+  "manifest_self_identity": "outside-file Git/receipt, no circular hash",
+  "inventory": {
+    "tracked_before": 2631,
+    "new_files_including_this_manifest": 7,
+    "expected_tracked_after": 2638,
+    "modified_existing": []
+  },
+  "sealed_five": {
+    "bootstrap.sql": "fd77a96615502200d51046c6ab98485e81763377dd605b21426503a8ee25a540",
+    "gateway.conf": "dd60b2cd8e28bae75b0ba32943e65f236682d7a9e5ad43ca630e97bd8e23b8c1",
+    "profile.json": "5287f38709eb71e85915c9e23a18dd3f7cbb8276346f271ded1dd485de792218",
+    "provider-compatibility.sql": "5e6214c55dde2c4e2328c19cb79fc5a9a3ae0d84ecaab9544c419ff40a34fd7d",
+    "stack.py": "2049056db7bf4dc47c7d57b3bbaf0da5e57812a3b1fe55685a9d263533cc10f7"
+  },
+  "target_identity": "PRIVATE_NOT_PUBLISHED",
+  "functional_storage_harness": "NOT_DELIVERED_PREREQUISITE_BLOCKED",
+  "native_stages": "ALL_NOT_RUN",
+  "runtime_authority": "NO_EXPANSION",
+  "task14_and_restore13": "PRESERVED_NOT_REPLAYED",
+  "product_package_lock": "UNCHANGED",
+  "automation": "نیازمند بررسی"
+}

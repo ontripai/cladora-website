@@ -1,0 +1,195 @@
+{
+  "format": "platform15.sdk-runtime-pins.v1",
+  "versions": {
+    "supabase": "2.112.4",
+    "storage": "2.112.4",
+    "auth": "2.112.4"
+  },
+  "files": {
+    "@supabase/auth-js/dist/main/AuthAdminApi.js": {
+      "bytes": 309,
+      "sha256": "8e879ad1a0f0ad11923dc1b7bedd7e522532a298025c3fae52669419d342421a"
+    },
+    "@supabase/auth-js/dist/main/AuthClient.js": {
+      "bytes": 297,
+      "sha256": "f9dbb30bd5c6511db0c98a24f1f9b077aa2d080505427c93dea757d97d981568"
+    },
+    "@supabase/auth-js/dist/main/GoTrueAdminApi.js": {
+      "bytes": 41480,
+      "sha256": "b2d62d61f2828c8b8f4f3033f885599774daf3e7fc65fdfaa6d0a9baa9ba997e"
+    },
+    "@supabase/auth-js/dist/main/GoTrueClient.js": {
+      "bytes": 268189,
+      "sha256": "e4d0e04b094882702e38c587ae783814f15f4a1d226867d0d4b6e493170097a9"
+    },
+    "@supabase/auth-js/dist/main/index.js": {
+      "bytes": 1516,
+      "sha256": "a43ea0c523b8f4f8b8d59bc3b16b9ec9158cad05de53ffc92238fceb26d8bcfd"
+    },
+    "@supabase/auth-js/dist/main/lib/base64url.js": {
+      "bytes": 9075,
+      "sha256": "1d97eac773480a5e06ba408f4d746e59b4269a6b8afd22aaad75f5773c7cf9d7"
+    },
+    "@supabase/auth-js/dist/main/lib/constants.js": {
+      "bytes": 2693,
+      "sha256": "9218c8a8da3825083fcb3b105a8c52c1c5a542a865f5abf2ab5185b7b4beabf9"
+    },
+    "@supabase/auth-js/dist/main/lib/errors.js": {
+      "bytes": 10697,
+      "sha256": "3cf62e517139e8e2092891eb990ea32b25b95678a52a63b4b911ec08e363f77a"
+    },
+    "@supabase/auth-js/dist/main/lib/fetch.js": {
+      "bytes": 9052,
+      "sha256": "50fa4e318e07a49de1179256e3fa3dc927a6a46664386f0baed30ef80f3c1d0b"
+    },
+    "@supabase/auth-js/dist/main/lib/helpers.js": {
+      "bytes": 24482,
+      "sha256": "78266ba90acb338e0f7cadc112f6ee241b4feb1d76f162575a90eacd2898b2a5"
+    },
+    "@supabase/auth-js/dist/main/lib/local-storage.js": {
+      "bytes": 573,
+      "sha256": "a3c6841d8c4dc24a2c0ac1d238b42a278c7ac05d18a7571db91c3fc140e42d93"
+    },
+    "@supabase/auth-js/dist/main/lib/locks.js": {
+      "bytes": 16421,
+      "sha256": "d9ebad87448eb4aa3f1db2453f313377e19c6c144824f502154bcf3b0cd851c3"
+    },
+    "@supabase/auth-js/dist/main/lib/polyfills.js": {
+      "bytes": 862,
+      "sha256": "0b5600e6e4cda1f029ec448d93857062731b850424d3b465fa7dae4e5921ae7e"
+    },
+    "@supabase/auth-js/dist/main/lib/types.js": {
+      "bytes": 655,
+      "sha256": "24966642101c9436aba71c1df65f4b54cffaf2c8c62adea41328f884edca8e33"
+    },
+    "@supabase/auth-js/dist/main/lib/version.js": {
+      "bytes": 581,
+      "sha256": "159e261599ca9445d45cbcae484e57a2fa8a7f238865fe8bcd2adef4a15f3c6d"
+    },
+    "@supabase/auth-js/dist/main/lib/web3/ethereum.js": {
+      "bytes": 3287,
+      "sha256": "839a33e8225db3da724f25bea5d1b127ba30cb4c272cab30dd9700232ada431d"
+    },
+    "@supabase/auth-js/dist/main/lib/webauthn.errors.js": {
+      "bytes": 12037,
+      "sha256": "40cb9a8d5f58c798e4b1ea47774ba29e59a9efb455c6edd4d05c8a38c762cd78"
+    },
+    "@supabase/auth-js/dist/main/lib/webauthn.js": {
+      "bytes": 35801,
+      "sha256": "56a4a126d86809cedabc7d78317e14154640a86ce0f70a3c89786a8ce3cf4cda"
+    },
+    "@supabase/functions-js/dist/main/FunctionsClient.js": {
+      "bytes": 14185,
+      "sha256": "905e201600578c69ac03137d69174a39e21cf46096fb9ce6acf2307bb6e2a2c0"
+    },
+    "@supabase/functions-js/dist/main/helper.js": {
+      "bytes": 341,
+      "sha256": "323d5529b134ddf92d2bce3ffb1c1707d483325f182fd2665d59564ca6bb933e"
+    },
+    "@supabase/functions-js/dist/main/index.js": {
+      "bytes": 1161,
+      "sha256": "41f4ff1b0f36c0ccc0a0e0fbd6428f2654dafbe1fd3e3dd89a8736166ac5c4f5"
+    },
+    "@supabase/functions-js/dist/main/types.js": {
+      "bytes": 3169,
+      "sha256": "c599ec73696bd9a251cc206407bdc5a9b2fbda1b12d97ceb9868b2a060dbb514"
+    },
+    "@supabase/phoenix/priv/static/phoenix.cjs.js": {
+      "bytes": 57208,
+      "sha256": "0b9d4a6280454132320c6ea886355f4d34059213ecc6697f43d7e836c98920aa"
+    },
+    "@supabase/postgrest-js/dist/index.cjs": {
+      "bytes": 106822,
+      "sha256": "d457ad36136e6c47328fb948aff16bc74058885d07e7a2a61b2adb9d600a4dd0"
+    },
+    "@supabase/realtime-js/dist/main/RealtimeChannel.js": {
+      "bytes": 35402,
+      "sha256": "955d3435079ccf6114d9dc409e329a6e42d832ce3e0b5ae6033b0b44baedc4f1"
+    },
+    "@supabase/realtime-js/dist/main/RealtimeClient.js": {
+      "bytes": 26595,
+      "sha256": "b88e1f2be859fed94b9f5c22bcdb2845ff28c5e14cb6e9ed6300124f899ab5ef"
+    },
+    "@supabase/realtime-js/dist/main/RealtimePostgresFilterBuilder.js": {
+      "bytes": 7141,
+      "sha256": "87b125bf675a17e13e706d65a3d579c18633dccf5630abd0fde2ff09d5fed7de"
+    },
+    "@supabase/realtime-js/dist/main/RealtimePresence.js": {
+      "bytes": 1792,
+      "sha256": "a2687fc9777849d24b7ec2b45b5191b7a2a06c4b19b4dc2ccb8c25f31679246d"
+    },
+    "@supabase/realtime-js/dist/main/index.js": {
+      "bytes": 2189,
+      "sha256": "c9b62a4332542a15618a2d2442760c5d2d5ef59f494765f98a297baeb9335582"
+    },
+    "@supabase/realtime-js/dist/main/lib/constants.js": {
+      "bytes": 1372,
+      "sha256": "b2e12c8872af9e3d67070addabefea35eebbebc0383cce5e4734361741c526a2"
+    },
+    "@supabase/realtime-js/dist/main/lib/normalizeChannelError.js": {
+      "bytes": 1293,
+      "sha256": "fcea2bd55b4f6c749cc0f9daf956b4d0db126d096656ff8149bb517648475efa"
+    },
+    "@supabase/realtime-js/dist/main/lib/serializer.js": {
+      "bytes": 7708,
+      "sha256": "d71a6f611f1fd578287b89f510a9e8a6b9dc7048085065e607769b7eed7f1945"
+    },
+    "@supabase/realtime-js/dist/main/lib/transformers.js": {
+      "bytes": 8974,
+      "sha256": "c6050fcfa7e19d3f5b7f0cc3e7e40e899aa753a75e10d268252be968e9fc7062"
+    },
+    "@supabase/realtime-js/dist/main/lib/version.js": {
+      "bytes": 581,
+      "sha256": "159e261599ca9445d45cbcae484e57a2fa8a7f238865fe8bcd2adef4a15f3c6d"
+    },
+    "@supabase/realtime-js/dist/main/lib/websocket-factory.js": {
+      "bytes": 4553,
+      "sha256": "cb05e6f4ab46ee28118d7baecd0ff6c6116e1a538f4896bb7d4d1de1b60ab1a9"
+    },
+    "@supabase/realtime-js/dist/main/phoenix/channelAdapter.js": {
+      "bytes": 3156,
+      "sha256": "07b9e487385763cfa10b923113e76872c0ff1b67b3542b7027261045edf0c875"
+    },
+    "@supabase/realtime-js/dist/main/phoenix/presenceAdapter.js": {
+      "bytes": 3608,
+      "sha256": "568992f5fe7333a3a80ea4e13bfa147759e762f699d9e76b7aa5ee2a58ec981f"
+    },
+    "@supabase/realtime-js/dist/main/phoenix/socketAdapter.js": {
+      "bytes": 3044,
+      "sha256": "7db2e3463f86fbaa76f347159403c053ba0ffce5e0c8553708698c2ea534c630"
+    },
+    "@supabase/storage-js/dist/index.cjs": {
+      "bytes": 109629,
+      "sha256": "e64331d730751c51c96419e0dd0a6e09a9262859f2a95faf8582e0e7e773cfb2"
+    },
+    "@supabase/supabase-js/dist/index.cjs": {
+      "bytes": 38839,
+      "sha256": "35c56301a441e47d1f4da848b57faced7e21d84b25f55ceac027bf01321a24fe"
+    },
+    "@supabase/supabase-js/dist/tracingRegistry.cjs": {
+      "bytes": 921,
+      "sha256": "52e1680f1b10928a33a252df1a5e6a8756f6148b8f9c19697b2d6396cb4d8ae3"
+    },
+    "iceberg-js/dist/index.cjs": {
+      "bytes": 17389,
+      "sha256": "669b152b63f4655c394095a27401b6b78f776dcec68a6f62c692f0ff3cf1c79b"
+    },
+    "tslib/tslib.js": {
+      "bytes": 23382,
+      "sha256": "8855865a058bc0a6df8f5db45347be041a2d6bbe1654216c51a805648c1b6e8a"
+    },
+    "@supabase/supabase-js/package.json": {
+      "bytes": 6437,
+      "sha256": "9efbe93869da1a587a7c4f66158d92f9f1f7582cf15a79c7238aca09a0fa3f1a"
+    },
+    "@supabase/storage-js/package.json": {
+      "bytes": 1931,
+      "sha256": "3ef80fe15270fb2026107806e9218f7c315e8f2f25e21f4f59d0c7e11b150357"
+    },
+    "@supabase/auth-js/package.json": {
+      "bytes": 1653,
+      "sha256": "8d257c1e8537383d235e323e940917d9df5882dc1181b958d31105bbc24e3649"
+    }
+  },
+  "source": "existing accepted SDK-load closure plus actual package metadata, no installation; unlisted module load denied"
+}
