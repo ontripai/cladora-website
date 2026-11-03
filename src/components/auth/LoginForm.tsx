@@ -13,6 +13,7 @@ import { loginErrorMessage } from '@/lib/auth/login-error';
 
 interface LoginFormProps {
   lang: Language;
+  reason?: string;
   captchaRequired: boolean;
   captchaSiteKey?: string;
   workspaceAccessRequested?: boolean;
@@ -22,7 +23,7 @@ interface LoginFormProps {
   invitationRequested?: boolean;
 }
 
-export const LoginForm: React.FC<LoginFormProps> = ({ lang, captchaRequired, captchaSiteKey, workspaceAccessRequested = false, caseAccessRequested = false, ownerPortfolioRequested = false, accountRequested = false, invitationRequested = false }) => {
+export const LoginForm: React.FC<LoginFormProps> = ({ lang, reason, captchaRequired, captchaSiteKey, workspaceAccessRequested = false, caseAccessRequested = false, ownerPortfolioRequested = false, accountRequested = false, invitationRequested = false }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -160,6 +161,34 @@ export const LoginForm: React.FC<LoginFormProps> = ({ lang, captchaRequired, cap
               : 'Access your condominium or portfolio workspace'}
         </p>
       </div>
+
+      {reason && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-center text-xs font-semibold text-amber-900 shadow-sm"
+        >
+          {reason === 'session_expired'
+            ? (lang === 'fa'
+                ? 'نشست کاری شما منقضی شده است؛ لطفاً برای ادامه دوباره وارد شوید.'
+                : lang === 'ro'
+                ? 'Sesiunea dumneavoastră a expirat. Vă rugăm să vă autentificați din nou pentru a continua.'
+                : 'Your session has expired. Please sign in again to continue.')
+            : reason === 'security'
+            ? (lang === 'fa'
+                ? 'تأیید امنیتی الزامی است؛ لطفاً وارد حساب کاربری خود شوید.'
+                : lang === 'ro'
+                ? 'Verificare de securitate necesară. Vă rugăm să vă autentificați.'
+                : 'Security verification required. Please sign in.')
+            : reason === 'configuration'
+            ? (lang === 'fa'
+                ? 'اتصال امن پایگاه داده در حال حاضر در حال پیکربندی است.'
+                : lang === 'ro'
+                ? 'Conexiunea securizată este în curs de configurare.'
+                : 'The secure database connection is being configured.')
+            : reason}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>

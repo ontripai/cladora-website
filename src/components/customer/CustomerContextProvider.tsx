@@ -55,8 +55,12 @@ export function CustomerContextProvider({ children }: { children: React.ReactNod
   }, []);
   const select = useCallback((id: string) => {
     if (id === activeId) return;
-    if (unsavedGuards.current.size) setPendingContextId(id);
-    else setActiveId(id);
+    if (unsavedGuards.current.size) {
+      setPendingContextId(id);
+    } else {
+      setActiveId(id);
+      setDashboard(null);
+    }
   }, [activeId]);
   const cancelContextChange = useCallback(() => setPendingContextId(null), []);
   const confirmContextChange = useCallback(() => {
@@ -64,6 +68,7 @@ export function CustomerContextProvider({ children }: { children: React.ReactNod
     Array.from(unsavedGuards.current.values()).forEach((discard) => discard());
     unsavedGuards.current.clear();
     setActiveId(pendingContextId);
+    setDashboard(null);
     setPendingContextId(null);
   }, [pendingContextId]);
 
@@ -74,18 +79,33 @@ export function CustomerContextProvider({ children }: { children: React.ReactNod
       setError(null);
       try {
         const response = await fetch('/api/customer/v1/contexts', { cache: 'no-store' });
+        if (response.status === 401) {
+          if (!cancelled) {
+            setError('session_expired');
+            setContexts([]);
+            setActiveId('');
+            setDashboard(null);
+          }
+          return;
+        }
         if (!response.ok) throw new Error('contexts');
         const body = (await response.json()) as { contexts: CustomerContext[] };
         if (cancelled) return;
-        setContexts(body.contexts);
+        const availableContexts = body.contexts || [];
+        setContexts(availableContexts);
+        if (availableContexts.length === 0) {
+          setActiveId('');
+          setDashboard(null);
+          return;
+        }
         const requested = preview ? null : new URLSearchParams(window.location.search).get('context');
         const stored = preview ? null : sessionStorage.getItem(STORAGE_KEY);
         setActiveId(
-          body.contexts.some((c) => c.context_id === requested)
+          availableContexts.some((c) => c.context_id === requested)
             ? requested ?? ''
-            : body.contexts.some((c) => c.context_id === stored)
+            : availableContexts.some((c) => c.context_id === stored)
             ? stored ?? ''
-            : body.contexts[0]?.context_id ?? ''
+            : availableContexts[0]?.context_id ?? ''
         );
       } catch {
         if (!cancelled) setError('context');
@@ -96,7 +116,7 @@ export function CustomerContextProvider({ children }: { children: React.ReactNod
     return () => {
       cancelled = true;
     };
-  }, [fetch,preview]);
+  }, [fetch, preview, nonce]);
 
   useEffect(() => {
     if (!activeId) return;
@@ -110,6 +130,20 @@ export function CustomerContextProvider({ children }: { children: React.ReactNod
           `/api/customer/v1/dashboard?context_id=${encodeURIComponent(activeId)}`,
           { cache: 'no-store' }
         );
+        if (response.status === 401) {
+          if (!cancelled) {
+            setDashboard(null);
+            setError('session_expired');
+          }
+          return;
+        }
+        if (response.status === 403) {
+          if (!cancelled) {
+            setDashboard(null);
+            setError('forbidden');
+          }
+          return;
+        }
         if (!response.ok) throw new Error('dashboard');
         const body = (await response.json()) as CustomerDashboardData;
         if (!cancelled) setDashboard(body);
@@ -125,7 +159,7 @@ export function CustomerContextProvider({ children }: { children: React.ReactNod
     return () => {
       cancelled = true;
     };
-  }, [activeId, nonce,fetch,preview]);
+  }, [activeId, nonce, fetch, preview]);
 
   const value = useMemo<State>(
     () => ({
