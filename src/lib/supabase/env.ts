@@ -37,7 +37,10 @@ export function getPublicSupabaseEnv(): PublicSupabaseEnv {
   // Literal accesses are required: Next replaces these values in browser bundles.
   // This public marker is a disposable-development configuration, never authority.
   const localMode = process.env.NEXT_PUBLIC_CLADORA_EPHEMERAL_LOCAL_SUPABASE === '1'
-    && (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test')
+    && (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'
+      || (process.env.NODE_ENV === 'production'
+        && process.env.NEXT_PUBLIC_CLADORA_OWNED_SERVICE_ASSEMBLY === 'v1'
+        && url === 'http://127.0.0.1:55421'))
     && !process.env.VERCEL && !process.env.VERCEL_ENV
     && !process.env.NEXT_PUBLIC_VERCEL_ENV
     && (typeof window === 'undefined'
