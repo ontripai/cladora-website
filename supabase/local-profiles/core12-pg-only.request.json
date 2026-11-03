@@ -1,0 +1,214 @@
+{
+  "format": "core12-pg-only-admission-request.v1",
+  "consumer": "Core/SQLSTATE-BOUNDARY-12",
+  "source_commit": "1eb8b5a1e522a529b39af02e32748756ee04dfec",
+  "payloads": [
+    {
+      "id": "core12-boundary-witness",
+      "source_commit": "1eb8b5a1e522a529b39af02e32748756ee04dfec",
+      "path": "supabase/proposals/core-canonical-sqlstate-boundary-v1/pg-only-boundary.test.sql",
+      "bytes": 20744,
+      "sha256": "07072fdae234825786709260befa0b2c5337b0379ce852f072fdbfb9d17a9158",
+      "git_blob": "0a187e6d8d8025108578583b5401c78114883c64"
+    }
+  ],
+  "source_seal": {
+    "files": {
+      "scripts/run-local-runtime-lane.py": "8f0a964041cb4c2a78ab37ec7fc5c36be817d106cb396f598e625ef62907068e",
+      "scripts/local_runtime_consumer.py": "b240725de9119e0176e49fb0bc55f4917ef8df79a9383cb8d77ed97ca579d439",
+      "scripts/run-acl02-pg-only.py": "bde75479e6b90c4ebec91742e19f8962d50b8842597b8362459d91dc0b5e5c4a",
+      "scripts/acl02_pg_adapter.py": "72d7a69026cfe5d0dd15d6d5d4394ef62c4fced016919064150d3bc5ab5c361a",
+      "scripts/acl02_pg_wire.py": "4fa852fbdb6047ec3c264e1fee53b6218d9db9abf8b462d29e10d24fc4b242c3",
+      "supabase/local-profiles/runtime-pg-only-acl02-v1.json": "aa394a6068f75a438a3118f63c949984745d8ce46fc9cb69c525e51dd67cfaaa",
+      "supabase/local-profiles/runtime-pg-only-core12-preflight-v1.json": "3daa756dc51c6f86c30231954775a639a766adcb6d75564f713041ad58600cac",
+      "scripts/core12_pg_preflight.py": "6e138659d570541ff2562b80ec0e77f6784f86e0779af01fd52252551113bac0"
+    },
+    "sha256": "e93252a204d8c92732659d33cfc2965135707333f1028759122cc39c8bcb3d90"
+  },
+  "profile": {
+    "path": "supabase/local-profiles/runtime-pg-only-core12-preflight-v1.json",
+    "sha256": "3daa756dc51c6f86c30231954775a639a766adcb6d75564f713041ad58600cac"
+  },
+  "proof_scope": "exact extracted exception clauses only; no canonical authorization or genuine SSI",
+  "planned_calls": 176,
+  "executed_calls": null,
+  "target": null,
+  "executor": null,
+  "observer": null,
+  "authority": null,
+  "execution_binding": null,
+  "live": "HOLD",
+  "registry": "EMPTY",
+  "prerequisites": {
+    "database_name": "core_sqlstate_boundary_proof",
+    "pg_major": 17,
+    "kind": "owned-disposable-pg17-only",
+    "auth_present": false,
+    "executor_requirements": {
+      "rolsuper": false,
+      "rolbypassrls": false,
+      "rolcreaterole": false,
+      "rolcreatedb": false,
+      "rolreplication": false,
+      "current_user_equals_session_user": true,
+      "database_connect": true,
+      "database_temp": true,
+      "own_pg_temp_function_rights": true,
+      "plpgsql_usage": true,
+      "function_default_acl_rows": 0,
+      "permanent_schema_create_required": false,
+      "managed_role_or_grant_required": false
+    },
+    "namespaces_absent": [
+      "auth",
+      "app_private",
+      "identity",
+      "platform"
+    ],
+    "setup_payload": null,
+    "identity_payload": null,
+    "observer_payload": null,
+    "baseline": null,
+    "guard_latch": {
+      "name": "core12.reviewed_pg_only_capsule",
+      "value": "core12-boundary-v1",
+      "authority_source": false,
+      "transport_binding": null
+    },
+    "allow_set_role": false,
+    "ordinary_executor_current_identity_required": true
+  },
+  "existing_runtime": {
+    "lane": "scripts/run-local-runtime-lane.py",
+    "pg_only_runner": "scripts/run-acl02-pg-only.py",
+    "wire": "scripts/acl02_pg_wire.py",
+    "profile": "supabase/local-profiles/runtime-pg-only-acl02-v1.json",
+    "profile_sha256": "aa394a6068f75a438a3118f63c949984745d8ce46fc9cb69c525e51dd67cfaaa",
+    "core12_dispatch_ready": false,
+    "new_generic_runner": false
+  },
+  "send_contract": {
+    "order": [
+      "identity-and-independent-baseline",
+      "single-exact-core12-payload",
+      "same-stream-terminal",
+      "independent-observer",
+      "owned-cleanup"
+    ],
+    "payload_transformation": "FORBIDDEN_NO_SPLIT_OR_RENDER",
+    "attempts": 1,
+    "automatic_retry": false,
+    "transaction": "source contains one SERIALIZABLE BEGIN and final ROLLBACK; no added COMMIT",
+    "sql_local_limits": {
+      "lock_timeout_ms": 2000,
+      "statement_timeout_ms": 10000
+    },
+    "deadlines_seconds": {
+      "pull": 180,
+      "command": 20,
+      "health": 65,
+      "wire_startup": 35,
+      "witness": 30,
+      "observer": 15,
+      "settlement": 5,
+      "relay_close": 2,
+      "cleanup_each": 20
+    },
+    "wire_limits": {
+      "bytes_per_connection": 1048576,
+      "frames_per_connection": 4096
+    },
+    "terminal_required": {
+      "errors": [],
+      "last_two_CommandComplete": [
+        "DO",
+        "ROLLBACK"
+      ],
+      "ReadyForQuery": "I",
+      "same_physical_backend": true,
+      "same_connection": true,
+      "raw_ledger_fsync_before_ack": true
+    },
+    "unknown": "STOP_AND_QUARANTINE_NO_REPLAY_OR_SUCCESS",
+    "fallback_rollback": "only a known same stream in T/E; never on unknown backend; skipped is not ACK"
+  },
+  "custody_contract": {
+    "fresh_run_and_attempt": true,
+    "cid_database_oid_system_identifier": "bind observed values; never request label or old fixture",
+    "check_before_every_effect_and_after_wait": true,
+    "single_use_claim": "durable before dispatch; interruption consumes attempt",
+    "privilege_source": "fresh physical principal/catalog evidence, not GUC/approved flag/OS uid"
+  },
+  "observer_contract": {
+    "independent_physical_connection": true,
+    "different_backend_pid": true,
+    "same_cid_database_oid_system_identifier": true,
+    "only_after_rollback_ack": true,
+    "residue": "zero witness functions/table and protected roles/schemas/ACL/defaults equal independent pre-witness baseline",
+    "temp_namespace_address": "actual catalog addresses, not observer pg_temp alias",
+    "partial_snapshot": "UNKNOWN_NOT_ZERO",
+    "exact_payload_and_baseline_binding": null,
+    "laboratory_deletion_is_residue_proof": false
+  },
+  "receipt_plan": {
+    "default_stage": "NOT_RUN",
+    "identity_fields": [
+      "request_sha256",
+      "source_commit",
+      "payload_sha256",
+      "profile_sha256",
+      "source_seal_sha256",
+      "run_id",
+      "attempt",
+      "cid",
+      "database",
+      "database_oid",
+      "system_identifier",
+      "session_user",
+      "current_user",
+      "backend_pid",
+      "connection_id"
+    ],
+    "wire": "ordered raw bytes/length/hash-chain/fsync with actual CommandComplete and ReadyForQuery; no cancellation key persistence",
+    "xid": "record only observed textual XID; no inference after opaque payload or DDL",
+    "first_error": "immutable primary; settlement/observer/cleanup failures separate",
+    "planned_calls_not_observed_counter": true,
+    "stages": [
+      "provision",
+      "identity",
+      "baseline",
+      "witness",
+      "rollback",
+      "observer",
+      "residue",
+      "cleanup"
+    ],
+    "privacy": "raw wire/catalog/custody private; safe status and digests only"
+  },
+  "cleanup_plan": {
+    "implementation": "scripts/run-local-runtime-lane.py:Lane.cleanup + finalize_lifecycle",
+    "scope": "only actual owned CID and newly acquired unused pinned image; never prune or shared resources",
+    "expected_resources": "derive complete list from actual custody, not request supplied labels",
+    "states": [
+      "attempted",
+      "acknowledged-absent",
+      "removal-acknowledged",
+      "skipped-preexisting",
+      "failed",
+      "unknown"
+    ],
+    "skip_rule": "preexisting image skip only; cannot stand for owned container removal",
+    "missing_duplicate_partial_or_unknown": "nonzero overall result even if health/witness looked successful",
+    "residue_before_destruction": true,
+    "custodian": "Platform",
+    "unknown_followup": "retain exact receipt/resource identity and refer coordinator; no blind retry"
+  },
+  "readiness_gaps": [
+    "ordinary_role_and_named_database_fixture_producer_exact_payload_unbound",
+    "existing_Wire_startup_and_identity_are_postgres_postgres_only",
+    "ordinary_role_system_identity_transport_not_reviewed",
+    "guard_latch_startup_option_binding_not_reviewed",
+    "independent_observer_payload_and_baseline_exact_pins_unbound",
+    "source_and_contract_independent_review_and_owner_authorization_required"
+  ]
+}
