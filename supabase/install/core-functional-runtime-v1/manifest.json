@@ -1,0 +1,610 @@
+{
+  "contract": "core15-minimal-service-install-manifest.v1",
+  "task": "CORE-FUNCTIONAL-RUNTIME-15",
+  "base": "ec639884452cc0cb6dfef520339791a5c20e9b39",
+  "working_branch": "codex/program-core-service-s01-producer-01",
+  "status": "SOURCE_CHECKPOINT_NOT_TASK_COMPLETION",
+  "FullSHA": "BOUND_BY_CONTAINING_GIT_COMMIT_NOT_SELF_HASH",
+  "runtime_binding": "SESSION_FACTORY_NATIVELY_PROVED;_SERVICE_AND_AIRPROP_NOT_CONFIGURED_NOT_COMPLETE",
+  "Platform12": {
+    "status": "EXACT_SOURCE_RECONSTRUCTED_IN_OWN_ENVIRONMENT;_OFFICIAL_VERIFY_PASS",
+    "FullSHA": "794f5a12c3928ae0a3585ab679a3cbe60aab49a3",
+    "target": {
+      "purpose": "owned-isolated-synthetic-development",
+      "database_name": "postgres",
+      "PG_version_num": 170011,
+      "custodian": "privileged postgres, NOT application executor",
+      "application_executor": "ordinary cladora_core_runtime",
+      "identity_and_credentials": "PRIVATE_CUSTODY; no public backend ID"
+    },
+    "full_native_installer_compatibility": "OPEN_ORDINARY_POSTGRES_VS_PRIVILEGED_CUSTODIAN_AND_DATABASE_SELECTOR"
+  },
+  "consumer_inputs": {
+    "SERVICE": "4c3abd7c26d8ae393fdb6acb3f88330c7b887097",
+    "AIRPROP": "4b8d1e9e305f44268688197246d34ac65d972b40"
+  },
+  "schema": [
+    "auth",
+    "extensions",
+    "app_private",
+    "platform",
+    "identity",
+    "portfolio",
+    "audit",
+    "service_catalog"
+  ],
+  "versions": {
+    "PostgreSQL": "17.x; native installer extension exact versions mandatory",
+    "pgcrypto": {
+      "version": "1.3",
+      "schema": "extensions"
+    },
+    "btree_gist": {
+      "version": "1.7",
+      "schema": "extensions"
+    },
+    "GoTrue_compatibility_reference": "2.197.0; actual Platform12 version/digest REQUIRED",
+    "node": "22+",
+    "source_toolchain": {
+      "Next": "16.4.1",
+      "Zod": "4.6.6",
+      "TypeScript": "5.9.3"
+    }
+  },
+  "roles": {
+    "bootstrap": "Platform-custodied ordinary-install setup; not app principal",
+    "installer": "postgres with EXACT accepted guards/role graph, PG17 and required ownership; name alone insufficient",
+    "runtime": "cladora_core_runtime NO SUPERUSER/BYPASSRLS/CREATEROLE/CREATEDB/REPLICATION; no provider-admin/owner role membership; ZERO role memberships, zero database/schema CREATE or protected object ownership; fresh application ACL/policies before Core access unit",
+    "Auth_owner": "Platform/bootstrap only; explicit effective owner session-row access and runtime Auth helpers; no inferred grant option"
+  },
+  "connection": {
+    "kind": "owned-isolated-persistent-development",
+    "database_name_pattern": "^cladora_dev_[a-z0-9_]+$",
+    "pool": "existing node-pg Pool; direct/session mode physical checkout; no transaction pooling",
+    "timeouts_ms": {
+      "connection": 5000,
+      "query": 15000,
+      "sql_lock": 5000,
+      "sql_statement": 10000
+    },
+    "selectors": "exact backend_id/host/port/database/OID/principal/Auth origin from Platform12 manifest, private credential bindings outside source",
+    "credentials": "NO_VALUES_REQUESTED_OR_EMBEDDED"
+  },
+  "units": [
+    {
+      "id": "core15-prerequisites-00",
+      "path": "supabase/install/core-functional-runtime-v1/00-extensions.sql",
+      "lineage": "core-functional-install.v1; NEW exact prerequisite effects",
+      "source_base": "NEW_CORE15",
+      "native": "NOT_RUN",
+      "prestate": "owned development DB, ordinary postgres with database CREATE, absent or EXACT extension versions/schema; mismatch STOP",
+      "commit": "per-unit COMMIT; UNKNOWN stops next unit",
+      "bytes": 1891,
+      "sha256": "cb5c5537bd7899dc01b44698e124afc6418dc75b5ae4bcf3ce25fca95a2df4d8",
+      "git_blob": "adc718a51f87d6d41b57243670499052d156381e",
+      "order": 1,
+      "payload": {
+        "bytes": 1891,
+        "sha256": "cb5c5537bd7899dc01b44698e124afc6418dc75b5ae4bcf3ce25fca95a2df4d8",
+        "git_blob": "adc718a51f87d6d41b57243670499052d156381e"
+      }
+    },
+    {
+      "order": 2,
+      "id": "core15-unit-01",
+      "lineage": "core-functional-install.v1; NOT an applied original history claim",
+      "source_base": "ec639884452cc0cb6dfef520339791a5c20e9b39",
+      "path": "supabase/install/v14-operations/foundation.sql",
+      "bytes": 736073,
+      "sha256": "da5a4e3ac421f71674ddc309feff3c0d03d6ebc6f168911d48f41b799c73ae35",
+      "git_blob": "5fcdf690888d6bec186b654eeafb826601572d27",
+      "prestate": "exact absent/predecessor metadata; incompatible present object STOP",
+      "commit": "per-unit independent COMMIT; UNKNOWN stops next unit",
+      "native": "NOT_RUN",
+      "entry_guc_unit": "foundation",
+      "payload_transform": "core15-development-native-binding.v1",
+      "guard_replacement_count": 1,
+      "payload": {
+        "bytes": 736340,
+        "sha256": "a5905f9d56fedd68953e407aeb7cdb2b53d1c2eedf335bbda0dca29f9aed81e0",
+        "git_blob": "7b1a7f9e5d2fa50d24cbced12b306ba4e84b5907"
+      },
+      "delta": "ONLY all exact staging target-consistency guards become explicit owned development/DB-OID guard; full body round-trip verified; owner/ACL/role300/all other guards unchanged"
+    },
+    {
+      "order": 3,
+      "id": "core15-unit-02",
+      "lineage": "core-functional-install.v1; NOT an applied original history claim",
+      "source_base": "ec639884452cc0cb6dfef520339791a5c20e9b39",
+      "path": "supabase/install/v14-operations/assets.sql",
+      "bytes": 225315,
+      "sha256": "311f5615008e9de4544b0c51e94533dd825d57294d5205d160c238975112683c",
+      "git_blob": "240675ce997a8dfc2416995e25143c3f0e403d7c",
+      "prestate": "exact absent/predecessor metadata; incompatible present object STOP",
+      "commit": "per-unit independent COMMIT; UNKNOWN stops next unit",
+      "native": "NOT_RUN",
+      "entry_guc_unit": "assets",
+      "payload_transform": "core15-development-native-binding.v1",
+      "guard_replacement_count": 1,
+      "payload": {
+        "bytes": 225582,
+        "sha256": "76b83a2d4eeec5b2f33ebbc4eb861fe6ea6d63ff8c3bde866ab71c2f2228a501",
+        "git_blob": "d6c3690f04b858a5193c8dab285e7bc037399e44"
+      },
+      "delta": "ONLY all exact staging target-consistency guards become explicit owned development/DB-OID guard; full body round-trip verified; owner/ACL/role300/all other guards unchanged"
+    },
+    {
+      "order": 4,
+      "id": "core15-unit-03",
+      "lineage": "core-functional-install.v1; NOT an applied original history claim",
+      "source_base": "ec639884452cc0cb6dfef520339791a5c20e9b39",
+      "path": "supabase/install/v14-operations/maintenance-procurement.sql",
+      "bytes": 297448,
+      "sha256": "8eb3d843fb161a5ebdfdbe1d80bc67b8df3bf0aa316a886c8baab20320294652",
+      "git_blob": "e21b988299460f967f3dd8ea2906358f6407b21e",
+      "prestate": "exact absent/predecessor metadata; incompatible present object STOP",
+      "commit": "per-unit independent COMMIT; UNKNOWN stops next unit",
+      "native": "NOT_RUN",
+      "entry_guc_unit": "maintenance-procurement",
+      "payload_transform": "core15-development-native-binding.v1",
+      "guard_replacement_count": 2,
+      "payload": {
+        "bytes": 297982,
+        "sha256": "3626fd01a039fa6ae4d5affb8edb0b9a29c2d22cc4334dc0c040487a8371706a",
+        "git_blob": "e6a1ef59ebc9caf0bd4fe19208a614dbc4806604"
+      },
+      "delta": "ONLY all exact staging target-consistency guards become explicit owned development/DB-OID guard; full body round-trip verified; owner/ACL/role300/all other guards unchanged"
+    },
+    {
+      "order": 5,
+      "id": "core15-unit-04",
+      "lineage": "core-functional-install.v1; NOT an applied original history claim",
+      "source_base": "ec639884452cc0cb6dfef520339791a5c20e9b39",
+      "path": "supabase/install/v14-operations/building-provisioning.sql",
+      "bytes": 262457,
+      "sha256": "258c27e4505235a761b1e2557c33548af0067c11eebfa0c88972783df7025171",
+      "git_blob": "45737a8100b3542ad787ea4414090d0f304fc123",
+      "prestate": "exact absent/predecessor metadata; incompatible present object STOP",
+      "commit": "per-unit independent COMMIT; UNKNOWN stops next unit",
+      "native": "NOT_RUN",
+      "entry_guc_unit": "building-provisioning",
+      "payload_transform": "core15-development-native-binding.v1",
+      "guard_replacement_count": 1,
+      "payload": {
+        "bytes": 262724,
+        "sha256": "d865ec1548eaf2eaace9ffac64ae4f4f73f9d3344d310617e262765bf80b13cc",
+        "git_blob": "fb1b02162b8368d4a7f8b36ab64e01048b45dc9d"
+      },
+      "delta": "ONLY all exact staging target-consistency guards become explicit owned development/DB-OID guard; full body round-trip verified; owner/ACL/role300/all other guards unchanged"
+    },
+    {
+      "order": 6,
+      "id": "core15-unit-05",
+      "lineage": "core-functional-install.v1; NOT an applied original history claim",
+      "source_base": "ec639884452cc0cb6dfef520339791a5c20e9b39",
+      "path": "supabase/migrations/20261003200211_20261003141918_service_catalog_persistence_v1.sql",
+      "bytes": 21639,
+      "sha256": "64090bf0948e7f4b01188df9c81704a5af7a4a24dfbfa7ada3ed9a5ccebb4293",
+      "git_blob": "051b36744e88ccf0537c8f9182a9a25c38bc9332",
+      "prestate": "exact absent/predecessor metadata; incompatible present object STOP",
+      "commit": "per-unit independent COMMIT; UNKNOWN stops next unit",
+      "native": "NOT_RUN",
+      "payload": {
+        "bytes": 21639,
+        "sha256": "64090bf0948e7f4b01188df9c81704a5af7a4a24dfbfa7ada3ed9a5ccebb4293",
+        "git_blob": "051b36744e88ccf0537c8f9182a9a25c38bc9332"
+      }
+    },
+    {
+      "order": 7,
+      "id": "core15-unit-06",
+      "lineage": "core-functional-install.v1; NOT an applied original history claim",
+      "source_base": "ec639884452cc0cb6dfef520339791a5c20e9b39",
+      "path": "supabase/migrations/20261004182557_20261004181358_service_request_persistence_v1.sql",
+      "bytes": 11755,
+      "sha256": "dde8935e1568c9def4a0f743fe871ce5c265118a87c00e658d8162a4bb387db6",
+      "git_blob": "e340a0584bbc5ff024b713cdf953b710576f5dcd",
+      "prestate": "exact absent/predecessor metadata; incompatible present object STOP",
+      "commit": "per-unit independent COMMIT; UNKNOWN stops next unit",
+      "native": "NOT_RUN",
+      "payload": {
+        "bytes": 11755,
+        "sha256": "dde8935e1568c9def4a0f743fe871ce5c265118a87c00e658d8162a4bb387db6",
+        "git_blob": "e340a0584bbc5ff024b713cdf953b710576f5dcd"
+      }
+    },
+    {
+      "order": 8,
+      "id": "core15-unit-07",
+      "lineage": "core-functional-install.v1; NOT an applied original history claim",
+      "source_base": "ec639884452cc0cb6dfef520339791a5c20e9b39",
+      "path": "supabase/migrations/20261006060827_lifecycle_unit_specification_history.sql",
+      "bytes": 3409,
+      "sha256": "5720ff5659bc8986b90e72453aac7b323978945ee15a2781cf132400ee031db4",
+      "git_blob": "6888a0a0accaa648f49aded00cd2d00109cdccce",
+      "prestate": "exact absent/predecessor metadata; incompatible present object STOP",
+      "commit": "per-unit independent COMMIT; UNKNOWN stops next unit",
+      "native": "NOT_RUN",
+      "payload": {
+        "bytes": 3409,
+        "sha256": "5720ff5659bc8986b90e72453aac7b323978945ee15a2781cf132400ee031db4",
+        "git_blob": "6888a0a0accaa648f49aded00cd2d00109cdccce"
+      }
+    },
+    {
+      "order": 9,
+      "id": "core15-unit-08",
+      "lineage": "core-functional-install.v1; NOT an applied original history claim",
+      "source_base": "ec639884452cc0cb6dfef520339791a5c20e9b39",
+      "path": "supabase/migrations/20261006064156_lifecycle_unit_lineage.sql",
+      "bytes": 4045,
+      "sha256": "a7d39454847ccc2cf77df64c14309a54221989e788ae41b59046c0302e6004fe",
+      "git_blob": "542e268cdd65966eac23b7e875783584c34c750d",
+      "prestate": "exact absent/predecessor metadata; incompatible present object STOP",
+      "commit": "per-unit independent COMMIT; UNKNOWN stops next unit",
+      "native": "NOT_RUN",
+      "payload": {
+        "bytes": 4045,
+        "sha256": "a7d39454847ccc2cf77df64c14309a54221989e788ae41b59046c0302e6004fe",
+        "git_blob": "542e268cdd65966eac23b7e875783584c34c750d"
+      }
+    },
+    {
+      "order": 10,
+      "id": "core15-unit-09",
+      "lineage": "core-functional-install.v1; NOT an applied original history claim",
+      "source_base": "ec639884452cc0cb6dfef520339791a5c20e9b39",
+      "path": "supabase/migrations/20261019170121_dw02_canonical_unit_reference_v1.sql",
+      "bytes": 9787,
+      "sha256": "a3e78a3b9973cc0bce1ea381b3831cf04fe38f07689801e545890215718c09a6",
+      "git_blob": "96bd03fd1580283ffc4d846440bcc8b2323556a3",
+      "prestate": "exact absent/predecessor metadata; incompatible present object STOP",
+      "commit": "per-unit independent COMMIT; UNKNOWN stops next unit",
+      "native": "NOT_RUN",
+      "payload": {
+        "bytes": 9787,
+        "sha256": "a3e78a3b9973cc0bce1ea381b3831cf04fe38f07689801e545890215718c09a6",
+        "git_blob": "96bd03fd1580283ffc4d846440bcc8b2323556a3"
+      }
+    },
+    {
+      "order": 11,
+      "id": "core15-unit-10",
+      "lineage": "core-functional-install.v1; NOT an applied original history claim",
+      "source_base": "ec639884452cc0cb6dfef520339791a5c20e9b39",
+      "path": "supabase/hosted-service-v14-execution/forward.sql",
+      "bytes": 15006,
+      "sha256": "b215663375d29ade089e60a1d84e0459919b21add895d8bd5cb2054372e37737",
+      "git_blob": "24ebca740bc2dd040b9dcd6b9fa3fb727e4fb88b",
+      "prestate": "exact absent/predecessor metadata; incompatible present object STOP",
+      "commit": "per-unit independent COMMIT; UNKNOWN stops next unit",
+      "native": "NOT_RUN",
+      "payload": {
+        "bytes": 15006,
+        "sha256": "b215663375d29ade089e60a1d84e0459919b21add895d8bd5cb2054372e37737",
+        "git_blob": "24ebca740bc2dd040b9dcd6b9fa3fb727e4fb88b"
+      }
+    },
+    {
+      "order": 12,
+      "id": "core15-unit-11",
+      "lineage": "core-functional-install.v1; NOT an applied original history claim",
+      "source_base": "NEW_CORE15",
+      "path": "supabase/install/core-functional-runtime-v1/01-s01-store.sql",
+      "bytes": 16609,
+      "sha256": "f7ed99779d1f69d18893392a1c593fe966086cc4adbfa838365a0c35f427ee0e",
+      "git_blob": "5505ec04d1bdf3d373e2ff85231dee0a1403f9b8",
+      "prestate": "exact absent/predecessor metadata; incompatible present object STOP",
+      "commit": "per-unit independent COMMIT; UNKNOWN stops next unit",
+      "native": "NOT_RUN",
+      "payload": {
+        "bytes": 16609,
+        "sha256": "f7ed99779d1f69d18893392a1c593fe966086cc4adbfa838365a0c35f427ee0e",
+        "git_blob": "5505ec04d1bdf3d373e2ff85231dee0a1403f9b8"
+      }
+    },
+    {
+      "order": 13,
+      "id": "core15-unit-12",
+      "lineage": "core-functional-install.v1; NOT an applied original history claim",
+      "source_base": "NEW_CORE15",
+      "path": "supabase/install/core-functional-runtime-v1/03-canonical-sqlstate.sql",
+      "bytes": 57080,
+      "sha256": "4a10c4ad0002d0e98e8ccdfe8df8d90ef4772e9f06741548adb866d5de4c1c8e",
+      "git_blob": "c4653cef6e23af7a3698c459276ebc8e4c5a17a9",
+      "prestate": "exact absent/predecessor metadata; incompatible present object STOP",
+      "commit": "per-unit independent COMMIT; UNKNOWN stops next unit",
+      "native": "NOT_RUN",
+      "payload": {
+        "bytes": 57080,
+        "sha256": "4a10c4ad0002d0e98e8ccdfe8df8d90ef4772e9f06741548adb866d5de4c1c8e",
+        "git_blob": "c4653cef6e23af7a3698c459276ebc8e4c5a17a9"
+      }
+    },
+    {
+      "order": 14,
+      "id": "core15-unit-13",
+      "lineage": "core-functional-install.v1; NOT an applied original history claim",
+      "source_base": "NEW_CORE15",
+      "path": "supabase/install/core-functional-runtime-v1/02-session-runtime-access.sql",
+      "bytes": 12828,
+      "sha256": "b7cf676aa64308ebdeefc08383966660c11e19775e1257ddb69606e231a5fd44",
+      "git_blob": "0bfd8246c6893faa8dee7dd3ed643254116c9ad0",
+      "prestate": "exact absent/predecessor metadata; incompatible present object STOP",
+      "commit": "per-unit independent COMMIT; UNKNOWN stops next unit",
+      "native": "NOT_RUN",
+      "payload": {
+        "bytes": 12828,
+        "sha256": "b7cf676aa64308ebdeefc08383966660c11e19775e1257ddb69606e231a5fd44",
+        "git_blob": "0bfd8246c6893faa8dee7dd3ed643254116c9ad0"
+      }
+    }
+  ],
+  "verify": {
+    "path": "supabase/install/core-functional-runtime-v1/verify.sql",
+    "bytes": 2644,
+    "sha256": "466d8e24a5e68cd4e3c28dc2bbdc4df0858cd803047403d8d1bff8841d334594",
+    "git_blob": "40212a66b464ac56e51b24944d7f291ecbc3ec9a"
+  },
+  "recovery": {
+    "path": "supabase/install/core-functional-runtime-v1/recovery.md",
+    "bytes": 2854,
+    "sha256": "7bce3524982e3ea18a2d5177596f18c8618a0f7530fada86865d41aaab75d601",
+    "git_blob": "ac716251240391c90bcc2b0d844ae0b0a37b87b3"
+  },
+  "minimum_cut": {
+    "scope": "current Service non-financial workspace-wide non-reservation Request; no Finance/Booking writes",
+    "ABI": "createCoreServiceFunctionalBindingV1({pool,target}).bind(Request), core15-service-request-runtime.v1",
+    "read": "SERIALIZABLE; actual workspace/Offering locks; closed exact-source query census; positive ROLLBACK + same-backend DB clock",
+    "mutation": "same official C03 host/ledger; mandatory canonical authority; atomic Request/C03/audit/outbox; original key replay and UNKNOWN"
+  },
+  "open_gates": [
+    "Native ordinary installer/profile mapping for actual delivered Platform12 (custodian postgres SU, database postgres); guard300 cannot be weakened or impersonated",
+    "Native source compile/install, full catalog/default/ACL verify and real RLS lock-vs-write oracle",
+    "Actual Service09 request-local source/HTTP coupling and native issued Auth/Request persistence/restart/concurrency",
+    "Fresh timestamp/expiry/session/revoke after all actual waits incl exact settlement boundary; no implied ACK guarantee",
+    "AIRPROP read-compatible selector/canonical resource+party+versioned relationship/manage+publication/control are IN_PROGRESS, not silently satisfied by identity RPC",
+    "Core15 source checkpoint is NOT product completion or native acceptance",
+    "SERVICE-owned provider-binding.ts replay evidence currently uses JS clock; named-resource40001 catch must preserve serialization; Core does not re-stamp this evidence"
+  ],
+  "native_results": "NOT_RUN_NOT_PASS",
+  "automation": "نیازمند بررسی",
+  "consumer_contract_pins": [
+    {
+      "commit": "4c3abd7c26d8ae393fdb6acb3f88330c7b887097",
+      "path": "supabase/hosted-service-v14-execution/functional-request-runtime-dependency-v1.json",
+      "bytes": 8578,
+      "sha256": "0a54d76c30da37a29d15dbd72e8c0551cc15fd138e0d25cd5f16d4dc11c65e22",
+      "git_blob": "393003173a1bf3d653b7c9bfb79276af9a4ab4d7"
+    },
+    {
+      "commit": "4b8d1e9e305f44268688197246d34ac65d972b40",
+      "path": "docs/airprop/AIRPROP-FUNCTIONAL-LISTING-06.dependencies.json",
+      "bytes": 9108,
+      "sha256": "b0694bfb6a4698fa1f42194ddbf119993269447b4a7e98d38d03cec88d79a47c",
+      "git_blob": "9c45db5f486fa83bd3e610625794ae702d165a35"
+    }
+  ],
+  "source_checks": {
+    "runtime_groups": 34,
+    "install_packet_groups": 13,
+    "evidence": "CONTROLLED_TRANSPORT_OR_SOURCE_ONLY_NOT_NATIVE",
+    "ES5": "PASS",
+    "native": "SEPARATE_SESSION_SLICE_ONLY; full C01 Context/C03/S01 NOT_RUN",
+    "SERVICE09_ES5_type_coupling": "PASS_READ_ONLY_ACTUAL_GIT_OVERLAY"
+  },
+  "inventory": [
+    {
+      "path": "docs/contracts/core-functional-runtime-v1/ABI.md",
+      "bytes": 4625,
+      "sha256": "39bfd46b174c9ce5ed75ff9e154143dbc7aabbad64007f82b97271c54874cb83",
+      "git_blob": "31a68667bc8d6cc209d68613c6fb797cfe055b6c"
+    },
+    {
+      "path": "docs/contracts/core-functional-runtime-v1/BACKEND-REQUEST.md",
+      "bytes": 14167,
+      "sha256": "6dfc6710de0b9520c3bdab6286f6e265a8370fe0a5f82eec6883066207a48bc8",
+      "git_blob": "4f940403c1baf595ccd581d1a39e9023ea139b5d"
+    },
+    {
+      "path": "docs/contracts/core-functional-runtime-v1/NATIVE-SESSION-CHECKPOINT.md",
+      "bytes": 7791,
+      "sha256": "d07a8fea5de5ece428866739aae8645a5b1e01ed744e5bdea5427e37f27c0e89",
+      "git_blob": "904220a9dac9b422ae52866042e8b5526d543b99"
+    },
+    {
+      "path": "docs/contracts/core-functional-runtime-v1/native-session-evidence.json",
+      "bytes": 1549,
+      "sha256": "f72ed82b7147440dd40e3d624924ff0d2375849ff214881fd3fc412f639f3700",
+      "git_blob": "9bfb83f44497c89b52909df366f7fd8da3a2ad23"
+    },
+    {
+      "path": "scripts/check-core15-service09-abi.mjs",
+      "bytes": 2256,
+      "sha256": "7e74a55b53eb8c5605f5f200ad0c0b93f351c05ea71bfd00df3df020f27152f4",
+      "git_blob": "714fc70a0d51b30b2a9bc3ccf9cf9ead02a44f1e"
+    },
+    {
+      "path": "scripts/core15-install-consumer.mjs",
+      "bytes": 6470,
+      "sha256": "d9afd29be8d1858034ee11b427a5b87ad81907c67c00045b29249ea5f6fbf24e",
+      "git_blob": "354269892ada5c1972142c7ba5d2ff0b467412b8"
+    },
+    {
+      "path": "scripts/core15-platform12-relay-lease.py",
+      "bytes": 2914,
+      "sha256": "b60cfdad6c3bfe7281e9fb1c1ce96fbe1904e9c8561110f65ddcf47d24de3dcb",
+      "git_blob": "7bb9b15cdaf4ef0e691dca8c097d770dac793831"
+    },
+    {
+      "path": "scripts/lib/core15-install-payload.mjs",
+      "bytes": 1311,
+      "sha256": "03a55e93284b722c4bc4668c43922f49569a586698fdc02127e85a52973f9ea3",
+      "git_blob": "ac0f3a91b22d3a6b0238bee75a1702dd499a718d"
+    },
+    {
+      "path": "scripts/prepare-core-functional-read-queries-v1.mjs",
+      "bytes": 1520,
+      "sha256": "ffec53676fe253e520355cef475d30105cc48c795822a10c944ba737bc8a4208",
+      "git_blob": "82e1f7a3b0beb026775f2cfcc5f43e87cc785377"
+    },
+    {
+      "path": "scripts/prepare-core-functional-runtime-v1.mjs",
+      "bytes": 3381,
+      "sha256": "8336535a56b3ba8248574c79a441c616429c0b8365b872cc830e0ae31d08e3e6",
+      "git_blob": "a52ef0e2d1fefdf4123b8d7cf13de27cb5403e6d"
+    },
+    {
+      "path": "scripts/prepare-core15-session-bootstrap-v1.mjs",
+      "bytes": 5456,
+      "sha256": "474d6b620976fd56b158335135a92d51b1b9601c51219904660d40fc7e3c5549",
+      "git_blob": "b7893d362bad06d16115d5d6d6cbdb21ac816f0b"
+    },
+    {
+      "path": "scripts/prove-core15-authenticated-session-native-v1.mjs",
+      "bytes": 8415,
+      "sha256": "271eb134b5cb5d60e42a716f39dcb8a6f7867f492b00a1951e09760d48ec5116",
+      "git_blob": "c12bab23a73eac5df4232ffd87964633ef2138a1"
+    },
+    {
+      "path": "scripts/run-core15-session-bootstrap.py",
+      "bytes": 3455,
+      "sha256": "1121f729b282048fa798cc506fb4c7d15d46835b46a5ba6b43dd2b750c76a442",
+      "git_blob": "81509e83dc95d9972081ec5f47108e332a2cdf9a"
+    },
+    {
+      "path": "scripts/run-core15-session-owner-repair.py",
+      "bytes": 2254,
+      "sha256": "6321470afa12fae631d47ae44a7cd7936f42ed37c56b5a456b26f9958ea4f54b",
+      "git_blob": "c04ffd45696792047810ee19723670a928738e5f"
+    },
+    {
+      "path": "scripts/test-core-functional-install-packet-v1.mjs",
+      "bytes": 6065,
+      "sha256": "abf34164c41b7826df76ba0a37e7d4728827b742232de4d054c07c5ea16bf20c",
+      "git_blob": "659aa51cae6eea20d22063aec50c390357646a96"
+    },
+    {
+      "path": "scripts/test-core-functional-runtime-v1.mjs",
+      "bytes": 19438,
+      "sha256": "5ac8b13124a8dd661dc812902b6361e0dec331408546e292b571e1305647f784",
+      "git_blob": "a32eab980fa56c1c7a09590d978bc6a47dc65520"
+    },
+    {
+      "path": "scripts/test-core15-session-source-v1.mjs",
+      "bytes": 3396,
+      "sha256": "fbba5927a7a7c7d3dc27aac5e0964b899631153389b3758700d4bea3c38610be",
+      "git_blob": "a035b74cbcae713661236cca5fe9194bf97c9c8d"
+    },
+    {
+      "path": "src/lib/core/authenticated-session-runtime-v1.ts",
+      "bytes": 6025,
+      "sha256": "dd1e8c34380a3f1d991462c9f8b62e8442984d130ea9ca8aa1b004df814b3ca8",
+      "git_blob": "00d3a455366b23c9653f6172775c88244b92acb8"
+    },
+    {
+      "path": "src/lib/core/functional-command-runtime-v1.ts",
+      "bytes": 20371,
+      "sha256": "36110c4747773d04380b2241b9b60749dfca9b75ac7b31accde140cc9c4f8d45",
+      "git_blob": "5b64a2dadae9eec33e39e483474d4da4e8c17af7"
+    },
+    {
+      "path": "src/lib/core/functional-producers-v1.ts",
+      "bytes": 4260,
+      "sha256": "f44c68523edcb4c75589a7b040d6f380d5609788a6c12bb0fb661c74870ed887",
+      "git_blob": "2795ae040748018820e26aa827c174ac39cb7817"
+    },
+    {
+      "path": "src/lib/core/functional-read-queries-v1.json",
+      "bytes": 8718,
+      "sha256": "ef00194e555e28f9ce9601ae61435aba138f42999dcbd6f4bc9c62acac9d07c2",
+      "git_blob": "a1b4f673d5b4d491fe3abfa75dd62882b536f818"
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "bytes": 62680,
+      "sha256": "9436c082f8ce8a054d8300f55bd49ac4b6120240cf06fa6ca94190b5c6c1858a",
+      "git_blob": "9e1a0229b9676368dc1d49015cf95be13fac9908"
+    },
+    {
+      "path": "src/lib/core/service-functional-binding-v1.ts",
+      "bytes": 6434,
+      "sha256": "769c49733f894773452665f39a024cc8a16b4b9e1269e9d8cac3e3405b1c254a",
+      "git_blob": "f9a69ea4261cd77da738df13cb34f151aaeda27f"
+    },
+    {
+      "path": "supabase/install/core-functional-runtime-v1/00-extensions.sql",
+      "bytes": 1891,
+      "sha256": "cb5c5537bd7899dc01b44698e124afc6418dc75b5ae4bcf3ce25fca95a2df4d8",
+      "git_blob": "adc718a51f87d6d41b57243670499052d156381e"
+    },
+    {
+      "path": "supabase/install/core-functional-runtime-v1/01-s01-store.sql",
+      "bytes": 16609,
+      "sha256": "f7ed99779d1f69d18893392a1c593fe966086cc4adbfa838365a0c35f427ee0e",
+      "git_blob": "5505ec04d1bdf3d373e2ff85231dee0a1403f9b8"
+    },
+    {
+      "path": "supabase/install/core-functional-runtime-v1/02-session-runtime-access.sql",
+      "bytes": 12828,
+      "sha256": "b7cf676aa64308ebdeefc08383966660c11e19775e1257ddb69606e231a5fd44",
+      "git_blob": "0bfd8246c6893faa8dee7dd3ed643254116c9ad0"
+    },
+    {
+      "path": "supabase/install/core-functional-runtime-v1/03-canonical-sqlstate.sql",
+      "bytes": 57080,
+      "sha256": "4a10c4ad0002d0e98e8ccdfe8df8d90ef4772e9f06741548adb866d5de4c1c8e",
+      "git_blob": "c4653cef6e23af7a3698c459276ebc8e4c5a17a9"
+    },
+    {
+      "path": "supabase/install/core-functional-runtime-v1/04-session-bootstrap.sql",
+      "bytes": 5788,
+      "sha256": "566f53876352618f4b74cd79ffe1b5a093ce788c165f020659bb7a6c0e8bdcb8",
+      "git_blob": "54f209943053115deab1d8a45da3da51bafee1f0"
+    },
+    {
+      "path": "supabase/install/core-functional-runtime-v1/05-session-auth-owner.sql",
+      "bytes": 5024,
+      "sha256": "0fc67958b6811a254603e3d4743e965288ede5d13c28fe8b6cb9825bad56ef4c",
+      "git_blob": "76abce65267b8074e2cf66fe81845db1fbc73466"
+    },
+    {
+      "path": "supabase/install/core-functional-runtime-v1/recovery.md",
+      "bytes": 2854,
+      "sha256": "7bce3524982e3ea18a2d5177596f18c8618a0f7530fada86865d41aaab75d601",
+      "git_blob": "ac716251240391c90bcc2b0d844ae0b0a37b87b3"
+    },
+    {
+      "path": "supabase/install/core-functional-runtime-v1/verify.sql",
+      "bytes": 2644,
+      "sha256": "466d8e24a5e68cd4e3c28dc2bbdc4df0858cd803047403d8d1bff8841d334594",
+      "git_blob": "40212a66b464ac56e51b24944d7f291ecbc3ec9a"
+    }
+  ],
+  "inventory_seal_sha256": "1a29a2b19839a8f91b4eed960b77dbae2113d9567d9661400c8236f28c3e4992",
+  "native_target_binding": "core15-dev:<owned_backend_id>; GUCs are consistency only; independent Platform custody/actual DB OID/ordinary principal required",
+  "session_cut": {
+    "ABI": "core-authenticated-session-runtime.v1",
+    "factory": "createCoreAuthenticatedSessionRuntimeV1",
+    "source": "src/lib/core/authenticated-session-runtime-v1.ts",
+    "source_sha256": "dd1e8c34380a3f1d991462c9f8b62e8442984d130ea9ca8aa1b004df814b3ca8",
+    "evidence": "docs/contracts/core-functional-runtime-v1/native-session-evidence.json",
+    "native_checks": 9,
+    "source_checks": 9,
+    "units": [
+      {
+        "path": "supabase/install/core-functional-runtime-v1/04-session-bootstrap.sql",
+        "sha256": "566f53876352618f4b74cd79ffe1b5a093ce788c165f020659bb7a6c0e8bdcb8"
+      },
+      {
+        "path": "supabase/install/core-functional-runtime-v1/05-session-auth-owner.sql",
+        "sha256": "0fc67958b6811a254603e3d4743e965288ede5d13c28fe8b6cb9825bad56ef4c"
+      }
+    ],
+    "authority": "session only; not Context/Workspace/permission or a receipt",
+    "installed": "OWNED_SYNTHETIC_LOCAL_ONLY",
+    "runtime_role": "cladora_core_runtime",
+    "function_owner": "existing ordinary supabase_auth_admin Auth table owner, isolated from runtime",
+    "staging_or_production": "NOT_TOUCHED"
+  }
+}

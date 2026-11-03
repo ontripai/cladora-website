@@ -415,8 +415,11 @@ class AbortTransaction extends Error {
   constructor(readonly result: CoreTransactionResult) { super('core_transaction_aborted'); }
 }
 
+export const CORE_SERVER_REPLAY_EXPIRY_SQL_V1 = `select expires_at>clock_timestamp() as unexpired
+              from platform.idempotency_keys where tenant_id=$1 and key=$2`;
+
 /** One backend connection, transaction, lock context and canonical ledger set. Unwired by default. */
-export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>) {
+export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>, options?: Readonly<{replay_expiry: 'database_after_lock.v1'}>) {
   const execute = async function(commandValue: unknown, providers: CoreTransactionProvidersV1 | CoreTransactionProvidersV2, replayOnly: boolean): Promise<CoreTransactionResult> {
       const parsed = commandSchema.safeParse(commandValue);
       if (!parsed.success) return { status: 'denied', code: 'INVALID_COMMAND' };
@@ -676,11 +679,18 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
             `select actor_id,request_hash,response_ref,expires_at from platform.idempotency_keys
               where tenant_id=$1 and key=$2 for update`, [tenantId, key],
           );
+          let serverReplayUnexpired: boolean | undefined;
+          if (!replayOnly && previous.rowCount && options?.replay_expiry === 'database_after_lock.v1') {
+            // Separate DB clock AFTER the ledger FOR UPDATE wait, same backend.
+            const expiry = await wire<{unexpired: boolean}>(CORE_SERVER_REPLAY_EXPIRY_SQL_V1, [tenantId, key]);
+            serverReplayUnexpired = previous.rowCount === 1 && expiry.rowCount === 1
+              && expiry.rows.length === 1 && expiry.rows[0].unexpired === true;
+          }
           if (existingReplay || previous.rowCount) {
             const row = previous.rows[0];
             const prior = persistedReceiptSchema.safeParse(existingReplay ?? row.response_ref);
             if ((!replayOnly && (row.actor_id !== command.actor_id || row.request_hash !== requestHash
-              || row.expires_at.getTime() <= Date.now())) || !prior.success
+              || (serverReplayUnexpired === undefined ? row.expires_at.getTime() <= Date.now() : !serverReplayUnexpired))) || !prior.success
               || prior.data.workspace_id !== command.workspace_id
               || prior.data.actor_id !== command.actor_id
               || prior.data.transaction_id !== command.transaction_id
@@ -745,6 +755,12 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>)
                   replay.data.denial_reason === 'PROVIDER_UNAVAILABLE'
                     ? 'PROVIDER_UNAVAILABLE'
                     : 'REPLAY_CONFLICT' });
+              }
+            }
+            if (!replayOnly && options?.replay_expiry === 'database_after_lock.v1') {
+              const finalExpiry = await wire<{unexpired: boolean}>(CORE_SERVER_REPLAY_EXPIRY_SQL_V1, [tenantId, key]);
+              if (finalExpiry.rowCount !== 1 || finalExpiry.rows.length !== 1 || finalExpiry.rows[0].unexpired !== true) {
+                throw new AbortTransaction({status:'denied',code:'REPLAY_CONFLICT'});
               }
             }
             if (terminal) {
