@@ -1,0 +1,68 @@
+{
+  "task": "AIRPROP-FUNCTIONAL-LISTING-06",
+  "shared_base": "ec639884452cc0cb6dfef520339791a5c20e9b39",
+  "status": "BLOCKED_ON_DEPENDENCY_NOT_FUNCTIONALLY_COMPLETE",
+  "contract_status": "AIRPROP_CONSUMER_REQUIREMENTS_NOT_APPROVED_CORE15_OR_PLATFORM12_ABI",
+  "official_core15_sha": null,
+  "official_platform12_profile_sha": null,
+  "core15": {
+    "owner": "Core",
+    "read_host_existing": "createCoreAirpropReadHostV1({pool,principal}).withScope(actorId, requested, callback) -> {value,completed_at}",
+    "existing_module": "src/lib/core/airprop-read-host-v1.ts",
+    "existing_limit": "Only exact Listing page and clock SQL are admitted; no selector/companion queries. This minimum is not the complete read producer.",
+    "read_selector_required": {
+      "proposed_signature": "selectCurrentUnitPropertyForReadV1(liveReadScope, opaqueHostObservation, {property_id,unit_id}) -> current canonical Unit/Property binding or bounded denial",
+      "status": "REQUESTED_NOT_EXISTING_ABI",
+      "existing_command_selector": "selectCurrentUnitPropertyV1(scope, authorityReceipt, request)",
+      "existing_command_preconditions": "Real command_id/command_aggregate portfolio.unit lock and post-lock authority receipt. A read UUID cannot be relabelled as command authority.",
+      "required_binding": ["actor", "tenant", "Context", "Workspace", "authority revision", "same physical transaction/attempt", "exact Unit/Property", "post-wait currentness"],
+      "required_source_change": "Core adds read-compatible selector/capability and explicitly admits its exact SQL. Keep existing command selector/authority engine intact."
+    },
+    "canonical_required": {
+      "consumer": "ListingCanonicalProducerV1 in src/lib/airprop/listing-native-read-v1.ts",
+      "existing_shape": ["bindSelector(scope, serverScope, listingRow) -> {request,authority}", "readCanonical(scope, serverScope, listingRow, notBefore) -> {core:{request,companion,authority},current_until}"],
+      "adaptation_required": "Core15 must supply real read-compatible binding; legacy bindSelector cannot be satisfied by fabricated command receipts. AIRPROP adapts the consumer after the actual ABI arrives.",
+      "core_mapper": "mapAirpropCoreCompanionV1",
+      "native_resolver": "customer_api.resolve_canonical_resource_reference_v1(uuid,uuid,text,uuid,integer,text,text)",
+      "current_resolver_limit": "Only Unit/core.units.identity.read/core.unit_identity.history is implemented. airprop.asset.read/airprop.portfolio.read or manage/airprop.b2 requests are withheld. Do not relabel permission or evaluated_at.",
+      "required_output": ["official Unit/spec version", "current Unit->Property binding", "current official party and ownership/management/representation relationship/version", "authorized safe full label", "real current canonical permission decision", "actual earliest scope/session/resource/relationship/permission expiry bound"],
+      "action_projection": "Separate current per-Listing/action manage producer; absent => unavailable, never derive from read or bridge availability.",
+      "timestamp_requirement": "Real DB time after waits, preserve microseconds; no statement-start observation presented as fresh clock and no invented TTL."
+    },
+    "principal": {
+      "authentication": "Existing Supabase SSR getUser + verified getClaims; matching sub/session_id/exp/aal/authenticated role; canonical session/tenant/Context/Workspace resolution on server",
+      "read": "airprop.asset.read / airprop_commercial / airprop.portfolio.read",
+      "manage": "airprop.opportunity.manage / airprop_commercial / airprop.b2 with AAL2 and current investment property mandate",
+      "authority_after_wait": "Canonical C01/current session/revision participation for every writer/revocation/expiry and final disclosure. SERIALIZABLE alone is not proof."
+    },
+    "c03_required": {
+      "host": "createCorePostgresTransactionHostV1(pool).execute(command, providers)",
+      "input": "Verified actor/Context/Workspace, real authority revision, immutable original command identity/key/fingerprint, exact resource/party/relationship/version and Opportunity binding for publish",
+      "publication_native": "customer_api.publish_airprop_listing_v1(uuid,uuid,uuid,uuid,uuid,text,timestamptz,timestamptz,text)",
+      "publication_parameters": ["context_id", "workspace_id", "opportunity_id", "property_id", "unit_id", "kind presale/resale/lease", "available_from", "available_until", "original idempotency_key"],
+      "control_native": "customer_api.control_airprop_listing_v1(uuid,uuid,uuid,text,integer,timestamptz,timestamptz,text,text)",
+      "control_parameters": ["context_id", "workspace_id", "listing_id", "edit/withdraw/republish", "expected_version", "available_from", "available_until", "reason", "original idempotency_key"],
+      "existing_control_consumer": "ListingControlBridge(actorId, ListingCommand) -> receipt | denied | conflict | not_ready | unknown_commit",
+      "publication_gap": "Current Listing transport/component contains lifecycle only; official resource/party picker and durable publish integration must be added after the canonical source/command ABI is delivered, not replaced by a synthetic form.",
+      "persistence": ["airprop.market_listings", "airprop.market_listing_revisions", "platform.idempotency_keys", "audit.events", "platform.outbox_events"],
+      "receipt": "Actual Core immutable receipt plus validated native domain receipt tied to the original full selection/body. Domain row, local callback or GET200 is not commit evidence.",
+      "retry": "Core must provide original durable command/transaction/authority preconditions for same-key retry, current reauthorization and exact persisted replay readback. Do not mint new IDs, rotate keys or reconstruct authority from a historical receipt.",
+      "unknown": "Unknown COMMIT preserved; original frozen command kept; explicit reconciliation, no blind resend or duplicate effect."
+    }
+  },
+  "platform12": {
+    "owner": "Platform",
+    "target": "Verified owned isolated persistent development PG/Auth target with synthetic data only; no populated staging or Production",
+    "version_required": "Exact PostgreSQL/schema migration/profile/driver identities and compatibility with Shared Base/Core15; PG17 expected by existing proof request, not observed installed",
+    "connection": "Role-scoped pg physical checkout preserving backend/session/COMMIT/cleanup semantics; existing server Supabase SSR Auth; private secret bindings supplied outside source/logs, no browser connection or service_role",
+    "principal": "Explicit admitted executor/runtime role graph; no superuser/BYPASSRLS/CREATEROLE/CREATEDB/REPLICATION, no privileged inherited path. Existing Core minimum rejects postgres/supabase_admin/service_role/anon/authenticated/authenticator profiles.",
+    "read_direct_tables": ["airprop.market_listings", "app_private.canonical_authority_revision_v1", "identity.context_grants", "identity.memberships", "platform.customer_workspaces", "platform.workspace_property_bindings", "platform.module_definitions", "portfolio.units", "portfolio.buildings", "portfolio.properties", "portfolio.unit_specification_versions", "portfolio.ownerships", "portfolio.parties"],
+    "functions_required": ["app_private.resolve_workspace_native_context_v2", "app_private.check_workspace_native_permission_v2", "app_private.require_request_session_current_at_v1", "customer_api.resolve_canonical_resource_reference_v1", "customer_api.publish_airprop_listing_v1", "customer_api.control_airprop_listing_v1"],
+    "privilege_rule": "SELECT/row-lock and schema USAGE only where actual direct-query closure requires them; specific reviewed EXECUTE only; C03/domain writes only through admitted Core/domain writer path with RLS/session checks. No blanket grants/default ACL change and no grants executed by this packet.",
+    "persistence": "Owned named development volume, explicit reset/backup custody; fixture runs separated from product data and restart retains committed rows/receipts",
+    "readiness_observed_here": "Docker28.4.0 responds; image/container inventory empty; no Supabase CLI or configured runtime/credential binding. This is neither ready Backend nor prohibition on later authorized bootstrap.",
+    "bootstrap_authority": "Owner permits required isolated synthetic development construction/execution after official Platform12 profile delivery and target verification."
+  },
+  "remaining_connected_acceptance": ["official resource/party selection -> publish -> committed Listing", "read/edit/withdraw and readback after browser reload plus process/DB restart", "version conflict", "foreign Workspace denial and zero writes", "current revoke/expiry after waits", "same-key concurrent retry and unknown commit recovery without duplicate effect", "real server RLS and role-scoped issued Auth"],
+  "automation": { "classification": "نیازمند بررسی", "value": "Unmeasured; durable restart readback and zero-duplicate/zero-write denial are the acceptance/value criteria", "authority_unchanged": true }
+}
