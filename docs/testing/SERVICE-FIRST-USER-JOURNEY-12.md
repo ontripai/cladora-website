@@ -20,7 +20,10 @@ launcher. In that profile the Service page:
 5. keeps the existing V14 command endpoint, body and idempotency key for an
    explicit UNKNOWN retry; while that command is unresolved, the official
    selection control is synchronously locked so its keyed child cannot discard
-   custody by switching Workspaces.
+   custody by switching Workspaces. A later conflict response or successful
+   catalogue/history refresh does not resolve an earlier lost acknowledgement;
+   only a valid result for that same command releases custody. An initial
+   conflict remains definitive under the existing refresh behavior.
 
 An unavailable, denied or malformed bootstrap fails closed. It does not fall
 back to `/api/customer/v1/workspace/targets`, guess the first Workspace, or

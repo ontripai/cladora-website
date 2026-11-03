@@ -42,6 +42,7 @@ function CustomerServiceRequestsScope({contextId,workspaceId,lang,offerings,onRe
   const [data,setData]=useState<Read|null>(null); const [notice,setNotice]=useState('');
   const [offering,setOffering]=useState(''); const [party,setParty]=useState(''); const [description,setDescription]=useState('');
   const [pending,setPending]=useState<PendingCommand|null>(null); const [busy,setBusy]=useState(false); const [conflict,setConflict]=useState(false);
+  const [pendingUnknown,setPendingUnknown]=useState(false);
   const [resource,setResource]=useState<ServiceOfferingRequestPublicInputV1['resource']>(null);
   const [flowState,setFlowState]=useState<FlowState>({key:'',status:'idle',preflight:null}); const [flowAttempt,setFlowAttempt]=useState(0);
   const [readStatus,setReadStatus]=useState<'loading'|'ready'|'denied'|'session'|'retry'>('loading'); const [readAttempt,setReadAttempt]=useState(0);
@@ -84,9 +85,11 @@ function CustomerServiceRequestsScope({contextId,workspaceId,lang,offerings,onRe
       if(!response.ok)throw new Error(response.status===401?'session':response.status===403||response.status===404?'denied':'retry');
       const updated=serviceRequestReadSchema.parse(await response.json());
       if(!alive.current)return;
-      setData(updated);setPending(null);onCommandCustodyChange?.(false);setConflict(false);setNotice('');setFlowState({key:'',status:'idle',preflight:null});setFlowAttempt(value=>value+1);
-      if(!updatedOfferings.some(item=>item.offering_id===offering&&item.acquisition_mode!=='reservation'))setOffering('');
-      if(!updated.beneficiaries.some(item=>item.party_id===party))setParty('');
+      const preserveUnknown=Boolean(pending&&pendingUnknown);
+      setData(updated);setConflict(false);setNotice('');setFlowState({key:'',status:'idle',preflight:null});setFlowAttempt(value=>value+1);
+      if(!preserveUnknown){setPending(null);setPendingUnknown(false);onCommandCustodyChange?.(false);}
+      if(!preserveUnknown&&!updatedOfferings.some(item=>item.offering_id===offering&&item.acquisition_mode!=='reservation'))setOffering('');
+      if(!preserveUnknown&&!updated.beneficiaries.some(item=>item.party_id===party))setParty('');
     }catch(reason){if(alive.current){
       if(reason instanceof Error&&(reason.message==='denied'||reason.message==='session')){
         setData(null);setReadStatus(reason.message);
@@ -113,7 +116,7 @@ function CustomerServiceRequestsScope({contextId,workspaceId,lang,offerings,onRe
       command=usesV14Flow
         ? {protocol:SERVICE_OFFERING_REQUEST_FLOW_CONTRACT,endpoint:'/api/customer/v1/services/offering-request-flow',body:serviceOfferingRequestPublicInputV1Schema.parse(parsed.data)}
         : {protocol:'service-request-command.v1',endpoint:'/api/customer/v1/services/requests',body:createServiceRequestSchema.parse(parsed.data)};
-      setPending(command);onCommandCustodyChange?.(true);}
+      setPending(command);setPendingUnknown(false);onCommandCustodyChange?.(true);}
     submitting.current=true;setBusy(true);setNotice('');const controller=new AbortController();writeAbort.current=controller;
     try {const response=await fetch(command.endpoint,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(command.body),signal:controller.signal});
       if(!response.ok){if(alive.current){
@@ -122,13 +125,13 @@ function CustomerServiceRequestsScope({contextId,workspaceId,lang,offerings,onRe
         else{setConflict(response.status===409);setNotice(response.status===409?t.conflict:t.error);}
       }return;}
       serviceRequestResultSchema.parse(await response.json());
-      if(!alive.current||controller.signal.aborted)return;setPending(null);onCommandCustodyChange?.(false);setDescription('');setNotice(t.success);
+      if(!alive.current||controller.signal.aborted)return;setPending(null);setPendingUnknown(false);onCommandCustodyChange?.(false);setDescription('');setNotice(t.success);
       // Confirmed writes remain confirmed even when refreshing history fails.
       try {const read=await fetch(`/api/customer/v1/services/requests?${query}`,{cache:'no-store',credentials:'same-origin',signal:controller.signal});
         if(read.ok){const updated=serviceRequestReadSchema.parse(await read.json());if(alive.current&&!controller.signal.aborted)setData(updated);}
         else if(alive.current&&!controller.signal.aborted&&(read.status===401||read.status===403)){setData(null);setReadStatus(read.status===401?'session':'denied');}
       }catch{/* Keep the confirmed result. */}
-    }catch{if(alive.current&&!controller.signal.aborted)setNotice(t.error);}finally{submitting.current=false;if(alive.current)setBusy(false);}
+    }catch{if(alive.current&&!controller.signal.aborted){setPendingUnknown(true);setNotice(t.error);}}finally{submitting.current=false;if(alive.current)setBusy(false);}
   }
   return <section dir={lang==='fa'?'rtl':'ltr'} className="min-w-0 space-y-4 rounded-2xl border bg-white p-6"><h2 className="text-xl font-bold">{t.title}</h2>
     {notice?<p role="status">{notice}</p>:null}{conflict?<button type="button" disabled={busy} onClick={()=>void refreshConflict()} className="min-h-11 rounded-xl border px-4 py-2">{t.refresh}</button>:null}
