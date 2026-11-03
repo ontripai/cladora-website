@@ -8,6 +8,9 @@ on:
       - 'scripts/test-authenticated-app-07.mjs'
       - 'scripts/test-core-functional-*.mjs'
       - 'scripts/test-core15-session-source-v1.mjs'
+      - 'scripts/test-core15-service-cut-v1.mjs'
+      - 'scripts/check-core15-service-cut-v1.mjs'
+      - 'scripts/test-service-functional-request-runtime-binding-v1.mjs'
       - 'scripts/lib/core15-install-payload.mjs'
       - 'supabase/install/core-functional-runtime-v1/**'
       - 'scripts/functional-dev-stack-v1/**'
@@ -63,6 +66,9 @@ on:
       - 'scripts/test-authenticated-app-07.mjs'
       - 'scripts/test-core-functional-*.mjs'
       - 'scripts/test-core15-session-source-v1.mjs'
+      - 'scripts/test-core15-service-cut-v1.mjs'
+      - 'scripts/check-core15-service-cut-v1.mjs'
+      - 'scripts/test-service-functional-request-runtime-binding-v1.mjs'
       - 'scripts/lib/core15-install-payload.mjs'
       - 'supabase/install/core-functional-runtime-v1/**'
       - 'scripts/functional-dev-stack-v1/**'
@@ -139,6 +145,9 @@ jobs:
           node scripts/test-core-functional-runtime-v1.mjs
           node scripts/test-core-functional-install-packet-v1.mjs
           node scripts/test-core15-session-source-v1.mjs
+          node scripts/check-core15-service-cut-v1.mjs
+          node scripts/test-core15-service-cut-v1.mjs
+          node scripts/test-service-functional-request-runtime-binding-v1.mjs
       - name: Inactive Operations and Platform source (offline; no ACL or target changes)
         run: |
           python -B scripts/review-ops-populated-transition-01a/test.py

@@ -237,6 +237,9 @@ const coreResult = validateProtectedDirectory({
   expectedProtectedCount: 13,
   expectedProtectedDigest: '7502bf811cb4959cd7f7c1ade651b8020b3e99cb0d76a0667caf7fbdedb2c3be',
   isProtected: path => ![
+    'functional-request-auth-v1.ts',
+    'private-service-development-binding-v1.ts',
+    'scoped-server-clock-v1.ts',
     'airprop-read-host-v1.ts',
     'authenticated-session-runtime-v1.ts',
     'ce012-combined-stored-relation-v1.ts',
@@ -268,6 +271,18 @@ const coreResult = validateProtectedDirectory({
     'product-rights-v1.ts',
   ].includes(path),
   reviewedAdditions: {
+    'functional-request-auth-v1.ts': {
+      owner: 'Core / published source 580de7be74d7bc1000119b0b940cff644c6437ab; development-only composition',
+      sha256: '50f3f913366cd93aa8342ce6d653a847ab3f2a90335777334b235bdf0a6c66e6',
+    },
+    'private-service-development-binding-v1.ts': {
+      owner: 'Core / published source 580de7be74d7bc1000119b0b940cff644c6437ab; development-only composition',
+      sha256: '11a10fdca8eaa8c47c80e8730f5af5a1ce283b1f314fdeeef1ec56eabf4cc7ac',
+    },
+    'scoped-server-clock-v1.ts': {
+      owner: 'Core / published source 580de7be74d7bc1000119b0b940cff644c6437ab; development-only composition',
+      sha256: '2753aee2dce0ed13e1dc8307eacfdb7f60f5bbacd90421968bcffe662f3a1823',
+    },
     'airprop-read-host-v1.ts': {
       owner: 'Core / published source db8acfc08c4687f2f8e3bc140f380be6b4daab89; source pin only, native gates separate',
       sha256: '4b13bfa4c920a68e7ec31b4a10f17a6e2bcf90721d255ccbc7e33eea34958c3c',
@@ -302,7 +317,9 @@ const coreResult = validateProtectedDirectory({
     },
     'functional-command-runtime-v1.ts': {
       owner: 'Core / published source a0a37f3c573558d14be2e62ba27e6e5475b9c4fe; source pin only, native gates separate',
-      sha256: '36110c4747773d04380b2241b9b60749dfca9b75ac7b31accde140cc9c4f8d45',
+      // Previous published source hash: 36110c4747773d04380b2241b9b60749dfca9b75ac7b31accde140cc9c4f8d45.
+      // Service-first successor 580de7be74d7bc1000119b0b940cff644c6437ab.
+      sha256: '0a8f472e88d7b79fc55cc7e643852e66b8b9b0638de26a9c104840a23b352a75',
     },
     'functional-producers-v1.ts': {
       owner: 'Core / published source a0a37f3c573558d14be2e62ba27e6e5475b9c4fe; source pin only, native gates separate',
@@ -314,7 +331,9 @@ const coreResult = validateProtectedDirectory({
     },
     'service-functional-binding-v1.ts': {
       owner: 'Core / published source a0a37f3c573558d14be2e62ba27e6e5475b9c4fe; source pin only, native gates separate',
-      sha256: '769c49733f894773452665f39a024cc8a16b4b9e1269e9d8cac3e3405b1c254a',
+      // Previous published source hash: 769c49733f894773452665f39a024cc8a16b4b9e1269e9d8cac3e3405b1c254a.
+      // Service-first successor 580de7be74d7bc1000119b0b940cff644c6437ab.
+      sha256: '7951bb8f6f3a1507a8006fe3ff1d430a1f8b8be25c3e4793c3b1bcb498ba4ded',
     },
     'service-s01/errors-v1.ts': {
       owner: 'Core / published source d13437a81d854ef0c7603cb4aeca97fcdd4999ed; source pin only, native gates separate',

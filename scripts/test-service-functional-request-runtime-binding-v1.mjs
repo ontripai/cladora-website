@@ -7,6 +7,7 @@ import ts from 'typescript';
 
 const require=createRequire(import.meta.url),root=resolve(dirname(fileURLToPath(import.meta.url)),'..'),cache=new Map();
 function load(filename){filename=extname(filename)?filename:`${filename}.ts`;if(cache.has(filename))return cache.get(filename).exports;
+ if(filename.endsWith('.json')){const mod={exports:JSON.parse(readFileSync(filename,'utf8'))};cache.set(filename,mod);return mod.exports;}
  const mod={exports:{}};cache.set(filename,mod);const compiled=ts.transpileModule(readFileSync(filename,'utf8'),{fileName:filename,compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true,moduleResolution:ts.ModuleResolutionKind.NodeNext}}).outputText;
  const localRequire=specifier=>specifier==='server-only'?{}:specifier.startsWith('@/')?load(resolve(root,'src',specifier.slice(2))):specifier.startsWith('.')?load(resolve(dirname(filename),specifier)):require(specifier);
  new Function('require','module','exports',compiled)(localRequire,mod,mod.exports);return mod.exports;}

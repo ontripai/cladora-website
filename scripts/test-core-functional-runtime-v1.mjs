@@ -18,7 +18,13 @@ const read=(file,encoding)=>{
  return readFileSync(file,encoding);
 };
 let aliasLoad;
-const cr=url=>{const actual=createRequire(url);return name=>name==='server-only'?{}:name.startsWith('@/')?aliasLoad(name.replace('@/','src/')):actual(name);};
+// Controlled SDK Auth transport for the new request-bound SSR path. The actual
+// request client, cookie envelope and Core authority/runtime code still execute.
+const cr=url=>{const actual=createRequire(url);return name=>name==='server-only'?{}
+ :name==='@supabase/ssr'?{...actual(name),createServerClient:()=>({auth:{
+  async getUser(){auth.calls++;return{error:auth.error,data:{user:auth.user}};},
+  async getClaims(){auth.calls++;return{error:auth.error,data:{claims:auth.claims}};},
+ }})}:name.startsWith('@/')?aliasLoad(name.replace('@/','src/')):actual(name);};
 const {setup,core,provider,next,id,env}=new Function('assert','readFileSync','execFileSync','createRequire','resolve','dirname','extname','fileURLToPath','ts','providedUrl',prefix+'\nreturn{setup,core,provider,next,id,env};')
  (assert,read,execFileSync,cr,resolve,dirname,extname,fileURLToPath,ts,original.href);
 aliasLoad=env.load;
@@ -123,6 +129,12 @@ await check('Core request-local producer supplies real SERVICE loadOffering/S01/
  const agreement=await ports.resolveProviderAgreement({contract_version:'provider-agreement-verification.v1',context_id:id(4),workspace_id:id(3),provider_agreement_id:id(73),provider_agreement_version:1,requested_service_scope:['service.request.create'],permission_code:'services.orders.request'});
  assert.equal(agreement.agreement_status,'effective');assert.equal((await ports.resolvePrincipal(selection)).actor_id,id(1));assert.equal(ports.now(),x.f.now);
  await assert.rejects(ports.loadOffering({...input,context_id:id(99)}),/scope_mismatch/);
+});
+await check('request-local SSR Auth denial prevents any SERVICE database lease',async()=>{
+ const x=await fixture();auth.error={message:'controlled SDK denial'};
+ const binding=env.load('src/lib/core/service-functional-binding-v1.ts').createCoreServiceFunctionalBindingV1({pool:x.f.pool,target});
+ await assert.rejects(binding.bind(new Request('http://127.0.0.1/api/customer/v1/services/offering-request-flow')));
+ assert.equal(x.calls.length,0);assert.equal(auth.calls,2);
 });
 await check('ledger expiry during actual replay-provider wait is rechecked by server AFTER that wait',async()=>{
  const x=await fixture(),before=structuredClone(x.f.writes),p=provider(x.guide);
