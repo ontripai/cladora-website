@@ -38,6 +38,7 @@ function load(path) {
     if (specifier === './CustomerContextProvider') return { useCustomerContext: () => context };
     if (specifier === '@/lib/supabase/client') return { createClient: () => client };
     if (specifier === '@/lib/customer/documents-upload-ui-contract-v1') return load('src/lib/customer/documents-upload-ui-contract-v1.ts');
+    if (specifier === '@/lib/customer/documents-upload-snapshot-v1') return load('src/lib/customer/documents-upload-snapshot-v1.ts');
     return require(specifier);
   };
   mod._compile(ts.transpileModule(readFileSync(path, 'utf8'), { compilerOptions: {
@@ -140,7 +141,7 @@ try {
     await act(async () => { deferredIntent.release(response(lastIntent)); await tick(); });
     assert.equal(posts().length, 2); assert.equal(phase(), 'confirmed');
     const form = posts()[1].options.body;
-    const metadata = { context_id: request.context_id, filename: request.filename, declared_mime: request.declared_mime,
+    const metadata = { context_id: request.context_id, workspace_id: request.workspace_id, filename: request.filename, declared_mime: request.declared_mime,
       size_bytes: request.size_bytes, title: request.title, document_type: request.document_type,
       classification: request.classification, property_id: request.property_id };
     assert.equal(createHash('sha256').update(JSON.stringify(metadata)).digest('hex'), request.request_sha256);

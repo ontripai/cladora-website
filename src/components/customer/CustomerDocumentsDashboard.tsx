@@ -19,6 +19,7 @@ import {
   X,
   FileCode,
 } from "lucide-react";
+import { serializeDocumentsUploadSnapshotV1 } from "@/lib/customer/documents-upload-snapshot-v1";
 import { createClient } from "@/lib/supabase/client";
 import { documentsUploadIntentAckV1Schema, matchesDocumentsUploadFinalizationAckV1,
   type DocumentsUploadUiBindingV1 } from "@/lib/customer/documents-upload-ui-contract-v1";
@@ -445,9 +446,11 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
     const started = generation.current;
     const same = () => generation.current === started && currentScope.current === scope;
     const file = uploadFile;
-    const metadata = JSON.stringify({ context_id: active.context_id, filename: file.name,
+    let metadata: string;
+    try { metadata = serializeDocumentsUploadSnapshotV1({ context_id: active.context_id, workspace_id: workspace, filename: file.name,
       declared_mime: file.type, size_bytes: file.size, title: uploadTitle || file.name,
       document_type: uploadType, classification: uploadClassification, property_id: uploadPropertyId || null });
+    } catch { flight.current = false; setUploadError("uploadInvalid"); return; }
     setUploadError("");
     setUploadPhase("intent");
     try {
@@ -492,7 +495,7 @@ export function CustomerDocumentsDashboard({ lang, initialDocumentId }: { lang: 
       record.intent = intent;
       setUploadPhase("upload");
       const form = new FormData();
-      for (const [key, value] of Object.entries(JSON.parse(metadata))) if (value !== null) form.append(key, String(value));
+      for (const [key, value] of Object.entries(JSON.parse(metadata))) form.append(key, value === null ? "null" : String(value));
       form.append("intent_id", intent.intent_id);
       form.append("idempotency_key", record.finalizationKey);
       form.append("request_sha256", requestHash);
