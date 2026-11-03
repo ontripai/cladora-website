@@ -1,0 +1,74 @@
+{
+  "contract": "cladora-source-delivery-manifest.v1",
+  "task_id": "SERVICE-FUNCTIONAL-REQUEST-09",
+  "base": "ec639884452cc0cb6dfef520339791a5c20e9b39",
+  "branch": "codex/program-service-offering-request-02",
+  "status": "SERVICE_RUNTIME_BOUNDARY_DELIVERED_DEPENDENCY_BLOCKED",
+  "runtime_binding": "NULL_UNTIL_EXACT_CORE15_PLATFORM12_PRODUCER",
+  "dependencies": {
+    "Core15": "core15-service-request-runtime.v1: accepted S01 store/reader, verified current session/authority and Core transaction host",
+    "Platform12": "platform12-service-request-database.v1: request-scoped role-bound physical lease and durable request readback"
+  },
+  "evidence": {
+    "focused_runtime_contract": "PASS_4_OF_4",
+    "affected_offline_flow": "PASS_12_OF_12",
+    "typescript": "PASS",
+    "eslint_scoped": "PASS",
+    "diff_check": "PASS",
+    "connected_database": "NOT_RUN_NOT_PASS",
+    "connected_browser_restart": "NOT_RUN_NOT_PASS",
+    "next_16_4_1_build": "PASS_604_STATIC_PAGES"
+  },
+  "automation": {
+    "classification": "نیازمند بررسی",
+    "dependency": "exact Core15 and Platform12 runtime delivery",
+    "value": "durable same-request readback after restart with zero-write denial and exact-key unknown recovery"
+  },
+  "outputs": [
+    {
+      "path": "docs/architecture/CLADORA-SERVICE-V14-EXEC-01.md",
+      "bytes": 10317,
+      "sha256": "c4b51e6d99591ba2a43d9ce38a7426ecdcfa1efe91a17079bc38e2ba9b917b2a",
+      "preimage": {
+        "state": "present",
+        "base": "ec639884452cc0cb6dfef520339791a5c20e9b39"
+      }
+    },
+    {
+      "path": "scripts/test-service-functional-request-runtime-binding-v1.mjs",
+      "bytes": 4766,
+      "sha256": "c2c8f8c97493d27d0718719e483d45064b0cf0e5efb8e933c4373116f3cfb93f",
+      "preimage": {
+        "state": "absent",
+        "base": "ec639884452cc0cb6dfef520339791a5c20e9b39"
+      }
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/http.ts",
+      "bytes": 4713,
+      "sha256": "23f06920a08fe4deda4d9469fc3e1117916f7e7090e7311a130ba15ade28b28e",
+      "preimage": {
+        "state": "present",
+        "base": "ec639884452cc0cb6dfef520339791a5c20e9b39"
+      }
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/runtime-binding.ts",
+      "bytes": 1957,
+      "sha256": "32283a24ab1131296c0071c29f7a511ec033156f04cfe771bc743807ae737410",
+      "preimage": {
+        "state": "present",
+        "base": "ec639884452cc0cb6dfef520339791a5c20e9b39"
+      }
+    },
+    {
+      "path": "supabase/hosted-service-v14-execution/functional-request-runtime-dependency-v1.json",
+      "bytes": 8578,
+      "sha256": "0a54d76c30da37a29d15dbd72e8c0551cc15fd138e0d25cd5f16d4dc11c65e22",
+      "preimage": {
+        "state": "absent",
+        "base": "ec639884452cc0cb6dfef520339791a5c20e9b39"
+      }
+    }
+  ]
+}

@@ -155,3 +155,23 @@ if its ABI changes, PostgreSQL parse/install in a disposable environment, real
 concurrent CAS/replay/rollback/unknown-commit tests, dedicated executor
 ownership/ACL review, route binding activation and connected browser/API/Auth
 proof. Those gates do not block the source-only Workspace flow or its tests.
+
+## Functional Request runtime handoff
+
+`service-functional-request-runtime.v1` is the only activation seam for the
+browser route. The handler resolves this binding once per validated HTTP
+request; it does not retain a process-global principal or database lease. The
+producer must identify itself as both `core15-service-request-runtime.v1` and
+`platform12-service-request-database.v1`, then return the existing
+`ServiceOfferingRequestFlowPortsV1`. A missing, mismatched or failing producer
+returns the bounded `RUNTIME_BINDING_INACTIVE` response.
+
+The exact producer operations, principal/session split, S01 store and selector
+requirements, and minimum database access are recorded in
+`supabase/hosted-service-v14-execution/functional-request-runtime-dependency-v1.json`.
+SERVICE already owns the Offering source reads, current principal projection,
+microsecond clock, command construction, Core host provider composition and
+HTTP/UI boundary. Core still owns the S01 store/reader and transaction host;
+Platform still owns verified-session admission and the role-scoped physical
+database lease. Activation must not substitute the legacy Request RPC or a
+`service_role` client.
