@@ -1,0 +1,170 @@
+{
+  "format": "platform-functional-dev-stack-delivery.v1",
+  "parent": "26ad9b1f9ed0fe94df54330d0fc314fdd5c8e8d1",
+  "parent_parents": [
+    "864ffa05eec12f463330c4a21d14640fc6423ac9",
+    "ec639884452cc0cb6dfef520339791a5c20e9b39"
+  ],
+  "branch": "codex/program-local-runtime-lane-01",
+  "source_files": [
+    {
+      "path": "docs/testing/PLATFORM-FUNCTIONAL-DEV-STACK-12.md",
+      "bytes": 14292,
+      "sha256": "5aa460c91c3c2772566a2123b19acd7c57dafb783008a6a7d2daff6305b629bd",
+      "git_blob": "72c64792b565fa006e9b8b3b3cfd12c9d1603fb4"
+    },
+    {
+      "path": "docs/testing/functional-dev-stack-12.receipt.json",
+      "bytes": 7877,
+      "sha256": "323d9f90cdf1e9dca66e51eb760e7ef9f4b2a1fb9ba760f57e95956a53c296c2",
+      "git_blob": "6482d3dc799482fe5f358fb77ef7694d3747776b"
+    },
+    {
+      "path": "scripts/functional-dev-stack-v1/bootstrap.sql",
+      "bytes": 3810,
+      "sha256": "fd77a96615502200d51046c6ab98485e81763377dd605b21426503a8ee25a540",
+      "git_blob": "48a3a15597e008376e9b2671aec507ff538fe7d4"
+    },
+    {
+      "path": "scripts/functional-dev-stack-v1/connection-proof.mjs",
+      "bytes": 6432,
+      "sha256": "459c8983af958f7c3b3d6f700bfdfcf42a4ecd6d5fd9b0656d6b796905d81f71",
+      "git_blob": "2116b958afeb12e6ff6dc0aed84499be1c908c5e"
+    },
+    {
+      "path": "scripts/functional-dev-stack-v1/gateway.conf",
+      "bytes": 707,
+      "sha256": "86fa5c71eafecfcfe98d05984e841c0d70ea7f3d63c4d52fcdf0ce6a7a6aa5a3",
+      "git_blob": "2be1d1bc7fb8c4275fb5110571a7b207686d7291"
+    },
+    {
+      "path": "scripts/functional-dev-stack-v1/profile.json",
+      "bytes": 1590,
+      "sha256": "1d3d7f7177c1083eff3fd32c12bed4fba2f452ba38170622bcb280b7e35366af",
+      "git_blob": "33b1d3e14d352bca26a9eb422676dba02d5cb23c"
+    },
+    {
+      "path": "scripts/functional-dev-stack-v1/provider-compatibility.sql",
+      "bytes": 893,
+      "sha256": "5e6214c55dde2c4e2328c19cb79fc5a9a3ae0d84ecaab9544c419ff40a34fd7d",
+      "git_blob": "8c6109e61a4ffeb72d358caeb504cc0f6f4946fa"
+    },
+    {
+      "path": "scripts/functional-dev-stack-v1/stack.py",
+      "bytes": 33420,
+      "sha256": "1fb22ab6684fad1c3f8aed647a6f1edfef65ddfe27bab19422d542b0d9c55a7a",
+      "git_blob": "a7cb760e29b461b5d5a6794e0ce14fe91d86fff6"
+    },
+    {
+      "path": "scripts/test-functional-dev-stack-v1.py",
+      "bytes": 5699,
+      "sha256": "154130738a31e9ab5052497029c0307ec3bacf49049ca3efc7722230c70531fb",
+      "git_blob": "8ced5293bfb2690b9032adcee7eeaf34c9156b69"
+    }
+  ],
+  "new_paths": [
+    "docs/testing/PLATFORM-FUNCTIONAL-DEV-STACK-12.md",
+    "docs/testing/functional-dev-stack-12.receipt.json",
+    "scripts/functional-dev-stack-v1/bootstrap.sql",
+    "scripts/functional-dev-stack-v1/connection-proof.mjs",
+    "scripts/functional-dev-stack-v1/gateway.conf",
+    "scripts/functional-dev-stack-v1/profile.json",
+    "scripts/functional-dev-stack-v1/provider-compatibility.sql",
+    "scripts/functional-dev-stack-v1/stack.py",
+    "scripts/test-functional-dev-stack-v1.py",
+    "docs/testing/functional-dev-stack-12.manifest.json"
+  ],
+  "manifest_self_identity": "outside-file delivery receipt; no circular self-hash",
+  "source_seal": {
+    "files": {
+      "bootstrap.sql": "fd77a96615502200d51046c6ab98485e81763377dd605b21426503a8ee25a540",
+      "gateway.conf": "86fa5c71eafecfcfe98d05984e841c0d70ea7f3d63c4d52fcdf0ce6a7a6aa5a3",
+      "profile.json": "1d3d7f7177c1083eff3fd32c12bed4fba2f452ba38170622bcb280b7e35366af",
+      "provider-compatibility.sql": "5e6214c55dde2c4e2328c19cb79fc5a9a3ae0d84ecaab9544c419ff40a34fd7d",
+      "stack.py": "1fb22ab6684fad1c3f8aed647a6f1edfef65ddfe27bab19422d542b0d9c55a7a"
+    },
+    "sha256": "777a5f0de10fae668458ade588a6d17d570a342fb1a3e10e1c6c2e9cc517103b"
+  },
+  "images": {
+    "pg": "docker.io/library/postgres@sha256:2cd2c0f809604aaeff6f0ec8f40aecbd025613107561015c69369a1a7f1d3416",
+    "auth": "docker.io/supabase/gotrue@sha256:839f529492d116b4e8b7777c953a27c381d34c15a744b1bcefde5eefaa1f9f9f",
+    "rest": "docker.io/postgrest/postgrest@sha256:bee9e1efe9d90d8f6be359f756e039dbb6e1972474bc271b7c49c5a495911a41",
+    "gateway": "docker.io/library/nginx@sha256:09ab424a8c788f8d0fe3a64429f6d19dfa526885c8609b748d0943a75dcb9f8c",
+    "storage": "docker.io/supabase/storage-api@sha256:31c11d93a3c7840f97acba43f6df9894028dc85dd9c0781d23427e2009be5b76",
+    "scanner": "docker.io/clamav/clamav@sha256:67b6acaa32fe648079ea3b5558c6a3d090d75261a011e252d1842540ee686dd6"
+  },
+  "profile": {
+    "path": "scripts/functional-dev-stack-v1/profile.json",
+    "bytes": 1590,
+    "sha256": "1d3d7f7177c1083eff3fd32c12bed4fba2f452ba38170622bcb280b7e35366af",
+    "git_blob": "33b1d3e14d352bca26a9eb422676dba02d5cb23c"
+  },
+  "consumers": [
+    {
+      "owner": "Service09",
+      "commit": "4c3abd7c26d8ae393fdb6acb3f88330c7b887097",
+      "path": "supabase/hosted-service-v14-execution/functional-request-runtime-dependency-v1.json",
+      "git_blob": "393003173a1bf3d653b7c9bfb79276af9a4ab4d7"
+    },
+    {
+      "owner": "AIRPROP06",
+      "commit": "4b8d1e9e305f44268688197246d34ac65d972b40",
+      "path": "docs/airprop/AIRPROP-FUNCTIONAL-LISTING-06.dependencies.json",
+      "git_blob": "9c45db5f486fa83bd3e610625794ae702d165a35"
+    },
+    {
+      "owner": "Core15",
+      "commit": null,
+      "install_manifest": null,
+      "status": "NOT_DELIVERED"
+    },
+    {
+      "owner": "Documents11",
+      "status": "EXACT_INSTALL_QUEUE_SIGNATURE_PLAN_REQUIRED"
+    }
+  ],
+  "preservation": {
+    "tracked_before": 2614,
+    "tracked_after_expected": 2624,
+    "modified_existing_files": [],
+    "task11": "all 16 delivered files byte-identical",
+    "product_package_lock": "unchanged",
+    "native_installer_replay": false
+  },
+  "tests": {
+    "new_targeted_source_groups": 9,
+    "execution": "initial6 + new CID/HTTP/backup cases and only affected reruns",
+    "syntax": "Python AST/JSON/new MJS PASS",
+    "old_accepted_suites": "NOT_REPEATED",
+    "native_summary": {
+      "path": "docs/testing/functional-dev-stack-12.receipt.json",
+      "bytes": 7877,
+      "sha256": "323d9f90cdf1e9dca66e51eb760e7ef9f4b2a1fb9ba760f57e95956a53c296c2",
+      "git_blob": "6482d3dc799482fe5f358fb77ef7694d3747776b"
+    }
+  },
+  "state": {
+    "independent_pg_auth_api": "ACTUAL_SAME_EXECUTOR_VERIFIED",
+    "domain_runtime": "HOLD_CORE15",
+    "cross_seat": "NOT_VERIFIED",
+    "old_consumer_registries": "UNCHANGED_EMPTY",
+    "sensitive_aal2": "NOT_RUN_NOT_PASS"
+  },
+  "rebuild": {
+    "method": "exact source on consumer executor; own managed Docker/network checks; init/pull/bootstrap/start/users/verify using private generated state",
+    "existing_instance": "do not repeat init/bootstrap/users; stop/start/status/backup only",
+    "no_migration_replay": true,
+    "clean_second_executor": "NOT_RUN",
+    "readme": "docs/testing/PLATFORM-FUNCTIONAL-DEV-STACK-12.md"
+  },
+  "automation": {
+    "classification": "نیازمند بررسی",
+    "input": "pinned infrastructure plus reviewed Core/consumer contracts",
+    "automatable": "owned lifecycle, hash/identity/backup checks",
+    "human_owner": "Platform/Core/coordinator; Documents for signatures",
+    "conditions": "exact target/private custody/role graph",
+    "exception": "UNKNOWN/drift -> Platform no blind retry",
+    "dependency": "Core15/Service09/AIRPROP06/Documents11",
+    "value": "durable isolated real development access; estimate UNKNOWN"
+  }
+}

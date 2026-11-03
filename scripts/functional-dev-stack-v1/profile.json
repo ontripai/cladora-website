@@ -1,0 +1,22 @@
+{
+  "contract": "cladora-functional-dev-stack.v1",
+  "shared_base": "ec639884452cc0cb6dfef520339791a5c20e9b39",
+  "project": "cladora-functional-dev-v1",
+  "origin": "http://127.0.0.1:55421",
+  "purpose": "persistent isolated synthetic development; not staging or Production",
+  "images": {
+    "pg": "docker.io/library/postgres@sha256:2cd2c0f809604aaeff6f0ec8f40aecbd025613107561015c69369a1a7f1d3416",
+    "auth": "docker.io/supabase/gotrue@sha256:839f529492d116b4e8b7777c953a27c381d34c15a744b1bcefde5eefaa1f9f9f",
+    "rest": "docker.io/postgrest/postgrest@sha256:bee9e1efe9d90d8f6be359f756e039dbb6e1972474bc271b7c49c5a495911a41",
+    "gateway": "docker.io/library/nginx@sha256:09ab424a8c788f8d0fe3a64429f6d19dfa526885c8609b748d0943a75dcb9f8c",
+    "storage": "docker.io/supabase/storage-api@sha256:31c11d93a3c7840f97acba43f6df9894028dc85dd9c0781d23427e2009be5b76",
+    "scanner": "docker.io/clamav/clamav@sha256:67b6acaa32fe648079ea3b5558c6a3d090d75261a011e252d1842540ee686dd6"
+  },
+  "versions": {"pg":"17.11", "auth":"v2.197.0", "rest":"v16.4", "storage":"v1.82.1", "gateway":"1.28.0-alpine", "scanner":"1.4.4_base"},
+  "version_provenance": "supabase/cli v2.121.0 Dockerfile Git563c96ccd7ce0a7d1f4052750b391a1a46ca3836 for Auth/REST/Storage; official amd64 registry descriptors for additional images",
+  "persistent_volumes": ["pgdata", "storage-data", "scanner-signatures"],
+  "external_delivery": false,
+  "test_schema": "platform_dev",
+  "domain_installation": "HOLD_CORE_EXACT_INSTALL_PLAN_REQUIRED",
+  "scanner": "HOLD_OFFICIAL_SIGNATURES_AND_DOCUMENTS_QUEUE_BINDING_REQUIRED"
+}
