@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
+import { readCoreScopedServerClockV1 } from '../../core/scoped-server-clock-v1';
 import { z } from 'zod';
 import { resolveAuthority } from '../../core/current-authority-postgres-provider-v1';
 import {
@@ -297,7 +298,7 @@ export function createServiceV14Providers(
         context_id: command.context_id, authority_decision_id: authority.decision_id,
         authority_version: authority.authority_version, attempt: scope.attempt,
         subject_reference: command.subject_reference,
-        evaluated_at: new Date().toISOString(), source_disclosure: 'status_only' as const,
+        evaluated_at: await readCoreScopedServerClockV1(scope), source_disclosure: 'status_only' as const,
         source_reference: null,
       };
       return check.accepted
@@ -319,7 +320,7 @@ export function createServiceV14Providers(
         receipt_contract_version: receipt.contract_version,
         command_hash: coreTransactionReplayCommandHashV1(command),
         receipt_hash: coreTransactionReplayReceiptHashV1(receipt),
-        evaluated_at: new Date().toISOString(), read_only: true,
+        evaluated_at: await readCoreScopedServerClockV1(scope), read_only: true,
       } as const;
       if (check.accepted) return { ...base, decision: 'accepted', denial_reason: null };
       return { ...base, decision: 'denied',

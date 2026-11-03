@@ -12,6 +12,15 @@ import {
 const HEADERS = { 'Cache-Control': 'no-store, private', Pragma: 'no-cache', Vary: 'Cookie' };
 const MAX_BODY_BYTES = 32 * 1024;
 
+export type ServiceOfferingRequestFlowPortResolverV1 = (
+  request: NextRequest,
+) => Promise<ServiceOfferingRequestFlowPortsV1 | null>;
+
+type ServiceOfferingRequestFlowBindingV1 =
+  | ServiceOfferingRequestFlowPortsV1
+  | ServiceOfferingRequestFlowPortResolverV1
+  | null;
+
 function failure(code: string, status: number) {
   return NextResponse.json({ error: { code } }, { status, headers: HEADERS });
 }
@@ -24,8 +33,12 @@ function preflightResponse(result: Awaited<ReturnType<typeof preflightServiceOff
 }
 
 export function createServiceOfferingRequestFlowHandlers(
-  ports: ServiceOfferingRequestFlowPortsV1 | null,
+  binding: ServiceOfferingRequestFlowBindingV1,
 ) {
+  const resolvePorts = async (request: NextRequest) => {
+    if (binding === null) return null;
+    return typeof binding === 'function' ? binding(request) : binding;
+  };
   return {
     async GET(request: NextRequest) {
       const query = request.nextUrl.searchParams;
@@ -43,6 +56,12 @@ export function createServiceOfferingRequestFlowHandlers(
         published_revision_id: query.get('published_revision_id'),
       });
       if (!input.success) return failure('INVALID_REQUEST', 400);
+      let ports: ServiceOfferingRequestFlowPortsV1 | null;
+      try {
+        ports = await resolvePorts(request);
+      } catch {
+        return failure('RUNTIME_BINDING_INACTIVE', 503);
+      }
       if (ports === null) return failure('RUNTIME_BINDING_INACTIVE', 503);
       return preflightResponse(await preflightServiceOfferingRequestV1(input.data, ports));
     },
@@ -73,6 +92,12 @@ export function createServiceOfferingRequestFlowHandlers(
       }
       const input = serviceOfferingRequestPublicInputV1Schema.safeParse(body);
       if (!input.success) return failure('INVALID_REQUEST', 400);
+      let ports: ServiceOfferingRequestFlowPortsV1 | null;
+      try {
+        ports = await resolvePorts(request);
+      } catch {
+        return failure('RUNTIME_BINDING_INACTIVE', 503);
+      }
       if (ports === null) return failure('RUNTIME_BINDING_INACTIVE', 503);
       const result = await submitServiceOfferingRequestV1(input.data, ports);
       if (result.status === 'submitted') {
