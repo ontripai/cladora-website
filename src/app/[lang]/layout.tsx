@@ -1,15 +1,35 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
-import { Inter, Manrope } from 'next/font/google';
+import { Manrope } from 'next/font/google';
 import { SUPPORTED_LOCALES, getLocaleConfig, getIntlLocale, isSupportedLocale } from '@/types';
 import { notFound } from 'next/navigation';
 import { AppOrMarketingLayout } from '@/components/layout/AppOrMarketingLayout';
 import { getSiteUrl } from '@/config/site';
 
-const inter = Inter({
-  subsets: ['latin', 'latin-ext'],
-  weight: ['400', '600', '700', '800'],
+const inter = localFont({
+  src: [
+    {
+      path: '../../fonts/inter/InterVariable.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../../fonts/inter/InterVariable.woff2',
+      weight: '600',
+      style: 'normal',
+    },
+    {
+      path: '../../fonts/inter/InterVariable.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: '../../fonts/inter/InterVariable.woff2',
+      weight: '800',
+      style: 'normal',
+    },
+  ],
   variable: '--font-inter',
   display: 'swap',
 });

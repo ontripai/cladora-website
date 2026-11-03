@@ -143,6 +143,23 @@ check(layoutCode.includes("weight: '700'"), 'layout.tsx configures explicit weig
 check(layoutCode.includes("weight: '800'"), 'layout.tsx configures explicit weight 800');
 check(layoutCode.includes("variable: '--font-vazirmatn'"), 'layout.tsx preserves --font-vazirmatn variable');
 
+// =========================================================================
+// 6. INTER LOCAL FONT STABILIZATION (ANNEX: INTER-STABILIZATION)
+// =========================================================================
+console.log('\n--- 6. Inter Local Font Stabilization (Official OFL Assets) ---');
+
+check(layoutCode.includes("path: '../../fonts/inter/InterVariable.woff2'"), 'layout.tsx references InterVariable.woff2');
+check(layoutCode.includes("variable: '--font-inter'"), 'layout.tsx preserves --font-inter variable');
+check(existsSync(path.join(root, 'src', 'fonts', 'inter', 'InterVariable.woff2')), 'InterVariable.woff2 exists locally');
+check(existsSync(path.join(root, 'src', 'fonts', 'inter', 'OFL.txt')), 'src/fonts/inter/OFL.txt exists locally');
+check(existsSync(path.join(root, 'src', 'fonts', 'inter', 'README.md')), 'src/fonts/inter/README.md exists locally');
+
+const interReadme = readFileSync(path.join(root, 'src', 'fonts', 'inter', 'README.md'), 'utf8');
+check(interReadme.includes('693b77d4f32ee9b8bfc995589b5fad5e99adf2832738661f5402f9978429a8e3'), 'README.md documents exact InterVariable.woff2 SHA256 hash');
+check(interReadme.includes('262481e844521b326f5ecd053e59b98c8b2da78c8ee1bdbb6e8174305e54935a'), 'README.md documents exact OFL.txt SHA256 hash');
+check(interReadme.includes('rsms/inter'), 'README.md documents official upstream repository rsms/inter');
+
 console.log('\n=======================================================');
-console.log(`ALL AUTHENTICATED APP SHELL CHECKS PASSED! (${totalChecks} checks)`);
+console.log(`ALL AUTHENTICATED APP SHELL & INTER FONT CHECKS PASSED! (${totalChecks} checks)`);
 console.log('=======================================================\n');
+
