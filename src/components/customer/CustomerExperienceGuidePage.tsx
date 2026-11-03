@@ -5,13 +5,15 @@ import type { Language } from '@/types';
 import { useDashboardFetch } from '@/components/dashboard-lab/DashboardTransport';
 import { useCustomerContext } from './CustomerContextProvider';
 import { createCe012GuideHttpCommandsV1 } from '@/lib/community/experience-guide-functional-client';
+import {createCe012GuideCreatorV1} from '@/lib/community/experience-guide-create-client';
+import {CustomerExperienceGuideCreate} from './CustomerExperienceGuideCreate';
 import { CustomerExperienceGuide } from './CustomerExperienceGuide';
 import { classifyGuideResponse, guideReadResponseSchema, toExperienceGuideView, type GuideLoadFailure, type GuideReadItem } from '@/lib/community/experience-guide-client';
 
 type GuideRelay={owner:()=>object|null;fetch:typeof globalThis.fetch;denied:()=>void};
-function createGuideScopeCache(){
+function createGuideScopeCache(contextId:string,workspaceId:string){
  let relay:GuideRelay={owner:()=>null,fetch:globalThis.fetch,denied:()=>{}};
- return {sessions:new Map<string,{version:number;commands:ReturnType<typeof createCe012GuideHttpCommandsV1>}>(),
+ return {creator:createCe012GuideCreatorV1({context_id:contextId,workspace_id:workspaceId,owner:()=>relay.owner(),fetch:(...args)=>relay.fetch(...args),denied:()=>relay.denied()}),sessions:new Map<string,{version:number;commands:ReturnType<typeof createCe012GuideHttpCommandsV1>}>(),
   owner:()=>relay.owner(),fetch:(...args:Parameters<typeof globalThis.fetch>)=>relay.fetch(...args),denied:()=>relay.denied(),
   attach(next:GuideRelay){relay=next;return()=>{if(relay===next)relay={owner:()=>null,fetch:globalThis.fetch,denied:()=>{}};};}};
 }
@@ -32,18 +34,18 @@ export function CustomerExperienceGuidePage({ lang }: { lang: Language }) {
   const current=useCallback(()=>owner.current===token?token:null,[token]);
   if (loading || !active || !dashboard || active.context_id!==dashboard.contextId) return <Notice lang={lang} text={loading?t.loading:t.noContext} />;
   const binding=`${active.context_id}:${active.membership_id}:${dashboard.workspace_id}`;
-  let cache=scopes.get(binding);if(!cache){cache=createGuideScopeCache();scopes.set(binding,cache);}
+  let cache=scopes.get(binding);if(!cache){cache=createGuideScopeCache(active.context_id,dashboard.workspace_id);scopes.set(binding,cache);}
   return <GuideWorkspace key={binding} cache={cache} lang={lang}
     contextId={active.context_id} workspaceId={dashboard.workspace_id} owner={current} generation={token} />;
 }
 function GuideWorkspace({lang,contextId,workspaceId,owner,cache,generation}:{lang:Language;contextId:string;workspaceId:string;owner:()=>object|null;cache:GuideScopeCache;generation:object}){
  const fetch=useDashboardFetch(),t=copy[lang];
  const [guides,setGuides]=useState<GuideReadItem[]|null>(null),[selectedId,setSelectedId]=useState('');
- const [editingReady,setEditingReady]=useState(false);
+ const [editingReady,setEditingReady]=useState(false),[canCreate,setCanCreate]=useState(false);
  const [readOwner,setReadOwner]=useState<object|null>(null);
  const [failure,setFailure]=useState<GuideLoadFailure|null>(null),[attempt,setAttempt]=useState(0);
  const sessions=cache.sessions;
- useLayoutEffect(()=>{const detach=cache.attach({owner,fetch,denied:()=>{setGuides(null);setFailure('denied');}});return()=>{detach();sessions.forEach(s=>s.commands.invalidate());};},[owner,fetch,cache,sessions]);
+ useLayoutEffect(()=>{const detach=cache.attach({owner,fetch,denied:()=>{setGuides(null);setFailure('denied');}});return()=>{detach();cache.creator?.invalidate();sessions.forEach(s=>s.commands.invalidate());};},[owner,fetch,cache,sessions]);
  useEffect(()=>{const abort=new AbortController(),epoch=owner();
   const valid=()=>!abort.signal.aborted&&epoch!==null&&owner()===epoch;
   void (async()=>{try{
@@ -54,13 +56,13 @@ function GuideWorkspace({lang,contextId,workspaceId,owner,cache,generation}:{lan
    if(connected&&body?.contract!=='ce012-functional-guide.v1')throw Error('retry');
    const parsed=guideReadResponseSchema.parse(connected?body.projection:body);
    if(parsed.guides.some(g=>g.workspace_id!==workspaceId))throw Error('retry');
-   if(valid()){setEditingReady(connected);setReadOwner(epoch);setGuides(parsed.guides);setFailure(null);setSelectedId(id=>parsed.guides.some(g=>g.guide_id===id)?id:parsed.guides[0]?.guide_id??'');}
+   if(valid()){setEditingReady(connected);setCanCreate(connected&&body.can_create===true);setReadOwner(epoch);setGuides(parsed.guides);setFailure(null);setSelectedId(id=>parsed.guides.some(g=>g.guide_id===id)?id:parsed.guides[0]?.guide_id??'');}
   }catch(e){if(valid()){setGuides(null);setFailure(e instanceof Error&&['session','denied','not_ready'].includes(e.message)?e.message as GuideLoadFailure:'retry');}}})();
   return()=>abort.abort();
  },[contextId,workspaceId,owner,fetch,attempt]);
  const selected=guides?.find(g=>g.guide_id===selectedId)??null;
  let commands:ReturnType<typeof createCe012GuideHttpCommandsV1>|null=null;
- if(editingReady&&selected?.can_edit){
+ if(editingReady&&selected?.can_edit&&cache.creator?.pendingGuideId()!==selected.guide_id){
   // Retain unresolved wire across read/locale refresh. A new accepted version gets
   // a separate slot only after success; readback never resolves an UNKNOWN.
   const key=selected.guide_id,slot=sessions.get(key);
@@ -76,6 +78,7 @@ function GuideWorkspace({lang,contextId,workspaceId,owner,cache,generation}:{lan
    <label className="block min-w-0 rounded-2xl border bg-white p-4"><span className="mb-2 block text-sm font-semibold">{t.choose}</span><select aria-label={t.choose} value={selectedId} onChange={e=>setSelectedId(e.target.value)} className="w-full min-w-0 max-w-full rounded-xl border p-3">{guides.map(g=><option key={g.guide_id} value={g.guide_id}>{g.title}</option>)}</select></label>
    <CustomerExperienceGuide key={`${workspaceId}:${selectedId}`} lang={lang} guide={selected?toExperienceGuideView(selected,lang):null} commands={commands} onChanged={()=>{if(owner())setAttempt(n=>n+1);}}/>
   </>}
+  {canCreate&&cache.creator?<CustomerExperienceGuideCreate key={lang} lang={lang} commands={cache.creator} onCreated={id=>{if(owner()){setSelectedId(id);setAttempt(n=>n+1);}}}/>:null}
  </section>;
 }
 
