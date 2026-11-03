@@ -1,11 +1,21 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { Language } from '@/types';
 import { useDashboardFetch } from '@/components/dashboard-lab/DashboardTransport';
 import { useCustomerContext } from './CustomerContextProvider';
+import { createCe012GuideHttpCommandsV1 } from '@/lib/community/experience-guide-functional-client';
 import { CustomerExperienceGuide } from './CustomerExperienceGuide';
 import { classifyGuideResponse, guideReadResponseSchema, toExperienceGuideView, type GuideLoadFailure, type GuideReadItem } from '@/lib/community/experience-guide-client';
+
+type GuideRelay={owner:()=>object|null;fetch:typeof globalThis.fetch;denied:()=>void};
+function createGuideScopeCache(){
+ let relay:GuideRelay={owner:()=>null,fetch:globalThis.fetch,denied:()=>{}};
+ return {sessions:new Map<string,{version:number;commands:ReturnType<typeof createCe012GuideHttpCommandsV1>}>(),
+  owner:()=>relay.owner(),fetch:(...args:Parameters<typeof globalThis.fetch>)=>relay.fetch(...args),denied:()=>relay.denied(),
+  attach(next:GuideRelay){relay=next;return()=>{if(relay===next)relay={owner:()=>null,fetch:globalThis.fetch,denied:()=>{}};};}};
+}
+type GuideScopeCache=ReturnType<typeof createGuideScopeCache>;
 
 const copy = {
   ro: { title: 'Ghiduri pentru experiență', subtitle: 'Consultă ghidurile publicate pentru spațiul tău de lucru și publicul curent.', choose: 'Alege ghidul', loading: 'Se încarcă ghidurile…', empty: 'Nu există ghiduri eligibile în acest spațiu de lucru.', noContext: 'Alege mai întâi un context activ.', session: 'Sesiunea necesită verificare. Autentifică-te din nou.', denied: 'Modulul de ghiduri sau permisiunea necesară nu este activă în acest spațiu de lucru.', notReady: 'Conexiunea operațională pentru ghiduri nu este încă activată.', retry: 'Ghidurile nu au putut fi încărcate.', again: 'Încearcă din nou', viewOnly: 'Editarea referințelor rămâne indisponibilă până când selectorul securizat de documente este activ.' },
@@ -15,43 +25,55 @@ const copy = {
 
 export function CustomerExperienceGuidePage({ lang }: { lang: Language }) {
   const { active, dashboard, loading } = useCustomerContext(); const t = copy[lang];
-  if (loading && (!active || !dashboard)) return <Notice lang={lang} text={t.loading} />;
-  if (!active || !dashboard) return <Notice lang={lang} text={t.noContext} />;
-  return <GuideWorkspace key={`${active.context_id}:${dashboard.workspace_id}`} lang={lang} contextId={active.context_id} workspaceId={dashboard.workspace_id} />;
+  const token=useMemo(()=>({active,dashboard,loading,lang}),[active,dashboard,loading,lang]);
+  const owner=useRef<object|null>(null);
+  const [scopes]=useState(()=>new Map<string,GuideScopeCache>());
+  useLayoutEffect(()=>{owner.current=loading?null:token;return()=>{owner.current=null;};},[token,loading]);
+  const current=useCallback(()=>owner.current===token?token:null,[token]);
+  if (loading || !active || !dashboard || active.context_id!==dashboard.contextId) return <Notice lang={lang} text={loading?t.loading:t.noContext} />;
+  const binding=`${active.context_id}:${active.membership_id}:${dashboard.workspace_id}`;
+  let cache=scopes.get(binding);if(!cache){cache=createGuideScopeCache();scopes.set(binding,cache);}
+  return <GuideWorkspace key={binding} cache={cache} lang={lang}
+    contextId={active.context_id} workspaceId={dashboard.workspace_id} owner={current} generation={token} />;
 }
-
-function GuideWorkspace({ lang, contextId, workspaceId }: { lang: Language; contextId: string; workspaceId: string }) {
-  const fetch = useDashboardFetch(); const t = copy[lang];
-  const [guides, setGuides] = useState<GuideReadItem[] | null>(null); const [selectedId, setSelectedId] = useState('');
-  const [failure, setFailure] = useState<GuideLoadFailure | null>(null); const [attempt, setAttempt] = useState(0);
-  const load = useCallback(async (signal?: AbortSignal) => {
-    const response = await fetch(`/api/customer/v1/experience/guides?${new URLSearchParams({ context_id: contextId, workspace_id: workspaceId })}`, { cache: 'no-store', credentials: 'same-origin', signal });
-    if (!response.ok) throw new Error(classifyGuideResponse(response.status));
-    const parsed = guideReadResponseSchema.parse(await response.json());
-    if (parsed.guides.some((guide) => guide.workspace_id !== workspaceId)) throw new Error('retry');
-    if (!signal?.aborted) { setGuides(parsed.guides); setSelectedId((current) => parsed.guides.some((guide) => guide.guide_id === current) ? current : parsed.guides[0]?.guide_id ?? ''); setFailure(null); }
-  }, [contextId, workspaceId, fetch]);
-  useEffect(() => {
-    const controller = new AbortController();
-    queueMicrotask(() => void load(controller.signal).catch((reason) => {
-      if (!controller.signal.aborted) { setFailure(reason instanceof Error && ['session', 'denied', 'not_ready'].includes(reason.message) ? reason.message as GuideLoadFailure : 'retry'); setGuides(null); }
-    }));
-    return () => controller.abort();
-  }, [load, attempt]);
-  if (failure) {
-    const message = failure === 'session' ? t.session : failure === 'denied' ? t.denied : failure === 'not_ready' ? t.notReady : t.retry;
-    return <Notice lang={lang} text={message} retry={failure === 'session' ? undefined : () => { setFailure(null); setAttempt((value) => value + 1); }} retryLabel={t.again} />;
-  }
-  if (guides === null) return <Notice lang={lang} text={t.loading} />;
-  const selected = guides.find((guide) => guide.guide_id === selectedId) ?? null;
-  return <section dir={lang === 'fa' ? 'rtl' : 'ltr'} className="space-y-5">
-    <header className="rounded-2xl border bg-white p-6"><h1 className="text-2xl font-bold text-[#102A43]">{t.title}</h1><p className="mt-2 text-sm text-[#52667A]">{t.subtitle}</p></header>
-    {!guides.length ? <Notice lang={lang} text={t.empty} /> : <>
-      <label className="block rounded-2xl border bg-white p-4"><span className="mb-2 block text-sm font-semibold text-[#102A43]">{t.choose}</span><select aria-label={t.choose} value={selectedId} onChange={(event) => setSelectedId(event.target.value)} className="w-full rounded-xl border p-3">{guides.map((guide) => <option key={guide.guide_id} value={guide.guide_id}>{guide.title}</option>)}</select></label>
-      {selected?.can_edit ? <p role="note" className="rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950">{t.viewOnly}</p> : null}
-      <CustomerExperienceGuide key={`${workspaceId}:${selectedId}`} lang={lang} guide={selected ? toExperienceGuideView(selected, lang) : null} commands={null} />
-    </>}
-  </section>;
+function GuideWorkspace({lang,contextId,workspaceId,owner,cache,generation}:{lang:Language;contextId:string;workspaceId:string;owner:()=>object|null;cache:GuideScopeCache;generation:object}){
+ const fetch=useDashboardFetch(),t=copy[lang];
+ const [guides,setGuides]=useState<GuideReadItem[]|null>(null),[selectedId,setSelectedId]=useState('');
+ const [readOwner,setReadOwner]=useState<object|null>(null);
+ const [failure,setFailure]=useState<GuideLoadFailure|null>(null),[attempt,setAttempt]=useState(0);
+ const sessions=cache.sessions;
+ useLayoutEffect(()=>{const detach=cache.attach({owner,fetch,denied:()=>{setGuides(null);setFailure('denied');}});return()=>{detach();sessions.forEach(s=>s.commands.invalidate());};},[owner,fetch,cache,sessions]);
+ useEffect(()=>{const abort=new AbortController(),epoch=owner();
+  const valid=()=>!abort.signal.aborted&&epoch!==null&&owner()===epoch;
+  void (async()=>{try{
+   const response=await fetch(`/api/customer/v1/experience/guides/draft?${new URLSearchParams({context_id:contextId,workspace_id:workspaceId})}`,{cache:'no-store',credentials:'same-origin',signal:abort.signal});
+   if(!response.ok)throw Error(classifyGuideResponse(response.status));
+   const body=await response.json();if(body?.contract!=='ce012-functional-guide.v1')throw Error('retry');
+   const parsed=guideReadResponseSchema.parse(body.projection);
+   if(parsed.guides.some(g=>g.workspace_id!==workspaceId))throw Error('retry');
+   if(valid()){setReadOwner(epoch);setGuides(parsed.guides);setFailure(null);setSelectedId(id=>parsed.guides.some(g=>g.guide_id===id)?id:parsed.guides[0]?.guide_id??'');}
+  }catch(e){if(valid()){setGuides(null);setFailure(e instanceof Error&&['session','denied','not_ready'].includes(e.message)?e.message as GuideLoadFailure:'retry');}}})();
+  return()=>abort.abort();
+ },[contextId,workspaceId,owner,fetch,attempt]);
+ const selected=guides?.find(g=>g.guide_id===selectedId)??null;
+ let commands:ReturnType<typeof createCe012GuideHttpCommandsV1>|null=null;
+ if(selected?.can_edit){
+  // Retain unresolved wire across read/locale refresh. A new accepted version gets
+  // a separate slot only after success; readback never resolves an UNKNOWN.
+  const key=selected.guide_id,slot=sessions.get(key);
+  commands=slot&&(slot.version===selected.version||slot.commands.retainedDraft())?slot.commands:null;
+  if(!commands){commands=createCe012GuideHttpCommandsV1({binding:{context_id:contextId,workspace_id:workspaceId,guide_id:selected.guide_id,expected_guide_version:selected.version},
+   owner:()=>cache.owner(),fetch:(...args)=>cache.fetch(...args),denied:()=>cache.denied()});sessions.set(key,{version:selected.version,commands});}
+ }
+ if(failure)return <Notice lang={lang} text={failure==='session'?t.session:failure==='denied'?t.denied:failure==='not_ready'?t.notReady:t.retry} retry={failure==='session'?undefined:()=>{setFailure(null);setGuides(null);setAttempt(n=>n+1);}} retryLabel={t.again}/>;
+ if(!guides||readOwner!==generation)return <Notice lang={lang} text={t.loading}/>;
+ return <section dir={lang==='fa'?'rtl':'ltr'} className="space-y-5">
+  <header className="rounded-2xl border bg-white p-6"><h1 className="text-2xl font-bold text-[#102A43]">{t.title}</h1><p className="mt-2 text-sm text-[#52667A]">{t.subtitle}</p></header>
+  {!guides.length?<Notice lang={lang} text={t.empty}/>:<>
+   <label className="block min-w-0 rounded-2xl border bg-white p-4"><span className="mb-2 block text-sm font-semibold">{t.choose}</span><select aria-label={t.choose} value={selectedId} onChange={e=>setSelectedId(e.target.value)} className="w-full min-w-0 max-w-full rounded-xl border p-3">{guides.map(g=><option key={g.guide_id} value={g.guide_id}>{g.title}</option>)}</select></label>
+   <CustomerExperienceGuide key={`${workspaceId}:${selectedId}`} lang={lang} guide={selected?toExperienceGuideView(selected,lang):null} commands={commands} onChanged={()=>{if(owner())setAttempt(n=>n+1);}}/>
+  </>}
+ </section>;
 }
 
 function Notice({ lang, text, retry, retryLabel }: { lang: Language; text: string; retry?: () => void; retryLabel?: string }) {

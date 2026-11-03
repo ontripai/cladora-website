@@ -90,6 +90,9 @@ function commandMatches(c: CoreTransactionCommandV2, g: Ce012GuideSaveCommandV1)
     && c.evaluation_purpose === 'experience.guide.command' && c.idempotency_key === g.idempotency_key
     && c.input_fingerprint === g.payload_fingerprint && fingerprintCe012GuideSavePayload(g) === g.payload_fingerprint;
 }
+/** Descriptor identity comparison only; never an authority decision. */
+export const ce012SaveCoreBindingMatchesV1=commandMatches;
+
 function authorityMatches(s: CoreTransactionScopeV1, c: CoreTransactionCommandV2,
   a: CurrentAuthorityTransactionDecisionReceiptV1) {
   return s.transaction_id === c.transaction_id && s.workspace_id === c.workspace_id && s.actor_id === c.actor_id
