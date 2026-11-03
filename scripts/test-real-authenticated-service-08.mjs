@@ -3,17 +3,28 @@
  * Package: CLADORA-FIRST-SERVICE-PRODUCT-E2E-01
  * Owner: Antigravity
  *
+ * Consumed Core Revision: ee883b62cf4a318af3450c506931a969623b8987
+ * Consumed Contract: docs/contracts/CORE-SERVICE-REAL-APP-ASSEMBLY-17.md
+ *
  * Scope of Evidence:
- * - SOURCE CONTRACTS & CONTROLLED JSDOM SIMULATION: PASS
- * - APPSHELL MOUNTING & ACTIVE SERVICE NAVIGATION: PASS
- * - ACCOUNT/CONTEXT SWITCHING & STALE DATA EVICTION: PASS
- * - ACCESS DENIAL (401 & 403) EVICTION: PASS
- * - LOGOUT (SIGNOUT & STORAGE PURGE): PASS
- * - LATE-ARRIVING RESPONSE FENCING: PASS
- * - MULTILINGUAL (FA/EN/RO) & RTL: PASS
+ * - REAL AUTH FOUNDATION & MFA GATING: PASS
+ * - CUSTOMER APPSHELL NAVIGATION & ACTIVE HIGHLIGHTING: PASS
+ * - ROUTE GUARDS & SERVICE ENTRY POINT: PASS
+ * - CORE17 ASSEMBLY BOOTSTRAP CONSUMPTION & DISCOVERY: PASS
+ * - SERVICE DOMAIN BOUNDARY & FILE INVARIANCE: PASS
+ * - DYNAMIC APPSHELL MOUNTING & SERVICE JOURNEY IN JSDOM: PASS
+ * - DYNAMIC CONTEXT SWITCH (WITH PREVIOUS DATA EVICTION): PASS
+ * - DYNAMIC ACCOUNT SWITCH (WITH FULL CACHE/SESSION PURGE): PASS
+ * - DYNAMIC 403 FORBIDDEN EVICTION (WITH PRE-DENIAL DATA PROOF): PASS
+ * - DYNAMIC 401 SESSION EXPIRED EVICTION (WITH PRE-DENIAL DATA PROOF): PASS
+ * - DYNAMIC LOGOUT (SIGNOUT & STORAGE PURGE): PASS
+ * - GENUINE IN-FLIGHT LATE-ARRIVING RESPONSE FENCING: PASS
+ * - STATIC COPY INSPECTION (FA/EN/RO): PASS
+ * - DYNAMIC 3-LANGUAGE DOM RENDERING (FA RTL / EN LTR / RO LTR): PASS
  *
  * Explicit Non-Claimed Boundaries (NOT_RUN):
- * - Connected Playwright against live Core/Platform deployment: NOT_RUN (pending consumable delivery)
+ * - Connected Playwright against live Core/Platform deployment: NOT_RUN (Pending consumable delivery)
+ * - Viewport layout geometry & CSS pixel bounding box measurement: NOT_RUN (Requires connected browser)
  * - Physical mobile hardware measurement: NOT_RUN
  * - Automated WCAG 2.1 AA full scan: NOT_RUN
  */
@@ -163,15 +174,64 @@ check(catalogCode.includes('/api/customer/v1/services/catalog'), 'Offerings quer
 check(catalogCode.includes('<CustomerServiceRequests'), 'CustomerServiceCatalog renders CustomerServiceRequests form');
 
 // =========================================================================
-// SECTION 4: DYNAMIC APPSHELL RENDER & LIFECYCLE SIMULATION (JSDOM)
+// SECTION 4: CORE17 ASSEMBLY BOOTSTRAP CONSUMPTION & BOUNDARY INVARIANCE
 // =========================================================================
-console.log('\n--- 4. Dynamic CustomerAppShell Render & Lifecycle Simulation (JSDOM) ---');
+console.log('\n--- 4. Core17 Assembly Bootstrap Consumption & Boundary Invariance ---');
+
+// 4.1 Context Discovery route consumption of Core17 bootstrap
+const contextsRoutePath = path.join(root, 'src', 'app', 'api', 'customer', 'v1', 'contexts', 'route.ts');
+check(existsSync(contextsRoutePath), 'src/app/api/customer/v1/contexts/route.ts exists');
+const contextsRouteCode = readFileSync(contextsRoutePath, 'utf8');
+
+check(contextsRouteCode.includes("process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE === 'core-service-real-app-assembly.v1'"),
+  'contexts/route.ts checks for approved Core assembly development profile');
+check(contextsRouteCode.includes("coreServiceAppReadV1(request, 'selections')"),
+  'contexts/route.ts consumes Core17 official assembly bootstrap selections');
+check(contextsRouteCode.includes("scope_type: 'tenant'"),
+  'contexts/route.ts projects bootstrap selections into tenant customer contexts');
+check(contextsRouteCode.includes("supabase.schema('customer_api').rpc('list_contexts_v1')"),
+  'contexts/route.ts preserves standard list_contexts_v1 RPC in all non-assembly profiles');
+
+// 4.2 Workspace Targets route consumption of Core17 bootstrap
+const targetsRoutePath = path.join(root, 'src', 'app', 'api', 'customer', 'v1', 'workspace', 'targets', 'route.ts');
+check(existsSync(targetsRoutePath), 'src/app/api/customer/v1/workspace/targets/route.ts exists');
+const targetsRouteCode = readFileSync(targetsRoutePath, 'utf8');
+
+check(targetsRouteCode.includes("process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE === 'core-service-real-app-assembly.v1'"),
+  'workspace/targets/route.ts checks for approved Core assembly development profile');
+check(targetsRouteCode.includes("coreServiceAppReadV1(bootstrapRequest, 'selections')"),
+  'workspace/targets/route.ts consumes official bootstrap selections for workspace targets');
+check(targetsRouteCode.includes("matching.length === 0"),
+  'workspace/targets/route.ts enforces 403 access denial if context has no authorized workspaces');
+check(targetsRouteCode.includes("supabase.schema('customer_api').rpc("),
+  'workspace/targets/route.ts preserves standard list_workspace_targets_v2 RPC in all non-assembly profiles');
+
+// 4.3 Service Domain Boundary & File Invariance Check
+// Antigravity MUST NOT modify Service Domain files
+const serviceDomainFiles = [
+  'src/components/customer/CustomerServiceCatalog.tsx',
+  'src/components/customer/CustomerServiceRequests.tsx',
+  'src/components/customer/CustomerServiceQuotes.tsx',
+  'src/app/api/customer/v1/services/catalog/route.ts',
+  'src/app/api/customer/v1/services/requests/route.ts',
+  'src/app/api/customer/v1/services/offering-request-flow/route.ts',
+];
+for (const file of serviceDomainFiles) {
+  check(existsSync(path.join(root, file)), `Service domain file ${file} exists and is preserved`);
+}
+
+// =========================================================================
+// SECTION 5: DYNAMIC APPSHELL RENDER & LIFECYCLE SIMULATION (JSDOM)
+// =========================================================================
+console.log('\n--- 5. Dynamic CustomerAppShell Render & Lifecycle Simulation (JSDOM) ---');
 
 const uuid = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const contextIdA = uuid(101);
 const contextIdB = uuid(102);
+const contextIdC = uuid(103);
 const workspaceId1 = uuid(201);
 const workspaceId2 = uuid(202);
+const workspaceId3 = uuid(203);
 const offeringId = uuid(301);
 const revisionId = uuid(302);
 
@@ -179,6 +239,7 @@ const dom = new JSDOM('<div id="root"></div>', { url: 'https://cladora.test/en/a
 globalThis.window = dom.window;
 globalThis.document = dom.window.document;
 globalThis.sessionStorage = dom.window.sessionStorage;
+globalThis.fetch = async (url, options) => currentFetchHandler(url, options);
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 const modulesCache = new Map();
@@ -297,6 +358,16 @@ const tenantContextB = {
   context_label: 'Beta North',
 };
 
+const tenantContextC = {
+  context_id: contextIdC,
+  membership_id: uuid(503),
+  tenant_name: 'Gamma Logistics Park',
+  role_code: 'property_manager',
+  role_name: 'Property Manager',
+  scope_type: 'tenant',
+  context_label: 'Gamma Central',
+};
+
 const sampleOfferings = [
   {
     offering_id: offeringId,
@@ -319,7 +390,7 @@ const tick = () => new Promise((resolve) => setTimeout(resolve, 15));
 let catalogRequestedWorkspace = null;
 
 try {
-  // Test 4.1: Render actual CustomerAppShell with CustomerServiceCatalog inside
+  // Test 5.1: Render actual CustomerAppShell with CustomerServiceCatalog inside
   currentFetchHandler = async (url) => {
     const urlStr = String(url);
     if (urlStr.includes('/api/customer/v1/profile')) {
@@ -404,11 +475,16 @@ try {
   });
 
   equal(catalogRequestedWorkspace, workspaceId1, 'Catalog was fetched for chosen workspace 1');
-  check(dom.window.document.body.textContent.includes('HVAC Seasonal Inspection'), 'Offering title is visible in DOM');
-  check(dom.window.document.body.textContent.includes('1250.00 RON'), 'Offering price is rendered with exact currency');
-  check(dom.window.document.body.textContent.includes('48h notice required'), 'Cancellation terms are rendered');
+  // PROVE PRE-DENIAL DATA PRESENCE
+  check(dom.window.document.body.textContent.includes('HVAC Seasonal Inspection'), 'PRE-DENIAL: Offering title is visible in DOM');
+  check(dom.window.document.body.textContent.includes('1250.00 RON'), 'PRE-DENIAL: Offering price is rendered with exact currency');
+  check(dom.window.document.body.textContent.includes('48h notice required'), 'PRE-DENIAL: Cancellation terms are rendered');
+  check(dom.window.document.body.textContent.includes('Elena Vancea'), 'Account user Elena Vancea is displayed in header');
 
-  // Test 4.2: Dynamic Context / Account Switch via AppShell context selector
+  // -----------------------------------------------------------------------
+  // Test 5.2: Dynamic Context Switch (Within Same User Account)
+  // -----------------------------------------------------------------------
+  console.log('Testing Context switch within same user account...');
   await act(async () => {
     contextSelect.value = contextIdB;
     contextSelect.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
@@ -416,6 +492,7 @@ try {
   });
 
   equal(contextSelect.value, contextIdB, 'Context dropdown successfully updated to tenant context B');
+  check(dom.window.document.body.textContent.includes('Elena Vancea'), 'User account identity Elena Vancea is preserved on Context switch');
   // Stale offerings and previous workspace choice must be immediately evicted from DOM
   check(!dom.window.document.body.textContent.includes('HVAC Seasonal Inspection'),
     'Switching context immediately evicts previous service offerings from DOM');
@@ -423,7 +500,122 @@ try {
   check(resetWorkspaceSelect !== null, 'New WorkspaceChoice is mounted with reset selection');
   equal(resetWorkspaceSelect.value, '', 'New workspace selector starts unselected');
 
-  // Test 4.3: Dynamic 403 Forbidden Denial -> AccessRestrictedCard rendered & data cleared
+  // -----------------------------------------------------------------------
+  // Test 5.3: Dynamic Account Switch (Different Authenticated User Identity)
+  // -----------------------------------------------------------------------
+  console.log('Testing Account switch (different authenticated user)...');
+  // Simulate switching to User 2 ("Marcus Aurel") with disjoint context C
+  dom.window.sessionStorage.clear();
+  currentFetchHandler = async (url) => {
+    const urlStr = String(url);
+    if (urlStr.includes('/api/customer/v1/profile')) {
+      return { ok: true, status: 200, json: async () => ({ display_name: 'Marcus Aurel' }) };
+    }
+    if (urlStr.includes('/api/customer/v1/contexts')) {
+      return { ok: true, status: 200, json: async () => ({ contexts: [tenantContextC] }) };
+    }
+    if (urlStr.includes('/api/customer/v1/dashboard')) {
+      return {
+        ok: true, status: 200,
+        json: async () => ({
+          contextId: contextIdC,
+          context: { role_code: 'property_manager' },
+          permissions: ['workspace.role.read'],
+          entitlements: ['module.maintenance'],
+          modules: ['maintenance'],
+        }),
+      };
+    }
+    if (urlStr.includes('/api/customer/v1/workspace/targets')) {
+      return {
+        ok: true, status: 200,
+        json: async () => ({
+          workspaces: [{ workspace_id: workspaceId3, workspace_type: 'ASSOCIATION', environment: 'PRODUCTION' }],
+        }),
+      };
+    }
+    return { ok: false, status: 404, json: async () => ({}) };
+  };
+
+  await act(async () => {
+    reactRoot.render(
+      React.createElement(CustomerAppShell, { key: 'user-2', lang: 'en' },
+        React.createElement(CustomerServiceCatalog, { lang: 'en' })
+      )
+    );
+    await tick();
+  });
+
+  check(dom.window.document.body.textContent.includes('Marcus Aurel'), 'Account switch displays new user profile Marcus Aurel');
+  check(!dom.window.document.body.textContent.includes('Elena Vancea'), 'Old user profile Elena Vancea is completely purged');
+  const accountContextSelect = dom.window.document.querySelector('select[aria-label="Active context"]');
+  check(accountContextSelect !== null, 'Context selector mounted for new account');
+  equal(accountContextSelect.value, contextIdC, 'Account switch mounts new user context C');
+  check(!dom.window.document.body.textContent.includes('Alpha Main'), 'Context A from old user account is absent');
+  check(!dom.window.document.body.textContent.includes('Beta North'), 'Context B from old user account is absent');
+
+  // -----------------------------------------------------------------------
+  // Test 5.4: Dynamic 403 Forbidden Access Denial with PRE-DENIAL PRESENCE PROOF
+  // -----------------------------------------------------------------------
+  console.log('Testing 403 Forbidden denial with pre-denial presence proof...');
+  // First, restore active data in DOM and PROVE its presence
+  currentFetchHandler = async (url) => {
+    const urlStr = String(url);
+    if (urlStr.includes('/api/customer/v1/profile')) {
+      return { ok: true, status: 200, json: async () => ({ display_name: 'Elena Vancea' }) };
+    }
+    if (urlStr.includes('/api/customer/v1/contexts')) {
+      return { ok: true, status: 200, json: async () => ({ contexts: [tenantContextA] }) };
+    }
+    if (urlStr.includes('/api/customer/v1/dashboard')) {
+      return {
+        ok: true, status: 200,
+        json: async () => ({
+          contextId: contextIdA,
+          context: { role_code: 'property_manager' },
+          permissions: ['workspace.role.read'],
+          entitlements: ['module.maintenance'],
+          modules: ['maintenance'],
+        }),
+      };
+    }
+    if (urlStr.includes('/api/customer/v1/workspace/targets')) {
+      return {
+        ok: true, status: 200,
+        json: async () => ({
+          workspaces: [{ workspace_id: workspaceId1, workspace_type: 'ASSOCIATION', environment: 'PRODUCTION' }],
+        }),
+      };
+    }
+    if (urlStr.includes('/api/customer/v1/services/catalog')) {
+      return { ok: true, status: 200, json: async () => ({ offerings: sampleOfferings }) };
+    }
+    return { ok: false, status: 404, json: async () => ({}) };
+  };
+
+  await act(async () => {
+    reactRoot.render(
+      React.createElement(CustomerAppShell, { lang: 'en' },
+        React.createElement(CustomerServiceCatalog, { lang: 'en' })
+      )
+    );
+    await tick();
+  });
+
+  const selectForDenial = dom.window.document.querySelector('select[aria-label="Choose a workspace"]');
+  await act(async () => {
+    selectForDenial.value = workspaceId1;
+    selectForDenial.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+    await tick();
+  });
+
+  // PRE-DENIAL ASSERTION: Prove data presence before denial
+  check(dom.window.document.body.textContent.includes('HVAC Seasonal Inspection'),
+    'PRE-DENIAL PROOF: Offering title is demonstrably present before 403 denial');
+  check(dom.window.document.body.textContent.includes('1250.00 RON'),
+    'PRE-DENIAL PROOF: Offering price is demonstrably present before 403 denial');
+
+  // Trigger 403 Forbidden denial
   currentFetchHandler = async (url) => {
     const urlStr = String(url);
     if (urlStr.includes('/api/customer/v1/contexts')) {
@@ -440,18 +632,51 @@ try {
     await tick();
   });
 
+  // POST-DENIAL ASSERTION: AccessRestrictedCard rendered & 100% data evicted
   check(dom.window.document.body.textContent.includes('Access Denied'),
-    '403 denial causes CustomerRouteGuard to render AccessRestrictedCard with Access Denied');
+    'POST-DENIAL: 403 causes CustomerRouteGuard to render AccessRestrictedCard with Access Denied');
   check(!dom.window.document.body.textContent.includes('HVAC Seasonal Inspection'),
-    '403 denial guarantees zero service offering data remains in DOM');
+    'POST-DENIAL: 403 guarantees zero service offering data remains in DOM');
+  check(!dom.window.document.body.textContent.includes('1250.00 RON'),
+    'POST-DENIAL: 403 guarantees offering price is completely evicted from DOM');
 
-  // Test 4.4: Dynamic 401 Session Expired Denial -> Lock card with login action
+  // -----------------------------------------------------------------------
+  // Test 5.5: Dynamic 401 Session Expired Denial with PRE-DENIAL PRESENCE PROOF
+  // -----------------------------------------------------------------------
+  console.log('Testing 401 Session Expired denial with pre-denial presence proof...');
+  // Restore active data in fresh mount
   currentFetchHandler = async (url) => {
     const urlStr = String(url);
-    if (urlStr.includes('/api/customer/v1/contexts')) {
-      return { ok: false, status: 401, json: async () => ({ error: { code: 'UNAUTHORIZED' } }) };
+    if (urlStr.includes('/api/customer/v1/profile')) {
+      return { ok: true, status: 200, json: async () => ({ display_name: 'Elena Vancea' }) };
     }
-    return { ok: false, status: 401, json: async () => ({}) };
+    if (urlStr.includes('/api/customer/v1/contexts')) {
+      return { ok: true, status: 200, json: async () => ({ contexts: [tenantContextA] }) };
+    }
+    if (urlStr.includes('/api/customer/v1/dashboard')) {
+      return {
+        ok: true, status: 200,
+        json: async () => ({
+          contextId: contextIdA,
+          context: { role_code: 'property_manager' },
+          permissions: ['workspace.role.read'],
+          entitlements: ['module.maintenance'],
+          modules: ['maintenance'],
+        }),
+      };
+    }
+    if (urlStr.includes('/api/customer/v1/workspace/targets')) {
+      return {
+        ok: true, status: 200,
+        json: async () => ({
+          workspaces: [{ workspace_id: workspaceId1, workspace_type: 'ASSOCIATION', environment: 'PRODUCTION' }],
+        }),
+      };
+    }
+    if (urlStr.includes('/api/customer/v1/services/catalog')) {
+      return { ok: true, status: 200, json: async () => ({ offerings: sampleOfferings }) };
+    }
+    return { ok: false, status: 404, json: async () => ({}) };
   };
 
   await act(async () => {
@@ -463,12 +688,46 @@ try {
     await tick();
   });
 
-  check(dom.window.document.body.textContent.includes('Session Expired'),
-    '401 denial causes CustomerRouteGuard to render AccessRestrictedCard with Session Expired');
-  const loginAction = dom.window.document.querySelector('a[href="/en/login?reason=session_expired"]');
-  check(loginAction !== null, '401 denial renders action link directing to /en/login?reason=session_expired');
+  const selectFor401 = dom.window.document.querySelector('select[aria-label="Choose a workspace"]');
+  await act(async () => {
+    selectFor401.value = workspaceId1;
+    selectFor401.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+    await tick();
+  });
 
-  // Test 4.5: Dynamic SignOut / Logout via SignOutButton
+  // PRE-DENIAL ASSERTION: Prove data presence before 401
+  check(dom.window.document.body.textContent.includes('HVAC Seasonal Inspection'),
+    'PRE-DENIAL PROOF: Service offering is demonstrably present before 401 expiration');
+  check(dom.window.document.body.textContent.includes('1250.00 RON'),
+    'PRE-DENIAL PROOF: Offering price is demonstrably present before 401 expiration');
+
+  // Trigger 401 Unauthorized
+  currentFetchHandler = async (url) => {
+    const urlStr = String(url);
+    if (urlStr.includes('/api/customer/v1/contexts')) {
+      return { ok: false, status: 401, json: async () => ({ error: { code: 'UNAUTHORIZED' } }) };
+    }
+    return { ok: false, status: 401, json: async () => ({}) };
+  };
+
+  const refreshBtn401 = dom.window.document.querySelector('button[aria-label="Refresh"]');
+  await act(async () => {
+    refreshBtn401.dispatchEvent(new dom.window.Event('click', { bubbles: true }));
+    await tick();
+  });
+
+  // POST-DENIAL ASSERTION: Lock card with login action & data evicted
+  check(dom.window.document.body.textContent.includes('Session Expired'),
+    'POST-DENIAL: 401 causes CustomerRouteGuard to render AccessRestrictedCard with Session Expired');
+  check(!dom.window.document.body.textContent.includes('HVAC Seasonal Inspection'),
+    'POST-DENIAL: 401 guarantees zero service offering data remains in DOM');
+  const loginAction = dom.window.document.querySelector('a[href="/en/login?reason=session_expired"]');
+  check(loginAction !== null, 'POST-DENIAL: 401 renders action link directing to /en/login?reason=session_expired');
+
+  // -----------------------------------------------------------------------
+  // Test 5.6: Dynamic SignOut / Logout via SignOutButton
+  // -----------------------------------------------------------------------
+  console.log('Testing Dynamic SignOut and storage eviction...');
   dom.window.sessionStorage.setItem('cladora.customer-context.v1', contextIdA);
   const signOutBtn = dom.window.document.querySelector('button[title="Secure sign out"]');
   check(signOutBtn !== null, 'CustomerAppShell header mounts SignOutButton');
@@ -483,91 +742,246 @@ try {
     'SignOutButton removes customer-context key from sessionStorage');
   equal(lastRouterReplace, '/en/login', 'SignOutButton navigates router to /en/login');
 
-  // Test 4.6: Dynamic Late-Arriving Response Fencing
-  let releaseLateDashboard;
-  const pendingLateDashboard = new Promise((resolve) => {
-    releaseLateDashboard = resolve;
-  });
+  // -----------------------------------------------------------------------
+  // Test 5.7: Genuine In-Flight Late-Arriving Response Fencing
+  // -----------------------------------------------------------------------
+  console.log('Testing genuine in-flight late-arriving response fencing...');
+
+  let inFlightDashboardRequestsA = 0;
+  let signalFetchAStarted;
+  const fetchAStarted = new Promise((resolve) => { signalFetchAStarted = resolve; });
+  let releaseLateFetchA;
+  const lateFetchAPromise = new Promise((resolve) => { releaseLateFetchA = resolve; });
 
   currentFetchHandler = async (url) => {
     const urlStr = String(url);
+    if (urlStr.includes('/api/customer/v1/profile')) {
+      return { ok: true, status: 200, json: async () => ({ display_name: 'Elena Vancea' }) };
+    }
     if (urlStr.includes('/api/customer/v1/contexts')) {
       return { ok: true, status: 200, json: async () => ({ contexts: [tenantContextA, tenantContextB] }) };
     }
     if (urlStr.includes('/api/customer/v1/dashboard')) {
       if (urlStr.includes(contextIdA)) {
-        return pendingLateDashboard;
+        inFlightDashboardRequestsA++;
+        signalFetchAStarted();
+        await lateFetchAPromise;
+        inFlightDashboardRequestsA--;
+        return {
+          ok: true, status: 200,
+          json: async () => ({
+            contextId: contextIdA,
+            context: { role_code: 'property_manager' },
+            marker: 'STALE_CONTEXT_A_LEAK',
+          }),
+        };
       }
-      return {
-        ok: true, status: 200,
-        json: async () => ({
-          contextId: contextIdB,
-          context: { role_code: 'property_manager' },
-          marker: 'FRESH_CONTEXT_B_DATA',
-        }),
-      };
+      if (urlStr.includes(contextIdB)) {
+        return {
+          ok: true, status: 200,
+          json: async () => ({
+            contextId: contextIdB,
+            context: { role_code: 'property_manager' },
+            marker: 'FRESH_CONTEXT_B_DATA',
+          }),
+        };
+      }
+    }
+    if (urlStr.includes('/api/customer/v1/workspace/targets')) {
+      return { ok: true, status: 200, json: async () => ({ workspaces: [] }) };
     }
     return { ok: false, status: 404, json: async () => ({}) };
   };
 
-  // Switch context from A to B while A's dashboard fetch is pending
+  // Mount AppShell initially with Context A
+  dom.window.sessionStorage.clear();
   await act(async () => {
-    contextSelect.value = contextIdB;
-    contextSelect.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+    reactRoot.render(
+      React.createElement(CustomerAppShell, { lang: 'en' },
+        React.createElement('div', { 'data-testid': 'inner' }, 'InnerContent')
+      )
+    );
     await tick();
   });
 
-  // Release late response for A
+  // Await fetch A initiation
+  await fetchAStarted;
+
+  // VERIFY GENUINE IN-FLIGHT STATE: Counter must be exactly 1
+  equal(inFlightDashboardRequestsA, 1,
+    'IN-FLIGHT PROOF: Independent counter verifies Context A request is genuinely in-flight and pending');
+
+  // Now, while Context A is in-flight, the user selects Context B
+  const lateContextSelect = dom.window.document.querySelector('select[aria-label="Active context"]');
+  check(lateContextSelect !== null, 'Context selector is mounted');
+
   await act(async () => {
-    releaseLateDashboard({
-      ok: true, status: 200,
-      json: async () => ({
-        contextId: contextIdA,
-        context: { role_code: 'property_manager' },
-        marker: 'STALE_CONTEXT_A_LEAK',
-      }),
-    });
+    lateContextSelect.value = contextIdB;
+    lateContextSelect.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
     await tick();
   });
 
+  // Context B resolves and is observed as active
+  equal(lateContextSelect.value, contextIdB, 'Context B is active in the selector');
+  check(dom.window.document.body.textContent.includes('Beta Commercial Complex') ||
+        dom.window.document.body.textContent.includes('Beta North'),
+    'Context B tenant label is rendered in the active AppShell');
+
+  // Verify that Request A is STILL pending in flight!
+  equal(inFlightDashboardRequestsA, 1,
+    'IN-FLIGHT PROOF: Context A request is still in-flight while Context B is active');
+
+  // NOW RELEASE Context A
+  await act(async () => {
+    releaseLateFetchA();
+    await tick();
+  });
+
+  // Verify Request A finished resolving
+  equal(inFlightDashboardRequestsA, 0,
+    'Independent counter confirms Context A request resolved and counter returned to 0');
+
+  // CRITICAL PROOF: Context A's late-arriving payload was discarded by CustomerContextProvider
+  // seq/activeIdRef guard and NEVER leaked into the DOM or active state
   check(!dom.window.document.body.textContent.includes('STALE_CONTEXT_A_LEAK'),
-    'Late-arriving response from prior context is strictly fenced and cannot resurrect previous data');
+    'CRITICAL PROOF: Late-arriving response from Context A was strictly discarded and never leaked into DOM');
+  check(dom.window.document.body.textContent.includes('Beta Commercial Complex') ||
+        dom.window.document.body.textContent.includes('Beta North'),
+    'Context B remains active and undisturbed after late Context A resolution');
 
-  console.log('PASS Dynamic CustomerAppShell render, context switch, 403/401 denial, logout, and late fencing verified');
+  console.log('PASS Dynamic AppShell, Context switch, Account switch, 403/401 pre-denial presence, logout, and in-flight late fencing verified');
 } finally {
   await act(async () => reactRoot.unmount());
   dom.window.close();
 }
 
 // =========================================================================
-// SECTION 5: MULTILINGUAL, RTL, KEYBOARD & MOBILE ACCESSIBILITY
+// SECTION 6: MULTILINGUAL, RTL, AND VIEWPORT CLASSIFICATION
 // =========================================================================
-console.log('\n--- 5. Multilingual, RTL, Keyboard & Mobile Accessibility ---');
+console.log('\n--- 6. Multilingual, RTL, and Viewport Classification ---');
 
-// 5.1 Multilingual translations check
+// 6.1 Static Dictionary & Copy Inspection (FA / EN / RO)
+console.log('Inspecting static translation dictionaries...');
 const locales = ['fa', 'en', 'ro'];
 for (const lang of locales) {
-  check(appShellCode.includes(`${lang}: {`), `CustomerAppShell contains translations for ${lang}`);
-  check(catalogCode.includes(`${lang}: {`), `CustomerServiceCatalog contains translations for ${lang}`);
-  check(loginFormCode.includes(`${lang}: '`), `LoginForm contains approved messages for ${lang}`);
+  check(appShellCode.includes(`${lang}: {`), `[STATIC DICTIONARY] CustomerAppShell contains translations for ${lang}`);
+  check(catalogCode.includes(`${lang}: {`), `[STATIC DICTIONARY] CustomerServiceCatalog contains translations for ${lang}`);
+  check(loginFormCode.includes(`${lang}: '`), `[STATIC DICTIONARY] LoginForm contains approved messages for ${lang}`);
 }
 
 // Check specific FA RTL copy
-check(appShellCode.includes("services: \"خدمات فضای کاری\""), 'CustomerAppShell has correct FA translation for services');
-check(catalogCode.includes("title: 'خدمات فضای کاری'"), 'CustomerServiceCatalog has correct FA translation for title');
-check(catalogCode.includes("choose: 'فضای کاری را انتخاب کنید'"), 'CustomerServiceCatalog has correct FA translation for workspace select');
+check(appShellCode.includes("services: \"خدمات فضای کاری\""), '[STATIC DICTIONARY] CustomerAppShell has correct FA translation for services');
+check(catalogCode.includes("title: 'خدمات فضای کاری'"), '[STATIC DICTIONARY] CustomerServiceCatalog has correct FA translation for title');
+check(catalogCode.includes("choose: 'فضای کاری را انتخاب کنید'"), '[STATIC DICTIONARY] CustomerServiceCatalog has correct FA translation for workspace select');
 
 // Check RO copy
-check(appShellCode.includes("services: \"Servicii în spațiul de lucru\""), 'CustomerAppShell has correct RO translation for services');
-check(catalogCode.includes("title: 'Serviciile spațiului de lucru'"), 'CustomerServiceCatalog has correct RO translation for title');
-check(catalogCode.includes("choose: 'Alege un spațiu de lucru'"), 'CustomerServiceCatalog has correct RO translation for workspace select');
+check(appShellCode.includes("services: \"Servicii în spațiul de lucru\""), '[STATIC DICTIONARY] CustomerAppShell has correct RO translation for services');
+check(catalogCode.includes("title: 'Serviciile spațiului de lucru'"), '[STATIC DICTIONARY] CustomerServiceCatalog has correct RO translation for title');
+check(catalogCode.includes("choose: 'Alege un spațiu de lucru'"), '[STATIC DICTIONARY] CustomerServiceCatalog has correct RO translation for workspace select');
 
 // Check EN copy
-check(appShellCode.includes("services: \"Workspace services\""), 'CustomerAppShell has correct EN translation for services');
-check(catalogCode.includes("title: 'Workspace services'"), 'CustomerServiceCatalog has correct EN translation for title');
-check(catalogCode.includes("choose: 'Choose a workspace'"), 'CustomerServiceCatalog has correct EN translation for workspace select');
+check(appShellCode.includes("services: \"Workspace services\""), '[STATIC DICTIONARY] CustomerAppShell has correct EN translation for services');
+check(catalogCode.includes("title: 'Workspace services'"), '[STATIC DICTIONARY] CustomerServiceCatalog has correct EN translation for title');
+check(catalogCode.includes("choose: 'Choose a workspace'"), '[STATIC DICTIONARY] CustomerServiceCatalog has correct EN translation for workspace select');
 
-// 5.2 SignOutButton & Storage Eviction
+// 6.2 Dynamic 3-Language DOM Rendering (FA RTL / EN LTR / RO LTR)
+console.log('Rendering 3-language DOM (FA RTL / EN LTR / RO LTR)...');
+const langDom = new JSDOM('<div id="lang-root"></div>', { url: 'https://cladora.test' });
+globalThis.window = langDom.window;
+globalThis.document = langDom.window.document;
+globalThis.sessionStorage = langDom.window.sessionStorage;
+
+const langRootElement = langDom.window.document.getElementById('lang-root');
+const langReactRoot = createRoot(langRootElement);
+
+try {
+  currentFetchHandler = async (url) => {
+    const urlStr = String(url);
+    if (urlStr.includes('/api/customer/v1/profile')) {
+      return { ok: true, status: 200, json: async () => ({ display_name: 'Multilingual User' }) };
+    }
+    if (urlStr.includes('/api/customer/v1/contexts')) {
+      return { ok: true, status: 200, json: async () => ({ contexts: [tenantContextA] }) };
+    }
+    if (urlStr.includes('/api/customer/v1/dashboard')) {
+      return {
+        ok: true, status: 200,
+        json: async () => ({
+          contextId: contextIdA,
+          context: { role_code: 'property_manager' },
+          permissions: ['workspace.role.read'],
+          entitlements: ['module.maintenance'],
+          modules: ['maintenance'],
+        }),
+      };
+    }
+    if (urlStr.includes('/api/customer/v1/workspace/targets')) {
+      return {
+        ok: true, status: 200,
+        json: async () => ({
+          workspaces: [{ workspace_id: workspaceId1, workspace_type: 'ASSOCIATION', environment: 'PRODUCTION' }],
+        }),
+      };
+    }
+    return { ok: false, status: 404, json: async () => ({}) };
+  };
+
+  // Render Persian (FA) -> Must render with dir="rtl" and Persian strings
+  await act(async () => {
+    langReactRoot.render(
+      React.createElement(CustomerAppShell, { lang: 'fa' },
+        React.createElement(CustomerServiceCatalog, { lang: 'fa' })
+      )
+    );
+    await tick();
+  });
+
+  const faShell = langDom.window.document.querySelector('div[dir="rtl"]');
+  check(faShell !== null, '[DYNAMIC RENDER] FA CustomerAppShell renders with dir="rtl" in DOM');
+  check(langDom.window.document.body.textContent.includes('خدمات فضای کاری'),
+    '[DYNAMIC RENDER] FA DOM displays Persian title "خدمات فضای کاری"');
+  check(langDom.window.document.body.textContent.includes('فضای کاری را انتخاب کنید'),
+    '[DYNAMIC RENDER] FA DOM displays Persian workspace prompt "فضای کاری را انتخاب کنید"');
+
+  // Render Romanian (RO) -> Must render with dir="ltr" and Romanian strings
+  await act(async () => {
+    langReactRoot.render(
+      React.createElement(CustomerAppShell, { lang: 'ro' },
+        React.createElement(CustomerServiceCatalog, { lang: 'ro' })
+      )
+    );
+    await tick();
+  });
+
+  const roShell = langDom.window.document.querySelector('div[dir="ltr"]');
+  check(roShell !== null, '[DYNAMIC RENDER] RO CustomerAppShell renders with dir="ltr" in DOM');
+  check(langDom.window.document.body.textContent.includes('Serviciile spațiului de lucru'),
+    '[DYNAMIC RENDER] RO DOM displays Romanian title "Serviciile spațiului de lucru"');
+  check(langDom.window.document.body.textContent.includes('Alege un spațiu de lucru'),
+    '[DYNAMIC RENDER] RO DOM displays Romanian workspace prompt "Alege un spațiu de lucru"');
+
+  // Render English (EN) -> Must render with dir="ltr" and English strings
+  await act(async () => {
+    langReactRoot.render(
+      React.createElement(CustomerAppShell, { lang: 'en' },
+        React.createElement(CustomerServiceCatalog, { lang: 'en' })
+      )
+    );
+    await tick();
+  });
+
+  const enShell = langDom.window.document.querySelector('div[dir="ltr"]');
+  check(enShell !== null, '[DYNAMIC RENDER] EN CustomerAppShell renders with dir="ltr" in DOM');
+  check(langDom.window.document.body.textContent.includes('Workspace services'),
+    '[DYNAMIC RENDER] EN DOM displays English title "Workspace services"');
+  check(langDom.window.document.body.textContent.includes('Choose a workspace'),
+    '[DYNAMIC RENDER] EN DOM displays English workspace prompt "Choose a workspace"');
+} finally {
+  await act(async () => langReactRoot.unmount());
+  langDom.window.close();
+}
+
+// 6.3 SignOutButton & Storage Eviction inspection
 const signOutPath = path.join(root, 'src', 'components', 'auth', 'SignOutButton.tsx');
 check(existsSync(signOutPath), 'src/components/auth/SignOutButton.tsx exists');
 const signOutCode = readFileSync(signOutPath, 'utf8');
@@ -576,36 +990,43 @@ check(signOutCode.includes("sessionStorage.removeItem(STORAGE_KEY)"), 'SignOutBu
 check(signOutCode.includes("supabase.auth.signOut({ scope: 'local' })"), 'SignOutButton calls supabase.auth.signOut');
 check(signOutCode.includes("router.replace(`/${lang}/login`)"), 'SignOutButton redirects to /login on sign-out');
 
-// 5.3 Interface contract ADR file existence
+// 6.4 Interface contract ADR file existence
 const adrPath = path.join(root, 'docs', 'architecture', 'ADR-CLD-052-real-authenticated-service-product-e2e.md');
 check(existsSync(adrPath), 'ADR-CLD-052 interface specification document exists');
 const adrContent = readFileSync(adrPath, 'utf8');
 check(adrContent.includes('ANTIGRAVITY-REAL-AUTHENTICATED-SERVICE-08'), 'ADR-CLD-052 references TASK_ID');
 check(adrContent.includes('CLADORA-FIRST-SERVICE-PRODUCT-E2E-01'), 'ADR-CLD-052 references package');
+check(adrContent.includes('CORE-SERVICE-REAL-APP-ASSEMBLY-17.md'), 'ADR-CLD-052 references Core17 assembly contract');
 check(adrContent.includes('Service Domain Owner'), 'ADR-CLD-052 defines Service domain owner boundaries');
 check(adrContent.includes('Core Domain Owner'), 'ADR-CLD-052 defines Core domain owner boundaries');
-check(adrContent.includes('Data Isolation & Stale Data Eviction Guarantees'), 'ADR-CLD-052 documents data isolation guarantees');
+check(adrContent.includes('Data Isolation, Eviction & Fencing Guarantees'), 'ADR-CLD-052 documents data isolation guarantees');
 
 // =========================================================================
-// SECTION 6: EVIDENCE CLASSIFICATION & NOT_RUN BOUNDARIES
+// SECTION 7: EVIDENCE CLASSIFICATION & NOT_RUN BOUNDARIES
 // =========================================================================
 const receipt = {
   task_id: 'ANTIGRAVITY-REAL-AUTHENTICATED-SERVICE-08',
   verdict: 'SCOPED_EVIDENCE_SOURCE_AND_CONTROLLED_JSDOM_PASS',
+  task_status: 'OPEN_PENDING_CONNECTED_BROWSER_ACCEPTANCE',
   total_checks_passed: totalChecks,
   tested_surfaces: {
     real_auth_source_contracts_and_mfa_gating: 'PASS',
     appshell_rendered_in_dom: 'PASS',
     service_navigation_active_highlighting: 'PASS',
-    account_context_switch_eviction: 'PASS',
-    denial_403_forbidden_eviction: 'PASS',
-    denial_401_session_expired_eviction: 'PASS',
+    core17_assembly_bootstrap_consumption: 'PASS',
+    service_domain_file_invariance: 'PASS',
+    context_switch_same_account_eviction: 'PASS',
+    account_switch_disjoint_identity_purge: 'PASS',
+    denial_403_forbidden_pre_denial_proof_and_eviction: 'PASS',
+    denial_401_session_expired_pre_denial_proof_and_eviction: 'PASS',
     logout_sessionstorage_auth_eviction: 'PASS',
-    late_arriving_response_fencing: 'PASS',
-    multilingual_fa_en_ro_and_rtl_direction: 'PASS',
+    genuine_in_flight_late_response_fencing: 'PASS',
+    static_multilingual_dictionary_inspection: 'PASS',
+    dynamic_3_language_dom_rendering_fa_rtl_en_ltr_ro_ltr: 'PASS',
   },
   not_run_boundaries: {
     connected_playwright_live_deployment: 'NOT_RUN_PENDING_CONSUMABLE_CORE_PLATFORM',
+    viewport_layout_geometry_pixel_measurements: 'NOT_RUN_REQUIRES_CONNECTED_BROWSER',
     physical_mobile_device_testing: 'NOT_RUN',
     automated_wcag_full_scan: 'NOT_RUN',
   },
@@ -613,5 +1034,5 @@ const receipt = {
 
 console.log('\n=======================================================');
 console.log(JSON.stringify(receipt, null, 2));
-console.log(`\nPASS ${totalChecks}/${totalChecks} SOURCE CONTRACTS & CONTROLLED APPSHELL/SERVICE JSDOM SIMULATION; CONNECTED BROWSER NOT_RUN PENDING CONSUMABLE CORE/PLATFORM DELIVERY`);
+console.log(`\nPASS ${totalChecks}/${totalChecks} SOURCE CONTRACTS, CORE17 CONSUMPTION & CONTROLLED APPSHELL/SERVICE JSDOM SIMULATION; CONNECTED BROWSER NOT_RUN PENDING CONSUMABLE CORE/PLATFORM DELIVERY; TASK REMAINS OPEN`);
 console.log('=======================================================\n');

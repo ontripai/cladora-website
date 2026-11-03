@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { uuidSchema } from '@/lib/customer/workspace-composition-schema';
+import { coreServiceAppReadV1 } from '@/lib/core/service-app-read-v1';
 
 const HEADERS = { 'Cache-Control': 'no-store, private', Pragma: 'no-cache', Vary: 'Cookie' };
 
@@ -11,6 +12,51 @@ export async function GET(request: NextRequest) {
     || Array.from(query.keys()).some(key => key !== 'context_id')) {
     return NextResponse.json({ error: { code: 'INVALID_REQUEST' } }, { status: 400, headers: HEADERS });
   }
+
+  // In approved Core assembly profile, consume workspace targets from Core's official bootstrap selections
+  if (process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE === 'core-service-real-app-assembly.v1') {
+    const bootstrapRequest = new NextRequest(new URL('/api/customer/v1/services/assembly-bootstrap', request.url), {
+      headers: request.headers,
+    });
+    const bootstrapRes = await coreServiceAppReadV1(bootstrapRequest, 'selections');
+    if (!bootstrapRes) {
+      return NextResponse.json({ error: { code: 'CORE_SERVICE_ASSEMBLY_NOT_READY' } }, { status: 503, headers: HEADERS });
+    }
+    if (!bootstrapRes.ok) {
+      return bootstrapRes;
+    }
+    const data = (await bootstrapRes.json()) as {
+      selections?: Array<{
+        context_id: string;
+        workspace_id: string;
+        workspace_type: string;
+        environment: string;
+      }>;
+    };
+    const selections = data?.selections ?? [];
+    const matching = selections.filter(s => s.context_id === context.data);
+    if (matching.length === 0) {
+      const hasAny = selections.length > 0;
+      return NextResponse.json(
+        { error: { code: hasAny ? 'WORKSPACE_ACCESS_DENIED' : 'UNAUTHORIZED' } },
+        { status: hasAny ? 403 : 401, headers: HEADERS }
+      );
+    }
+    const seen = new Set<string>();
+    const workspaces = [];
+    for (const s of matching) {
+      if (!seen.has(s.workspace_id)) {
+        seen.add(s.workspace_id);
+        workspaces.push({
+          workspace_id: s.workspace_id,
+          workspace_type: s.workspace_type,
+          environment: s.environment,
+        });
+      }
+    }
+    return NextResponse.json({ workspaces }, { headers: HEADERS });
+  }
+
   const supabase = await createClient();
   const { data: claims, error: authError } = await supabase.auth.getClaims();
   if (authError || !claims?.claims?.sub) {

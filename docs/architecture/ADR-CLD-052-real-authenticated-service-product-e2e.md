@@ -2,41 +2,55 @@
 
 - **Status:** PROPOSED_INTERFACE_SPECIFICATION / CONTROLLED_SIMULATION_PASS / HOLD_CONNECTED_BROWSER_E2E
 - **Task ID:** `ANTIGRAVITY-REAL-AUTHENTICATED-SERVICE-08`
-- **Task Verdict:** `CHANGES_REQUESTED_SCOPED_EVIDENCE` (Task remains OPEN)
+- **Task Verdict:** `CHANGES_REQUESTED_SCOPED_EVIDENCE` (Task remains OPEN until connected browser acceptance)
 - **Package:** `CLADORA-FIRST-SERVICE-PRODUCT-E2E-01`
-- **Owner:** Antigravity
+- **Owner:** Antigravity (AppShell, Context/Workspace discovery, and interface guards)
+- **Consumed Core Revision:** `ee883b62cf4a318af3450c506931a969623b8987`
+- **Consumed Contract:** `docs/contracts/CORE-SERVICE-REAL-APP-ASSEMBLY-17.md`
 - **Evidence Qualification:**
   - **Source Contracts & Static Verification:** PASS
   - **Controlled JSDOM AppShell/Service Lifecycle Simulation:** PASS
   - **Connected Browser Playwright E2E against live Core/Platform:** NOT_RUN (Pending consumable delivery of Core15/Platform12)
-  - **Physical Device & WCAG Complete Scan:** NOT_RUN
-- **Domain Boundaries:**
-  - **Service Domain Owner:** Service catalog schema, offerings, service request forms, quotes, publications, and `/api/customer/v1/services/*` API endpoints.
-  - **Core Domain Owner:** Shared producer, PostgreSQL transaction host, authenticated session runtime, and private development bindings (`src/lib/core/*`).
-  - **Antigravity Owner:** Customer application shell (`CustomerAppShell`), Login/MFA routing, session refresh, logout, context switching, route guarding, active navigation highlighting, and responsive multilingual presentation.
+  - **Physical Device & Viewport Geometry Measurement:** NOT_RUN
+  - **Automated WCAG Complete Scan:** NOT_RUN
+- **Domain Boundaries & Ownership:**
+  - **Service Domain Owner:** Service catalog schema, offerings, service request forms, quotes, publications, and `/api/customer/v1/services/*` API endpoints. Antigravity does NOT modify Service domain files.
+  - **Core Domain Owner:** Shared producer, PostgreSQL transaction host, authenticated session runtime, Core17 assembly bootstrap and read ports (`src/lib/core/*`). Antigravity consumes Core via standard merge.
+  - **Antigravity Owner:** Customer application shell (`CustomerAppShell`), Login/MFA routing, session refresh, logout, context switching, workspace discovery bridging, route guarding, active navigation highlighting, and responsive multilingual presentation.
 
 ---
 
 ## 1. Context & Objective
 
-In package `CLADORA-FIRST-SERVICE-PRODUCT-E2E-01`, a test user authenticates with real Auth (not mock, not browser authority injection, not fake responses), selects an authorized Context/Workspace, and navigates via the existing application navigation (`CustomerAppShell`) to the SERVICE catalog and request form (`/app/services`).
+In package `CLADORA-FIRST-SERVICE-PRODUCT-E2E-01`, a test user authenticates with real Auth (not mock, not browser authority injection, not fake responses), selects an authorized Context/Workspace discovered from official bootstrap reads, and navigates via the existing application navigation (`CustomerAppShell`) to the SERVICE catalog and request form (`/app/services`).
 
 This ADR defines and enforces the strict ownership boundaries, interface contracts, lifecycle guarantees, and data isolation requirements across the end-to-end journey.
 
 > [!IMPORTANT]
 > **Evidence Scope Notice:**
-> Source contracts, route classifications, and controlled JSDOM component lifecycle executions (including `CustomerAppShell` dynamic mounting, context switching, 403/401 denial eviction, logout, and late response fencing) have PASSED in test suite `scripts/test-real-authenticated-service-08.mjs`.
-> Live connected browser execution (Playwright against deployed Core/Platform backend) is classified as `NOT_RUN` and will proceed once the integrated Core15 + Platform12 consumable stack is delivered. No product code changes are required for this boundary adjustment.
+> Source contracts, route classifications, and controlled JSDOM component lifecycle executions (including `CustomerAppShell` dynamic mounting, context switching, account switching, 403/401 denial eviction with pre-denial presence proof, logout, and verified in-flight late response fencing) have PASSED in test suite `scripts/test-real-authenticated-service-08.mjs`.
+> Live connected browser execution (Playwright against deployed Core/Platform backend) is classified as `NOT_RUN` and will proceed once the integrated Core15 + Platform12 consumable stack is delivered. Task remains OPEN until connected browser acceptance.
 
 ---
 
-## 2. Domain Ownership & Boundaries
+## 2. Core17 Assembly Consumption Contract & Interface Connection
 
-| Domain | Responsible Team | Artifacts Owned | Boundary Rules |
+In the approved development profile (`CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE === 'core-service-real-app-assembly.v1'`), Antigravity binds the product entry to Core's official assembly bootstrap selections:
+
+| Step / Endpoint | Consumer Interface | Producer / Guard | Response / Boundary Rule |
 |---|---|---|---|
-| **Service Domain** | Service Team | `src/lib/customer/service-catalog-schema.ts`<br>`src/components/customer/CustomerServiceCatalog.tsx`<br>`src/components/customer/CustomerServiceRequests.tsx`<br>`src/components/customer/CustomerServiceQuotes.tsx`<br>`src/components/customer/CustomerServiceQuotePublications.tsx`<br>`src/components/customer/CustomerServiceManagement.tsx`<br>`src/app/api/customer/v1/services/*` | Form fields, catalog items, quote publications, and service domain routes. Code of other owners is not modified independently. |
-| **Core Domain** | Core Team | `src/lib/core/service-functional-binding-v1.ts`<br>`src/lib/core/private-service-development-binding-v1.ts`<br>`src/lib/core/authenticated-session-runtime-v1.ts`<br>`src/lib/customer/service-v14-execution/runtime-binding.ts` | Shared producer, session locking (`core_runtime.lock_request_session_v1()`), and transactional C03 host execution. |
-| **AppShell & Access** | Antigravity | `src/app/[lang]/app/layout.tsx`<br>`src/app/[lang]/app/services/page.tsx`<br>`src/components/customer/CustomerAppShell.tsx`<br>`src/components/customer/CustomerContextProvider.tsx`<br>`src/components/customer/CustomerRouteGuard.tsx`<br>`src/components/auth/LoginForm.tsx`<br>`src/components/auth/SignOutButton.tsx`<br>`src/lib/customer/route-classifier.ts`<br>`src/lib/customer/access-matrix.ts` | Login and MFA requirement gating, session refresh, logout, context switching, route guarding, active nav highlighting, safe context labels, and RTL/mobile responsiveness. |
+| `GET /api/customer/v1/services/assembly-bootstrap` | Gateway read | `coreServiceAppReadV1(request, 'selections')` | `{ contract_version: 'core-service-app-read.v1', selections: [...] }` |
+| `GET /api/customer/v1/contexts` | `CustomerContextProvider` | Assembly discovery bridge | Unique tenant contexts projected from official bootstrap selections. In non-assembly profiles, standard `list_contexts_v1` RPC is preserved. |
+| `GET /api/customer/v1/workspace/targets?context_id=...` | `CustomerServiceCatalog` | Assembly discovery bridge | Workspace tuples matching `context_id` from official bootstrap selections. In non-assembly profiles, standard `list_workspace_targets_v2` RPC is preserved. |
+| `GET /api/customer/v1/services/catalog?context_id=...&workspace_id=...` | `CustomerServiceCatalog` | Core17 canonical catalog read | `{ offerings: [...] }` with SQL projection; no fabricated fields. |
+| `GET /api/customer/v1/services/requests?context_id=...&workspace_id=...` | `CustomerServiceRequests` | Core17 request read | `serviceRequestReadSchema`: `can_request`, `beneficiaries`, `requests`. |
+| `GET / POST /api/customer/v1/services/offering-request-flow` | Request Flow | Core17 C03 host | Preflight validation and transactional non-reservation request submission (`{ request_id, status: 'submitted' }`). |
+
+**Key Assembly Rules:**
+1. **Explicit Choice:** Bootstrap selections are discovery only. The user must make an explicit choice of context in `CustomerAppShell` and workspace in `CustomerServiceCatalog`. The system never guesses or auto-promotes tenant/workspace fields to request authority.
+2. **Authority Preservation:** Real Supabase Auth / MFA / Session cookies are validated on each read via server `getUser`/`getClaims` and current database session. No JSON or user_metadata authority spoofing is permitted.
+3. **Preservation of Other Profiles:** In default, hosted, preview, and production profiles, `contexts/route.ts` and `workspace/targets/route.ts` retain their exact standard RPC logic.
+4. **Service Code Independence:** `CustomerServiceCatalog.tsx` and all Service domain files remain untouched by Antigravity.
 
 ---
 
@@ -91,33 +105,47 @@ This ADR defines and enforces the strict ownership boundaries, interface contrac
 
 ---
 
-## 4. Data Isolation & Stale Data Eviction Guarantees
+## 4. Data Isolation, Eviction & Fencing Guarantees
 
 The following strict guarantees are enforced on all account, context, and session transitions:
 
-1. **Context Switch:**
+1. **Context Switch (Same Account, Different Tenant Context):**
    - In `CustomerContextProvider`: `state.select(nextId)` immediately sets `dashboard: null`, increments sequence counters, and updates `activeIdRef.current = nextId`.
    - In `CustomerServiceCatalog`: `<WorkspaceChoice key={active.context_id}>` remounts via its React `key`, resetting `targets` to `null` and `selected` to `''`. All previous offerings and request form inputs are unmounted.
-2. **Workspace Switch:**
+   - User identity and session cookies remain unchanged.
+2. **Account Switch (Different Authenticated User Identity):**
+   - User session transition (e.g. User 1 logs out, User 2 signs in with different `actor_id` / email).
+   - `sessionStorage` is completely purged.
+   - All previous account profile data, tenant contexts, active selection, and cache are evicted before mounting the new account's distinct contexts.
+3. **Workspace Switch:**
    - In `<WorkspaceChoice>`: changing the select dropdown sets `selected = event.target.value`.
    - `<Offerings key={`${contextId}:${selected}`}>` remounts with a fresh key, resetting `items` to `null`.
-3. **Session Logout:**
+4. **Session Logout:**
    - `<SignOutButton>` calls `sessionStorage.removeItem('cladora.customer-context.v1')`.
    - Calls `supabase.auth.signOut({ scope: 'local' })`.
-   - Redirects to `/${lang}/login`.
-4. **Access Denial (401 / 403):**
-   - In `CustomerContextProvider`: on 401 (`session_expired`) or 403 (`forbidden`), immediately clears `contexts: []`, `activeId: ''`, `dashboard: null`, `unsavedGuards.clear()`, and removes storage key.
-   - In `CustomerRouteGuard`: renders `AccessRestrictedCard` (Lock icon for session expiration, ShieldAlert for permission denied). Previous dashboard/service content is completely evicted.
-   - In `CustomerServiceCatalog`: on 401/403, immediately renders `<Notice>` with access denial message; no catalog items or form inputs are rendered.
-5. **Late-Arriving Response Protection:**
-   - In `CustomerContextProvider`: sequence check `if (seq !== dashboardSeq.current || cancelled || activeIdRef.current !== targetContextId) return;` discards any delayed response from previous contexts.
-   - In `CustomerServiceCatalog`: `AbortController.abort()` cancels in-flight fetches, and `if (!controller.signal.aborted)` guards state setters. Remounting via React `key` guarantees unmounted components do not retain or render late responses.
+   - Redirects router to `/${lang}/login`.
+5. **Access Denial (401 / 403) with Pre-Denial Presence Proof:**
+   - **Pre-Denial Proof:** Before triggering denial, data presence is proven in DOM/state.
+   - **Post-Denial Eviction:**
+     - On 401 (`session_expired`): `contexts: []`, `activeId: ''`, `dashboard: null`, `unsavedGuards.clear()` are set immediately; storage key is removed. `CustomerRouteGuard` renders `AccessRestrictedCard` with Lock icon and login redirect action.
+     - On 403 (`forbidden`): `dashboard: null`, `contexts: []` are set immediately. `CustomerRouteGuard` renders `AccessRestrictedCard` with ShieldAlert icon.
+     - In both denial scenarios, 100% of previous service catalog offerings, prices, and inputs are verified to be evicted from the DOM.
+6. **Late-Arriving Response Fencing (Verified In-Flight):**
+   - Verified via independent counter: Context A's fetch is proven to be actively in-flight (`pendingRequestsA === 1`) before switching to Context B.
+   - Context B is selected and resolves immediately; DOM reflects Context B's active state while A remains pending.
+   - Context A is then released.
+   - In `CustomerContextProvider`: sequence check `if (seq !== dashboardSeq.current || cancelled || activeIdRef.current !== targetContextId) return;` discards Context A's stale response.
+   - Consumer DOM confirms Context A's stale payload is never rendered, and Context B remains undisturbed.
 
 ---
 
-## 5. Multilingual, Accessibility & Responsive Layout
+## 5. Multilingual, Accessibility & Viewport Scope Classification
 
-- **Multilingual Support:** Supported across `fa`, `en`, and `ro`. All labels, notices, and error messages are localized.
-- **RTL Direction:** `dir="rtl"` applied for `fa` in `CustomerAppShell`, `CustomerRouteGuard`, `CustomerServiceCatalog`, and `CustomerServiceRequests`.
-- **Keyboard Navigation:** Native interactive elements (`<select>`, `<button>`, `<textarea>`, `<Link>`) with standard tab navigation and visible focus outlines.
-- **Mobile Display:** Dedicated horizontal scrollable navigation bar (`aria-label="Mobile Navigation"`, `className="flex md:hidden items-center gap-2 overflow-x-auto whitespace-nowrap"`) across viewports (375px, 390px, 768px, 1365px). Zero horizontal document overflow (`scrollWidth <= width + 1`).
+- **Static Dictionary Inspection (FA / EN / RO):** Source inspection verifies all localized translation dictionaries in `CustomerAppShell`, `CustomerServiceCatalog`, and `LoginForm` are populated with exact approved copy.
+- **Dynamic 3-Language DOM Rendering:**
+  - `fa`: Rendered with `dir="rtl"` in DOM; verifies Persian strings (`خدمات فضای کاری`, `فضای کاری را انتخاب کنید`).
+  - `en`: Rendered with `dir="ltr"` in DOM; verifies English strings (`Workspace services`, `Choose a workspace`).
+  - `ro`: Rendered with `dir="ltr"` in DOM; verifies Romanian strings (`Serviciile spațiului de lucru`, `Alege un spațiu de lucru`).
+- **Viewport Layout Geometry Measurement (NOT_RUN):**
+  - JSDOM does not calculate physical CSS bounding boxes, layout reflow, or screen pixel geometry.
+  - Responsive layout validation across viewports (375px, 390px, 768px, 1365px) is classified as `NOT_RUN` pending connected browser execution.
