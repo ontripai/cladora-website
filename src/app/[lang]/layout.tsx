@@ -1,7 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
-import { Manrope } from 'next/font/google';
 import { SUPPORTED_LOCALES, getLocaleConfig, getIntlLocale, isSupportedLocale } from '@/types';
 import { notFound } from 'next/navigation';
 import { AppOrMarketingLayout } from '@/components/layout/AppOrMarketingLayout';
@@ -34,9 +33,19 @@ const inter = localFont({
   display: 'swap',
 });
 
-const manrope = Manrope({
-  subsets: ['latin', 'latin-ext'],
-  weight: ['700', '800'],
+const manrope = localFont({
+  src: [
+    {
+      path: '../../fonts/manrope/Manrope[wght].woff2',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: '../../fonts/manrope/Manrope[wght].woff2',
+      weight: '800',
+      style: 'normal',
+    },
+  ],
   variable: '--font-manrope',
   display: 'swap',
 });

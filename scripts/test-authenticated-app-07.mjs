@@ -49,7 +49,7 @@ check(existsSync(loginFormPath), 'src/components/auth/LoginForm.tsx exists');
 const loginFormCode = readFileSync(loginFormPath, 'utf8');
 
 check(loginFormCode.includes('reason?: string'), 'LoginFormProps includes optional reason');
-check(loginFormCode.includes("reason === 'session_expired'"), 'LoginForm handles session_expired reason');
+check(loginFormCode.includes("session_expired:"), 'LoginForm handles session_expired reason');
 check(loginFormCode.includes('role="status"'), 'LoginForm renders accessible status announcement');
 check(loginFormCode.includes('aria-live="polite"'), 'LoginForm status announcement has polite live region');
 
@@ -159,7 +159,43 @@ check(interReadme.includes('693b77d4f32ee9b8bfc995589b5fad5e99adf2832738661f5402
 check(interReadme.includes('262481e844521b326f5ecd053e59b98c8b2da78c8ee1bdbb6e8174305e54935a'), 'README.md documents exact OFL.txt SHA256 hash');
 check(interReadme.includes('rsms/inter'), 'README.md documents official upstream repository rsms/inter');
 
+// =========================================================================
+// 7. MANROPE LOCAL FONT STABILIZATION (ANNEX: CONTEXT-R1-AND-MANROPE)
+// =========================================================================
+console.log('\n--- 7. Manrope Local Font Stabilization (Official OFL Assets) ---');
+
+check(!layoutCode.includes("from 'next/font/google'"), 'layout.tsx completely eliminates next/font/google');
+check(layoutCode.includes("path: '../../fonts/manrope/Manrope[wght].woff2'"), 'layout.tsx references Manrope[wght].woff2');
+check(layoutCode.includes("variable: '--font-manrope'"), 'layout.tsx preserves --font-manrope variable');
+check(existsSync(path.join(root, 'src', 'fonts', 'manrope', 'Manrope[wght].woff2')), 'Manrope[wght].woff2 exists locally');
+check(existsSync(path.join(root, 'src', 'fonts', 'manrope', 'OFL.txt')), 'src/fonts/manrope/OFL.txt exists locally');
+check(existsSync(path.join(root, 'src', 'fonts', 'manrope', 'README.md')), 'src/fonts/manrope/README.md exists locally');
+
+const manropeReadme = readFileSync(path.join(root, 'src', 'fonts', 'manrope', 'README.md'), 'utf8');
+check(manropeReadme.includes('30b83738add8c9edd9e3450b98036a9a8fb5668d0cbd4eb0ce5fe6761197f21f'), 'README.md documents exact Manrope[wght].woff2 SHA256 hash');
+check(manropeReadme.includes('58172e0c0fac2cda8a37b348164bb55e44b0e69051e557e92b1d3f6910141f7b'), 'README.md documents exact OFL.txt SHA256 hash');
+
+// =========================================================================
+// 8. CONTEXT REFRESH & CONCURRENCY (APP07-CONTEXT-REFRESH-01)
+// =========================================================================
+console.log('\n--- 8. CustomerContextProvider Concurrency & Refresh Hardening ---');
+const contextProviderCode = readFileSync(path.join(root, 'src', 'components', 'customer', 'CustomerContextProvider.tsx'), 'utf8');
+check(contextProviderCode.includes('contextsSeq'), 'CustomerContextProvider uses sequence counter for contexts fetch');
+check(contextProviderCode.includes('dashboardSeq'), 'CustomerContextProvider uses sequence counter for dashboard fetch');
+check(contextProviderCode.includes('activeIdRef'), 'CustomerContextProvider uses activeIdRef for synchronous access');
+check(contextProviderCode.includes('isStillValid'), 'CustomerContextProvider checks if active context is still valid before resetting');
+check(contextProviderCode.includes('unsavedGuards.current.clear()'), 'CustomerContextProvider clears unsaved guards when context is revoked');
+
+// =========================================================================
+// 9. LOGIN FORM REASON SANITIZATION
+// =========================================================================
+console.log('\n--- 9. LoginForm Reason Sanitization ---');
+const loginCode = readFileSync(path.join(root, 'src', 'components', 'auth', 'LoginForm.tsx'), 'utf8');
+check(loginCode.includes('APPROVED_REASON_MESSAGES'), 'LoginForm defines APPROVED_REASON_MESSAGES whitelist');
+check(!loginCode.includes(': reason}'), 'LoginForm never falls back to raw reason string');
+
 console.log('\n=======================================================');
-console.log(`ALL AUTHENTICATED APP SHELL & INTER FONT CHECKS PASSED! (${totalChecks} checks)`);
+console.log(`ALL AUTHENTICATED APP SHELL & FONT CHECKS PASSED! (${totalChecks} checks)`);
 console.log('=======================================================\n');
+
 
