@@ -28,13 +28,13 @@ type PendingCommand =
 type ReadyPreflight = Extract<ServiceOfferingRequestPreflightResultV1, { status:'ready' }>;
 type FlowStatus = 'idle'|'loading'|'ready'|'denied'|'conflict'|'not_ready'|'retry';
 type FlowState = { key:string; status:FlowStatus; preflight:ReadyPreflight|null };
-type CustomerServiceRequestsProps = {contextId:string;workspaceId:string;lang:Language;offerings:Offering[];onRefreshCatalog?:()=>Promise<Offering[]>};
+type CustomerServiceRequestsProps = {contextId:string;workspaceId:string;lang:Language;offerings:Offering[];onRefreshCatalog?:()=>Promise<Offering[]>;onCommandCustodyChange?:(held:boolean)=>void};
 // Scope identity owns all form and pending-command state even when a caller
 // rerenders this component without supplying its own React key.
 export function CustomerServiceRequests(props:CustomerServiceRequestsProps) {
   return <CustomerServiceRequestsScope key={`${props.contextId}:${props.workspaceId}`} {...props}/>;
 }
-function CustomerServiceRequestsScope({contextId,workspaceId,lang,offerings,onRefreshCatalog}:CustomerServiceRequestsProps) {
+function CustomerServiceRequestsScope({contextId,workspaceId,lang,offerings,onRefreshCatalog,onCommandCustodyChange}:CustomerServiceRequestsProps) {
   const fetch = useDashboardFetch(); const t=copy[lang];
   const fieldId=useId();
   const [fieldErrors,setFieldErrors]=useState({offering:false,party:false,resource:false,description:false});
@@ -84,7 +84,7 @@ function CustomerServiceRequestsScope({contextId,workspaceId,lang,offerings,onRe
       if(!response.ok)throw new Error(response.status===401?'session':response.status===403||response.status===404?'denied':'retry');
       const updated=serviceRequestReadSchema.parse(await response.json());
       if(!alive.current)return;
-      setData(updated);setPending(null);setConflict(false);setNotice('');setFlowState({key:'',status:'idle',preflight:null});setFlowAttempt(value=>value+1);
+      setData(updated);setPending(null);onCommandCustodyChange?.(false);setConflict(false);setNotice('');setFlowState({key:'',status:'idle',preflight:null});setFlowAttempt(value=>value+1);
       if(!updatedOfferings.some(item=>item.offering_id===offering&&item.acquisition_mode!=='reservation'))setOffering('');
       if(!updated.beneficiaries.some(item=>item.party_id===party))setParty('');
     }catch(reason){if(alive.current){
@@ -113,7 +113,7 @@ function CustomerServiceRequestsScope({contextId,workspaceId,lang,offerings,onRe
       command=usesV14Flow
         ? {protocol:SERVICE_OFFERING_REQUEST_FLOW_CONTRACT,endpoint:'/api/customer/v1/services/offering-request-flow',body:serviceOfferingRequestPublicInputV1Schema.parse(parsed.data)}
         : {protocol:'service-request-command.v1',endpoint:'/api/customer/v1/services/requests',body:createServiceRequestSchema.parse(parsed.data)};
-      setPending(command);}
+      setPending(command);onCommandCustodyChange?.(true);}
     submitting.current=true;setBusy(true);setNotice('');const controller=new AbortController();writeAbort.current=controller;
     try {const response=await fetch(command.endpoint,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(command.body),signal:controller.signal});
       if(!response.ok){if(alive.current){
@@ -122,7 +122,7 @@ function CustomerServiceRequestsScope({contextId,workspaceId,lang,offerings,onRe
         else{setConflict(response.status===409);setNotice(response.status===409?t.conflict:t.error);}
       }return;}
       serviceRequestResultSchema.parse(await response.json());
-      if(!alive.current||controller.signal.aborted)return;setPending(null);setDescription('');setNotice(t.success);
+      if(!alive.current||controller.signal.aborted)return;setPending(null);onCommandCustodyChange?.(false);setDescription('');setNotice(t.success);
       // Confirmed writes remain confirmed even when refreshing history fails.
       try {const read=await fetch(`/api/customer/v1/services/requests?${query}`,{cache:'no-store',credentials:'same-origin',signal:controller.signal});
         if(read.ok){const updated=serviceRequestReadSchema.parse(await read.json());if(alive.current&&!controller.signal.aborted)setData(updated);}

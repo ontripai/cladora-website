@@ -69,6 +69,7 @@ function AssemblyWorkspaceChoice({ lang }: { lang: Language }) {
   const t = copy[lang];
   const [selections, setSelections] = useState<AssemblySelection[] | null>(null);
   const [selectedKey, setSelectedKey] = useState('');
+  const [selectionLocked, setSelectionLocked] = useState(false);
   const [error, setError] = useState<LoadFailure | null>(null);
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
@@ -95,12 +96,14 @@ function AssemblyWorkspaceChoice({ lang }: { lang: Language }) {
   if (!selections.length) return <Notice text={t.noTargets} />;
   const selected = selections.find(item => `${item.context_id}:${item.workspace_id}` === selectedKey);
   return <div className="space-y-5"><label className="block rounded-2xl border bg-white p-4"><span className="mb-2 block text-sm font-semibold">{t.choose}</span>
-    <select aria-label={t.choose} value={selectedKey} onChange={event => setSelectedKey(event.target.value)} className="w-full rounded-xl border p-3">
+    <select aria-label={t.choose} value={selectedKey} disabled={selectionLocked} onChange={event => {
+      if (!selectionLocked) setSelectedKey(event.target.value);
+    }} className="w-full rounded-xl border p-3">
       <option value="">{t.choose}</option>{selections.map(item => {
         const key = `${item.context_id}:${item.workspace_id}`;
         return <option key={`${key}:${item.membership_id}`} value={key}>{item.tenant_name} — {item.role_name} · {item.workspace_type} · {item.environment}</option>;
       })}
-    </select></label>{selected ? <Offerings key={`${selected.context_id}:${selected.workspace_id}`} contextId={selected.context_id} workspaceId={selected.workspace_id} lang={lang} /> : null}</div>;
+    </select></label>{selected ? <Offerings key={`${selected.context_id}:${selected.workspace_id}`} contextId={selected.context_id} workspaceId={selected.workspace_id} lang={lang} onCommandCustodyChange={setSelectionLocked} /> : null}</div>;
 }
 function WorkspaceChoice({ contextId, lang }: { contextId: string; lang: Language }) {
   const fetch = useDashboardFetch();
@@ -132,7 +135,7 @@ function WorkspaceChoice({ contextId, lang }: { contextId: string; lang: Languag
       <option value="">{t.choose}</option>{targets.map((target, index) => <option key={target.workspace_id} value={target.workspace_id}>{t.workspace} {index + 1}</option>)}
     </select></label>{selected ? <><div className="flex flex-wrap gap-3"><button type="button" aria-pressed={!manage && !quotes && !publication} onClick={() => { setManage(false); setQuotes(false); setPublication(null); }} className="rounded-xl border bg-white px-4 py-2 font-semibold">{t.title}</button><button type="button" aria-pressed={manage && !publication} onClick={() => { setManage(true); setQuotes(false); setPublication(null); }} className="rounded-xl bg-[#087A6E] px-4 py-2 font-semibold text-white">{serviceManagementCopy[lang].title}</button><button type="button" aria-pressed={quotes && !publication} onClick={() => { setQuotes(true); setManage(false); setPublication(null); }} className="rounded-xl border bg-white px-4 py-2 font-semibold">{serviceQuoteCopy[lang].title}</button>{(['coordinator','recipient'] as const).map(mode=><button key={mode} type="button" aria-pressed={publication===mode} onClick={()=>{setPublication(mode);setManage(false);setQuotes(false);}} className="rounded-xl border bg-white px-4 py-2 font-semibold">{quotePublicationCopy[lang][mode]}</button>)}</div>{publication ? <CustomerServiceQuotePublications contextId={contextId} workspaceId={selected} lang={lang} mode={publication}/> : quotes ? <CustomerServiceQuotes key={`${contextId}:${selected}`} contextId={contextId} workspaceId={selected} lang={lang} /> : manage ? <CustomerServiceManagement key={`${contextId}:${selected}`} contextId={contextId} workspaceId={selected} lang={lang} /> : <Offerings key={`${contextId}:${selected}`} contextId={contextId} workspaceId={selected} lang={lang} />}</> : null}</div>;
 }
-function Offerings({ contextId, workspaceId, lang }: { contextId: string; workspaceId: string; lang: Language }) {
+function Offerings({ contextId, workspaceId, lang, onCommandCustodyChange }: { contextId: string; workspaceId: string; lang: Language; onCommandCustodyChange?: (held: boolean) => void }) {
   const fetch = useDashboardFetch();
   const t = copy[lang];
   const [items, setItems] = useState<Item[] | null>(null);
@@ -167,7 +170,7 @@ function Offerings({ contextId, workspaceId, lang }: { contextId: string; worksp
     </>}</div><details className="border-t pt-4"><summary className="cursor-pointer text-sm font-semibold text-[#087A6E]">{t.terms}</summary>
       <h3 className="mt-4 text-sm font-bold">{t.cancellation}</h3><p className="mt-1 whitespace-pre-line text-sm">{item.cancellation_terms[lang]}</p>
       <h3 className="mt-4 text-sm font-bold">{t.acceptance}</h3><p className="mt-1 whitespace-pre-line text-sm">{item.acceptance_criteria[lang]}</p>
-    </details></article>)}</div>}<CustomerServiceRequests contextId={contextId} workspaceId={workspaceId} lang={lang} offerings={items} onRefreshCatalog={refreshCatalog}/></>;
+    </details></article>)}</div>}<CustomerServiceRequests contextId={contextId} workspaceId={workspaceId} lang={lang} offerings={items} onRefreshCatalog={refreshCatalog} onCommandCustodyChange={onCommandCustodyChange}/></>;
 }
 function Notice({ text, retry, retryLabel }: { text: string; retry?: () => void; retryLabel?: string }) {
   return <div role="status" className="rounded-2xl border bg-white p-8 text-center text-sm text-[#52667A]">{text}{retry ? <button type="button" onClick={retry} className="ms-3 rounded-xl bg-[#0E9F8E] px-4 py-2 font-semibold text-white">{retryLabel}</button> : null}</div>;

@@ -18,7 +18,9 @@ launcher. In that profile the Service page:
 4. passes exactly that selection's `context_id` and `workspace_id` to the
    accepted catalogue and request-history reads; and
 5. keeps the existing V14 command endpoint, body and idempotency key for an
-   explicit UNKNOWN retry.
+   explicit UNKNOWN retry; while that command is unresolved, the official
+   selection control is synchronously locked so its keyed child cannot discard
+   custody by switching Workspaces.
 
 An unavailable, denied or malformed bootstrap fails closed. It does not fall
 back to `/api/customer/v1/workspace/targets`, guess the first Workspace, or
@@ -58,8 +60,9 @@ UNKNOWN command. No new key or automatic resend is allowed.
 
 `scripts/test-service-first-user-journey-12.mjs` is controlled mounted-component
 evidence for discovery/selection binding, fail-closed behavior, Context/Workspace
-parameters, and stale-response fencing. It uses no PostgreSQL or Auth and is not
-native acceptance.
+parameters, stale-response fencing, exact-wire UNKNOWN retry and release of the
+selection lock only after a confirmed result. It uses no PostgreSQL or Auth and
+is not native acceptance.
 
 In the current SERVICE environment the private binding, Auth selectors and
 Platform stack are absent. Real browser → API → database commit → refresh →

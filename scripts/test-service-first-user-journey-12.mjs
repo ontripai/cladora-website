@@ -4,7 +4,6 @@ import { createRequire, Module } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
 import React, { act } from 'react';
-import { createRoot } from 'react-dom/client';
 import ts from 'typescript';
 
 process.env.NEXT_PUBLIC_CLADORA_OWNED_SERVICE_ASSEMBLY = 'v1';
@@ -23,6 +22,9 @@ let bootstrapStatus = 200;
 let bootstrapBody = { contract_version: 'core-service-app-read.v1', selections };
 let calls = [];
 let heldCatalog = null;
+let journeyMode = false;
+let postMode = 'lost';
+const effects = new Set();
 const fetch = async (url, options = {}) => {
   calls.push({ url: String(url), options });
   if (String(url).endsWith('/services/assembly-bootstrap')) return Response.json(bootstrapStatus === 200 ? bootstrapBody : { error: { code: 'CORE_SERVICE_ASSEMBLY_NOT_READY' } }, { status: bootstrapStatus });
@@ -31,7 +33,17 @@ const fetch = async (url, options = {}) => {
     if (heldCatalog && String(url).includes(`workspace_id=${scopeA.workspace_id}`)) return heldCatalog.promise;
     return Response.json({ offerings: String(url).includes(`workspace_id=${scopeA.workspace_id}`) ? [offering] : [] });
   }
-  if (String(url).includes('/services/requests?')) return Response.json({ can_request: false, beneficiaries: [], requests: [] });
+  if (String(url).includes('/services/requests?')) return Response.json(journeyMode
+    ? { can_request: true, beneficiaries: [{ party_id: id(51), label: 'Synthetic person' }], requests: [] }
+    : { can_request: false, beneficiaries: [], requests: [] });
+  if (String(url).includes('/services/offering-request-flow?')) return Response.json({
+    status: 'ready', contract: 'service-offering-request-flow.v1', source_kind: 'workspace', resources: [],
+  });
+  if (String(url).endsWith('/services/offering-request-flow') && options.method === 'POST') {
+    const body = JSON.parse(options.body); effects.add(body.idempotency_key);
+    if (postMode === 'lost') throw new Error('synthetic lost acknowledgement');
+    return Response.json({ request_id: id(61), status: 'submitted' });
+  }
   return Response.json({ error: { code: 'NOT_FOUND' } }, { status: 404 });
 };
 function load(file) {
@@ -48,6 +60,7 @@ function load(file) {
 const { CustomerServiceCatalog } = load(new URL('../src/components/customer/CustomerServiceCatalog.tsx', import.meta.url));
 const dom = new JSDOM('<div id="root"></div>', { url: 'http://localhost:3008/en/app/services' });
 globalThis.FormData = dom.window.FormData; globalThis.window = dom.window; globalThis.document = dom.window.document; globalThis.IS_REACT_ACT_ENVIRONMENT = true;
+const { createRoot } = await import('react-dom/client');
 const root = createRoot(document.getElementById('root'));
 let generation = 0; let cases = 0;
 const render = async (lang = 'en') => act(async () => root.render(React.createElement(CustomerServiceCatalog, { lang, key: ++generation })));
@@ -104,6 +117,49 @@ try {
       assert.equal(document.querySelector('section').dir, lang === 'fa' ? 'rtl' : 'ltr');
       assert.equal(document.querySelector('select').getAttribute('aria-label'), lang === 'fa' ? 'فضای کاری را انتخاب کنید' : 'Alege un spațiu de lucru');
     }
+  });
+  await check('UNKNOWN command custody blocks selection replacement and preserves the exact retry wire', async () => {
+    journeyMode = true; postMode = 'lost'; effects.clear(); calls = [];
+    await render(); await choose(scopeA);
+    const selects = document.querySelectorAll('select');
+    await act(async () => {
+      selects[1].value = offering.offering_id;
+      selects[1].dispatchEvent(new window.Event('change', { bubbles: true }));
+    });
+    await act(async () => {
+      document.querySelectorAll('select')[2].value = id(51);
+      document.querySelectorAll('select')[2].dispatchEvent(new window.Event('change', { bubbles: true }));
+      const description = document.querySelector('textarea');
+      Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set.call(
+        description, 'Synthetic request with a lost acknowledgement',
+      );
+      description.dispatchEvent(new window.Event('input', { bubbles: true }));
+    });
+    const submit = () => [...document.querySelectorAll('button')].find(button => button.textContent === 'Send request' || button.textContent === 'Retry the same request');
+    await act(async () => submit().click());
+    const workspaceSelect = document.querySelector('select[aria-label="Choose a workspace"]');
+    assert.equal(workspaceSelect.disabled, true, 'the official selector must hold custody while the command is UNKNOWN');
+    const firstPost = calls.find(call => call.options.method === 'POST');
+    assert.ok(firstPost); assert.equal(effects.size, 1);
+
+    await act(async () => {
+      workspaceSelect.value = `${scopeB.context_id}:${scopeB.workspace_id}`;
+      workspaceSelect.dispatchEvent(new window.Event('change', { bubbles: true }));
+    });
+    assert.equal(workspaceSelect.value, `${scopeA.context_id}:${scopeA.workspace_id}`, 'A→B cannot unmount the unresolved command owner');
+    assert.equal(calls.some(call => call.url.includes(`workspace_id=${scopeB.workspace_id}`)), false);
+
+    postMode = 'success';
+    await act(async () => submit().click());
+    const posts = calls.filter(call => call.options.method === 'POST');
+    assert.equal(posts.length, 2);
+    assert.equal(posts[1].url, firstPost.url);
+    assert.equal(posts[1].options.body, firstPost.options.body, 'retry endpoint/body/key must remain byte-identical');
+    assert.equal(effects.size, 1, 'same idempotency key models one committed effect');
+    assert.equal(workspaceSelect.disabled, false, 'a confirmed result releases selection custody');
+    await choose(scopeB);
+    assert.equal(workspaceSelect.value, `${scopeB.context_id}:${scopeB.workspace_id}`, 'the next selection is allowed after confirmation');
+    journeyMode = false;
   });
   console.log(JSON.stringify({ task: 'SERVICE-FIRST-USER-JOURNEY-12', cases, status: 'PASS', evidence: 'mounted real SERVICE components with controlled HTTP only', native_Auth_DB_restart: 'NOT_RUN_NOT_PASS' }));
 } finally {
