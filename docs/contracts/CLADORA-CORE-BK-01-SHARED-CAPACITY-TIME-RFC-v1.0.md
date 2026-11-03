@@ -2,15 +2,17 @@
 
 **Baseline:** `feat/core-ops-01-execution-receipt@42ba1c217bbc2d6a081a24937345a3e124af3f5b`
 
-**Status:** contract/RFC ready for review; no runtime or persistence.
+**Status:** minimum runtime vertical slice ready for local review.
 
-**Owner:** Core Booking/Capacity owns the shared capacity policy and atomic hold decision. The selected first consumer is SERVICE via Draft PR #328 (`feat/service-v14-booking-sv01h-contract@c3f05eb4e8b6853c8639f8d3980266c2df365933`).
+**Owner:** Core Booking/Capacity owns the shared capacity policy and atomic hold decision. C13 shared-amenity reservation is the first runtime consumer. The earlier SERVICE contract remains a future adapter and is not rebuilt here.
 
-**Delivery boundary:** additive TypeScript contracts and static verification only. No migration, endpoint, allocation ledger, expiry worker, SERVICE change, central manifest rewrite or Production effect.
+**Delivery boundary:** additive local migration, bounded customer API, C13 customer UI and local tests. No expiry worker, SERVICE/AIRPROP rewrite, parking-allocation engine, payment, remote migration or Production effect.
 
 ## Selection and ownership boundaries
 
-SERVICE is selected because its v1.4 consumer contract already separates Order/stage/allocation state from a server-verified BK-01 receipt and keeps non-booking services independent. SERVICE continues to own Service Order, stage and consumer allocation IDs/state.
+C13 is selected because a shared facility can use the already accepted DW-02 canonical Unit reference without creating a second amenity identity. A configured policy marks that Unit as reservable; it does not copy the Unit record. C13 consumes the BK-01 hold directly and exposes only the caller's holds.
+
+SERVICE continues to own Service Order, stage and any future consumer allocation IDs/state. This slice does not connect or alter SERVICE booking.
 
 Capacity-backed Community/Event may adopt the contract later. Free Event base, interest/withdrawal and manual attendance do not wait for BK-01. AIRPROP commercial reservation remains a separate exclusive commercial state machine; `airprop.exclusive_reservations` and pgTAP 171 are explicitly not BK-01 persistence or test evidence.
 
@@ -46,20 +48,24 @@ A runtime implementation must, in one database transaction:
 
 Replay with an equal fingerprint returns the same receipt and `replayed = true`. The same key with a changed action/source/policy/window/capacity/resource set/expected version fails closed. Reschedule retains the hold identity and increments its version; it cannot temporarily double-book old and new windows.
 
-## Acceptance matrix still required
+## Runtime acceptance in this slice
 
-This RFC/static schema is not runtime acceptance. A later versioned migration and isolated pgTAP/concurrency package must prove:
+Migration `20261019230000_bk01_c13_amenity_capacity_v1.sql` provides the first bounded runtime. It registers, but does not activate, the `booking` module; stores policy, hold and immutable receipt evidence; rechecks AUTH-01 and DW-02 before replay; serializes each policy row; and writes audit/outbox evidence atomically. The C13 API and `/app/amenities` page are the real consumer.
+
+The local pgTAP/API/TypeScript suites prove:
 
 - exact adjacent half-open intervals do not conflict, while true overlaps do;
 - exclusive and counted-capacity policies, including partial remaining capacity;
-- deterministic multi-resource contention with no deadlock and all-or-nothing writes;
+- deterministic single-resource contention and zero writes on denial;
 - hold expiry at the timestamp without depending on worker timing;
 - confirm versus expiry and reschedule versus competing hold races;
 - stale policy, resource, source and hold versions;
-- timezone/DST calendar boundaries with offset-aware instants;
+- offset-aware instants and pinned IANA timezone disclosure;
 - idempotent replay, mismatched replay and unknown-outcome recovery;
 - current authority/resource revocation and zero writes on denial;
 - bounded conflict disclosure and no competing-party/source leakage;
-- SERVICE binding parity while SERVICE and Core retain distinct IDs/state machines.
+- C13 binding while the canonical Unit and Core hold retain distinct identities.
 
-No production schema exists for BK-01 in this slice. CI success is evidence, not acceptance, merge authorization, remote migration authorization or Production release. Documentation & PM owns the central manifest and final acceptance; this branch does not modify either.
+Multi-resource holds, a background expiry worker, parking-space allocation, recurring reservations, blackout/buffer/quota/approval rules and a SERVICE adapter remain explicit later work. They do not block this C13 shared-amenity vertical slice.
+
+Local test success is evidence, not merge authorization, remote migration authorization or Production release. No Workspace module activation is performed by this package.

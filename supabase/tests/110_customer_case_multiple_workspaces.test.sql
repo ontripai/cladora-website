@@ -1,6 +1,6 @@
 begin;
 set local search_path=public,extensions;
-select plan(24);
+select plan(25);
 
 insert into auth.users(id,email,email_confirmed_at) values
 ('aa100000-0000-4000-8000-000000000001','multi-admin@cladora.test',now()),
@@ -50,11 +50,12 @@ select throws_like($$select customer_api.link_customer_case_workspace_v1(current
 select throws_like($$select customer_api.link_customer_case_workspace_v1(current_setting('case.multi.id')::uuid,'ea100000-0000-4000-8000-000000000004',null,'Unapproved workspace link')$$,'%approved_access_basis_required%','Each additional workspace needs its own approved basis');
 select is(jsonb_array_length(customer_api.get_customer_case_v1(current_setting('case.multi.id')::uuid)->'workspace_links'),2,'Denied links do not persist');
 select ok(jsonb_array_length(customer_api.list_case_workspace_options_v1(current_setting('case.multi.id')::uuid))>0,'Compatible property and operating model options are available');
-select set_config('case.multi.prepared',customer_api.create_case_workspace_v1(
+select set_config('case.multi.prepared',customer_api.create_case_workspace_v2(
   current_setting('case.multi.id')::uuid,'ASSOCIATION','residential_condominium',
-  'association_managed','Commercial owner','Additional building for the same customer')->>'workspace_id',true);
+  'association_managed','Commercial owner','Additional building for the same customer','CASE-110-PREPARED')->>'workspace_id',true);
 select is(jsonb_array_length(customer_api.get_customer_case_v1(current_setting('case.multi.id')::uuid)->'workspace_links'),2,'Prepared LEAD workspace does not grant case access');
-select throws_like($$select customer_api.create_case_workspace_v1(current_setting('case.multi.id')::uuid,'ASSOCIATION','industrial_park','association_managed','Commercial owner','Reject incompatible workspace')$$,'%compatible_taxonomy_required%','Incompatible profile and model are rejected');
+select is(customer_api.get_case_workspace_attempt_v1(current_setting('case.multi.id')::uuid,'CASE-110-PREPARED')->>'workspace_id',current_setting('case.multi.prepared'),'case attempt recovery returns the original identifier');
+select throws_like($$select customer_api.create_case_workspace_v2(current_setting('case.multi.id')::uuid,'ASSOCIATION','industrial_park','association_managed','Commercial owner','Reject incompatible workspace','CASE-110-INCOMPATIBLE')$$,'%compatible_taxonomy_required%','Incompatible profile and model are rejected');
 select throws_like($$select customer_api.link_customer_case_workspace_v1(current_setting('case.multi.id')::uuid,current_setting('case.multi.prepared')::uuid,null,'No commercial basis yet')$$,'%approved_access_basis_required%','New workspace needs independent access approval before linking');
 select is(jsonb_array_length(customer_api.list_case_prepared_workspaces_v1(current_setting('case.multi.id')::uuid)),1,'Prepared workspace persists in the case');
 select is((customer_api.list_case_prepared_workspaces_v1(current_setting('case.multi.id')::uuid)->0->>'approval_ready'),'false','Prepared workspace is awaiting independent approval');

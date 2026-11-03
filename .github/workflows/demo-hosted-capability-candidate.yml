@@ -1,0 +1,99 @@
+name: Reduced demo database candidate
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/demo-hosted-capability-candidate.yml'
+      - 'scripts/prepare-demo-migration-candidate.mjs'
+      - 'scripts/test-demo-migration-candidate.mjs'
+      - 'scripts/prove-demo-migration-candidate.mjs'
+      - 'scripts/prove-demo-first-administrator.mjs'
+      - 'scripts/lib/staging-connection-boundary.mjs'
+      - 'scripts/test-staging-connection-boundary.mjs'
+      - 'supabase/demo-proposals/**'
+      - 'supabase/local-profiles/baseline-v14.manifest.json'
+      - 'supabase/migrations/**'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: demo-candidate-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  native-catalog-candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      SUPABASE_INTERNAL_IMAGE_REGISTRY: ghcr.io
+      DOCKER_HOST: unix:///var/run/docker.sock
+      DOCKER_CONTEXT: ''
+      DOCKER_TLS: ''
+      DOCKER_TLS_VERIFY: ''
+      DOCKER_CERT_PATH: ''
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 22
+      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359
+        with:
+          version: 2.84.2
+      - name: Install locked dependencies for real local Auth proof
+        run: npm ci
+      - name: Validate exact source and materialize local candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -z "$(docker --host=unix:///var/run/docker.sock ps -aq)"
+          test -z "$(docker --host=unix:///var/run/docker.sock volume ls -q)"
+          node scripts/test-demo-migration-candidate.mjs
+          node scripts/test-staging-connection-boundary.mjs
+          node scripts/prepare-demo-migration-candidate.mjs "$GITHUB_WORKSPACE" "$RUNNER_TEMP/demo-candidate-project"
+      - name: Install candidate in disposable local Supabase
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          if ! supabase start --workdir "$RUNNER_TEMP/demo-candidate-project" >"$RUNNER_TEMP/demo-candidate-start.private.log" 2>&1; then
+            node scripts/summarize-local-supabase-failure.mjs "$RUNNER_TEMP/demo-candidate-start.private.log"
+            exit 1
+          fi
+          echo 'Fresh local candidate startup completed; credential-bearing output withheld.'
+      - name: Verify non-superuser installation, denied paths and rollback
+        run: node scripts/prove-demo-migration-candidate.mjs
+        env:
+          CLADORA_DEMO_CANDIDATE_LOCAL_PROOF: '1'
+          CANDIDATE_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Retain bounded credential-free catalog receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: reduced-demo-native-catalog-${{ github.sha }}
+          path: ${{ runner.temp }}/cladora-demo-native.receipt.json
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Prove real local first-administrator Auth and MFA
+        run: node scripts/prove-demo-first-administrator.mjs
+        env:
+          CLADORA_DEMO_FIRST_ADMINISTRATOR_PROOF: '1'
+          CANDIDATE_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Retain credential-free first-administrator receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: demo-first-administrator-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/cladora-demo-first-administrator.receipt.json
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Remove owned local resources
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if test -d "$RUNNER_TEMP/demo-candidate-project"; then
+            supabase stop --no-backup --workdir "$RUNNER_TEMP/demo-candidate-project" >"$RUNNER_TEMP/demo-candidate-stop.private.log" 2>&1
+          fi
+          test -z "$(docker --host=unix:///var/run/docker.sock ps -aq --filter label=com.supabase.cli.project=cladora-demo-candidate)"
+          test -z "$(docker --host=unix:///var/run/docker.sock volume ls -q --filter label=com.supabase.cli.project=cladora-demo-candidate)"

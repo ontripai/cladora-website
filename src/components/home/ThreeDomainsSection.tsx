@@ -29,21 +29,21 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
         {/* Section Header */}
         <div className="max-w-3xl mx-auto text-center space-y-4 mb-16">
           <span className="text-xs font-bold text-[#0E9F8E] uppercase tracking-wider bg-[#EAF8F5] px-3.5 py-1 rounded-full border border-[#B2E5DF]">
-            {lang === 'ro' ? 'Ecosistemul Complet CLADORA' : lang === 'fa' ? 'ارکان پلتفرم و حوزههای خدمات' : 'The Connected Ecosystem'}
+            {lang === 'ro' ? 'Structura Platformei CLADORA' : lang === 'fa' ? 'ارکان پلتفرم و بخش‌های کاربردی' : 'The Complete CLADORA System'}
           </span>
           <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-[#102A43] tracking-tight">
             {lang === 'ro'
-              ? 'Un nucleu comun solid și trei domenii operaționale conectate'
+              ? 'O bază sigură de date și trei secțiuni practice pentru clădirea ta'
               : lang === 'fa'
-              ? 'هستهٔ مشترک و سه حوزهٔ خدمات پیوسته'
-              : 'One Shared Core & Three Interconnected Domains'}
+              ? 'پایگاه امن اطلاعات و سه بخش کاربردی برای ساختمان شما'
+              : 'One Secure Foundation & Three Practical Modules for Your Building'}
           </h2>
           <p className="text-base sm:text-lg text-[#52667A] leading-relaxed">
             {lang === 'ro'
-              ? 'CLADORA nu împarte proprietatea în aplicații izolate. Nucleul comun păstrează identitatea și registrele oficiale, în timp ce domeniile specializate gestionează tranzacțiile, serviciile și mentenanța tehnică.'
+              ? 'CLADORA adună totul la un loc: datele clădirii, plățile și actele sunt păstrate în siguranță, în timp ce secțiunile dedicate se ocupă de vânzări/închirieri, comenzi de servicii și reparații tehnice.'
               : lang === 'fa'
-              ? 'کلادورا ملک را به نرم‌افزارهای پراکنده تقسیم نمی‌کند؛ هستهٔ مشترک، هویت واحد و اسناد رسمی را نگهداری می‌کند و سه حوزه تخصصی فرایندهای تجاری، خدمات و نگهداری را پیش می‌برند.'
-              : 'CLADORA connects all activity on one persistent foundation: shared truth for identity and accounting, powering commercial transactions, service procurement, and facility maintenance.'}
+              ? 'کلادورا همه چیز را یکپارچه می‌کند: مشخصات ساختمان، حساب‌ها و اسناد در مکانی امن نگهداری می‌شوند و سه بخش مجزا به امور اجاره و فروش، سفارش خدمات و تعمیرات فنی اختصاص دارند.'
+              : 'CLADORA brings everything together: building records, payments, and documents stay organized in one place, while dedicated modules handle rentals, service requests, and maintenance.'}
           </p>
         </div>
 
@@ -54,33 +54,33 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
               <div className="flex items-center gap-2">
                 <Database className="w-5 h-5 text-[#0E9F8E]" />
                 <span className="text-xs font-bold uppercase tracking-wider text-[#0E9F8E]">
-                  {lang === 'ro' ? 'Fundația Comună • Nucleul CLADORA' : lang === 'fa' ? 'زیرساخت بنیادین • هستهٔ مشترک CLADORA' : 'Shared Foundation • CLADORA Core'}
+                  {lang === 'ro' ? 'Baza Comună • Nucleul CLADORA' : lang === 'fa' ? 'پایگاه مشترک • هستهٔ سامانه' : 'Shared Core • Platform Foundation'}
                 </span>
               </div>
               <h3 className="text-xl sm:text-2xl font-bold text-[#102A43]">
-                {lang === 'ro' ? 'Adevărul Faptic & Registrele de Încredere' : lang === 'fa' ? 'شناسنامهٔ دارایی، دفاتر مالی و تاریخچهٔ قابل ردیابی' : 'Persistent Truth & Universal General Ledger'}
+                {lang === 'ro' ? 'Informațiile de Bază & Evidența Cheltuielilor' : lang === 'fa' ? 'شناسنامه ساختمان، دفاتر هزینه‌ها و سوابق معتبر' : 'Building Records & Transparent Accounting'}
               </h3>
               <p className="text-xs sm:text-sm text-[#52667A] leading-relaxed">
                 {lang === 'ro'
-                  ? 'Identitatea imobilului și a spațiilor, granițele Workspace, dosarele persoanelor, seiful de documente, jurnalul contabil cu dublă înregistrare, mesageria oficială și pistele de audit securizate.'
+                  ? 'Datele clădirii și ale apartamentelor, spațiile fiecărei asociații, dosarele locatarilor, arhiva de documente, calculul clar al cotelor de întreținere și istoricul verificabil al tuturor plăților.'
                   : lang === 'fa'
-                  ? 'هویت ملک، واحدها و تجهیزات؛ مرزهای Workspace و حدود اختیار اعضا؛ اسناد و نسخه‌ها؛ دفاتر مالی و تسهیم هزینه‌ها؛ مکاتبات رسمی و ثبت امن و ساختاریافته سوابق.'
-                  : 'Property and unit registry, workspace boundaries, document vault, double-entry analytical ledger, official notices, and tamper-evident audit history.'}
+                  ? 'مشخصات ساختمان و واحدها، تفکیک اطلاعات هر مجتمع، پرونده ساکنان، بایگانی اسناد، محاسبه شفاف شارژ و تاریخچهٔ مستند و قابل بررسی پرداخت‌ها.'
+                  : 'Building and unit records, dedicated association spaces, resident profiles, document vault, clear fee calculations, and an auditable payment history.'}
               </p>
             </div>
 
             <div className="flex flex-wrap gap-2 text-xs font-medium text-[#102A43]">
               <span className="px-3 py-1.5 rounded-xl bg-white border border-[#CBD5E1]">
-                {lang === 'ro' ? 'Identitate Imobil & Unități' : lang === 'fa' ? 'هویت یکتای ملک' : 'Persistent ID'}
+                {lang === 'ro' ? 'Identitate Clădire & Unități' : lang === 'fa' ? 'مشخصات ملک و واحدها' : 'Building & Unit Registry'}
               </span>
               <span className="px-3 py-1.5 rounded-xl bg-white border border-[#CBD5E1]">
-                {lang === 'ro' ? 'Seif Documente & Versiuni' : lang === 'fa' ? 'بایگانی اسناد' : 'Document Vault'}
+                {lang === 'ro' ? 'Arhivă Documente & Contracte' : lang === 'fa' ? 'بایگانی اسناد و قراردادها' : 'Document & Contract Vault'}
               </span>
               <span className="px-3 py-1.5 rounded-xl bg-white border border-[#CBD5E1]">
-                {lang === 'ro' ? 'Contabilitate & Alocări' : lang === 'fa' ? 'دفاتر مالی و تسهیم' : 'Double-entry Ledger'}
+                {lang === 'ro' ? 'Evidență Plăți & Întreținere' : lang === 'fa' ? 'دفاتر هزینه‌ها و شارژ' : 'Fee & Ledger Tracking'}
               </span>
               <span className="px-3 py-1.5 rounded-xl bg-white border border-[#CBD5E1]">
-                {lang === 'ro' ? 'Jurnal Audit Securizat' : lang === 'fa' ? 'سابقه حسابرسی' : 'Audit Trail'}
+                {lang === 'ro' ? 'Istoric Verificabil' : lang === 'fa' ? 'سوابق قابل استناد' : 'Verifiable History'}
               </span>
             </div>
           </div>
@@ -103,33 +103,33 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
 
               <div>
                 <h3 className="text-xl font-bold text-[#102A43] group-hover:text-amber-700 transition-colors">
-                  {lang === 'ro' ? 'Tranzacții & Închirieri' : lang === 'fa' ? 'عرضه، معاملات و اجاره' : 'Real Estate & Leasing'}
+                  {lang === 'ro' ? 'Tranzacții, Închirieri & Gestionare Spații' : lang === 'fa' ? 'معاملات، اجاره و مدیریت فضاها' : 'Transactions, Leasing & Space Management'}
                 </h3>
                 <p className="text-xs text-[#627D98] font-medium mt-0.5">
-                  {lang === 'ro' ? 'Oportunități, vânzări, contracte & mandate' : lang === 'fa' ? 'متقاضیان، پیش‌فروش، ارزیابی و واگذاری مدیریت' : 'Inquiries, underwriting, sales & mandates'}
+                  {lang === 'ro' ? 'Locuințe, birouri, spații comerciale, depozite și contracte conexe' : lang === 'fa' ? 'واحدهای مسکونی، تجاری، اداری، انبارها و قراردادهای وابسته' : 'Residential, commercial spaces, offices, storage units, and contracts'}
                 </p>
               </div>
 
               <p className="text-xs sm:text-sm text-[#52667A] leading-relaxed">
                 {lang === 'ro'
-                  ? 'Prezentarea proprietății pe piață, gestionarea cererilor calificate, verificarea documentelor de proprietate, rezervări, antecontracte, gestiunea chiriilor și conectarea vânzării cu predarea către exploatare.'
+                  ? 'Evidența spațiilor și unităților disponibile (locuințe, birouri, spații comerciale sau depozite), gestionarea cererilor, rezervări, contracte de închiriere sau vânzare și predarea organizată a folosinței.'
                   : lang === 'fa'
-                  ? 'معرفی و عرضه ملک، بررسی اسناد و شرایط متقاضیان، رزرو و پیش‌فروش، مدیریت روابط موجر و مستأجر، واگذاری مدیریت ملک و اتصال مستقیم فرایند تجاری به قرارداد و تحویل واحدها.'
-                  : 'Property marketing showcase, qualified inquiry matching, title verification, pre-sales, lease administration, and property management mandates transitioning directly into operations.'}
+                  ? 'مدیریت فضاها و املاک در دسترس (واحدهای مسکونی، اداری، تجاری و انبارها)، ثبت درخواست‌ها، قراردادهای فروش یا اجاره و تحویل ساختاریافتهٔ فضاها.'
+                  : 'Managing available properties and spaces (residential units, offices, commercial premises, storage), buyer and tenant inquiries, agreements, and organized handovers.'}
               </p>
 
               <ul className="space-y-2 text-xs text-[#334E68] pt-2 border-t border-[#F0F4F8]">
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0" />
-                  <span>{lang === 'ro' ? 'Rezervări și vânzări sincronizate cu registrul' : lang === 'fa' ? 'رزرو و پیش‌فروش هماهنگ با هویت ملک' : 'Pre-sales tied to canonical units'}</span>
+                  <span>{lang === 'ro' ? 'Rezervări și tranzacții legate direct de spațiul sau imobilul respectiv' : lang === 'fa' ? 'ثبت رزرو و معاملات متصل به شناسنامهٔ ملک یا فضای مربوطه' : 'Reservations and transactions linked directly to the property or unit'}</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0" />
-                  <span>{lang === 'ro' ? 'Gestiune chirii și relație proprietar-chiriaș' : lang === 'fa' ? 'مدیریت اجاره و تفکیک مطالبات' : 'Leasing & tenant relations'}</span>
+                  <span>{lang === 'ro' ? 'Evidența contractelor de închiriere și a plăților convenite' : lang === 'fa' ? 'پیگیری قراردادهای اجاره و ثبت تعهدات مالی' : 'Lease agreement tracking and agreed payment records'}</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0" />
-                  <span>{lang === 'ro' ? 'Trecere fără cusur de la tranzacție la operare' : lang === 'fa' ? 'انتقال طبیعی به مدارک تحویل و بهره‌برداری' : 'Seamless handoff to operations'}</span>
+                  <span>{lang === 'ro' ? 'Tranziție clară de la contract la predarea și utilizarea spațiului' : lang === 'fa' ? 'انتقال شفاف از مرحلهٔ قرارداد به تحویل و بهره‌برداری از فضا' : 'Clear transition from agreement to space handover and use'}</span>
                 </li>
               </ul>
             </div>
@@ -139,7 +139,7 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
                 href={`/${lang}/airprop`}
                 className="text-xs font-bold text-amber-700 hover:text-amber-800 flex items-center justify-between w-full"
               >
-                <span>{lang === 'ro' ? 'Descoperă AIRPROP' : lang === 'fa' ? 'جزئیات سامانه AIRPROP' : 'Explore AIRPROP'}</span>
+                <span>{lang === 'ro' ? 'Află mai multe despre AIRPROP' : lang === 'fa' ? 'اطلاعات بیشتر درباره AIRPROP' : 'Learn more about AIRPROP'}</span>
                 <ArrowRight className="w-4 h-4 rtl:rotate-180" aria-hidden="true" />
               </Link>
             </div>
@@ -159,33 +159,33 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
 
               <div>
                 <h3 className="text-xl font-bold text-[#102A43] group-hover:text-teal-700 transition-colors">
-                  {lang === 'ro' ? 'Piața de Servicii & Comenzi' : lang === 'fa' ? 'کاتالوگ خدمات و نیازمندی‌ها' : 'Service Marketplace & Orders'}
+                  {lang === 'ro' ? 'Comenzi de Servicii & Furnizori' : lang === 'fa' ? 'سفارش خدمات و تأمین‌کنندگان' : 'Service Orders & Providers'}
                 </h3>
                 <p className="text-xs text-[#627D98] font-medium mt-0.5">
-                  {lang === 'ro' ? 'Cereri, devize comparate, execuție & recepție' : lang === 'fa' ? 'استعلام قیمت، توافق بر دامنه و نظارت بر اجرا' : 'Briefs, quote comparison & verified sign-off'}
+                  {lang === 'ro' ? 'Cereri de oferte, devize clare și recepția lucrărilor' : lang === 'fa' ? 'استعلام قیمت، برآورد روشن هزینه‌ها و تحویل کار' : 'Service requests, clear estimates, and work acceptance'}
                 </p>
               </div>
 
               <p className="text-xs sm:text-sm text-[#52667A] leading-relaxed">
                 {lang === 'ro'
-                  ? 'Alegerea din catalogul de servicii acreditate, lansarea cererii cu specificul spațiului, primirea și compararea ofertelor concurente, acordul pe preț și termen, urmărirea execuției și recepția calității.'
+                  ? 'Colaborare cu meșteri, tehnicieni și companii specializate de servicii: curățenie, verificări periodice, reparații sau mentenanță generală. Înregistrezi cereri, compari devize, alegi furnizorul potrivit și atașezi facturile la dosarul clădirii.'
                   : lang === 'fa'
-                  ? 'انتخاب از کاتالوگ خدمات، ثبت شرح نیاز برای واحد یا فضا، دریافت و مقایسه چند پیشنهاد قیمت و زمان، توافق شفاف، پیگیری اجرای کار توسط ارائه‌دهنده، پذیرش نتیجه و ثبت دائمی روی پرونده ملک.'
-                  : 'Structured service requests: brief definition, competitive quote comparison, scope and cost agreement, dispatch tracking, verified acceptance, and permanent service history.'}
+                  ? 'همکاری با تکنسین‌ها، پیمانکاران تخصصی و شرکت‌های خدماتی: نظافت، بازرسی‌های فنی یا تعمیرات اساسی. ثبت درخواست‌ها، مقایسه پیشنهادها، انتخاب تأمین‌کننده و پیوست فاکتورها به پرونده ملک.'
+                  : 'Connecting with technicians, specialized contractors, and service providers for cleaning, routine inspections, or repairs. Log requests, compare estimates, select the right vendor, and keep invoices with property records.'}
               </p>
 
               <ul className="space-y-2 text-xs text-[#334E68] pt-2 border-t border-[#F0F4F8]">
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-teal-500 shrink-0" />
-                  <span>{lang === 'ro' ? 'Comparare clară a ofertelor de preț și termen' : lang === 'fa' ? 'مقایسه شفاف پیشنهادها بدون هزینه‌های پنهان' : 'Transparent quote comparison'}</span>
+                  <span>{lang === 'ro' ? 'Compararea ofertelor și a costurilor estimate' : lang === 'fa' ? 'مقایسه پیشنهادها و برآورد شفاف هزینه‌ها' : 'Comparing estimates and transparent cost breakdowns'}</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-teal-500 shrink-0" />
-                  <span>{lang === 'ro' ? 'Conectare la comenzi de lucru operaționale la nevoie' : lang === 'fa' ? 'اتصال سفارش به دستورکار عملیات در صورت نیاز فنی' : 'Unified link to operations work orders'}</span>
+                  <span>{lang === 'ro' ? 'Transmiterea cererilor către echipele tehnice și furnizori' : lang === 'fa' ? 'ارجاع درخواست‌های خدمات به تیم‌های فنی و پیمانکاران' : 'Dispatching service requests to technical teams and suppliers'}</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-teal-500 shrink-0" />
-                  <span>{lang === 'ro' ? 'Atașarea facturii și garanției la fișa spațiului' : lang === 'fa' ? 'اتصال فاکتور و ضمانت به شناسنامه دارایی' : 'Service record attached to asset'}</span>
+                  <span>{lang === 'ro' ? 'Facturile și documentele de recepție rămân salvate la dosar' : lang === 'fa' ? 'ثبت فاکتورها و صورت‌جلسات تحویل در پروندهٔ ساختمان' : 'Invoices and work acceptance records attached to the property'}</span>
                 </li>
               </ul>
             </div>
@@ -195,7 +195,7 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
                 href={`/${lang}/service`}
                 className="text-xs font-bold text-teal-700 hover:text-teal-800 flex items-center justify-between w-full"
               >
-                <span>{lang === 'ro' ? 'Descoperă modulul SERVICE' : lang === 'fa' ? 'جزئیات سامانه SERVICE' : 'Explore SERVICE'}</span>
+                <span>{lang === 'ro' ? 'Află mai multe despre Servicii' : lang === 'fa' ? 'اطلاعات بیشتر درباره بخش خدمات' : 'Learn more about Service orders'}</span>
                 <ArrowRight className="w-4 h-4 rtl:rotate-180" aria-hidden="true" />
               </Link>
             </div>
@@ -215,33 +215,33 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
 
               <div>
                 <h3 className="text-xl font-bold text-[#102A43] group-hover:text-blue-700 transition-colors">
-                  {lang === 'ro' ? 'Operațiuni & Mentenanță' : lang === 'fa' ? 'عملیات فنی و نگهداری' : 'Operations & Maintenance'}
+                  {lang === 'ro' ? 'Reparații & Mentenanță Tehnică' : lang === 'fa' ? 'تعمیرات و نگهداری تأسیسات' : 'Repairs & Technical Maintenance'}
                 </h3>
                 <p className="text-xs text-[#627D98] font-medium mt-0.5">
-                  {lang === 'ro' ? 'Echipamente, revizii, comenzi de lucru & avarii' : lang === 'fa' ? 'تجهیزات، برنامه‌های دوره‌ای، دستورکار و رفع خرابی' : 'Assets, scheduled plans & work orders'}
+                  {lang === 'ro' ? 'Lifturi, centrale, pompe, revizii periodice și evidența avariilor' : lang === 'fa' ? 'آسانسورها، موتورخانه‌ها، پمپ‌ها، سرویس‌های دوره‌ای و ثبت خرابی‌ها' : 'Lifts, heating, pumps, scheduled maintenance, and incident logs'}
                 </p>
               </div>
 
               <p className="text-xs sm:text-sm text-[#52667A] leading-relaxed">
                 {lang === 'ro'
-                  ? 'Registrul tuturor echipamentelor tehnice din clădire, calendare de mentenanță preventivă periodică, raportare rapidă a defecțiunilor, emitere comenzi de lucru cu responsabil desemnat și istoric de revizii.'
+                  ? 'Evidența echipamentelor tehnice din clădire, planificarea reviziilor periodice, semnalarea incidentelor și urmărirea intervențiilor până la remedierea completă.'
                   : lang === 'fa'
-                  ? 'ثبت و ردیابی کامل دارایی‌ها و تجهیزات فنی ساختمان، تعریف برنامه‌های نگهداری دوره‌ای، اعلام خرابی توسط ساکنان، صدور دستورکار با تخصیص مسئول اجرا، و نگهداری سوابق سرویس و هزینه‌ها.'
-                  : 'Complete asset and technical equipment registers, recurring preventative maintenance schedules, incident ticket reporting, dispatched work orders, and auditable maintenance history.'}
+                  ? 'شناسنامهٔ تجهیزات فنی ساختمان، برنامه‌ریزی سرویس‌های دوره‌ای، ثبت گزارش‌های خرابی و پیگیری تعمیرات تا رفع کامل نقص.'
+                  : 'Registry of all building equipment, planning routine inspections, logging resident incident reports, and tracking repairs through completion.'}
               </p>
 
               <ul className="space-y-2 text-xs text-[#334E68] pt-2 border-t border-[#F0F4F8]">
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0" />
-                  <span>{lang === 'ro' ? 'Fișă tehnică digitală pentru fiecare echipament' : lang === 'fa' ? 'شناسنامه دیجیتال برای هر دستگاه و تأسیسات' : 'Digital logbook per equipment asset'}</span>
+                  <span>{lang === 'ro' ? 'Fișă tehnică pentru fiecare echipament și instalație' : lang === 'fa' ? 'شناسنامهٔ فنی برای هر دستگاه و تأسیسات مشترک' : 'Clear technical record for each installation and equipment asset'}</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0" />
-                  <span>{lang === 'ro' ? 'Planificare automată a reviziilor periodice' : lang === 'fa' ? 'تقویم خودکار سرویس‌ها و نگهداری پیشگیرانه' : 'Preventative maintenance schedules'}</span>
+                  <span>{lang === 'ro' ? 'Evidența reviziilor tehnice și a termenelor de verificare' : lang === 'fa' ? 'برنامه‌ریزی سرویس‌های فنی و مواعد بازرسی دوره‌ای' : 'Tracking maintenance schedules and inspection deadlines'}</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-blue-500 shrink-0" />
-                  <span>{lang === 'ro' ? 'Control SLA și costuri aprobate de comitet' : lang === 'fa' ? 'کنترل زمان‌بندی SLA و هزینه‌های اجرایی' : 'SLA tracking & cost verification'}</span>
+                  <span>{lang === 'ro' ? 'Urmărirea costurilor și a stadiului fiecărei intervenții' : lang === 'fa' ? 'ثبت هزینه‌های تعمیرات و پیگیری وضعیت پیشرفت کار' : 'Tracking repair costs and intervention progress'}</span>
                 </li>
               </ul>
             </div>
@@ -251,7 +251,7 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
                 href={`/${lang}/operations`}
                 className="text-xs font-bold text-blue-700 hover:text-blue-800 flex items-center justify-between w-full"
               >
-                <span>{lang === 'ro' ? 'Descoperă modulul Operațiuni' : lang === 'fa' ? 'جزئیات عملیات و نگهداری' : 'Explore Operations'}</span>
+                <span>{lang === 'ro' ? 'Află mai multe despre Operațiuni' : lang === 'fa' ? 'اطلاعات بیشتر درباره بخش عملیات و نگهداری' : 'Learn more about Operations'}</span>
                 <ArrowRight className="w-4 h-4 rtl:rotate-180" aria-hidden="true" />
               </Link>
             </div>

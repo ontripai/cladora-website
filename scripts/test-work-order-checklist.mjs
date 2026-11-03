@@ -1,10 +1,27 @@
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync,existsSync} from 'node:fs';
+import {dirname,resolve,relative} from 'node:path';
 import {createRequire,Module} from 'node:module';
 import {fileURLToPath} from 'node:url';
 import ts from 'typescript';
 const require=createRequire(import.meta.url);
-function load(path,mocks={}){const filename=fileURLToPath(new URL(`../${path}`,import.meta.url)),mod=new Module(filename);mod.require=id=>Object.hasOwn(mocks,id)?mocks[id]:require(id);mod._compile(ts.transpileModule(readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,filename);return mod.exports;}
+const root=fileURLToPath(new URL('../',import.meta.url)),cache=new Map();
+function load(path,mocks={}){
+ const filename=fileURLToPath(new URL(`../${path}`,import.meta.url)),mod=new Module(filename);
+ if(cache.has(filename))return cache.get(filename).exports;cache.set(filename,mod);
+ mod.require=id=>{
+  if(Object.hasOwn(mocks,id))return mocks[id];
+  if(id==='server-only')return {};
+  if(id.startsWith('@/')||id.startsWith('.')){
+   const base=id.startsWith('@/')?resolve(root,'src',id.slice(2)):resolve(dirname(filename),id);
+   const found=[base,base+'.ts',base+'.tsx'].find(p=>existsSync(p));
+   if(found)return load(relative(root,found),mocks);
+  }
+  return require(id);
+ };
+ mod._compile(ts.transpileModule(readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,filename);
+ return mod.exports;
+}
 const pilot='80000000-0000-0000-0000-000000000004';let authenticated=true,calls=[],rpcError=null;
 const mocks={'@/lib/customer/maintenance-schema':load('src/lib/customer/maintenance-schema.ts'),'@/lib/customer/maintenance-api-helper':load('src/lib/customer/maintenance-api-helper.ts'),'@/lib/security/same-origin':load('src/lib/security/same-origin.ts'),'@/lib/security/request-body':load('src/lib/security/request-body.ts'),'@/lib/supabase/server':{createClient:async()=>({auth:{getClaims:async()=>({data:{claims:authenticated?{sub:pilot}:{}},error:null})},schema:name=>{assert.equal(name,'customer_api');return {rpc:async(name,args)=>{calls.push({name,args});return {data:{success:true},error:rpcError};}};}})}};
 const gateway=load('src/app/api/customer/v1/work-orders/[id]/checklist/route.ts',mocks);const {NextRequest}=require('next/server');const params={params:Promise.resolve({id:pilot})};

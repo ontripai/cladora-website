@@ -76,7 +76,7 @@ select ok(communications.private_pair_allowed('12000000-0000-4000-8000-000000000
 set local role authenticated;
 select set_config('request.jwt.claims',jsonb_build_object('sub','12000000-0000-4000-8000-000000000001','role','authenticated','aal','aal2','active_tenant_id','12000000-0000-4000-8000-000000000004','active_context_id','12000000-0000-4000-8000-000000000011')::text,true);
 select is(jsonb_array_length(customer_api.list_private_recipients_v1('12000000-0000-4000-8000-000000000011','12000000-0000-4000-8000-000000000009')),3,'Manager discovers company, vendor and other manager');
-select throws_ok($$select customer_api.create_private_conversation_v1('12000000-0000-4000-8000-000000000011','12000000-0000-4000-8000-000000000009','12000000-0000-4000-8000-000000000042','Service question','12000000-0000-4000-8000-000000000051')$$,'23502','private_conversation_workspace_binding_required','legacy vendor conversation creation fails closed after D5');
+select throws_ok($$select customer_api.create_private_conversation_v1('12000000-0000-4000-8000-000000000011','12000000-0000-4000-8000-000000000009','12000000-0000-4000-8000-000000000042','Service question','12000000-0000-4000-8000-000000000051')$$,'42501','permission denied for function create_private_conversation_v1','legacy vendor conversation creation is denied at the S4 ACL');
 
 select * from skip(
   'pre-D5 vendor conversation lifecycle superseded by canonical tests 191 and 195',

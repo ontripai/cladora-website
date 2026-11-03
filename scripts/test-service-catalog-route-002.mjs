@@ -7,13 +7,25 @@ const require = createRequire(import.meta.url);
 const cache = new Map();
 let auth = { data: { claims: { sub: 'actor' } }, error: null };
 let result = { data: [], error: null };
+const projection = {
+  contract_version: 'product-capability-decision.v1', evaluated_at: '2026-10-19T18:45:00.000Z',
+  workspace_id: '00000000-0000-0000-0000-000000000001', capability_key: 'module.services_catalog',
+  product_availability: 'unavailable', right: null,
+  activation: { status: 'not_installed', activation_id: null, module_definition_id: null,
+    module_code: 'services_catalog', module_version: null, valid_from: null, valid_until: null },
+  action_authorization: 'not_evaluated', reason_codes: ['right_missing', 'module_not_active'],
+};
+let projectionResult = { data: projection, error: null };
 let calls = [];
 function load(file) {
   if (cache.has(file.href)) return cache.get(file.href);
   const filename = fileURLToPath(file);
   const mod = new Module(filename);
   mod.require = name => name === '@/lib/supabase/server' ? { createClient: async () => ({
-    auth: { getClaims: async () => auth }, schema: name => { assert.equal(name, 'customer_api'); return { rpc: async (name, args) => { calls.push({ name, args }); return result; } }; },
+    auth: { getClaims: async () => auth }, schema: name => { assert.equal(name, 'customer_api'); return { rpc: async (name, args) => {
+      calls.push({ name, args });
+      return name === 'get_product_capability_decision_v1' ? projectionResult : result;
+    } }; },
   }) } : name.startsWith('@/') ? load(new URL(`../src/${name.slice(2)}.ts`, import.meta.url))
     : name.startsWith('.') ? load(new URL(`${name}.ts`, file)) : require(name);
   mod._compile(ts.transpileModule(readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, filename);
@@ -30,9 +42,27 @@ const post = (body = command, headers = {}, suffix = '') => POST(new NextRequest
 let cases = 0;
 async function check(name, fn) { calls = []; await fn(); cases++; console.log(`PASS ${name}`); }
 await check('explicit tuple and no-store read gateway', async () => {
-  const response = await get(`context_id=${id}&workspace_id=${id}`); assert.equal(response.status, 200); assert.deepEqual(await response.json(), { offerings: [] });
+  const response = await get(`context_id=${id}&workspace_id=${id}`); assert.equal(response.status, 200); assert.deepEqual(await response.json(), { offerings: [], product_capability: projection });
   assert.equal(response.headers.get('cache-control'), 'no-store, private'); assert.equal(response.headers.get('vary'), 'Cookie');
-  assert.deepEqual(calls, [{ name: 'list_service_catalog_v1', args: { p_context_id: id, p_workspace_id: id } }]);
+  assert.deepEqual(calls, [
+    { name: 'list_service_catalog_v1', args: { p_context_id: id, p_workspace_id: id } },
+    { name: 'get_product_capability_decision_v1', args: { p_context_id: id, p_workspace_id: id, p_capability_key: 'module.services_catalog' } },
+  ]);
+});
+await check('PC01 projection failure does not block the existing catalogue read', async () => {
+  projectionResult = { data: null, error: { code: 'XX000', message: 'projection unavailable' } };
+  const response = await get(`context_id=${id}&workspace_id=${id}`);
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { offerings: [], product_capability: null });
+  assert.deepEqual(calls.map(call => call.name), ['list_service_catalog_v1', 'get_product_capability_decision_v1']);
+  projectionResult = { data: projection, error: null };
+});
+await check('invalid PC01 projection does not block the existing catalogue read', async () => {
+  projectionResult = { data: { contract_version: 'unknown' }, error: null };
+  const response = await get(`context_id=${id}&workspace_id=${id}`);
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { offerings: [], product_capability: null });
+  projectionResult = { data: projection, error: null };
 });
 for (const query of ['', `context_id=${id}`, `workspace_id=${id}`, `context_id=${id}&workspace_id=bad`, `context_id=${id}&workspace_id=${id}&workspace_id=${id}`, `context_id=${id}&workspace_id=${id}&tenant_id=${id}`]) {
   await check('invalid injected or duplicate query rejected', async () => { assert.equal((await get(query)).status, 400); assert.deepEqual(calls, []); });

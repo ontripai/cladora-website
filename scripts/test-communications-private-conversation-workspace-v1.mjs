@@ -4,8 +4,9 @@ import { createRequire } from 'node:module';
 import ts from 'typescript';
 
 const route = readFileSync('src/app/api/customer/v1/private-conversations/route.ts', 'utf8');
-assert.match(route, /CANONICAL_PRIVATE_CONVERSATION_WRITER_UNAVAILABLE/);
-assert.doesNotMatch(route, /communications-private-conversation-workspace-v1/);
+assert.doesNotMatch(route, /CANONICAL_PRIVATE_CONVERSATION_WRITER_UNAVAILABLE/);
+assert.match(route, /communicationsPrivateConversationWorkspaceV1Schema/);
+assert.match(route, /create_private_conversation_v2/);
 
 const require = createRequire(import.meta.url), cache = new Map();
 function load(url) {

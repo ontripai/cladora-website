@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync,existsSync} from 'node:fs';
+import {resolve,relative,dirname} from 'node:path';
 import {createRequire,Module} from 'node:module';
 import {fileURLToPath} from 'node:url';
 import React,{act} from 'react';
@@ -9,7 +10,12 @@ const require=createRequire(import.meta.url),dom=new JSDOM('<div id="root"></div
 for(const [key,value] of Object.entries({window:dom.window,document:dom.window.document,sessionStorage:dom.window.sessionStorage,IS_REACT_ACT_ENVIRONMENT:true})){saved.set(key,Object.getOwnPropertyDescriptor(globalThis,key));Object.defineProperty(globalThis,key,{value,configurable:true,writable:true});}
 const {createRoot}=await import('react-dom/client');
 const originalFetch=globalThis.fetch;
-function load(path,mocks={}){const filename=fileURLToPath(new URL(`../${path}`,import.meta.url)),mod=new Module(filename);mod.require=id=>Object.hasOwn(mocks,id)?mocks[id]:require(id);mod._compile(ts.transpileModule(readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText,filename);return mod.exports;}
+const unsavedGuards=new Map();
+function registerUnsavedGuard(key,dirty,discard){
+ if(dirty)unsavedGuards.set(key,discard);else unsavedGuards.delete(key);
+ return()=>{if(unsavedGuards.get(key)===discard)unsavedGuards.delete(key);};
+}
+function load(path,mocks={}){const filename=fileURLToPath(new URL(`../${path}`,import.meta.url)),mod=new Module(filename);mod.require=id=>{if(Object.hasOwn(mocks,id))return mocks[id];if(id.startsWith('@/')||id.startsWith('.')){const root=fileURLToPath(new URL('../',import.meta.url)),base=id.startsWith('@/')?resolve(root,'src',id.slice(2)):resolve(dirname(filename),id),found=[base,base+'.ts',base+'.tsx'].find(p=>existsSync(p));if(found)return load(relative(root,found),mocks);}return require(id);};mod._compile(ts.transpileModule(readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText,filename);return mod.exports;}
 const context='11111111-1111-4111-8111-111111111111',workspace='22222222-2222-4222-8222-222222222222',opportunity='33333333-3333-4333-8333-333333333333',other='44444444-4444-4444-8444-444444444444';
 const props={contextId:context,workspaceId:workspace,opportunityId:opportunity,opportunityName:'First opportunity',currency:'EUR',lang:'en'};
 const command={version:2,context_id:context,workspace_id:workspace,opportunity_id:opportunity,idempotency_key:'persisted-evaluation-001',expected_version:0,assumptions:{acquisition_cost:'100000.0000',annual_rent:'6000.0000',annual_opex:'1000.0000',currency:'EUR'}};
@@ -62,7 +68,7 @@ try{
  const huge={...history(opportunity,2),versions:[{...history(opportunity,2).versions[0],results:{...result,gross_yield:'99999999999999999999.99999999'},assumptions:{...command.assumptions,acquisition_cost:'9999999999999999.9999'}}]};get=async()=>response(huge);
  for(const [lang,label] of [['en','Evaluation'],['ro','Analiză'],['fa','ارزیابی']]){await render(`locale-${lang}`,{lang});assert.equal(document.querySelector('section').getAttribute('dir'),lang==='fa'?'rtl':'ltr');assert.ok(document.body.textContent.includes(label));assert.match(document.body.textContent,/99999999999999999999(?:99)\.999999%/);assert.match(document.body.textContent,/9999999999999999\.9999 EUR/);}
  // Actual integration exposes an explicit per-opportunity choice and mounts the selected evaluator.
- const {CustomerAirpropWorkspace}=load('src/components/customer/CustomerAirpropWorkspace.tsx',{'./CustomerAirpropDiligence':{CustomerAirpropDiligence:()=>null},'./CustomerAirpropB2':{CustomerAirpropB2Workspace:()=>null},'./CustomerContextProvider':{useCustomerContext:()=>({active:{context_id:context}})},'./CustomerAirpropUnderwriting':{CustomerAirpropUnderwriting},'@/lib/airprop/opportunity-contract-v2':load('src/lib/airprop/opportunity-contract-v2.ts')});
+ const {CustomerAirpropWorkspace}=load('src/components/customer/CustomerAirpropWorkspace.tsx',{'./CustomerAirpropValuation':{CustomerAirpropValuation:()=>null},'./CustomerAirpropDiligence':{CustomerAirpropDiligence:()=>null},'./CustomerAirpropB2':{CustomerAirpropB2Workspace:()=>null},'./CustomerContextProvider':{useCustomerContext:()=>({active:{context_id:context},registerUnsavedGuard})},'./CustomerAirpropUnderwriting':{CustomerAirpropUnderwriting},'@/lib/airprop/opportunity-contract-v2':load('src/lib/airprop/opportunity-contract-v2.ts')});
  let evaluated=false;calls=[];globalThis.fetch=async(url,options={})=>{calls.push({url,options});if(url.includes('/workspace/targets'))return response({workspaces:[{workspace_id:workspace,environment:'PILOT'}]});if(options.method==='POST'&&url.includes('/underwriting')){evaluated=true;return success();}if(url.includes('/opportunities'))return response({opportunities:[{opportunity_id:opportunity,name:'First opportunity',city:'București',currency:'EUR',asking_price:'100000.0000',status:evaluated?'underwriting':'draft'}]});return response(history(opportunity,evaluated?1:0));};
  await act(async()=>root.render(React.createElement(CustomerAirpropWorkspace,{lang:'en'})));await act(async()=>{const select=document.querySelector('select');select.value=workspace;select.dispatchEvent(new dom.window.Event('change',{bubbles:true}));});assert.equal(calls.some(x=>x.url.includes('/underwriting')),false);await act(async()=>document.querySelector('[aria-label="Evaluate: First opportunity"]').click());assert.ok(calls.some(x=>x.url.includes('/underwriting')));assert.equal(document.querySelectorAll('form').length,2);
  await act(async()=>{const section=document.querySelector('[aria-label="Evaluation: First opportunity"]');[...section.querySelectorAll('input')].forEach((input,i)=>{Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype,'value').set.call(input,['100000','6000','1000'][i]);input.dispatchEvent(new dom.window.Event('input',{bubbles:true}));});});

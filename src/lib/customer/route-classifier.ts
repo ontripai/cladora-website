@@ -170,6 +170,12 @@ export const ROUTE_REQUIREMENTS: RouteRequirement[] = [
     modules: ['community_events'],
   },
   {
+    pathPrefix: '/app/amenities',
+    permissions: ['booking.capacity.read'],
+    entitlements: ['module.booking'],
+    modules: ['booking'],
+  },
+  {
     pathPrefix: '/app/community',
     permissions: ['community.community.read'],
     entitlements: ['module.community_basic'],

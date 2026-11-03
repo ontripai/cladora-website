@@ -4,7 +4,7 @@
 
 **Owner:** Core Communications owns the shared request/receipt envelope and current communication delivery records. Domain owners own the event and business state that requests communication.
 
-**Delivery boundary:** additive TypeScript contracts and static mapping only. No migration, endpoint, transport, queue worker, recipient registry, central manifest rewrite or Production effect.
+**Delivery boundary:** the first runtime adapter closes Issue #166's canonical new-conversation writer through the existing private-conversation API/UI. It adds only immutable request-receipt evidence; no parallel conversation, notification, transport, queue worker, recipient registry, central manifest rewrite or Production effect.
 
 ## Existing sources reused
 
@@ -36,7 +36,15 @@ A future command adapter must reuse the existing `platform.idempotency_keys`, `a
 
 The envelope does not itself send email/SMS/push, mark a notice delivered, acknowledge a notice or manufacture statutory evidence. Workers and official-notice commands continue to own those transitions and their retry rules.
 
-## Existing verification and future runtime gate
+## First runtime consumer: Issue #166 private conversation
+
+`customer_api.create_private_conversation_v2(jsonb)` consumes the existing `communications-private-conversation-workspace.v1` command. It requires an explicit current Workspace, AAL2, current AUTH-01 `communications.feed.read`, a current property binding, the existing unit-coverage and allowed-pair policies, and an exact two-party first message. The pre-Workspace v1 writer is revoked.
+
+The adapter writes only through the existing canonical private conversation/message/notification tables. Its `communication-request-receipt.v1` uses a canonical Unit relationship audience and `in_app`; recipient identity stays withheld. A disabled in-app preference produces `suppressed` evidence and no notification. Exact replay rechecks current context, Workspace, unit and both participant relationships before returning the original receipt. Creation, receipt, audit, outbox and notification commit atomically.
+
+The existing RO/EN/FA private-conversation UI is the real consumer. Replies, unread state, vault attachments, scan status and signed downloads continue through their existing gateways; COM-01 does not replace them.
+
+## Existing verification and future transport gate
 
 Repository evidence already covers the customer projection, official notice lifecycle, delivery attempts, acknowledgement/statutory separation, private conversations, authorization and route containment through:
 
@@ -47,6 +55,6 @@ Repository evidence already covers the customer projection, official notice life
 - `supabase/migrations/20260829005000_customer_communications_notifications_dashboard.sql`;
 - `supabase/migrations/20260909115850_official_communications_delivery_evidence.sql`.
 
-This slice does not repeat those runtimes or claim a new database execution. A future adapter requires a selected first consumer, exact source permission/audience mapping, atomic replay tests, suppressed/preference behavior, failed/delivered transitions and zero recipient leakage in a disposable database.
+This slice has disposable pgTAP plus API, TypeScript and UI-consumer tests for exact Workspace creation, current relationship checks, atomic replay, preference suppression and zero recipient disclosure. External email/SMS/push delivery and failed/delivered transitions remain a separate transport-worker gate.
 
 CI success is evidence, not acceptance, merge authorization, remote migration authorization or Production release. Documentation & PM owns the central manifest and final acceptance; this branch does not modify either.

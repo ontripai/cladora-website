@@ -7,8 +7,8 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const contractPath = 'docs/architecture/CLADORA-CE-BENEFIT-PRESENTATION-AND-SERVICE-HANDOFF-05-v1.0.md';
 const inventoryPath = 'docs/architecture/references/CLADORA-CE-BENEFIT-PRESENTATION-AND-SERVICE-HANDOFF-05-INVENTORY.json';
-const baselineCommit = '536a9526222a36a1fd5d28e4267ca4b2d783786c';
-const baselineTree = '83947ebd1278b5c3af65fb1e43a07a1f8e30a21d';
+const baselineCommit = 'aa854730df7590e7ed48666f3d45cf653ede4f15';
+const baselineTree = 'aebc118d045a73b8a787243e43ecb1e48849cc34';
 let assertions = 0;
 
 function check(value, message) {

@@ -1,15 +1,15 @@
 import React from 'react';
 import Link from 'next/link';
 import { Language } from '@/types';
-import { 
-  Building2, 
-  Layers, 
-  Users, 
-  ShieldCheck, 
-  ArrowRight, 
-  CheckCircle2, 
-  Key, 
-  Lock, 
+import {
+  Building2,
+  Layers,
+  Users,
+  ShieldCheck,
+  ArrowRight,
+  CheckCircle2,
+  Key,
+  Lock,
   RefreshCw,
   Building
 } from 'lucide-react';
@@ -22,31 +22,31 @@ export const WorkspaceModelSection: React.FC<WorkspaceModelSectionProps> = ({ la
   return (
     <section className="py-20 bg-white border-b border-[#E2E8F0]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Section Header */}
         <div className="max-w-3xl mx-auto text-center space-y-4 mb-16">
           <span className="text-xs font-bold text-[#0E9F8E] uppercase tracking-wider bg-[#EAF8F5] px-3.5 py-1 rounded-full border border-[#B2E5DF]">
-            {lang === 'ro' ? 'Arhitectura Conceptuală CLADORA' : lang === 'fa' ? 'مدل سه‌گانه مفهوم کلادورا' : 'Conceptual Foundation'}
+            {lang === 'ro' ? 'Structura pe Înțelesul Tuturor' : lang === 'fa' ? 'ساختار شفاف و ساده' : 'Simple & Clear Foundation'}
           </span>
           <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-[#102A43] tracking-tight">
-            {lang === 'ro' 
-              ? 'Cum funcționează CLADORA: Proprietate, Workspace & Persoane' 
-              : lang === 'fa' 
-              ? 'تفاوت بنیادین ملک و دارایی، Workspace و اشخاص' 
-              : 'How CLADORA Works: Property, Workspace & People'}
+            {lang === 'ro'
+              ? 'Cum este organizată CLADORA: Clădirea, Spațiul de Lucru și Oamenii'
+              : lang === 'fa'
+              ? 'ساختار CLADORA در عمل: ساختمان، فضای کاری و نقش افراد'
+              : 'How CLADORA Works: Buildings, Workspaces, and People'}
           </h2>
           <p className="text-base sm:text-lg text-[#52667A] leading-relaxed">
             {lang === 'ro'
-              ? 'Pentru a elimina confuzia și riscurile de securitate, CLADORA distinge cu claritate între obiectul fizic al serviciului, granița de colaborare a fiecărei organizații și persoanele care dețin drepturi valide.'
+              ? 'Pentru ca administrarea să meargă fără confuzie, CLADORA separă clar trei lucruri: clădirea fizică, spațiul de lucru al fiecărei organizații și persoanele cu drepturi de acces.'
               : lang === 'fa'
-              ? 'برای برقراری نظم حقوقی و جلوگیری از تداخل اطلاعات، سه مفهوم بنیادین در کلادورا کاملاً از یکدیگر تفکیک شده‌اند:'
-              : 'To eliminate ambiguity and prevent unauthorized data sharing, CLADORA strictly distinguishes between the physical subject of service, the operational collaboration boundary, and individual authorized actors.'}
+              ? 'برای جلوگیری از هرگونه سردرگمی یا تداخل اطلاعات، کلادورا سه بخش را کاملاً مشخص نگه می‌دارد: ساختمان و فضاها، فضای کاری اختصاصی هر سازمان، و اشخاص با دسترسی‌های معین.'
+              : 'To keep management straightforward and secure, CLADORA clearly separates three things: physical properties and spaces, each organization’s dedicated workspace, and individual users with defined access.'}
           </p>
         </div>
 
         {/* 3 Pillars Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-14">
-          
+
           {/* 1. Property & Asset */}
           <div className="card-proptech p-7 bg-[#F8FAFC] border-[#D3DCE6] flex flex-col justify-between relative overflow-hidden group hover:border-[#0E9F8E] transition-all">
             <div className="space-y-4">
@@ -54,22 +54,22 @@ export const WorkspaceModelSection: React.FC<WorkspaceModelSectionProps> = ({ la
                 <Building2 className="w-6 h-6" />
               </div>
               <span className="text-xs font-bold text-[#0E9F8E] uppercase tracking-wider block">
-                {lang === 'ro' ? 'Pilonul 1 • Subiectul Serviciului' : lang === 'fa' ? 'مفهوم اول • موضوع خدمت' : 'Pillar 1 • The Subject'}
+                {lang === 'ro' ? '1. Locul Fizic' : lang === 'fa' ? 'بخش ۱ • فضای فیزیکی' : 'Pillar 1 • The Physical Space'}
               </span>
               <h3 className="text-xl font-bold text-[#102A43]">
-                {lang === 'ro' ? 'Proprietatea & Activul' : lang === 'fa' ? 'ملک، فضا و دارایی' : 'Property & Physical Assets'}
+                {lang === 'ro' ? 'Clădirea, Spațiile și Echipamentele' : lang === 'fa' ? 'ساختمان، واحدها و تأسیسات' : 'Buildings, Units & Equipment'}
               </h3>
               <p className="text-sm text-[#52667A] leading-relaxed">
                 {lang === 'ro'
-                  ? 'Entitatea fizică ce traversează timpul: ansamblul, clădirea, unitatea individuală (apartament, birou, spațiu comercial, hală), spațiile comune, echipamentele tehnice (centrale, lifturi, pompe) și branșamentele.'
+                  ? 'Clădirea în sine, apartamentele, birourile, spațiile comune și echipamentele tehnice (centrale, lifturi, contoare). Toate datele tehnice și intervențiile rămân legate de imobil în timp.'
                   : lang === 'fa'
-                  ? 'موضوع و بستر خدمات؛ شامل کل مجموعه، ساختمان، واحد (مسکونی، اداری، تجاری یا صنعتی)، فضاهای مشترک، تأسیسات و تجهیزات فنی (آسانسور، موتورخانه، پمپ‌ها) و کنتورها.'
-                  : 'The enduring physical entity: estate, building, unit (residential, commercial, retail, industrial), common areas, utility meters, and physical assets (HVAC, elevators, pumps).'}
+                  ? 'کل ساختمان، آپارتمان‌ها، فضاها، مشاعات و تجهیزات فنی (آسانسور، موتورخانه، کنتورها). سوابق فنی و تعمیرات در گذر زمان برای همان ملک محفوظ می‌ماند.'
+                  : 'The physical property itself, units, commercial spaces, common areas, and technical equipment (lifts, boilers, meters). Technical logs and maintenance history remain tied to the property over time.'}
               </p>
             </div>
             <div className="pt-6 border-t border-[#E2E8F0] mt-6 text-xs text-[#334E68] font-medium flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
-              <span>{lang === 'ro' ? 'Identitate unică și istoric continuu' : lang === 'fa' ? 'هویت تغییرناپذیر و سابقه ماندگار' : 'Persistent identity & lifetime history'}</span>
+              <span>{lang === 'ro' ? 'Istoric continuu al clădirii' : lang === 'fa' ? 'سابقه پیوسته و ماندگار ملک' : 'Continuous building history'}</span>
             </div>
           </div>
 
@@ -80,22 +80,22 @@ export const WorkspaceModelSection: React.FC<WorkspaceModelSectionProps> = ({ la
                 <Layers className="w-6 h-6" />
               </div>
               <span className="text-xs font-bold text-[#0E9F8E] uppercase tracking-wider block">
-                {lang === 'ro' ? 'Pilonul 2 • Granița de Securitate' : lang === 'fa' ? 'مفهوم دوم • مرز اطلاعات و اختیار' : 'Pillar 2 • Collaboration Boundary'}
+                {lang === 'ro' ? '2. Spațiul Privat de Lucru' : lang === 'fa' ? 'بخش ۲ • فضای کاری اختصاصی' : 'Pillar 2 • Private Workspace'}
               </span>
               <h3 className="text-xl font-bold text-[#102A43]">
-                {lang === 'ro' ? 'Workspace (Spațiul de Lucru)' : lang === 'fa' ? 'محیط کاری (Workspace)' : 'Workspace Boundary'}
+                {lang === 'ro' ? 'Workspace (Spațiul de Lucru al Organizației)' : lang === 'fa' ? 'فضای کاری سازمان (Workspace)' : 'Workspace (Organization Workspace)'}
               </h3>
               <p className="text-sm text-[#52667A] leading-relaxed">
                 {lang === 'ro'
-                  ? 'Mediul de colaborare al unei organizații sau al unui grup specific. Reprezintă granița strictă a informațiilor, deciziilor, documentelor și responsabilităților contractuale.'
+                  ? 'Spațiul de lucru al unei asociații de proprietari, al unui dezvoltator sau al unei firme de administrare. Documentele interne, deciziile și evidențele financiare rămân protejate în cadrul fiecărui spațiu.'
                   : lang === 'fa'
-                  ? 'محیط همکاری یک سازمان یا گروه و مرز دسترسی اطلاعات، تصمیمات و اختیارات آن. چندین Workspace می‌توانند با یک ملک در ارتباط باشند، اما اطلاعات داخلی آن‌ها هرگز با یکدیگر ترکیب نمی‌شود.'
-                  : 'The operational boundary of an organization or mandate. It holds memberships, private documents, internal communications, and contracted service modules.'}
+                  ? 'فضای کاری ویژه برای انجمن مالکان، شرکت مدیریت یا سازنده. اسناد داخلی، تصمیمات و دفاتر حسابداری در مرز کاری همان مجموعه محافظت می‌شوند.'
+                  : 'The dedicated operational workspace for a homeowners’ association, property manager, or developer. Internal records, decisions, and accounting remain protected within each workspace.'}
               </p>
             </div>
             <div className="pt-6 border-t border-[#E2E8F0] mt-6 text-xs text-[#334E68] font-medium flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
-              <span>{lang === 'ro' ? 'Separare de context și confidențialitate între organizații' : lang === 'fa' ? 'تفکیک دسترسی و حفظ محرمانگی بین سازمان‌ها' : 'Context-aware privacy and workspace boundaries'}</span>
+              <span>{lang === 'ro' ? 'Separare clară și confidențialitate între organizații' : lang === 'fa' ? 'تفکیک مشخص و حفظ حریم اطلاعات میان سازمان‌ها' : 'Clear separation and privacy between organizations'}</span>
             </div>
           </div>
 
@@ -106,22 +106,22 @@ export const WorkspaceModelSection: React.FC<WorkspaceModelSectionProps> = ({ la
                 <Users className="w-6 h-6" />
               </div>
               <span className="text-xs font-bold text-[#0E9F8E] uppercase tracking-wider block">
-                {lang === 'ro' ? 'Pilonul 3 • Actorii Autorizați' : lang === 'fa' ? 'مفهوم سوم • اشخاص و حدود اختیار' : 'Pillar 3 • Authorized Actors'}
+                {lang === 'ro' ? '3. Oamenii și Drepturile Lor' : lang === 'fa' ? 'بخش ۳ • افراد و اختیارات' : 'Pillar 3 • People & Access'}
               </span>
               <h3 className="text-xl font-bold text-[#102A43]">
-                {lang === 'ro' ? 'Persoane, Roluri & Relații' : lang === 'fa' ? 'اشخاص، نقش‌ها و روابط' : 'Persons, Roles & Scopes'}
+                {lang === 'ro' ? 'Persoane, Roluri și Permisiuni' : lang === 'fa' ? 'اشخاص، نقش‌ها و دسترسی‌ها' : 'People, Roles & Permissions'}
               </h3>
               <p className="text-sm text-[#52667A] leading-relaxed">
                 {lang === 'ro'
-                  ? 'Oamenii care acționează în sistem: proprietari, chiriași, membri ai comitetului, administratori sau furnizori de servicii. Accesul lor este determinat de rol, domeniul de responsabilitate și termenul valabil al mandatului.'
+                  ? 'Proprietari, chiriași, membri ai comitetului, administratori sau meșteri. Fiecare vede doar ce are dreptul să vadă, pe perioada în care este autorizat.'
                   : lang === 'fa'
-                  ? 'افرادی که در یک محدوده مشخص و برای بازه زمانی معتبر، اختیار مشاهده یا اقدام دارند. یک شخص می‌تواند چند نقش داشته باشد و هم‌زمان در چند Workspace با اختیارات متفاوت عضو باشد.'
-                  : 'Individual people: owners, occupants, board auditors, facility managers, and service technicians. Access is granted based on verified relationship, scope, and time-valid mandates.'}
+                  ? 'مالکان، مستأجران، مدیران، اعضای هیئت‌مدیره و تکنسین‌ها. هر کس دقیقاً اطلاعات مربوط به خود و نقش معتبرش را مشاهده می‌کند.'
+                  : 'Owners, tenants, board members, property managers, and technicians. Everyone sees only what they are authorized to see, for the duration of their role.'}
               </p>
             </div>
             <div className="pt-6 border-t border-[#E2E8F0] mt-6 text-xs text-[#334E68] font-medium flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-[#10B981] shrink-0" />
-              <span>{lang === 'ro' ? 'Multi-rol fără confuzie de conturi' : lang === 'fa' ? 'چندنقشی هم‌زمان با یک حساب' : 'Multi-role with clean context switching'}</span>
+              <span>{lang === 'ro' ? 'Un singur cont, roluri clare fără confuzie' : lang === 'fa' ? 'یک حساب واحد با نقش‌های مشخص' : 'One account, clear roles without confusion'}</span>
             </div>
           </div>
 
@@ -136,10 +136,10 @@ export const WorkspaceModelSection: React.FC<WorkspaceModelSectionProps> = ({ la
               </div>
               <div>
                 <h4 className="text-lg font-bold">
-                  {lang === 'ro' ? 'Reguli practice ale modelului Workspace' : lang === 'fa' ? 'قواعد شفاف معماری Workspace در عمل' : 'Practical Rules of the Workspace Model'}
+                  {lang === 'ro' ? 'Trei reguli simple pentru siguranță și claritate' : lang === 'fa' ? 'سه قاعده ساده برای نظم و امنیت' : 'Three Simple Rules for Clarity & Security'}
                 </h4>
                 <p className="text-xs text-[#9FB3C8]">
-                  {lang === 'ro' ? 'Principiul confidențialității și al predării controlate' : lang === 'fa' ? 'حفظ محرمانگی، تفکیک دسترسی و تحویل مسئولیت' : 'Privacy, authorization, and responsible handover principles'}
+                  {lang === 'ro' ? 'Cum păstrăm datele în siguranță și predarea responsabilităților simplă' : lang === 'fa' ? 'چگونگی حفظ امنیت داده‌ها و سهولت در تحویل مسئولیت' : 'Keeping data safe and role handovers organized'}
                 </p>
               </div>
             </div>
@@ -148,7 +148,7 @@ export const WorkspaceModelSection: React.FC<WorkspaceModelSectionProps> = ({ la
               href={`/${lang}/platform`}
               className="text-xs font-bold text-[#14B8A6] hover:text-[#5EEAD4] flex items-center gap-1 self-start sm:self-auto"
             >
-              <span>{lang === 'ro' ? 'Citește arhitectura completă' : lang === 'fa' ? 'مشاهده مستندات معماری پلتفرم' : 'Read full architecture'}</span>
+              <span>{lang === 'ro' ? 'Află mai multe detalii' : lang === 'fa' ? 'اطلاعات بیشتر درباره معماری پلتفرم' : 'Learn more about the architecture'}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -156,40 +156,40 @@ export const WorkspaceModelSection: React.FC<WorkspaceModelSectionProps> = ({ la
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 text-xs text-[#CBD5E1] leading-relaxed">
             <div className="space-y-1.5">
               <span className="font-bold text-white block text-sm">
-                {lang === 'ro' ? '1. Utilizator cu roluri multiple' : lang === 'fa' ? '۱. کاربر با چند نقش هم‌زمان' : '1. Multi-role identities'}
+                {lang === 'ro' ? '1. Un utilizator, mai multe roluri' : lang === 'fa' ? '۱. یک کاربر با چند نقش' : '1. One user, multiple roles'}
               </span>
               <p>
                 {lang === 'ro'
-                  ? 'Aceeași persoană poate fi proprietar într-un imobil, chiriaș într-un alt complex și membru în comitetul altuia, comutând contextul instantaneu.'
+                  ? 'Poți fi proprietar într-un bloc și chiriaș în altul. Treci de la un rol la altul dintr-un singur clic, fără să încurci conturile.'
                   : lang === 'fa'
-                  ? 'یک شخص می‌تواند در یک ملک مالک باشد، در ساختمانی دیگر مستأجر و در پروژه‌ای دیگر مدیر، و به سادگی بین محیط‌ها جابه‌جا شود.'
-                  : 'One user can be a unit owner in one building, tenant in another, and audit committee member elsewhere with instant context switching.'}
+                  ? 'می‌توانید در یک مجتمع مالک باشید و در ساختمانی دیگر مستأجر. با یک کلیک بین نقش‌ها جابه‌جا شوید، بدون نیاز به حساب‌های کاربری جداگانه.'
+                  : 'You can be an owner in one building and a tenant in another. Switch between contexts with one click, without mixing up accounts.'}
               </p>
             </div>
 
             <div className="space-y-1.5">
               <span className="font-bold text-white block text-sm">
-                {lang === 'ro' ? '2. Proprietari cu mai multe unități' : lang === 'fa' ? '۲. مالکان دارای چند ملک' : '2. Multi-unit owners'}
+                {lang === 'ro' ? '2. Proprietari de locuințe sau spații multiple' : lang === 'fa' ? '۲. مدیریت املاک یا واحدهای متعدد' : '2. Managing multiple properties or units'}
               </span>
               <p>
                 {lang === 'ro'
-                  ? 'Un proprietar cu apartamente în mai multe clădiri își poate urmări patrimoniul centralizat, fără a expune datele altor locatari.'
+                  ? 'Dacă deții locuințe, birouri sau spații în clădiri diferite, le poți urmări într-un singur cont de utilizator, în timp ce datele fiecărui imobil rămân separate.'
                   : lang === 'fa'
-                  ? 'مالک چندواحدی می‌تواند واحدهای خود را در مجتمع‌های مختلف پایش کند، بدون آنکه حریم خصوصی سایر ساکنان خدشه‌دار شود.'
-                  : 'Owners with units across different buildings track rent and costs centrally without compromising other occupants’ privacy.'}
+                  ? 'اگر مالک آپارتمان‌ها، دفاتر یا فضاهایی در ساختمان‌های گوناگون هستید، می‌توانید همه را در یک حساب کاربری دنبال کنید؛ در حالی که داده‌های هر ملک تفکیک‌شده می‌ماند.'
+                  : 'If you own apartments, offices, or commercial spaces across different buildings, you can track them in a single user account while keeping each property’s workspace separate.'}
               </p>
             </div>
 
             <div className="space-y-1.5">
               <span className="font-bold text-white block text-sm">
-                {lang === 'ro' ? '3. Asocierea nu înseamnă partajare' : lang === 'fa' ? '۳. ارتباط چند محیط دلیل اشتراک داده نیست' : '3. Association ≠ Data sharing'}
+                {lang === 'ro' ? '3. Conectate la clădire, dar cu date separate' : lang === 'fa' ? '۳. ارتباط با ملک بدون تداخل اسناد' : '3. Connected to the building, private data'}
               </span>
               <p>
                 {lang === 'ro'
-                  ? 'Dacă un dezvoltator și o asociație sunt legate de același imobil, datele lor financiare interne rămân strict separate.'
+                  ? 'Chiar dacă o asociație și o firmă de administrare colaborează pentru aceeași clădire, documentele lor interne și registrele de lucru nu se amestecă.'
                   : lang === 'fa'
-                  ? 'اگر سازنده، شرکت مدیریت و انجمن مالکان همگی به یک ملک متصل باشند، اسناد محرمانه و حساب‌های داخلی هریک کاملاً مجزاست.'
-                  : 'Multiple workspaces associated with the same building never share internal ledgers, confidential files, or messages.'}
+                  ? 'حتی اگر انجمن مالکان و شرکت خدمات برای یک ساختمان همکاری کنند، اسناد حسابداری و پیام‌های داخلی هر کدام کاملاً تفکیک‌شده می‌ماند.'
+                  : 'Even if an association and a management company work on the same building, their internal documents and operational ledgers remain strictly separated.'}
               </p>
             </div>
           </div>

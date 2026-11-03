@@ -36,11 +36,11 @@ select ok(
 -- ----------------------------------------------------------------------------
 -- 3. Binding Forward-Versioning & Handoff Integrity (5 assertions)
 -- ----------------------------------------------------------------------------
--- 3.1 Registry total records = 90 (48 v1 + 42 v2), active records = 48
+-- 3.1 Registry total records = 91 (49 v1 + 42 v2), active records = 49
 select ok(
-  (select count(*) from platform.module_permission_bindings where module_definition_id in (select id from platform.module_definitions where code in ('occupancy','billing','payments','accounting','maintenance','utilities','governance','communications','documents','security'))) = 90 and
-  (select count(*) from platform.module_permission_bindings where module_definition_id in (select id from platform.module_definitions where code in ('occupancy','billing','payments','accounting','maintenance','utilities','governance','communications','documents','security')) and lifecycle_status = 'active') = 48,
-  'historic module manifest contains exactly 90 total records and 48 active records'
+  (select count(*) from platform.module_permission_bindings where module_definition_id in (select id from platform.module_definitions where code in ('occupancy','billing','payments','accounting','maintenance','utilities','governance','communications','documents','security'))) = 91 and
+  (select count(*) from platform.module_permission_bindings where module_definition_id in (select id from platform.module_definitions where code in ('occupancy','billing','payments','accounting','maintenance','utilities','governance','communications','documents','security')) and lifecycle_status = 'active') = 49,
+  'accepted module manifest contains exactly 91 total records and 49 active records'
 );
 
 -- 3.2 Exactly 42 delegable active bindings have binding_version = 2 and is_delegable = true
@@ -50,10 +50,10 @@ select ok(
   'exactly 42 delegable module permission bindings upgraded to active v2'
 );
 
--- 3.3 The 6 high-risk non-delegable permissions stay at v1 with zero v2 records
+-- 3.3 Seven bindings are non-delegable; the 6 high-risk permissions stay at v1 with zero v2 records
 select ok(
   (select count(*) from platform.module_permission_bindings
-   where module_definition_id in (select id from platform.module_definitions where code in ('occupancy','billing','payments','accounting','maintenance','utilities','governance','communications','documents','security')) and is_delegable is false and lifecycle_status = 'active') = 6 and
+   where module_definition_id in (select id from platform.module_definitions where code in ('occupancy','billing','payments','accounting','maintenance','utilities','governance','communications','documents','security')) and is_delegable is false and lifecycle_status = 'active') = 7 and
   not exists (
     select 1 from platform.module_permission_bindings b
     join identity.permissions p on p.id = b.permission_id
@@ -62,7 +62,7 @@ select ok(
       'utilities.tariffs.manage', 'governance.votes.administer', 'governance.minutes.finalize'
     )
   ),
-  '6 high-risk permissions remain strictly non-delegable at v1 with zero v2 records'
+  'C14 read plus 6 high-risk permissions remain non-delegable with zero high-risk v2 records'
 );
 
 -- 3.4 Forward-close handoff has zero temporal gap and zero overlap between v1 and v2

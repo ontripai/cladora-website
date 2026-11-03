@@ -101,6 +101,9 @@ const sensitiveAuthRoutes = [
 
 const nextConfig = {
   reactStrictMode: true,
+  experimental: {
+    useTypeScriptCli: false,
+  },
   images: {
     unoptimized: true,
     remotePatterns: [

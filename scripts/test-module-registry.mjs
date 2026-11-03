@@ -52,16 +52,27 @@ const id='11700000-0000-4000-8000-000000000001';
 const url='https://cladora.test/api/customer/v1/maintenance-plans';
 const request=(body,origin='https://cladora.test')=>new NextRequest(url,{method:'POST',headers:{origin,'Content-Type':'application/json'},body:JSON.stringify(body)});
 const body={action:'save',context_id:id,id,revision:0,asset_id:id,vendor_id:id,name:'Lift',anchor:'2026-01-31',unit:'months',every:1,enabled:true,checklist:['Check doors']};
-assert.equal((await route.POST(request(body,'https://evil.test'))).status,403);
-assert.equal((await route.POST(request({...body,every:0}))).status,400);
-assert.equal((await route.POST(request({...body,anchor:'2026-02-31'}))).status,400);
+// Accepted C03 closed all direct legacy calendar writes. Validate the current
+// intent codecs and the closed boundary; never reopen the old writer for a test.
+const {operationsSaveSchema,operationsGenerateSchema,intentFromWire}=load('src/lib/customer/operations-command.ts');
+assert.ok(operationsSaveSchema.safeParse(body).success);
+assert.equal(operationsSaveSchema.safeParse({...body,every:0}).success,false);
+assert.equal(operationsSaveSchema.safeParse({...body,anchor:'2026-02-31'}).success,false);
+assert.deepEqual(intentFromWire(JSON.stringify({version:1,context_id:id,target_id:id,action:'save',expected_status:null,input:body})).input,body);
+const generate={action:'generate',context_id:id,plan_id:id,due_on:'2026-01-31'};
+assert.ok(operationsGenerateSchema.safeParse(generate).success);
+for(const rejected of [request(body,'https://evil.test'),request({...body,every:0}),request({...body,anchor:'2026-02-31'}),request(body),request(generate)]){
+ const answer=await route.POST(rejected);assert.equal(answer.status,428);assert.match(answer.headers.get('cache-control'),/no-store/);
+}
 assert.equal(calls.length,0);
-signedIn=false;assert.equal((await route.POST(request(body))).status,401);assert.equal(calls.length,0);
-signedIn=true;assert.equal((await route.POST(request(body))).status,200);assert.equal(calls[0].name,'save_calendar_plan_v1');assert.equal(calls[0].args.p_every,1);
-assert.equal((await route.POST(request({action:'generate',context_id:id,plan_id:id,due_on:'2026-01-31'}))).status,200);assert.equal(calls[1].name,'generate_calendar_order_v1');
+signedIn=false;assert.equal((await route.POST(request(body))).status,428);assert.equal(calls.length,0);
+signedIn=true;
 assert.equal((await route.GET(new NextRequest(url+'?context_id=invalid'))).status,400);
 assert.equal((await route.GET(new NextRequest(url+'?context_id='+id))).status,200);
-console.log('PASS calendar-plan API: origin, date/range validation, authentication, isolated RPCs and parameter mapping');
+assert.deepEqual(calls,[{name:'list_calendar_plans_v1',args:{p_context_id:id}}]);
+console.log('PASS calendar-plan API: closed legacy POST with zero RPCs; real intent validation and authenticated read mapping');
+const commandPort={ready:true,receipt:null,send:async()=>{throw Error('Unexpected command in empty-panel fixture');}};
+mocks['./OperationsCommandGate']={useOperationsCommands:()=>commandPort};
 const {PreventiveMaintenancePanel}=load('src/components/customer/PreventiveMaintenancePanel.tsx');
 for(const lang of ['ro','en','fa']){
  globalThis.fetch=async()=>new Response(JSON.stringify({plans:[],assets:[],vendors:[]}));

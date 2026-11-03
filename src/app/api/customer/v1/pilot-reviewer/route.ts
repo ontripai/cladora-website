@@ -1,3 +1,4 @@
+import { reviewerSetupStateSchema } from '@/lib/customer/building-setup-schema';
 import { NextResponse, type NextRequest } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
@@ -8,7 +9,9 @@ const schema=z.object({workspace_id:z.string().uuid(),display_name:z.string().tr
 export async function GET(){
  const supabase=await createClient();
  const {data,error}=await supabase.schema('customer_api').rpc('my_pilot_setup_reviewer_v1');
- return error?NextResponse.json({error:{code:'REVIEWER_STATE_UNAVAILABLE'}},{status:403,headers}):NextResponse.json({reviewer:data},{headers});
+ if(error)return NextResponse.json({error:{code:'REVIEWER_STATE_UNAVAILABLE'}},{status:403,headers});
+ const parsed=reviewerSetupStateSchema.safeParse(data);
+ return parsed.success?NextResponse.json({reviewer:parsed.data},{headers}):NextResponse.json({error:{code:'REVIEWER_STATE_INVALID'}},{status:502,headers});
 }
 export async function POST(request:NextRequest){
  if(!hasTrustedMutationOrigin(request))return NextResponse.json({error:{code:'ORIGIN_REJECTED'}},{status:403,headers});

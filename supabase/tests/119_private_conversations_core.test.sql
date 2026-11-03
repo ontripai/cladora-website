@@ -48,12 +48,12 @@ select ok(not communications.member_covers_unit('11900000-0000-4000-8000-0000000
 
 set local role authenticated;
 select set_config('request.jwt.claims',jsonb_build_object('sub','11900000-0000-4000-8000-000000000001','role','authenticated','aal','aal1','active_tenant_id','11900000-0000-4000-8000-000000000004','active_context_id','11900000-0000-4000-8000-000000000011')::text,true);
-select throws_ok($$select customer_api.create_private_conversation_v1('11900000-0000-4000-8000-000000000011','11900000-0000-4000-8000-000000000009','11900000-0000-4000-8000-000000000002','Hello','11900000-0000-4000-8000-000000000021')$$,'42501','private_conversation_denied','AAL1 cannot create');
+select throws_ok($$select customer_api.create_private_conversation_v1('11900000-0000-4000-8000-000000000011','11900000-0000-4000-8000-000000000009','11900000-0000-4000-8000-000000000002','Hello','11900000-0000-4000-8000-000000000021')$$,'42501','permission denied for function create_private_conversation_v1','legacy AAL1 create is denied at the S4 ACL');
 select set_config('request.jwt.claims',jsonb_build_object('sub','11900000-0000-4000-8000-000000000001','role','authenticated','aal','aal2','active_tenant_id','11900000-0000-4000-8000-000000000004','active_context_id','11900000-0000-4000-8000-000000000011')::text,true);
 select is(jsonb_array_length(customer_api.list_private_units_v1('11900000-0000-4000-8000-000000000011',null,25,0)),1,'Sender discovers permitted unit');
 select is(jsonb_array_length(customer_api.list_private_recipients_v1('11900000-0000-4000-8000-000000000011','11900000-0000-4000-8000-000000000009')),1,'Only related recipient discoverable');
-select throws_ok($$select customer_api.create_private_conversation_v1('11900000-0000-4000-8000-000000000011','11900000-0000-4000-8000-000000000009','11900000-0000-4000-8000-000000000003','Hello','11900000-0000-4000-8000-000000000021')$$,'42501','private_conversation_denied','Other property recipient denied');
-select throws_ok($$select customer_api.create_private_conversation_v1('11900000-0000-4000-8000-000000000011','11900000-0000-4000-8000-000000000009','11900000-0000-4000-8000-000000000002','Hello','11900000-0000-4000-8000-000000000021')$$,'23502','private_conversation_workspace_binding_required','legacy create path fails closed after D5');
+select throws_ok($$select customer_api.create_private_conversation_v1('11900000-0000-4000-8000-000000000011','11900000-0000-4000-8000-000000000009','11900000-0000-4000-8000-000000000003','Hello','11900000-0000-4000-8000-000000000021')$$,'42501','permission denied for function create_private_conversation_v1','legacy cross-property create is denied at the S4 ACL');
+select throws_ok($$select customer_api.create_private_conversation_v1('11900000-0000-4000-8000-000000000011','11900000-0000-4000-8000-000000000009','11900000-0000-4000-8000-000000000002','Hello','11900000-0000-4000-8000-000000000021')$$,'42501','permission denied for function create_private_conversation_v1','legacy create path is closed after S4');
 
 select * from skip(
   'pre-D5 conversation lifecycle superseded by canonical tests 191, 192, 195 and 198',

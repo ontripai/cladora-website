@@ -34,15 +34,14 @@ export const AppOrMarketingLayout: React.FC<LayoutWrapperProps> = ({ lang, child
     pathname?.includes(`/${lang}/app`) ||
     pathname === `/${lang}/account` ||
     pathname === `/${lang}/owner-portfolio`;
+  const isDemoAppRoute = pathname === `/${lang}/demo/app` || pathname?.startsWith(`/${lang}/demo/app/`);
 
   // Legacy pages requiring dark compatibility shell for contrast safety (WP-03 fix)
   // In WP-10, legacy routes are consolidated/redirected and /pricing is modernized to enterprise light theme
   const legacyDarkRoutes: string[] = [];
   const isLegacyDarkRoute = pathname ? legacyDarkRoutes.includes(pathname) : false;
 
-  return (
-    <DemoProvider>
-      {isAppRoute ? (
+  const page = isAppRoute || isDemoAppRoute ? (
         <>{children}</>
       ) : (
         <div className="flex flex-col min-h-screen">
@@ -52,7 +51,7 @@ export const AppOrMarketingLayout: React.FC<LayoutWrapperProps> = ({ lang, child
           </div>
           <Footer lang={lang} />
         </div>
-      )}
-    </DemoProvider>
-  );
+      );
+  const isDemoRoute = pathname === `/${lang}/demo` || pathname?.startsWith(`/${lang}/demo/`);
+  return isDemoRoute ? <DemoProvider>{page}</DemoProvider> : page;
 };

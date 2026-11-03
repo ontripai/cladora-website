@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { uuidSchema } from '@/lib/customer/workspace-composition-schema';
-import { publishServiceQuoteSchema } from '@/lib/customer/service-quote-publication-schema';
+import { publishServiceQuoteSchema, serviceQuotePublicationResultSchema, serviceQuotePublicationsSchema } from '@/lib/customer/service-quote-publication-schema';
 const HEADERS = { 'Cache-Control': 'no-store, private', Pragma: 'no-cache', Vary: 'Cookie' };
 const failure = (code: string, status: number) => NextResponse.json({ error: { code } }, { status, headers: HEADERS });
 function rpcFailure(code: string) {
@@ -24,8 +24,9 @@ export async function GET(request: NextRequest) {
   const { data, error } = await supabase.schema('customer_api').rpc('read_service_quote_publications_v1' as never,
     { p_context_id: context.data, p_workspace_id: workspace.data, p_mode: mode } as never);
   if (error) return rpcFailure(error.code);
-  if (!data) return failure('SERVICE_QUERY_FAILED', 500);
-  return NextResponse.json(data, { headers: HEADERS });
+  const result = serviceQuotePublicationsSchema.safeParse(data);
+  if (!result.success) return failure('SERVICE_QUERY_FAILED', 502);
+  return NextResponse.json(result.data, { headers: HEADERS });
 }
 export async function POST(request: NextRequest) {
   const origin = request.headers.get('origin');
@@ -40,6 +41,7 @@ export async function POST(request: NextRequest) {
   if (!command.success) return failure('INVALID_REQUEST', 400);
   const { data, error } = await supabase.schema('customer_api').rpc('publish_service_quote_v1' as never, { p_request: command.data } as never);
   if (error) return rpcFailure(error.code);
-  if (!data) return failure('SERVICE_QUERY_FAILED', 500);
-  return NextResponse.json(data, { headers: HEADERS });
+  const result = serviceQuotePublicationResultSchema.safeParse(data);
+  if (!result.success) return failure('SERVICE_QUERY_FAILED', 502);
+  return NextResponse.json(result.data, { headers: HEADERS });
 }

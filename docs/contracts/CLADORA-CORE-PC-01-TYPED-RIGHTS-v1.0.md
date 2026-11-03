@@ -1,8 +1,14 @@
 # CLADORA Core PC-01 typed rights and activation contract v1.0
 
-**Baseline:** `feat/core-dw-02-resource-contracts@2c314b4e7a51970a1dda3388446b377db535a56a`
+**Baseline:** local DW-02 acceptance SHA `8b3c8713b481895cd67543e6a519038d86b13155`
 
-**Delivery boundary:** additive projection schemas, truth table and static evidence. No entitlement mutation, product catalogue table, evaluator replacement, migration, endpoint, central manifest change or Production effect.
+**Delivery boundary:** one additive, read-only `module.services_catalog` projection plus one real consumer in the existing Service Catalog read API. No entitlement mutation, product catalogue table, evaluator replacement, quota consumption, central manifest change or Production effect.
+
+## Accepted vertical slice
+
+`customer_api.get_product_capability_decision_v1(context, workspace, capability)` accepts only `module.services_catalog`. It resolves the caller and exact Workspace through `app_private.resolve_workspace_native_context_v2` (AUTH-01), then projects the existing entitlement, optional contract provenance, current `services_catalog` module definition and Workspace activation. It grants execution only to `authenticated`; `PUBLIC`, `anon` and `service_role` have no direct execution grant.
+
+`GET /api/customer/v1/services/catalog` is the real consumer. Its existing `list_service_catalog_v1` operation and `services.catalog.read` authorization remain first and authoritative. After that succeeds, the route reads PC-01 and validates `product-capability-decision.v1`. A projection error or invalid payload returns `product_capability: null` alongside the successful `offerings`; it cannot turn an existing successful catalog read into an error.
 
 ## Existing implementation reused
 
@@ -46,7 +52,8 @@ An available product right does not activate a module. An active module does not
 | `platform.workspace_entitlements` | `right` | one current compatibility row per Workspace/key; temporal validity and legacy provenance retained |
 | `platform.workspace_modules` | `activation` | exact module definition/version and temporal activation status |
 | `platform.module_definitions.entitlement_key` | right-to-module lookup | catalogue mapping only; does not create either side |
-| `app_private.check_effective_permission_v2` | action check outside this projection | deny-first, scoped, current and separate from availability |
+| `app_private.resolve_workspace_native_context_v2` | projection disclosure boundary | AUTH-01 authenticates and binds the exact Workspace without treating availability as action authority |
+| `app_private.check_effective_permission_v2` | action check outside this projection | deny-first, scoped, current and separate from availability; the existing catalog API retains this check |
 | `platform.entitlement_usage_ledger` | quota evidence | append-only consumption; never inferred from module activation |
 
 ## Legacy and multi-product boundary
@@ -60,6 +67,15 @@ The current unique `(customer_workspace_id, entitlement_key)` row cannot represe
 3. Contract and `legacy_unprovenanced` provenance are mutually exclusive and strict.
 4. Product availability, module activation and action authorization remain separate.
 5. Existing DW-01A availability semantics, current evaluator, quota ledger and historical records are unchanged.
-6. Static contract tests, typecheck, database package fingerprint and existing DW-01A/DW-02 tests pass.
+6. PostgreSQL, API consumer, static contract and typecheck tests pass on the same local SHA.
 
-Passing tests place this contract in review. They do not authorize an append-only grant migration, merge, remote migration, Production deployment or central manifest update.
+## Explicit remaining blockers
+
+- This accepted slice covers only `module.services_catalog`; each later capability needs its own real consumer and accepted disclosure mapping.
+- String, array and JSON capability comparators remain `review_required`; no generic commercial meaning is invented.
+- The current unique Workspace/key entitlement row still cannot represent overlapping product grants or immutable grant provenance. A future append-only grant package needs separate review and migration authorization.
+- Quota enforcement remains in `platform.enforce_entitlement_quota`; PC-01 does not replace or call it.
+- Full commercial PC-01 is not a prerequisite or runtime gate for PF-01, Service Catalog, or any existing COM/FIN/OPS operation.
+- BK-01 remains only a prerequisite for C13; this package neither broadens nor consumes that dependency.
+
+Passing tests place this vertical slice in review. They do not authorize an append-only grant migration, merge, remote migration, Production deployment or central manifest update.

@@ -22,7 +22,10 @@ if (target.pathname === '/postgres') {
   target.pathname = `/${isolatedDatabaseName}`;
 }
 
-const pool = new pg.Pool({ connectionString: target.toString(), max: 3 });
+// These checks are serial. Client.end() awaits the socket's end event; Pool.end()
+// may resolve while an idle client's socket is still closing. Dropping the
+// database at that point can terminate it and emit an unhandled pool error.
+const pool = new pg.Client({ connectionString: target.toString() });
 let checks = 0;
 const check = async (name, run) => {
   await run();
@@ -43,6 +46,7 @@ const calls = [
 ];
 
 try {
+  await pool.connect();
   await pool.query(`
     do $$ begin create role anon nologin; exception when duplicate_object then null; end $$;
     do $$ begin create role authenticated nologin; exception when duplicate_object then null; end $$;
@@ -120,7 +124,13 @@ try {
 } finally {
   await pool.end();
   if (adminPool && isolatedDatabaseName) {
-    await adminPool.query(`drop database "${isolatedDatabaseName}" with (force)`);
+    // Never terminate another session to make cleanup pass. Our client has
+    // actually closed; an unexpected remaining connection must fail cleanup.
+    await adminPool.query(`drop database "${isolatedDatabaseName}"`);
+    assert.equal((await adminPool.query(
+      'select count(*)::integer count from pg_database where datname=$1',
+      [isolatedDatabaseName],
+    )).rows[0].count, 0, 'owned disposable database was removed');
     await adminPool.end();
   }
 }

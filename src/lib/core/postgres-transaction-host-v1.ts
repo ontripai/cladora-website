@@ -198,6 +198,10 @@ const receiptV2Schema = receiptBaseSchema.extend({
 'Persisted provider evidence must bind subject, authority and committed transaction');
 export type CoreTransactionReceiptV2 = z.infer<typeof receiptV2Schema>;
 const persistedReceiptSchema = z.union([receiptSchema, receiptV2Schema]);
+
+// PROPOSED263-1: expose existing strict parsers only; no host/evaluator behavior change.
+export const coreTransactionReceiptV1Schema = receiptSchema;
+export const coreTransactionReceiptV2Schema = receiptV2Schema;
 export type CoreTransactionResultV1 =
   | { status: 'committed' | 'exact_replay'; receipt: CoreTransactionReceiptV1 }
   | { status: 'denied'; code: 'INVALID_COMMAND' | 'WORKSPACE_UNAVAILABLE' | 'REPLAY_CONFLICT'

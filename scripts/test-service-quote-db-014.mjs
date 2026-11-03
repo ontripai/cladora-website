@@ -89,22 +89,48 @@ try {
   await db.exec('alter table platform.module_permission_bindings add requires_aal2 boolean default false');
   await db.exec(readFileSync(new URL('../supabase/migrations/20261005063120_20261005061344_service_quote_draft_runtime_v1.sql',import.meta.url),'utf8'));
   assert.equal((await q("select requires_aal2 from platform.module_permission_bindings b join identity.permissions p on p.id=b.permission_id where p.code='services.quotes.manage'"))[0].requires_aal2,true);
-  const quote={context_id:context,workspace_id:workspace,request_id:submitted.request_id,published_revision_id:created.revision_id,scope:'Synthetic service assessment',total_minor:'9007199254740993',currency:'RON',payer_shares:[{party_id:provider,amount_minor:'9007199254740993'}],valid_until:'2099-01-01T00:00:00Z',idempotency_key:'quote-014-first'};
-  const draft=async value=>(await q('select customer_api.create_service_quote_draft_v1($1::jsonb) result',[JSON.stringify(value)]))[0].result;
-  const readQuotes=async(ws=workspace)=>(await q('select customer_api.read_service_quote_drafts_v1($1,$2) result',[context,ws]))[0].result;
-  await check('Request permission alone cannot manage proposals',async()=>{await denied(()=>draft(quote),'42501');await denied(()=>readQuotes(),'42501');});
+  const legacyQuote={context_id:context,workspace_id:workspace,request_id:submitted.request_id,published_revision_id:created.revision_id,scope:'Synthetic legacy service assessment',total_minor:'1',currency:'RON',payer_shares:[{party_id:provider,amount_minor:'1'}],valid_until:'2099-01-01T00:00:00Z',idempotency_key:'quote-014-legacy'};
+  const legacyDraft=async value=>(await q('select customer_api.create_service_quote_draft_v1($1::jsonb) result',[JSON.stringify(value)]))[0].result;
+  await check('Request permission alone cannot manage proposals',async()=>await denied(()=>legacyDraft(legacyQuote),'42501'));
   await db.exec(`insert into app_private.test_authority values('${actor}','${workspace}','services.quotes.manage')`);
+  const legacyResult=await legacyDraft(legacyQuote);
+  await db.exec(readFileSync(new URL('../supabase/migrations/20261013062342_service_request_subject_context_v1.sql',import.meta.url),'utf8'));
+  await db.exec(readFileSync(new URL('../supabase/migrations/20261022071629_service_quote_request_version_binding_v2.sql',import.meta.url),'utf8'));
+  const quote={context_id:context,workspace_id:workspace,request_id:submitted.request_id,expected_request_version:1,published_revision_id:created.revision_id,scope:'Synthetic service assessment',total_minor:'9007199254740993',currency:'RON',payer_shares:[{party_id:provider,amount_minor:'9007199254740993'}],valid_until:'2099-01-01T00:00:00Z',idempotency_key:'quote-014-first'};
+  const draft=async value=>(await q('select customer_api.create_service_quote_draft_v2($1::jsonb) result',[JSON.stringify(value)]))[0].result;
+  const readQuotes=async(ws=workspace)=>(await q('select customer_api.read_service_quote_drafts_v2($1,$2) result',[context,ws]))[0].result;
+  await check('V1 exact committed replay remains available but every new unversioned write is closed',async()=>{assert.deepEqual(await legacyDraft(legacyQuote),legacyResult);await denied(()=>legacyDraft({...legacyQuote,idempotency_key:'quote-014-unversioned-new'}),'22023');});
   let result;
   await check('Exact amounts and atomic draft/audit/outbox/replay',async()=>{
-    result=await draft(quote);assert.equal(result.version,1);assert.equal(result.status,'draft');assert.deepEqual(await draft(quote),result);
+    result=await draft(quote);assert.equal(result.version,2);assert.equal(result.request_version,1);assert.equal(result.status,'draft');assert.deepEqual(await draft(quote),result);
     for(const [table,column] of [['service_catalog.quote_drafts','id'],['audit.events','entity_id'],['platform.outbox_events','aggregate_id']])assert.equal((await q(`select count(*)::int n from ${table} where ${column}=$1`,[result.quote_id]))[0].n,1);
-    assert.equal((await readQuotes()).requests[0].quotes[0].total_minor,'9007199254740993');
+    assert.equal((await readQuotes()).requests[0].request_version,1);assert.equal((await readQuotes()).requests[0].quotes[0].total_minor,'9007199254740993');
   });
-  await check('New version preserves original scope and total',async()=>{const second=await draft({...quote,scope:'New synthetic scope',total_minor:'0',payer_shares:[{party_id:provider,amount_minor:'0'}],idempotency_key:'quote-014-second'});assert.equal(second.version,2);const history=(await readQuotes()).requests[0].quotes;assert.equal(history.length,2);assert.equal(history[1].scope,quote.scope);assert.equal(history[1].total_minor,quote.total_minor);});
+  await check('New version preserves original scope and total',async()=>{const second=await draft({...quote,scope:'New synthetic scope',total_minor:'0',payer_shares:[{party_id:provider,amount_minor:'0'}],idempotency_key:'quote-014-second'});assert.equal(second.version,3);const history=(await readQuotes()).requests[0].quotes;assert.equal(history.length,3);assert.equal(history[1].scope,quote.scope);assert.equal(history[1].total_minor,quote.total_minor);});
   await check('Changed payload with same key conflicts',async()=>denied(()=>draft({...quote,scope:'Changed scope'}),'23505'));
   await check('Foreign workspace cannot read or write',async()=>{await denied(()=>readQuotes(foreignWorkspace),'42501');await denied(()=>draft({...quote,workspace_id:foreignWorkspace}),'42501');});
   await check('Unrelated request is hidden',async()=>denied(()=>draft({...quote,request_id:id(99)}),'P0002'));
-  await check('Historical revision cannot be replaced',async()=>denied(()=>draft({...quote,published_revision_id:id(99)}),'40001'));
+  await check('Historical revision cannot be replaced: changed replay conflicts, fresh command fails CAS with zero writes',async()=>{
+    const before=await q('select (select count(*) from service_catalog.quote_drafts) drafts,(select count(*) from audit.events) audits,(select count(*) from platform.outbox_events) outbox,(select count(*) from platform.idempotency_keys) keys');
+    await denied(()=>draft({...quote,published_revision_id:id(99)}),'23505');
+    await denied(()=>draft({...quote,published_revision_id:id(99),idempotency_key:'quote-014-wrong-revision-new'}),'40001');
+    assert.deepEqual(await q('select (select count(*) from service_catalog.quote_drafts) drafts,(select count(*) from audit.events) audits,(select count(*) from platform.outbox_events) outbox,(select count(*) from platform.idempotency_keys) keys'),before);
+  });
+  await check('Missing, unsafe and stale Request versions fail before durable writes',async()=>{
+    for(const expected_request_version of [undefined,0,-1,1.5,9007199254740992])await denied(()=>draft({...quote,expected_request_version,idempotency_key:`quote-014-version-${String(expected_request_version)}`}),'22023');
+    const before=await q("select (select count(*) from service_catalog.quote_drafts) drafts,(select count(*) from audit.events) audits,(select count(*) from platform.outbox_events) outbox,(select count(*) from platform.idempotency_keys where key like 'service_quote:sql_v2:%') keys");
+    await denied(()=>draft({...quote,expected_request_version:2,idempotency_key:'quote-014-stale'}),'40001');
+    const after=await q("select (select count(*) from service_catalog.quote_drafts) drafts,(select count(*) from audit.events) audits,(select count(*) from platform.outbox_events) outbox,(select count(*) from platform.idempotency_keys where key like 'service_quote:sql_v2:%') keys");assert.deepEqual(after,before);
+  });
+  await check('Committed replay remains exact after Request version advances; a new stale key is zero-write',async()=>changed(`select app_private.lock_service_request_version_v1('${workspace}','${submitted.request_id}',1);update service_catalog.requests set version=2 where id='${submitted.request_id}'`,async()=>{
+    assert.deepEqual(await draft(quote),result);
+    // Expected SQL errors abort the surrounding transaction. Recover only this
+    // failed statement before observing rows; the fixture's version bump stays live.
+    await db.exec('savepoint quote_stale_probe');
+    await denied(()=>draft({...quote,idempotency_key:'quote-014-after-version-change'}),'40001');
+    await db.exec('rollback to savepoint quote_stale_probe');
+    assert.equal((await q("select count(*)::int n from platform.idempotency_keys where key like '%quote-014-after-version-change'"))[0].n,0);
+  }));
   await check('Different or additional payer denied',async()=>{await denied(()=>draft({...quote,payer_shares:[{party_id:id(10),amount_minor:quote.total_minor}]}),'42501');await denied(()=>draft({...quote,payer_shares:[{party_id:provider,amount_minor:'1'},{party_id:id(10),amount_minor:'9007199254740992'}]}),'42501');});
   for(const field of ['actor_id','tenant_id','status','version','order_id','accepted_by','work_order_id'])await check(field+' injection rejected',async()=>denied(()=>draft({...quote,[field]:'injected'}),'22023'));
   for(const value of ['-1','01','1.23','1e2',123,null])await check('Noncanonical amount '+value,async()=>denied(()=>draft({...quote,total_minor:value}),'22023'));
@@ -115,14 +141,14 @@ try {
   await check('Archived provider/beneficiary denied',async()=>changed("update portfolio.parties set archived_at=clock_timestamp()",()=>denied(()=>draft(quote),'42501')));
   await check('Stored versions cannot update or delete',async()=>{await denied(()=>q('update service_catalog.quote_drafts set scope=$1 where id=$2',['Forbidden edit',result.quote_id]),'23514');await denied(()=>q('delete from service_catalog.quote_drafts where id=$1',[result.quote_id]),'23514');});
   await check('Audit failure rolls back draft and key',async()=>{const before=(await q('select count(*)::int n from service_catalog.quote_drafts'))[0].n;await changed("alter table audit.events add constraint quote_test_audit_failure check(action<>'services.quotes.draft') not valid",()=>denied(()=>draft({...quote,idempotency_key:'quote-014-audit-fail'}),'23514'));assert.equal((await q('select count(*)::int n from service_catalog.quote_drafts'))[0].n,before);assert.equal((await q("select count(*)::int n from platform.idempotency_keys where key like '%quote-014-audit-fail'"))[0].n,0);});
-  await check('Direct table and anonymous RPC access closed',async()=>{assert.equal((await q("select has_table_privilege('authenticated','service_catalog.quote_drafts','select') ok"))[0].ok,false);assert.equal((await q("select has_function_privilege('anon','customer_api.create_service_quote_draft_v1(jsonb)','execute') ok"))[0].ok,false);assert.equal((await q("select relrowsecurity ok from pg_class where oid='service_catalog.quote_drafts'::regclass"))[0].ok,true);});
+  await check('Direct table and anonymous V2 RPC access closed',async()=>{assert.equal((await q("select has_table_privilege('authenticated','service_catalog.quote_drafts','select') ok"))[0].ok,false);assert.equal((await q("select has_function_privilege('anon','customer_api.create_service_quote_draft_v2(jsonb)','execute') ok"))[0].ok,false);assert.equal((await q("select relrowsecurity ok from pg_class where oid='service_catalog.quote_drafts'::regclass"))[0].ok,true);});
   if(openConnection){
     await check('Separate connections allocate unique consecutive versions and same-key replay once',async()=>{
       const peers=await Promise.all([openConnection(),openConnection()]);
       try{for(const peer of peers)await peer.query("select set_config('request.jwt.claim.sub',$1,false)",[actor]);
-        const parallel=values=>Promise.all(values.map((value,i)=>peers[i].query('select customer_api.create_service_quote_draft_v1($1::jsonb) result',[JSON.stringify(value)]).then(r=>r.rows[0].result)));
-        const different=await parallel([{...quote,idempotency_key:'quote-014-parallel-a'},{...quote,idempotency_key:'quote-014-parallel-b'}]);assert.deepEqual(different.map(x=>x.version).sort(),[3,4]);assert.notEqual(different[0].quote_id,different[1].quote_id);
-        const same=await parallel([{...quote,idempotency_key:'quote-014-parallel-same'},{...quote,idempotency_key:'quote-014-parallel-same'}]);assert.deepEqual(same[0],same[1]);assert.equal(same[0].version,5);assert.equal((await q('select count(*)::int n from audit.events where entity_id=$1',[same[0].quote_id]))[0].n,1);
+        const parallel=values=>Promise.all(values.map((value,i)=>peers[i].query('select customer_api.create_service_quote_draft_v2($1::jsonb) result',[JSON.stringify(value)]).then(r=>r.rows[0].result)));
+        const different=await parallel([{...quote,idempotency_key:'quote-014-parallel-a'},{...quote,idempotency_key:'quote-014-parallel-b'}]);assert.deepEqual(different.map(x=>x.version).sort(),[4,5]);assert.notEqual(different[0].quote_id,different[1].quote_id);
+        const same=await parallel([{...quote,idempotency_key:'quote-014-parallel-same'},{...quote,idempotency_key:'quote-014-parallel-same'}]);assert.deepEqual(same[0],same[1]);assert.equal(same[0].version,6);assert.equal((await q('select count(*)::int n from audit.events where entity_id=$1',[same[0].quote_id]))[0].n,1);
       }finally{await Promise.all(peers.map(p=>p.end()));}
     });
   }

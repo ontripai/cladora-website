@@ -139,14 +139,103 @@ const migrationResult = validateProtectedDirectory({
       owner: 'SERVICE + Communications / S4',
       sha256: '85cf0be289620aba101497919884304619cfb39d53874c38c0132ee3b4f33800',
     },
+    '20261019170121_dw02_canonical_unit_reference_v1.sql': {
+      owner: 'Core / DW02',
+      sha256: 'a3e78a3b9973cc0bce1ea381b3831cf04fe38f07689801e545890215718c09a6',
+    },
+    '20261019183450_pc01_product_capability_projection_v1.sql': {
+      owner: 'Core / PC01',
+      sha256: '5de49ca29500c30b0fde3be314be3c5269de34f92b303f05e451a5afd64593d3',
+    },
+    '20261019193000_pf01_owner_portfolio_projection_v1.sql': {
+      owner: 'Core / PF01',
+      sha256: 'abad17b3ee8aa4783247dac60b0eb24b71782794617743d22a569b19f82b6aba',
+    },
+    '20261019194632_ops01_service_execution_request_v1.sql': {
+      owner: 'Operations / OPS01',
+      sha256: 'ef5ec215c7c8cf94749aff310fdd637e1e0753e6c6e58ed750dbe822bfd67682',
+    },
+    '20261019210500_fin01_service_quote_proposal_projection_v1.sql': {
+      owner: 'Finance / FIN01',
+      sha256: '32d77a144ca88424b88d67956ba4cdddb7ec1812d0729efa0ebceeb6ff615bec',
+    },
+    '20261019221500_com01_private_conversation_request_receipt_v1.sql': {
+      owner: 'Communications / COM01',
+      sha256: '9277409a94fa0e57d01f31b3af77f8579ed6751094f0237d0841067e9f77168d',
+    },
+    '20261019230000_bk01_c13_amenity_capacity_v1.sql': {
+      owner: 'Booking + C13 / BK01-C13',
+      sha256: '4921797f0c10282b5eb21f3caf2977a5e16b2e6580c88da6da04a760740541b7',
+    },
+    '20261019233000_c14_workspace_cost_benchmark_v1.sql': {
+      owner: 'Finance / C14',
+      sha256: 'd4c6c010725755aa271c8b513b1fafeae52e159588be9d4cbeb939e5e2f49f47',
+    },
+    '20261019234500_c15_observed_savings_evidence_v1.sql': {
+      owner: 'Finance / C15',
+      sha256: '724acdb5a57f91bdc7200e7e204ae2801f95e1d5c9a4cf943ecfb8cafa00198e',
+    },
+    '20261021045324_core_mobile_payment_exact_replay_current_authority_v1.sql': {
+      owner: 'Core / bounded handoff R2 / PR #466',
+      sha256: 'f2946847392129e5e1c91b3b79310d939d9e141fa105580dd94e68efe48dd6c5',
+    },
+    '20261021045651_documents_canonical_unit_link_v1.sql': {
+      owner: 'Documents/Vault / bounded canonical Unit handoff / PR #466',
+      sha256: '7c3ecb5058cf910ba29e75b50f33985b11fcb1009d48b1ae7be73435704f2401',
+    },
+    '20261021045809_ce_communications_canonical_unit_v1.sql': {
+      owner: 'CE / bounded canonical Unit handoff / PR #466',
+      sha256: '47749ef20155547a3c82a3dcb18f9fee8daa405a28c40cecb036394d04be5263',
+    },
+    '20261021071420_advisor_finance_governance_sql_v1.sql': {
+      owner: 'Coordinator / bounded Finance-Governance Advisor correction / PR #466',
+      sha256: '4ab9d74120d7b8215050f43566134a747d73f1e10fdb7a62ed40f31b49fa5a66',
+    },
+    '20261021095634_assets_serial_digest_namespace_v1.sql': {
+      owner: 'Coordinator / Assets serial pgcrypto namespace correction / PR #466',
+      sha256: '26e182d4ea30347b1138901fe1287179eac7955f71b7db44ef63be428d6fea07',
+    },
+    '20261021093426_assets_explicit_caller_descriptor_v1.sql': {
+      owner: 'Coordinator / byte-preserved Assets caller descriptors / PR #466',
+      sha256: '9ce4834d26553eee8fad21c3e9f792f7e4de1d002c5e3c6f4a0be4adc37bdc18',
+    },
+    '20261021085559_assets_current_authority_v1.sql': {
+      owner: 'Coordinator / runtime-proven Assets temporal authority correction / PR #466',
+      sha256: 'ae14aa13d047ab5f3309a795000827eae8eae27236d6fabd98334fc69f8962c3',
+    },
+    // Byte-exact source review only; not Building Setup runtime or Release acceptance.
+    '20261021111641_building_setup_authority_v2.sql': {
+      owner: 'Core / PM reviewed scoped Building Setup native authority / PR #466',
+      sha256: 'de18c1436ada6763358dd1a99f4874cfc0d1920eab1e34ca13e9da6b9d172e60',
+    },
+    '20261021123054_building_setup_attempt_version_v2.sql': {
+      owner: 'Procedure / PM reviewed ordered versioned Building Setup commands / PR #466',
+      sha256: 'ce386d018fe9d5f9045739e9752a44aec1c0d4f963653b4f7d455290b4153c86',
+    },
+    '20261022071629_service_quote_request_version_binding_v2.sql': {
+      owner: 'SERVICE / Request-version binding / source 148a2062 / PM scoped acceptance 6339327720',
+      sha256: '472f74027b5ccd250432cb1ff16879461f74633808a386498883cfc28dd3d324',
+    },
+    '20261022071709_ce_notice_ack_read_shape_v1.sql': {
+      owner: 'CE / Notice acknowledgement read shape / source 5b86be90 / PM scoped acceptance 6336181733 / exact integration 6338305091',
+      sha256: '76beec0cd96f9dc1c72cd884c073a4c1a58f828a9ead65ab05378f032d2d96e5',
+    },
+    '20261022082451_core_notice_ack_receipt_replay_v1.sql': {
+      owner: 'Core / Notice acknowledgement receipt replay / source e17c5a72 / PM exact source acceptance 6338305091',
+      sha256: '368a8cbfefaa5292eed640789fd811411d2996eee1220cd532cc9efa8026c679',
+    },
+    '20261025214155_building_setup_command_receipts_v1.sql': {
+      owner: 'Core / G2 command receipts / delivery 6404045002 / SERVICE scoped acceptance PM176 6397895865',
+      sha256: '254e17c9e5f21ce4e50786d3325c2cc84759097b16cb53028602d1e8db5e02e3',
+    },
   },
   label: 'AIRPROP B2 migration baseline',
 });
 
 const coreResult = validateProtectedDirectory({
   directory: 'src/lib/core',
-  expectedProtectedCount: 15,
-  expectedProtectedDigest: 'b520d6922086c56e88ab83f02867d1664285a63cb55017017ccea1b114efd5a7',
+  expectedProtectedCount: 13,
+  expectedProtectedDigest: '7502bf811cb4959cd7f7c1ade651b8020b3e99cb0d76a0667caf7fbdedb2c3be',
   isProtected: path => ![
     'communications-private-message-subject-provider-v1.ts',
     'communications-private-message-request-audience-provider-v1.ts',
@@ -160,6 +249,8 @@ const coreResult = validateProtectedDirectory({
     'postgres-transaction-host-v1.ts',
     'read-authority-profile-v1.ts',
     'transaction-replay-provider-hook-v1.ts',
+    'operations-execution-receipt-v1.ts',
+    'product-rights-v1.ts',
   ].includes(path),
   reviewedAdditions: {
     'communications-private-message-subject-provider-v1.ts': {
@@ -208,10 +299,20 @@ const coreResult = validateProtectedDirectory({
     },
   },
   reviewedReplacements: {
+    'operations-execution-receipt-v1.ts': {
+      owner: 'Operations / OPS01',
+      historicalSha256: '67a99ae64afc5791013e49d7212930eee7a93243f52dd60acb2e0b5be8c04a27',
+      sha256: 'f372097ede71c525d963e3ab6b9cd11d1a5ca117b95c8abb6cc47d84c40b9bc5',
+    },
+    'product-rights-v1.ts': {
+      owner: 'Core / PC01',
+      historicalSha256: '780199a5be7b5e44ef2c620cf83e8570c583b337b37c5da9295e1c30badcaebd',
+      sha256: '0a150e396c76ddff9d9757c2e06174b3177c11c60126ef525b2a46c084a70ae6',
+    },
     'postgres-transaction-host-v1.ts': {
       owner: 'Core / PR #431',
       historicalSha256: 'eb89d03320549a721a54df10fa747f8977d9f42f6dfaa2e85ae89e1265c37d7c',
-      sha256: 'ce0360f30f1c49ff06e8ec944ba7263e0012c56fb2c27e5094d6604a1cf09a6e',
+      sha256: '5ae0d49cde0850c3d8b2c55bc2398d685e1c833d2e9a9e176ee8eab8d1cdce06',
     },
   },
   historicalProtectedCount: 16,

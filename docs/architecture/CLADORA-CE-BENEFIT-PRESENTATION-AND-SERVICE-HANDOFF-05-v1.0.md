@@ -2,8 +2,8 @@
 
 Status: **presentation contract and static evidence; implementation and activation not authorized**
 
-Baseline: `main@536a9526222a36a1fd5d28e4267ca4b2d783786c`
-(`tree 83947ebd1278b5c3af65fb1e43a07a1f8e30a21d`)
+Baseline: `codex/c15-savings-value-slice@aa854730df7590e7ed48666f3d45cf653ede4f15`
+(`tree aebc118d045a73b8a787243e43ecb1e48849cc34`)
 
 Ownership dependency: `CLADORA-DYNAMIC-WORKSPACE-PRODUCT-COMPOSITION-RECONCILIATION-v1.1.md`, as reconciled by merged PR #454. This package consumes its current `OPEN_PRODUCT_DECISION` status and bounded CE domain row without restating or changing that ownership contract. It does not create a benefit engine, choose a product owner, persist an allowance, redeem a benefit, create a SERVICE transaction or activate an editor or command.
 
@@ -28,7 +28,27 @@ is stored in:
 
 `docs/architecture/references/CLADORA-CE-BENEFIT-PRESENTATION-AND-SERVICE-HANDOFF-05-INVENTORY.json`
 
-The inventory pins the reviewed commit, tree and SHA-256 of every covered file.
+The inventory retains the historical baseline commit and tree and pins the
+reviewed SHA-256 of every covered file. An entry's `reviewed_commit`, when
+present, identifies a later reviewed revision rather than the historical baseline.
+The two Community component entries were re-reviewed at
+`898e5fc30cf844fcd69e826840a06903e246dea2` for CE Context draft guards:
+the optional guard adapter and form lifecycle changes introduce no benefit
+outcome, SERVICE dependency or transaction. Their classifications are unchanged;
+the other 21 entries retain their reviewed hashes. This follow-up does not
+authorize benefit implementation or activation.
+
+Page-only follow-up proposed for independent Coordinator review under
+`CE-COMMUNITY-SELECTION-GUARD-01`: source revision
+`44903b7bbe7858047e42dde32592158339f5379e` adds local Community-selection draft confirmation,
+localized keyboard/focus handling and fail-closed selection on unavailable
+communities. Its Page SHA-256 is `8fb78db10593f808482e0610fbb5d156079109db8253cbd8e3ed5690e3e2241e`.
+Only that Page entry's reviewed revision and hash are updated; the historical
+baseline and the other 22 entries, hashes and classifications are retained.
+This UI navigation change introduces no benefit outcome, SERVICE transaction,
+backend command, permission or activation. This records the proposed revision,
+not independent acceptance or release approval.
+
 The static harness verifies the inventory and contract without network or Git
 history.
 

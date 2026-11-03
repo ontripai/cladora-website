@@ -80,10 +80,10 @@ export function AppShell({
   const currentRoleDef = DEMO_ROLES.find(r => r.key === activeRole) || DEMO_ROLES[0];
 
   return (
-    <div className="min-h-screen bg-[#F6F9FC] flex flex-col font-sans">
+    <div className="min-h-screen min-w-0 w-full bg-[#F6F9FC] flex flex-col font-sans">
       
       {/* Top Application Context Bar */}
-      <header className="h-16 bg-white border-b border-[#E2E8F0] px-4 sm:px-6 flex items-center justify-between sticky top-0 z-40 shadow-sm">
+      <header className="min-h-16 py-2 bg-white border-b border-[#E2E8F0] px-4 sm:px-6 flex flex-wrap items-center justify-between gap-2 sticky top-0 z-40 shadow-sm">
         
         {/* Left / Start: Brand + Context Switcher */}
         <div className="flex items-center gap-3 sm:gap-4">
@@ -245,7 +245,7 @@ export function AppShell({
         </aside>
 
         {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-8 pb-24 md:pb-8">
+        <main className="min-w-0 flex-1 overflow-y-auto p-4 sm:p-8 pb-24 md:pb-8">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>

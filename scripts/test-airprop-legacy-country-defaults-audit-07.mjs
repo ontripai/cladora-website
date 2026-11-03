@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 
 const read = path => readFileSync(path, 'utf8');
@@ -262,7 +263,22 @@ const expectedSignalCandidates = [
   'supabase/tests/178_airprop_management_action_links.test.sql',
   'supabase/tests/179_airprop_management_portfolio_report.test.sql',
 ].sort();
-assert.deepEqual(signalCandidates, expectedSignalCandidates); assertions += 1;
+// Keep the frozen audit's exact inventory and classify only byte-exact additions
+// from the independently reconstructed official Platform264 packet.
+const supplement=JSON.parse(read('docs/verification/CLADORA-V14-COUNTRY-SIGNAL-ADDITIONS.json'));
+assert.equal(supplement.official_manifest_blob,'3a52004d7281fac5f64780d00101c5daebdb3639');
+assert.equal(supplement.authority,'NONE');assert.equal(supplement.runtime_adoption,'NOT_READY');
+assert.equal(supplement.entries.length,5);
+const additions=supplement.entries.map(entry=>entry.path).sort();
+assert.deepEqual(signalCandidates.filter(path=>!additions.includes(path)), expectedSignalCandidates);
+assert.deepEqual(signalCandidates.filter(path=>additions.includes(path)),additions);
+for(const entry of supplement.entries){
+ const bytes=readFileSync(entry.path);assert.equal(bytes.length,entry.bytes);
+ assert.equal(createHash('sha256').update(bytes).digest('hex'),entry.sha256);
+ assert.ok(['presentation-only','synthetic/test fixture','dormant or superseded definition'].includes(entry.classification));
+ assert.ok(entry.reason.length>20);
+}
+assertions += 1;
 
 // The audit itself must use each allowed classification and keep every finding
 // in exactly one table row.

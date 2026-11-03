@@ -53,16 +53,16 @@ async function readArray<T>(url: string): Promise<T[]> {
 }
 
 export function PrivateConversationsPanel({ lang }: { lang: Language }) {
-  const { active } = useCustomerContext();
+  const { active, dashboard } = useCustomerContext();
   return <><PrivateConversationsContent key={active?.context_id ?? "no-context"} lang={lang}
-    contextId={active?.context_id} membershipId={active?.membership_id}
+    contextId={active?.context_id} workspaceId={dashboard?.workspace_id} membershipId={active?.membership_id}
     canOpenVault={!['company_staff', 'vendor_contact'].includes(active?.role_code?.toLowerCase() ?? '')} />
     {active?.context_id && ['association_admin', 'property_manager'].includes(active.role_code?.toLowerCase() ?? '')
       && <div className="mx-auto max-w-5xl px-4 pb-8"><UnitInvitationsPanel key={active.context_id} lang={lang} contextId={active.context_id} /></div>}
   </>;
 }
 
-function PrivateConversationsContent({ lang, contextId, membershipId, canOpenVault }: { lang: Language; contextId?: string; membershipId?: string; canOpenVault: boolean }) {
+function PrivateConversationsContent({ lang, contextId, workspaceId, membershipId, canOpenVault }: { lang: Language; contextId?: string; workspaceId?: string; membershipId?: string; canOpenVault: boolean }) {
   const t = words[lang];
   const [threads, setThreads] = useState<Thread[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
@@ -363,7 +363,7 @@ function PrivateConversationsContent({ lang, contextId, membershipId, canOpenVau
         </section>}
         {showComposer && <section className="space-y-3 p-4 sm:p-6">
           <div className="flex items-center justify-between"><h2 className="text-lg font-semibold">{t.new}</h2>{threads.length > 0 && <button type="button" onClick={() => setCreating(false)} className="rounded-lg px-3 py-2 text-sm text-teal-800 hover:bg-teal-50">{t.cancel}</button>}</div>
-          <form className="space-y-3" onSubmit={(event) => { event.preventDefault(); if (contextId && unitId && recipientId && message.trim()) void submit("/api/customer/v1/private-conversations", { context_id: contextId, unit_id: unitId, recipient_membership_id: recipientId, body: message.trim(), request_id: crypto.randomUUID() }); }}>
+          <form className="space-y-3" onSubmit={(event) => { event.preventDefault(); if (contextId && workspaceId && unitId && recipientId && message.trim()) { const requestId=crypto.randomUUID(); void submit("/api/customer/v1/private-conversations", { contract_version:'communications-private-conversation-workspace.v1', context_id:contextId, workspace_id:workspaceId, conversation_id:crypto.randomUUID(), unit_id:unitId, recipient_membership_id:recipientId, initial_message_id:crypto.randomUUID(), body:message.trim(), client_request_id:requestId, idempotency_key:requestId }); } }}>
             <label className="block" htmlFor="private-unit">{t.unit}</label>
             <select id="private-unit" required value={unitId} onChange={(event) => { setUnitId(event.target.value); setRecipients([]); setRecipientId(""); }} className="w-full rounded-lg border border-slate-400 p-2"><option value="">{t.select}</option>{units.map((unit) => <option key={unit.id} value={unit.id}>{unit.property_name} · {unit.building_name} · {unit.unit_code}</option>)}</select>
             {hasMore && <button type="button" className="text-sm text-blue-700 underline" onClick={() => { if (!contextId) return; const next = offset + 25; void readArray<Unit>(`/api/customer/v1/private-conversations/recipients?context_id=${encodeURIComponent(contextId)}&offset=${next}`).then((newUnits) => { setUnits((old) => [...old, ...newUnits]); setOffset(next); setHasMore(newUnits.length === 25); }).catch(() => setError(true)); }}>{t.more}</button>}
@@ -371,7 +371,7 @@ function PrivateConversationsContent({ lang, contextId, membershipId, canOpenVau
             <select id="private-recipient" required value={recipientId} onChange={(event) => setRecipientId(event.target.value)} className="w-full rounded-lg border border-slate-400 p-2"><option value="">{t.select}</option>{recipients.map((recipient) => <option key={recipient.membership_id} value={recipient.membership_id}>{recipient.display_name}</option>)}</select>
             <label className="block" htmlFor="private-message">{t.body}</label>
             <textarea id="private-message" required maxLength={5000} value={message} onChange={(event) => setMessage(event.target.value)} className="w-full rounded-lg border border-slate-400 p-2" />
-            <button type="submit" disabled={busy || !unitId || !recipientId || !message.trim()} className="rounded-lg bg-blue-700 px-4 py-2 text-white disabled:opacity-50">{busy ? t.busy : t.send}</button>
+            <button type="submit" disabled={busy || !workspaceId || !unitId || !recipientId || !message.trim()} className="rounded-lg bg-blue-700 px-4 py-2 text-white disabled:opacity-50">{busy ? t.busy : t.send}</button>
           </form>
         </section>}
         {!showComposer && !selected && <p className="p-8 text-slate-600">{t.chooseConversation}</p>}

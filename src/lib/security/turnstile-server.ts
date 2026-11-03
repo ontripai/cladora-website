@@ -33,8 +33,8 @@ export async function verifyTurnstileToken(
 
   // 2. Keys missing scenario
   if (!secretKey) {
-    if (isRequired && isProduction) {
-      return { success: false, errorCode: 'CAPTCHA_REQUIRED_IN_PRODUCTION' };
+    if (isRequired) {
+      return { success: false, errorCode: isProduction ? 'CAPTCHA_REQUIRED_IN_PRODUCTION' : 'CAPTCHA_REQUIRED' };
     }
     // Local development or preview without keys: clean bypass
     return { success: true, bypassed: true };

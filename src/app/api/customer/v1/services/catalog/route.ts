@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { uuidSchema } from '@/lib/customer/workspace-composition-schema';
 import { createServiceOfferingRequestSchema, reviseServiceOfferingRequestSchema,
   transitionServiceOfferingRequestSchema } from '@/lib/customer/service-catalog-schema';
+import { productCapabilityDecisionV1Schema } from '@/lib/core/product-rights-v1';
 
 const HEADERS = { 'Cache-Control': 'no-store, private', Pragma: 'no-cache', Vary: 'Cookie' };
 const commandSchema = z.discriminatedUnion('kind', [
@@ -34,7 +35,24 @@ export async function GET(request: NextRequest) {
   const { data, error } = await supabase.schema('customer_api').rpc('list_service_catalog_v1' as never,
     { p_context_id: context.data, p_workspace_id: workspace.data } as never);
   if (error) return rpcFailure(error.code);
-  return NextResponse.json({ offerings: data ?? [] }, { headers: HEADERS });
+  // PC-01 is an additive read projection, never an availability gate for the
+  // existing catalogue operation. A missing/invalid projection is observable
+  // as null while the already-authorized catalogue result remains usable.
+  const projection = await supabase.schema('customer_api').rpc(
+    'get_product_capability_decision_v1' as never,
+    {
+      p_context_id: context.data,
+      p_workspace_id: workspace.data,
+      p_capability_key: 'module.services_catalog',
+    } as never,
+  );
+  const productCapability = projection.error
+    ? null
+    : productCapabilityDecisionV1Schema.safeParse(projection.data);
+  return NextResponse.json({
+    offerings: data ?? [],
+    product_capability: productCapability && productCapability.success ? productCapability.data : null,
+  }, { headers: HEADERS });
 }
 export async function POST(request: NextRequest) {
   // Same-origin JSON writes; neither actor nor tenant nor a client hash is accepted.

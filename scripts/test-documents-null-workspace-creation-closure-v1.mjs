@@ -22,7 +22,7 @@ assert.equal(sha256('src/lib/customer/documents-reference-tx-selector-v1.ts'),
 assert.equal(sha256('src/lib/core/transaction-replay-provider-hook-v1.ts'),
   'eb20fa622ba10b9cde6ea8d4d64f1ad9f9eea93f7fba354d03f6959156487dd4');
 assert.equal(sha256('src/lib/core/postgres-transaction-host-v1.ts'),
-  'ce0360f30f1c49ff06e8ec944ba7263e0012c56fb2c27e5094d6604a1cf09a6e');
+  '5ae0d49cde0850c3d8b2c55bc2398d685e1c833d2e9a9e176ee8eab8d1cdce06');
 
 assert.match(migration, /before insert on documents\.upload_intents/i);
 assert.match(migration, /before update of status,consumed_at on documents\.upload_intents/i);

@@ -94,6 +94,11 @@ try {
   const {CustomerBillingDashboard} = load('src/components/customer/CustomerBillingDashboard.tsx', {
     './CustomerContextProvider': {useCustomerContext: () => ({active})},
     './CustomerRegistryPicker': {CustomerRegistryPicker: mockPicker},
+    '@/lib/payments/direct-payment-attempt-v1': load('src/lib/payments/direct-payment-attempt-v1.ts'),
+    '@/lib/supabase/client': {createClient: () => ({auth: {
+      onAuthStateChange: () => ({data: {subscription: {unsubscribe() {}}}}),
+      getUser: () => assert.fail('registry selection must not initiate payment Auth'),
+    }})},
   });
   await act(async () => root.render(React.createElement(CustomerBillingDashboard, {lang: 'en'})));
   await act(async () => new Promise(resolve => setTimeout(resolve, 240)));

@@ -3,15 +3,15 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Language } from '@/types';
-import { 
-  Building, 
-  TrendingUp, 
-  Building2, 
-  Layers, 
-  KeyRound, 
-  Wrench, 
-  Scale, 
-  ArrowRight, 
+import {
+  Building,
+  TrendingUp,
+  Building2,
+  Layers,
+  KeyRound,
+  Wrench,
+  Scale,
+  ArrowRight,
   CheckCircle2,
   Store,
   Factory,
@@ -27,44 +27,44 @@ export const AudienceAndTypologySection: React.FC<AudienceAndTypologySectionProp
 
   const audiences = [
     {
-      title: lang === 'ro' ? 'Dezvoltatori & Constructori' : lang === 'fa' ? 'سازندگان و توسعه‌دهندگان' : 'Builders & Developers',
-      problem: lang === 'ro' ? 'Fragmentarea datelor între vânzări, contracte și procesul greoi de predare către asociație.' : lang === 'fa' ? 'پراکندگی اطلاعات خریداران، عدم انسجام مدارک فنی و اصطکاک در تحویل رسمی واحدها.' : 'Disjointed pre-sales records, lost technical manuals, and chaotic handover friction.',
-      solution: lang === 'ro' ? 'Identitate digitală din stadiul de proiect, antecontracte în AIRPROP și predare formală fără pierdere de date.' : lang === 'fa' ? 'تعریف هویت ملک پیش از تکمیل، اتصال پیش‌فروش به قراردادها و تحویل سیستماتیک با بایگانی مستندات.' : 'Digital property identity from project phase, pre-sales tracking, and clean verified handover.',
+      title: lang === 'ro' ? 'Dezvoltatori & Constructori' : lang === 'fa' ? 'سازندگان و شرکت‌های ساختمانی' : 'Builders & Developers',
+      problem: lang === 'ro' ? 'Acte împrăștiate, liste de apartamente neactualizate și predarea haotică a cărții tehnice către noua asociație.' : lang === 'fa' ? 'پراکندگی پرونده‌ها، ناهماهنگی در قراردادهای پیش‌فروش و تحویل پردردسر مدارک به مدیر یا هیئت‌مدیره جدید.' : 'Scattered paperwork, out-of-date unit lists, and chaotic handovers to the new association.',
+      solution: lang === 'ro' ? 'Organizarea digitală a apartamentelor încă din faza de proiect, urmărirea vânzărilor și predarea ordonată a documentelor către locatari.' : lang === 'fa' ? 'سازماندهی دیجیتال واحدها از فاز پروژه، ثبت قراردادهای پیش‌فروش و تحویل منظم اسناد و کلیدها به ساکنان.' : 'Digital unit registry from the project stage, sales tracking, and clean, orderly handovers to owners.',
       link: `/${lang}/solutions/developers`,
       icon: Building
     },
     {
-      title: lang === 'ro' ? 'Proprietari & Portofolii' : lang === 'fa' ? 'مالکان و صاحبان سبد املاک' : 'Owners & Portfolio Landlords',
-      problem: lang === 'ro' ? 'Dificultatea de a monitoriza chirii, cote și reparații din mai multe blocuri diferite.' : lang === 'fa' ? 'عدم امکان پایش یکپارچه املاک متعدد در ساختمان‌های مختلف و تفکیک مبهم هزینه‌ها.' : 'Scattered accounting, manual rent chasing across multiple buildings, and obscure expenses.',
-      solution: lang === 'ro' ? 'Tablou de bord consolidat pentru toate unitățile deținute, fluxuri de încasare și istoric pe termen lung.' : lang === 'fa' ? 'داشبورد متمرکز املاک در پروژه‌های مختلف، کنترل وصول اجاره و نظارت بر حفظ ارزش دارایی.' : 'Consolidated multi-property overview, automated rental receivables, and capital preservation.',
+      title: lang === 'ro' ? 'Proprietari de Locuințe, Spații sau Clădiri' : lang === 'fa' ? 'مالکان واحدهای مسکونی، تجاری یا اداری' : 'Owners of Residential, Commercial & Mixed Properties',
+      problem: lang === 'ro' ? 'Timp pierdut pentru urmărirea chiriilor, verificarea cotelor de întreținere și a reparațiilor din imobile diferite.' : lang === 'fa' ? 'اتلاف وقت برای پیگیری پرداخت‌ها، بررسی شارژ و هزینه‌های تعمیرات در املاک گوناگون.' : 'Time lost tracking rent schedules, checking utility fees, and overseeing repairs across different properties.',
+      solution: lang === 'ro' ? 'O privire de ansamblu asupra tuturor proprietăților deținute, evidența contractelor de închiriere și istoricul intervențiilor tehnice.' : lang === 'fa' ? 'نمای کلی و یکپارچه از تمام املاک، ساماندهی قراردادهای اجاره و ثبت منظم سوابق فنی و مالی.' : 'A clear overview across all your properties, tracking lease agreements, and maintaining an organized maintenance history.',
       link: `/${lang}/solutions/property-owners`,
       icon: TrendingUp
     },
     {
-      title: lang === 'ro' ? 'Asociații & Comitete' : lang === 'fa' ? 'مدیران ساختمان و انجمن‌های مالکان' : 'HOAs & Residential Boards',
-      problem: lang === 'ro' ? 'Dispute legate de cotele de întreținere, neîncredere între vecini și adunări generale greu de organizat.' : lang === 'fa' ? 'ابهام در محاسبات شارژ ماهانه، بی‌اعتمادی ساکنان و دشواری برگزاری جلسات و رأی‌گیری.' : 'Disputes over monthly payment lists, opacity, and poorly attended general meetings.',
-      solution: lang === 'ro' ? 'Calcul matematic explicabil al fiecărei cote, avizier transparent și convocare adunări cu vot auditat.' : lang === 'fa' ? 'تسهیم کاملاً مستند و فرمول‌محور هزینه‌ها، شفافیت مالی و برگزاری مجامع با رأی‌گیری قانونی.' : 'Explainable mathematical charges, transparent digital notice boards, and auditable ballots.',
+      title: lang === 'ro' ? 'Asociații de Proprietari & Comitete' : lang === 'fa' ? 'مدیران ساختمان و هیئت‌مدیره' : 'Homeowner Associations & Boards',
+      problem: lang === 'ro' ? 'Discuții aprinse despre listele de plată, neîncredere între vecini și dificultatea de a aduna oamenii la ședințe.' : lang === 'fa' ? 'اختلاف‌نظر بر سر محاسبات شارژ، بی‌اعتمادی همسایگان و به حدنصاب نرسیدن جلسات ساختمان.' : 'Heated arguments over fee calculations, neighbor mistrust, and low turnout at general meetings.',
+      solution: lang === 'ro' ? 'Calcul clar și verificabil pentru fiecare sumă de pe avizier, transparență în decizii și comunicare organizată cu toți membrii asociației.' : lang === 'fa' ? 'محاسبه شفاف و قابل بررسی مبالغ شارژ، مستندسازی تصمیمات و اطلاع‌رسانی منظم به مالکان و ساکنان.' : 'Clear and verifiable calculations for every fee breakdown, transparent record keeping, and organized communication with residents.',
       link: `/${lang}/solutions/associations`,
       icon: Building2
     },
     {
-      title: lang === 'ro' ? 'Companii de Administrare' : lang === 'fa' ? 'مدیران مجتمع و شرکت‌های مدیریت' : 'Property & Estate Managers',
-      problem: lang === 'ro' ? 'Volum mare de muncă la sfârșit de lună, reconcilieri bancare manuale și furnizori greu de coordonat.' : lang === 'fa' ? 'فرآیندهای زمان‌بر بستن ماهانه حساب‌ها، تطبیق دستی بانک‌ها و اصطکاک با پیمانکاران فنی.' : 'Exhausting monthly closing marathons, manual bank reconciliations, and vendor chaos.',
-      solution: lang === 'ro' ? 'Gestiune multi-clădire într-un singur cont, reconciliere bancară asistată și emitere automată a comenzilor de lucru.' : lang === 'fa' ? 'مدیریت متمرکز چند مجتمع، تطبیق هوشمند بانکی بدون مغایرت و ارجاع خودکار دستورکارهای نگهداری.' : 'Batch multi-property workflows, assisted bank matching, and unified maintenance SLAs.',
+      title: lang === 'ro' ? 'Firme și Administratori Profesioniști' : lang === 'fa' ? 'مدیران حرفه‌ای و شرکت‌های مدیریت مجتمع' : 'Professional Property Managers',
+      problem: lang === 'ro' ? 'Zile întregi pierdute la sfârșit de lună cu calcule manuale, chitanțe de hârtie și mesaje haotice de la zeci de locatari.' : lang === 'fa' ? 'اتلاف وقت فراوان در پایان ماه برای محاسبات دستی، صدور رسیدهای کاغذی و پاسخ‌گویی پراکنده به ساکنان.' : 'Endless hours spent each month-end doing manual calculations, paper receipts, and chasing tenant messages.',
+      solution: lang === 'ro' ? 'Gestiunea mai multor asociații sau imobile dintr-un singur loc, evidența plăților încasate și transmiterea rapidă a comenzilor către echipele tehnice.' : lang === 'fa' ? 'مدیریت هم‌زمان چندین ساختمان یا مجتمع، ساماندهی دفاتر واریزی‌ها و ارجاع سریع دستورکارها به تیم‌های فنی.' : 'Managing multiple associations or properties in one portal, structured payment records, and fast dispatch of service orders to contractors.',
       link: `/${lang}/solutions/property-managers`,
       icon: Layers
     },
     {
-      title: lang === 'ro' ? 'Rezidenți & Ocupanți' : lang === 'fa' ? 'ساکنان و بهره‌برداران' : 'Residents & Occupants',
-      problem: lang === 'ro' ? 'Lipsa de claritate asupra consumurilor proprii și proceduri greoaie pentru raportarea unei avarii.' : lang === 'fa' ? 'ابهام در تفکیک مصارف شخصی و نبود راه ارتباطی سریع برای اعلام خرابی‌ها.' : 'Lack of insight into personal consumption costs and tedious channels for reporting faults.',
-      solution: lang === 'ro' ? 'Acces strict la consumurile de utilități proprii, plăți simple și semnalare rapidă a solicitărilor tehnice.' : lang === 'fa' ? 'شفافیت در فیش مصرف انشعابات، پرداخت آسان و ثبت سریع درخواست رفع نقص با پیگیری وضعیت.' : 'Direct meter consumption history, simple payments, and fast ticket dispatch.',
+      title: lang === 'ro' ? 'Locatari & Chiriași' : lang === 'fa' ? 'ساکنان و مستأجران' : 'Residents & Tenants',
+      problem: lang === 'ro' ? 'Lipsa de claritate privind consumurile proprii, drumuri la avizier pentru plată și sesizări uitate când se strică ceva în bloc.' : lang === 'fa' ? 'ابهام در نحوه محاسبه آب و گاز، پرداخت حضوری شارژ و فراموش شدن پیگیری خرابی‌های مشاعات.' : 'Unclear utility bills, inconvenient paper payments, and reported maintenance issues that get forgotten.',
+      solution: lang === 'ro' ? 'Vezi clar componența cotelor de întreținere și plățile înregistrate, accesezi anunțurile asociației și transmiți sesizări pentru problemele din clădire.' : lang === 'fa' ? 'مشاهدهٔ شفاف جزییات شارژ و وضعیت پرداخت‌ها، دسترسی به اعلانات ساختمان و ارسال گزارش خرابی برای پیگیری.' : 'Clearly see your fee breakdown and recorded payments, access community notices, and submit maintenance reports for building issues.',
       link: `/${lang}/solutions/residents`,
       icon: KeyRound
     },
     {
-      title: lang === 'ro' ? 'Furnizori de Servicii' : lang === 'fa' ? 'ارائه‌دهندگان خدمات و تیم‌های فنی' : 'Service Providers & Vendors',
-      problem: lang === 'ro' ? 'Comenzi primite informal pe WhatsApp, termene neclare și întârzieri la aprobarea devizelor.' : lang === 'fa' ? 'ارجاع غیررسمی کارها، نبود مستندات شفاف از مشخصات فضا و تأخیر در تأیید و تسویه‌حساب.' : 'Informal chat orders, missing asset specs, and disputes over invoice approvals.',
-      solution: lang === 'ro' ? 'Comenzi de lucru structurate cu fișa tehnică a activului, ofertare clară și recepție semnată digital.' : lang === 'fa' ? 'دریافت دستورکار با مشخصات کامل محل و دستگاه، ثبت پیشنهاد، ثبت انجام کار و پذیرش رسمی.' : 'Structured work orders, clear quote acceptance, and digital sign-off attached to assets.',
+      title: lang === 'ro' ? 'Tehnicieni, Meșteri & Furnizori de Servicii' : lang === 'fa' ? 'تکنسین‌ها، پیمانکاران و تأمین‌کنندگان خدمات' : 'Technicians, Contractors & Service Providers',
+      problem: lang === 'ro' ? 'Solicitări neclare, lipsa detaliilor despre echipamente sau locație și întârzieri la confirmarea lucrărilor executate.' : lang === 'fa' ? 'درخواست‌های مبهم، نبود مشخصات دستگاه یا محل دقیق، و معطلی در تأیید خدمات ارائه‌شده.' : 'Vague job descriptions, missing equipment specs or unit details, and delays in work confirmation.',
+      solution: lang === 'ro' ? 'Comenzi scrise clar cu specificațiile echipamentului și locația exactă, devize aprobate înainte de intervenție și proces-verbal de recepție atașat la dosar.' : lang === 'fa' ? 'دریافت دستورکار با جزییات دستگاه و نشانی دقیق، توافق بر سر برآورد قیمت پیش از اعزام، و ثبت صورت‌جلسهٔ تحویل کار در پرونده.' : 'Clear work orders with equipment specifications and exact location, approved estimates before dispatch, and work completion protocols attached to records.',
       link: `/${lang}/solutions/service-providers`,
       icon: Wrench
     }
@@ -72,42 +72,42 @@ export const AudienceAndTypologySection: React.FC<AudienceAndTypologySectionProp
 
   const typologies = [
     {
-      title: lang === 'ro' ? 'Rezidențial (Blocuri & Vile)' : lang === 'fa' ? 'مسکونی (آپارتمان‌ها و شهرک‌ها)' : 'Residential (Condos & Villas)',
-      desc: lang === 'ro' ? 'Asociații de proprietari, ansambluri rezidențiale, comunități închise și portofolii de locuințe.' : lang === 'fa' ? 'مجتمع‌های آپارتمانی، شهرک‌های ویلایی، انجمن‌های مالکان و سبد آپارتمان‌های اجاره‌ای.' : 'Condominiums, villa communities, homeowner boards, and single/multi-unit residential portfolios.',
+      title: lang === 'ro' ? 'Blocuri de Locuințe & Ansambluri Rezidențiale' : lang === 'fa' ? 'آپارتمان‌ها و مجتمع‌های مسکونی' : 'Residential Buildings & Communities',
+      desc: lang === 'ro' ? 'Asociații de proprietari, blocuri individuale, complexe cu mai multe scări și ansambluri de vile.' : lang === 'fa' ? 'ساختمان‌های مسکونی، برج‌ها، مجتمع‌های آپارتمانی و شهرک‌های ویلایی.' : 'Homeowner associations, apartment buildings, residential towers, and villa communities.',
       icon: Home,
       features: [
-        lang === 'ro' ? 'Repartizare conform legii și cotelor de proprietate' : lang === 'fa' ? 'تسهیم بر اساس متراژ، نفرات و مصرف' : 'Statutory & quota cost sharing',
-        lang === 'ro' ? 'Avizier digital și adunări de proprietari' : lang === 'fa' ? 'تابلو اعلانات و مجامع عمومی' : 'Digital notice board & owner meetings',
-        lang === 'ro' ? 'Citire asistată a contoarelor de utilități' : lang === 'fa' ? 'ثبت و راستی‌آزمایی کنتورها' : 'Assisted utility meter readings'
+        lang === 'ro' ? 'Calculul structurat al cotelor de întreținere conform normelor asociației' : lang === 'fa' ? 'محاسبه مدون و شفاف سهم شارژ متناسب با آیین‌نامه و قواعد ساختمان' : 'Structured maintenance fee calculation aligned with association rules',
+        lang === 'ro' ? 'Avizier digital și consultări ale vecinilor' : lang === 'fa' ? 'تابلوی اعلانات دیجیتال و نظرسنجی از مالکان' : 'Digital notice board and owner polling',
+        lang === 'ro' ? 'Transmiterea ușoară a indexurilor la apă și căldură' : lang === 'fa' ? 'ثبت آسان ارقام کنتورهای آب و گاز' : 'Easy submission of water and heating meter readings'
       ]
     },
     {
-      title: lang === 'ro' ? 'Comercial & Birouri' : lang === 'fa' ? 'تجاری و مراکز اداری' : 'Commercial & Business Centers',
-      desc: lang === 'ro' ? 'Clădiri de birouri, centre comerciale, spații de retail și parcuri de afaceri.' : lang === 'fa' ? 'برج‌های اداری، مراکز خرید، پاساژها و مجتمع‌های تجاری.' : 'Office towers, retail malls, business centers, and co-working spaces.',
+      title: lang === 'ro' ? 'Clădiri de Birouri & Spații Comerciale' : lang === 'fa' ? 'برج‌های اداری و مراکز تجاری' : 'Commercial & Office Buildings',
+      desc: lang === 'ro' ? 'Clădiri de birouri, centre de afaceri, magazine la parter și spații comerciale.' : lang === 'fa' ? 'ساختمان‌های اداری، مراکز خرید، پاساژها و دفاتر کار اشتراکی.' : 'Office buildings, business parks, ground-floor retail, and commercial centers.',
       features: [
-        lang === 'ro' ? 'Separare riguroasă a cheltuielilor operaționale (OPEX)' : lang === 'fa' ? 'تفکیک دقیق هزینه‌های مشاعات اداری و اختصاصی' : 'Strict OPEX allocations',
-        lang === 'ro' ? 'Contracte comerciale cu termene și garanții' : lang === 'fa' ? 'پایش قراردادهای اجاره تجاری و ضمانت‌ها' : 'Commercial lease agreements & guarantees',
-        lang === 'ro' ? 'Control acces vizitatori și furnizori autorizați' : lang === 'fa' ? 'ثبت تردد مراجعان و پیمانکاران' : 'Visitor credentials & contractor gate pass'
+        lang === 'ro' ? 'Evidența clară a cheltuielilor comune de funcționare' : lang === 'fa' ? 'تفکیک دقیق هزینه‌های مشاعات و نگهداری اداری' : 'Clear breakdown of shared operating expenses',
+        lang === 'ro' ? 'Gestiunea contractelor de închiriere și a garanțiilor' : lang === 'fa' ? 'پایش قراردادهای اجاره تجاری و ضمانت‌ها' : 'Commercial lease and security deposit tracking',
+        lang === 'ro' ? 'Acces organizat pentru firme și vizitatori' : lang === 'fa' ? 'کنترل منظم تردد مراجعان و پیمانکاران' : 'Organized visitor and contractor access'
       ]
     },
     {
-      title: lang === 'ro' ? 'Logistic & Industrial' : lang === 'fa' ? 'لجستیک، انبارها و پارک‌های صنعتی' : 'Logistics & Industrial Parks',
-      desc: lang === 'ro' ? 'Hale de depozitare, parcuri logistice și facilități de producție ușoară.' : lang === 'fa' ? 'انبارها، سوله‌های لجستیکی و شهرک‌های صنعتی.' : 'Warehouses, logistics depots, distribution hubs, and light industrial estates.',
+      title: lang === 'ro' ? 'Hale, Depozite & Parcuri Industriale' : lang === 'fa' ? 'انبارها، سوله‌ها و شهرک‌های صنعتی' : 'Warehouses & Logistics Depots',
+      desc: lang === 'ro' ? 'Spații de depozitare, centre de distribuție și hale pentru producție ușoară.' : lang === 'fa' ? 'انبارها، مراکز توزیع کالا و سوله‌های کارگاهی.' : 'Storage warehouses, distribution centers, and light industrial facilities.',
       icon: Factory,
       features: [
-        lang === 'ro' ? 'Registru de active mari: rampe, transformatoare, HVAC' : lang === 'fa' ? 'شناسنامه تجهیزات سنگین: ترانس، پمپ، دیزل‌ژنراتور' : 'Heavy equipment assets & substations',
-        lang === 'ro' ? 'Contorizare de mare capacitate și putere' : lang === 'fa' ? 'پایش دیماند برق و کنتورهای صنعتی' : 'Industrial utility & power metering',
-        lang === 'ro' ? 'Planuri preventive stricte pentru prevenirea opririlor' : lang === 'fa' ? 'نگهداری پیشگیرانه برای جلوگیری از توقف عملیات' : 'Preventative zero-downtime maintenance'
+        lang === 'ro' ? 'Registrul utilajelor mari: rampe, transformatoare, pompe' : lang === 'fa' ? 'شناسنامه تجهیزات سنگین: ژنراتور، ترانس، سیستم تهویه' : 'Heavy equipment tracking: docks, generators, pump systems',
+        lang === 'ro' ? 'Contorizare exactă pentru consumuri industriale mari' : lang === 'fa' ? 'پایش دقیق مصارف دیماند برق و کنتورهای صنعتی' : 'High-capacity industrial utility monitoring',
+        lang === 'ro' ? 'Program strict de revizii pentru prevenirea opririlor' : lang === 'fa' ? 'برنامه منظم سرویس برای جلوگیری از توقف کار' : 'Preventative maintenance to prevent costly downtime'
       ]
     },
     {
-      title: lang === 'ro' ? 'Ansambluri Mixte' : lang === 'fa' ? 'مجتمع‌های چندمنظوره و مختلط' : 'Mixed-Use Developments',
-      desc: lang === 'ro' ? 'Proiecte integrate combinând locuințe, galerii comerciale și birouri.' : lang === 'fa' ? 'پروژه‌های ترکیبی متشکل از بخش‌های مسکونی، تجاری، اداری و پارکینگ عمومی.' : 'Integrated ecosystems blending apartments, retail galleries, offices, and public parking.',
+      title: lang === 'ro' ? 'Proiecte Mixte (Locuințe, Magazine & Birouri)' : lang === 'fa' ? 'مجتمع‌های چندمنظوره و ترکیبی' : 'Mixed-Use Developments',
+      desc: lang === 'ro' ? 'Clădiri moderne care combină apartamente la etaj, birouri și magazine la parter.' : lang === 'fa' ? 'پروژه‌های مدرن شامل واحدهای مسکونی، اداری، تجاری و پارکینگ مشترک.' : 'Modern developments combining residential apartments, offices, and street-level shops.',
       icon: Store,
       features: [
-        lang === 'ro' ? 'Trepte multiple de alocare: zonale și comune' : lang === 'fa' ? 'فرمول‌های چندسطحی تسهیم بر اساس زون‌ها' : 'Multi-tier zone allocation rules',
-        lang === 'ro' ? 'Zone de acces diferențiate pentru rezidenți și public' : lang === 'fa' ? 'مرزبندی تردد عمومی و ساکنان خصوصی' : 'Differentiated access tiers',
-        lang === 'ro' ? 'Workspace-uri multiple conectate la aceeași clădire' : lang === 'fa' ? 'چندین Workspace مجزا برای بخش‌های مختلف' : 'Multiple workspaces on one physical estate'
+        lang === 'ro' ? 'Separarea cheltuielilor între zona comercială și cea de locuințe' : lang === 'fa' ? 'تسهیم دقیق و عادلانه هزینه‌ها بین بخش مسکونی و تجاری' : 'Fair expense separation between commercial and residential zones',
+        lang === 'ro' ? 'Reguli diferite de acces pentru locatari și clienți' : lang === 'fa' ? 'مرزبندی تردد مشتریان و حفظ آرامش ساکنان' : 'Separate access rules for residents versus commercial visitors',
+        lang === 'ro' ? 'Spații de lucru separate pentru fiecare componentă din complex' : lang === 'fa' ? 'فضاهای کاری مجزا برای مدیریت هر بخش از مجموعه' : 'Dedicated management spaces for each component'
       ]
     }
   ];
@@ -115,25 +115,25 @@ export const AudienceAndTypologySection: React.FC<AudienceAndTypologySectionProp
   return (
     <section className="py-20 bg-[#F6F9FC] border-b border-[#E2E8F0]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Section Heading */}
         <div className="max-w-3xl mx-auto text-center space-y-4 mb-12">
           <span className="text-xs font-bold text-[#0E9F8E] uppercase tracking-wider bg-[#EAF8F5] px-3.5 py-1 rounded-full border border-[#B2E5DF]">
-            {lang === 'ro' ? 'Adaptabilitate la Scenarii Reale' : lang === 'fa' ? 'پاسخ به نیازهای واقعی مخاطبان' : 'Real-World Adaptability'}
+            {lang === 'ro' ? 'Soluții pentru Oricine și Orice Clădire' : lang === 'fa' ? 'راهکارهای متناسب با نقش و نوع ساختمان' : 'Tailored Solutions for Every Property'}
           </span>
           <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-[#102A43] tracking-tight">
-            {lang === 'ro' 
-              ? 'Construit pentru toți actorii și toate tipurile de proprietate' 
-              : lang === 'fa' 
-              ? 'پوشش جامع مخاطبان و انواع محیط‌های ملکی' 
-              : 'Built for Every Stakeholder & Every Property Typology'}
+            {lang === 'ro'
+              ? 'Adaptat pentru nevoile fiecărui rol și tip de clădire'
+              : lang === 'fa'
+              ? 'طراحی‌شده برای نیازهای واقعی ساکنان، مدیران و مالکان'
+              : 'Built for Every Role & Every Building Type'}
           </h2>
           <p className="text-base sm:text-lg text-[#52667A] leading-relaxed">
             {lang === 'ro'
-              ? 'CLADORA nu forțează o clădire de birouri sau un parc industrial în tiparul unui apartament. Fiecare profil beneficiază de instrumente adaptate contextului său legal și operațional.'
+              ? 'Fie că administrezi un bloc de locuințe, o clădire de birouri sau un spațiu comercial, CLADORA oferă instrumentele potrivite pentru fiecare persoană implicată, fără complicații inutile.'
               : lang === 'fa'
-              ? 'کلادورا کاربردها را به یک آپارتمان مسکونی محدود نمی‌کند؛ بلکه برای هر نقش و هر نوع ملک، معماری متناسب و کارآمدی فراهم می‌آورد.'
-              : 'CLADORA never forces a logistics park or mixed-use estate into a generic condo template. Workspaces adapt to the exact legal mandate and physical profile.'}
+              ? 'چه یک آپارتمان مسکونی را اداره کنید و چه یک مجتمع اداری یا تجاری را، کلادورا ابزارهای کاربردی و ساده‌ای برای هر شخص فراهم می‌کند، بدون پیچیدگی‌های خسته‌کننده.'
+              : 'Whether you manage a residential apartment block, an office building, or a commercial space, CLADORA gives every participant the right tools, without unnecessary friction.'}
           </p>
 
           {/* Toggle Tab */}
@@ -147,7 +147,7 @@ export const AudienceAndTypologySection: React.FC<AudienceAndTypologySectionProp
                   : 'text-[#627D98] hover:text-[#102A43]'
               }`}
             >
-              {lang === 'ro' ? 'După Rol & Actori' : lang === 'fa' ? 'بر اساس مخاطبان و نقش‌ها' : 'By Stakeholder Role'}
+              {lang === 'ro' ? 'După Rol' : lang === 'fa' ? 'بر اساس نقش شما' : 'By Role'}
             </button>
             <button
               type="button"
@@ -158,7 +158,7 @@ export const AudienceAndTypologySection: React.FC<AudienceAndTypologySectionProp
                   : 'text-[#627D98] hover:text-[#102A43]'
               }`}
             >
-              {lang === 'ro' ? 'După Tipul de Proprietate' : lang === 'fa' ? 'بر اساس نوع محیط و ملک' : 'By Property Typology'}
+              {lang === 'ro' ? 'După Tipul Clădirii' : lang === 'fa' ? 'بر اساس نوع ساختمان' : 'By Building Type'}
             </button>
           </div>
         </div>
@@ -169,7 +169,7 @@ export const AudienceAndTypologySection: React.FC<AudienceAndTypologySectionProp
             {audiences.map((aud, idx) => {
               const Icon = aud.icon;
               return (
-                <div 
+                <div
                   key={idx}
                   className="card-proptech p-6 bg-white border-[#E2E8F0] flex flex-col justify-between hover:border-[#0E9F8E] transition-all group"
                 >
@@ -209,7 +209,7 @@ export const AudienceAndTypologySection: React.FC<AudienceAndTypologySectionProp
                       href={aud.link}
                       className="text-xs font-bold text-[#0E9F8E] hover:text-[#0A7E71] flex items-center justify-between"
                     >
-                      <span>{lang === 'ro' ? 'Vezi fluxul dedicat' : lang === 'fa' ? 'مشاهده مسیر اختصاصی' : 'Explore workflow'}</span>
+                      <span>{lang === 'ro' ? 'Vezi detalii' : lang === 'fa' ? 'مشاهده راهکار اختصاصی' : 'Explore solution'}</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
                   </div>
@@ -225,7 +225,7 @@ export const AudienceAndTypologySection: React.FC<AudienceAndTypologySectionProp
             {typologies.map((typ, idx) => {
               const Icon = typ.icon || Building;
               return (
-                <div 
+                <div
                   key={idx}
                   className="card-proptech p-7 bg-white border-[#E2E8F0] space-y-4 hover:border-[#0E9F8E] transition-all"
                 >
@@ -263,7 +263,7 @@ export const AudienceAndTypologySection: React.FC<AudienceAndTypologySectionProp
             href={`/${lang}/solutions`}
             className="inline-flex items-center gap-2 text-sm font-bold text-[#0E9F8E] hover:text-[#0A7E71]"
           >
-            <span>{lang === 'ro' ? 'Explorează matricea completă a soluțiilor și scenariilor' : lang === 'fa' ? 'مشاهده ماتریس جامع راهکارها و سناریوهای استقرار' : 'Explore comprehensive solutions and deployment matrix'}</span>
+            <span>{lang === 'ro' ? 'Află mai multe despre toate soluțiile CLADORA' : lang === 'fa' ? 'مشاهده تمام راهکارها و سناریوهای کاربردی' : 'Explore all CLADORA solutions and use cases'}</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>

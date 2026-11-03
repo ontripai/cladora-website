@@ -25,7 +25,7 @@ export const InteractiveProductPreview: React.FC<ProductPreviewProps> = ({ lang 
         
         <div className="text-center max-w-3xl mx-auto space-y-3">
           <span className="text-xs font-bold text-[#0A6E62] uppercase tracking-wider bg-[#EAF8F5] px-3 py-1 rounded-full border border-[#B2E5DF]">
-            {lang === 'ro' ? 'Experiență de Produs Live' : lang === 'fa' ? 'پیش‌نمایش زنده تجربه کاربری' : 'Live Product Experience'}
+            {lang === 'ro' ? 'Demo interactiv al produsului' : lang === 'fa' ? 'دموی تعاملی محصول' : 'Interactive Product Demo'}
           </span>
           <h2 className="text-3xl sm:text-5xl font-display font-extrabold text-[#102A43] tracking-tight">
             {lang === 'ro' 

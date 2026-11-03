@@ -1,15 +1,15 @@
 import React from 'react';
 import Link from 'next/link';
 import { Language } from '@/types';
-import { 
-  ShieldCheck, 
-  Clock, 
-  RefreshCw, 
-  FileCheck2, 
-  ArrowRight, 
-  CheckCircle2, 
-  UserCheck, 
-  GitBranch, 
+import {
+  ShieldCheck,
+  Clock,
+  RefreshCw,
+  FileCheck2,
+  ArrowRight,
+  CheckCircle2,
+  UserCheck,
+  GitBranch,
   Lock
 } from 'lucide-react';
 
@@ -21,31 +21,31 @@ export const DelegationAndSuccessionSection: React.FC<DelegationAndSuccessionSec
   return (
     <section className="py-20 bg-white border-b border-[#E2E8F0]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+
         {/* Section Header */}
         <div className="max-w-3xl mx-auto text-center space-y-4 mb-16">
           <span className="text-xs font-bold text-[#0E9F8E] uppercase tracking-wider bg-[#EAF8F5] px-3.5 py-1 rounded-full border border-[#B2E5DF]">
-            {lang === 'ro' ? 'Guvernanță & Continuitate Juridică' : lang === 'fa' ? 'مدیریت نقش‌ها، مدت اعتبار و جانشینی' : 'Governance & Accountable Succession'}
+            {lang === 'ro' ? 'Claritate Juridică și Predare Fără Griji' : lang === 'fa' ? 'تعیین مهلت نقش‌ها و تحویل مسئولیت' : 'Clear Roles & Seamless Handover'}
           </span>
           <h2 className="text-3xl sm:text-4xl font-display font-extrabold text-[#102A43] tracking-tight">
-            {lang === 'ro' 
-              ? 'Roluri cu termen limitat și predare transparentă a responsabilităților' 
-              : lang === 'fa' 
-              ? 'اختیار زمان‌دار، عدم ابهام در مسئولیت و تحویل بی‌نقص کارها' 
-              : 'Time-Bound Delegation & Accountable Handover'}
+            {lang === 'ro'
+              ? 'Drepturi stabilite pe perioade clare și predarea ușoară a gestiunii'
+              : lang === 'fa'
+              ? 'مدت زمان معین برای هر مسئولیت و تحویل بی‌دردسر امور'
+              : 'Time-Bound Permissions & Clear Management Handover'}
           </h2>
           <p className="text-base sm:text-lg text-[#52667A] leading-relaxed">
             {lang === 'ro'
-              ? 'Schimbarea unui administrator, a unui președinte sau a unei firme de mentenanță nu trebuie să blocheze activitatea sau să șteargă dovezile din trecut. CLADORA gestionează ciclurile de delegare și succesiune cu rigoare juridică și operațională.'
+              ? 'Schimbarea administratorului, a președintelui de bloc sau a firmei de curățenie nu trebuie să creeze haos ori să șteargă actele din urmă. CLADORA asigură predarea clară a sarcinilor și păstrează intact istoricul deciziilor luate.'
               : lang === 'fa'
-              ? 'تغییر مدیر، بازرس یا پیمانکار نگهداری نباید سوابق را مخدوش کند یا کارهای جاری را معطل بگذارد. کلادورا مدل تفویض اختیار و تحویل مسئولیت را با بالاترین دقت حقوقی و حسابرسی اجرا می‌کند.'
-              : 'Leadership or vendor turnover must never compromise past audit evidence or stall operations. CLADORA implements disciplined delegation trees and effective-dated succession.'}
+              ? 'تغییر مدیر ساختمان، بازرس یا شرکت نگهداری نباید باعث سردرگمی، مفقود شدن پرونده‌ها یا توقف کارهای جاری شود. کلادورا تحویل امور را شفاف می‌کند و سوابق تصمیمات قبلی را بدون دستکاری حفظ می‌نماید.'
+              : 'A change of property manager, board president, or service contractor should never create chaos or lose past records. CLADORA keeps handovers organized and protects previous historical decisions.'}
           </p>
         </div>
 
         {/* 2 Core Columns: Delegation Rules vs Succession Handover */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-          
+
           {/* Column 1: Delegation & Scoped Authority */}
           <div className="card-proptech p-8 bg-[#F8FAFC] border-[#D3DCE6] space-y-6">
             <div className="flex items-center gap-3 pb-4 border-b border-[#E2E8F0]">
@@ -54,10 +54,10 @@ export const DelegationAndSuccessionSection: React.FC<DelegationAndSuccessionSec
               </div>
               <div>
                 <h3 className="text-xl font-bold text-[#102A43]">
-                  {lang === 'ro' ? 'Arborele de Delegare & Durata Mandatului' : lang === 'fa' ? 'تفویض اختیار و مدت زمان اعتبار نقش' : 'Delegation Tree & Mandate Duration'}
+                  {lang === 'ro' ? 'Acordarea Drepturilor & Durata Rolului' : lang === 'fa' ? 'تعیین دسترسی‌ها و مدت اعتبار نقش' : 'Granting Permissions & Role Duration'}
                 </h3>
                 <span className="text-xs text-[#627D98]">
-                  {lang === 'ro' ? 'Niciun rol subordonat nu depășește autoritatea părintelui' : lang === 'fa' ? 'اختیار زیرمجموعه هرگز از اختیار والد فراتر نمی‌رود' : 'Child authority never exceeds parent scope'}
+                  {lang === 'ro' ? 'Fiecare persoană primește doar drepturile necesare pentru perioada cuvenită' : lang === 'fa' ? 'هر شخص فقط در حدود نیاز و برای مدت مشخص دسترسی دارد' : 'Permissions strictly match the role and time window'}
                 </span>
               </div>
             </div>
@@ -67,14 +67,14 @@ export const DelegationAndSuccessionSection: React.FC<DelegationAndSuccessionSec
                 <CheckCircle2 className="w-5 h-5 text-[#0E9F8E] shrink-0 mt-0.5" />
                 <div>
                   <strong className="text-[#102A43] block">
-                    {lang === 'ro' ? 'Delegare strict în limitele autorității efective:' : lang === 'fa' ? 'اعطای نقش صرفاً در حدود اختیارات مؤثر:' : 'Bounded delegation:'}
+                    {lang === 'ro' ? 'Drepturi acordate doar în limitele funcției:' : lang === 'fa' ? 'اعطای دسترسی صرفاً در حیطه وظایف:' : 'Permissions within role boundaries:'}
                   </strong>
                   <span>
                     {lang === 'ro'
-                      ? 'Un administrator poate atribui roluri subordonate, stabili termene de valabilitate sau revoca accesul doar în perimetrul propriului mandat valid.'
+                      ? 'Un administrator poate da acces unui contabil sau unui meșter doar pentru atribuțiile stabilite și doar pe durata mandatului său activ.'
                       : lang === 'fa'
-                      ? 'مدیر فقط در محدودهٔ اختیار مؤثر خود می‌تواند به افراد نقش بدهد، برای آن‌ها مدت اعتبار تعیین کند، تمدید نماید یا دسترسی را بازپس بگیرد.'
-                      : 'Administrators may assign local roles, define validity windows, or revoke access only within their own active mandate.'}
+                      ? 'مدیر ساختمان می‌تواند به حسابدار یا تکنسین دسترسی بدهد، اما فقط در چارچوب وظایف محوله و در طول دوره مدیریت فعال خودش.'
+                      : 'An administrator can grant access to an accountant or technician, but strictly within their own active mandate.'}
                   </span>
                 </div>
               </li>
@@ -83,14 +83,14 @@ export const DelegationAndSuccessionSection: React.FC<DelegationAndSuccessionSec
                 <CheckCircle2 className="w-5 h-5 text-[#0E9F8E] shrink-0 mt-0.5" />
                 <div>
                   <strong className="text-[#102A43] block">
-                    {lang === 'ro' ? 'Dependența de mandatul părinte:' : lang === 'fa' ? 'وابستگی اختیارات فرزند به والد:' : 'Cascade revocation:'}
+                    {lang === 'ro' ? 'Drepturile delegate depind de rolul principal:' : lang === 'fa' ? 'وابستگی دسترسی‌های کمکی به نقش اصلی:' : 'Delegated rights depend on parent role:'}
                   </strong>
                   <span>
                     {lang === 'ro'
-                      ? 'Autoritatea delegată nu poate depăși ca termen sau ca permisiuni autoritatea celui care a acordat-o. Expirarea mandatului superior suspendă automat accesul subordonat.'
+                      ? 'Dacă mandatul administratorului încetează, accesul colaboratorilor desemnați de acesta se oprește automat, pentru a preveni accesul neautorizat.'
                       : lang === 'fa'
-                      ? 'اختیار فرزند از مجوز، محدوده و مدت اعتبار والد فراتر نمی‌رود؛ پایان یا لغو اختیار والد بلافاصله بر اختیارات وابسته اثر می‌گذارد.'
-                      : 'Child authority cannot outlive or exceed parent permissions. Revocation of a parent mandate immediately cascades to dependent assignments.'}
+                      ? 'با پایان دوره خدمت مدیر، دسترسی همکاران معرفی‌شده توسط او نیز به‌طور خودکار متوقف می‌شود تا امنیت اطلاعات حفظ گردد.'
+                      : 'When a manager’s term ends, access for helpers appointed by them ends automatically, keeping building data secure.'}
                   </span>
                 </div>
               </li>
@@ -99,14 +99,14 @@ export const DelegationAndSuccessionSection: React.FC<DelegationAndSuccessionSec
                 <CheckCircle2 className="w-5 h-5 text-[#0E9F8E] shrink-0 mt-0.5" />
                 <div>
                   <strong className="text-[#102A43] block">
-                    {lang === 'ro' ? 'Acces fără termen doar pe baze active:' : lang === 'fa' ? 'دسترسی بدون تاریخ پایان مشروط به اعتبار مبانی:' : 'Open-ended access conditioned on active bases:'}
+                    {lang === 'ro' ? 'Accesul continuu este valabil doar pe baza rolului activ:' : lang === 'fa' ? 'استمرار دسترسی مشروط به ادامه مسئولیت است:' : 'Ongoing access requires an active basis:'}
                   </strong>
                   <span>
                     {lang === 'ro'
-                      ? 'Accesul fără dată de expirare fixă este permis doar pe durata validității tuturor temeiurilor necesare (inclusiv autoritatea părinte și mandatul din Workspace) și rămâne revocabil sau caduc la încetarea acestora.'
+                      ? 'Accesul continuu este condiționat de existența unui rol valid (de exemplu, calitatea de proprietar sau administrator în funcție) și se încheie odată cu modificarea sau retragerea autorizării.'
                       : lang === 'fa'
-                      ? 'دسترسی بدون تاریخ پایان تنها تا زمان استمرار اعتبار کلیه مبانی لازم (از جمله اختیار والد و مبنای دسترسی Workspace) مجاز است و در صورت تغییر یا ابطال مبنا، همچنان قابل لغو یا بی‌اثرشدن خواهد بود.'
-                      : 'Access without a set expiration date is permissible only while all prerequisite grounds (including parent authority and active Workspace entitlement) remain valid, and remains strictly revocable or voidable if any basis lapses.'}
+                      ? 'استمرار دسترسی مشروط به داشتن نقشی معتبر (مانند مالکیت واحد یا مدیریت مستقر) است و با پایان یا لغو آن مجوز، دسترسی خاتمه می‌یابد.'
+                      : 'Ongoing access depends on an active authorized role (such as current ownership or active management) and concludes when that authorization changes or expires.'}
                   </span>
                 </div>
               </li>
@@ -121,10 +121,10 @@ export const DelegationAndSuccessionSection: React.FC<DelegationAndSuccessionSec
               </div>
               <div>
                 <h3 className="text-xl font-bold text-[#102A43]">
-                  {lang === 'ro' ? 'Protocolul de Predare & Succesiune' : lang === 'fa' ? 'پروتکل تحویل مسئولیت و جانشینی' : 'Succession Handover Protocol'}
+                  {lang === 'ro' ? 'Cum se face Predarea Către Noul Administrator' : lang === 'fa' ? 'نحوه تحویل امور به مدیر یا هیئت‌مدیره جدید' : 'How Handover to New Management Works'}
                 </h3>
                 <span className="text-xs text-[#627D98]">
-                  {lang === 'ro' ? 'Continuitate operațională cu semnături istorice protejate' : lang === 'fa' ? 'حفظ کامل سوابق پیشین و شروع رسمی فعالیت جانشین' : 'Protected historical actions & clean transition'}
+                  {lang === 'ro' ? 'Continuitate în gestiune și evidența clară a deciziilor anterioare' : lang === 'fa' ? 'تداوم در مدیریت و شفافیت در ثبت سوابق و تصمیمات قبلی' : 'Management continuity and clear records of prior decisions'}
                 </span>
               </div>
             </div>
@@ -134,14 +134,14 @@ export const DelegationAndSuccessionSection: React.FC<DelegationAndSuccessionSec
                 <CheckCircle2 className="w-5 h-5 text-[#0E9F8E] shrink-0 mt-0.5" />
                 <div>
                   <strong className="text-[#102A43] block">
-                    {lang === 'ro' ? 'Dată de efect și încheiere ordonată:' : lang === 'fa' ? 'تعیین تاریخ مؤثر و ثبت سابقه جانشینی:' : 'Effective-dated cutover:'}
+                    {lang === 'ro' ? 'Data exactă de predare a gestiunii:' : lang === 'fa' ? 'تاریخ دقیق تحویل و شروع مسئولیت جدید:' : 'Exact effective handover date:'}
                   </strong>
                   <span>
                     {lang === 'ro'
-                      ? 'Predarea responsabilității include încetarea formală a mandatului anterior și activarea succesorului la o dată de efect precisă, auditată în sistem.'
+                      ? 'Predarea consemnează data stabilită, încheierea vechiului mandat și drepturile aprobate pentru noul administrator.'
                       : lang === 'fa'
-                      ? 'تحویل مسئولیت شامل پایان یافتن اختیار قبلی و شروع اختیار جانشین با درج زمان مؤثر و ثبت سابقهٔ قابل پیگیری در سامانه است.'
-                      : 'Succession records the exact effective timestamp ending prior authority and starting the successor mandate without historical gaps.'}
+                      ? 'در تحویل، تاریخ مقرر، پایان مسئولیت قبلی و دسترسی‌های مصوب مدیر جدید ثبت می‌شود.'
+                      : 'The handover records the effective date, the end of the previous mandate, and approved access for the incoming manager.'}
                   </span>
                 </div>
               </li>
@@ -150,14 +150,14 @@ export const DelegationAndSuccessionSection: React.FC<DelegationAndSuccessionSec
                 <CheckCircle2 className="w-5 h-5 text-[#0E9F8E] shrink-0 mt-0.5" />
                 <div>
                   <strong className="text-[#102A43] block">
-                    {lang === 'ro' ? 'Preluarea sarcinilor și accesul la arhive autorizate:' : lang === 'fa' ? 'دسترسی جانشین به سوابق و پیگیری کارهای باز:' : 'Successor record access:'}
+                    {lang === 'ro' ? 'Preluarea dosarelor și a sarcinilor în curs:' : lang === 'fa' ? 'تحویل پرونده‌ها و کارهای در دست اقدام:' : 'Access to files and ongoing tasks:'}
                   </strong>
                   <span>
                     {lang === 'ro'
-                      ? 'Succesorul primește acces doar la dosarele autorizate necesare continuării activității și preia tichetele și sarcinile deschise.'
+                      ? 'Noul administrator poate consulta documentele necesare și poate urmări sarcinile în curs, în limitele accesului aprobat.'
                       : lang === 'fa'
-                      ? 'جانشین منحصراً به سوابق مجاز دسترسی پیدا می‌کند و می‌تواند پیگیری کارهای باز و تعهدات معوق را بدون وقفه ادامه دهد.'
-                      : 'The successor gains access strictly to permitted historical files and open tasks required to carry forward operations smoothly.'}
+                      ? 'مدیر جدید می‌تواند در حدود دسترسی مصوب، مدارک لازم را بررسی و کارهای جاری را پیگیری کند.'
+                      : 'The incoming manager can consult necessary records and follow ongoing tasks within their approved access.'}
                   </span>
                 </div>
               </li>
@@ -166,14 +166,14 @@ export const DelegationAndSuccessionSection: React.FC<DelegationAndSuccessionSec
                 <CheckCircle2 className="w-5 h-5 text-[#0E9F8E] shrink-0 mt-0.5" />
                 <div>
                   <strong className="text-[#102A43] block">
-                    {lang === 'ro' ? 'Semnăturile trecute nu se rescriu:' : lang === 'fa' ? 'تفکیک قطعی امضاهای گذشته از اقدامات جدید:' : 'Historical attribution preserved:'}
+                    {lang === 'ro' ? 'Semnăturile din trecut rămân neschimbate:' : lang === 'fa' ? 'امضاها و تصمیمات قبلی تغییر نمی‌کنند:' : 'Historical signatures remain intact:'}
                   </strong>
                   <span>
                     {lang === 'ro'
-                      ? 'Deciziile, aprobările de plată și listele afișate anterior rămân asociate persoanelor care le-au semnat la momentul respectiv. Acțiunile noi se înregistrează pe numele noului titular.'
+                      ? 'Listele de plată, evidențele și procesele-verbale întocmite în trecut păstrează asocierea cu persoanele care le-au înregistrat la acel moment. Noul administrator va semna actele emise din momentul preluării.'
                       : lang === 'fa'
-                      ? 'اقدامات، تأییدیه‌ها و امضاهای گذشته دقیقاً به نام اشخاص قبلی محفوظ می‌مانند؛ اقدامات و اسناد جدید به نام شخص جدید ثبت و امضا می‌شوند.'
-                      : 'Past approvals, journal posts, and notices remain permanently signed by the historical actor. New transactions are attributed to the successor.'}
+                      ? 'اسناد مالی، صورت‌جلسات و سوابق ثبت‌شده در دوره‌های قبل، انتساب خود را به ثبت‌کنندگان وقت حفظ می‌کنند و مدیر جدید اسناد صادره پس از تحویل را امضا می‌نماید.'
+                      : 'Past fee sheets, operational records, and minutes retain their recorded author attributions. The incoming manager signs records created from the handover date onward.'}
                   </span>
                 </div>
               </li>
@@ -182,14 +182,14 @@ export const DelegationAndSuccessionSection: React.FC<DelegationAndSuccessionSec
                 <CheckCircle2 className="w-5 h-5 text-[#0E9F8E] shrink-0 mt-0.5" />
                 <div>
                   <strong className="text-[#102A43] block">
-                    {lang === 'ro' ? 'Delimitarea răspunderii de identitate și alte roluri:' : lang === 'fa' ? 'تفکیک پایان مسئولیت از مالکیت و دسترسی‌های مستقل:' : 'Scope limited to handed-over responsibility:'}
+                    {lang === 'ro' ? 'Predarea vizează doar funcția, nu și dreptul de proprietate:' : lang === 'fa' ? 'تحویل مربوط به سمت مدیریتی است، نه مالکیت شخصی:' : 'Handover affects the management role, not personal ownership:'}
                   </strong>
                   <span>
                     {lang === 'ro'
-                      ? 'Predarea responsabilității nu este identică cu transferul proprietății imobilului sau identitatea persoanei. Încetarea accesului vizează strict mandatul predat; alte drepturi independente și valide ale persoanei (cum ar fi calitatea de proprietar) rămân neschimbate.'
+                      ? 'Când un administrator își încheie mandatul, își pierde doar drepturile de administrare. Dacă deține un apartament în bloc, dreptul său de proprietar rămâne neatins.'
                       : lang === 'fa'
-                      ? 'تحویل مسئولیت با انتقال مالکیت ملک یا تغییر هویت شخص یکسان نیست. پایان دسترسی صرفاً بر مسئولیت واگذارشده تمرکز دارد و حقوق مستقل دیگر فرد (مانند مالکیت یک واحد) را مخدوش نمی‌کند.'
-                      : 'Handover of responsibility is not synonymous with property title transfer or personal identity change. Revocation targets only the transferred mandate, leaving independent valid roles intact.'}
+                      ? 'با پایان دوره مدیریت، فقط دسترسی به پنل مدیریت بسته می‌شود؛ اگر آن فرد در ساختمان آپارتمانی داشته باشد، حق مالکیت و دسترسی شخصی او کاملاً پابرجاست.'
+                      : 'Ending a management term revokes only administrative privileges. If the former manager owns an apartment in the building, their rights as an owner remain untouched.'}
                   </span>
                 </div>
               </li>

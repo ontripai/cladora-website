@@ -4,7 +4,7 @@
 
 **Owner:** Core Operations owns technical execution, canonical Work Orders and their lifecycle. Domain owners may request work and observe bounded receipts but do not advance Work Order state directly.
 
-**Delivery boundary:** additive TypeScript contracts and static mapping only. No migration, endpoint, Work Order, financial posting, central manifest rewrite or Production effect.
+**Delivery boundary:** the accepted first runtime consumer is an existing immutable SERVICE request. One additive receipt/link table and one bounded RPC map that source to the existing Work Order engine after current AUTH-01, exact source-version and DW-02 canonical Unit checks. The API exposes only the request/receipt contract. There is no financial posting, central manifest rewrite or Production effect.
 
 ## Existing sources reused
 
@@ -30,7 +30,7 @@ A future adapter must resolve current AUTH-01 authority and resource scope, vali
 
 Request cancellation does not delete a Work Order. Domain cancellation and Work Order cancellation are separate state transitions. A terminal verified Work Order remains immutable; correction uses the existing explicit lifecycle/financial correction paths rather than rewriting history.
 
-## Existing evidence and future runtime gate
+## Existing evidence and runtime gate
 
 Repository evidence already covers Work Order integrity, transition legality, checklist completion, independent verification, context/tenant scope, dashboard reads, procurement/payable linkage, idempotent payable creation and concurrent behavior through:
 
@@ -43,6 +43,8 @@ Repository evidence already covers Work Order integrity, transition legality, ch
 - `supabase/tests/153_maintenance_dashboard_context_authority.test.sql`;
 - `scripts/test-work-order-checklist.mjs` and `scripts/test-work-order-lifecycle-ui.mjs`.
 
-This slice does not claim a new database run. A future adapter requires a selected first consumer and disposable tests for accepted/rejected replay, source-version conflict, cross-tenant/resource denial, cancelled source behavior, independent completion/verification, Finance reference parity and proof of zero direct Work Order mutation by the consumer.
+The selected first consumer is `service_catalog.requests`. The adapter records linkage/replay evidence in `maintenance.execution_request_receipts`, but creates execution only through `maintenance.create_work_order`; SERVICE receives a receipt and never updates the Work Order. The adapter accepts only a current own SERVICE request/version and a verified DW-02 Unit in the same explicit Workspace. It rechecks AUTH-01 and source/resource currentness before replay. Until FIN-01 is connected, a supplied proposal reference returns a rejected receipt with no Work Order or Finance identifiers.
+
+Disposable pgTAP covers accepted/rejected replay, stale source/resource versions, cross-tenant/resource denial, current-authority replay denial, immutable receipts and zero direct table access by the consumer. Existing lifecycle suites remain the evidence for completion, verification and cancellation boundaries; this adapter grants no lifecycle action.
 
 CI success is evidence, not acceptance, merge authorization, remote migration authorization or Production release. Documentation & PM owns the central manifest and final acceptance; this branch does not modify either.

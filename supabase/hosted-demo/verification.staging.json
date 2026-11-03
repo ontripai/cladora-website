@@ -1,0 +1,64 @@
+{
+  "project_ref": "ryygcqiunqqtfkpkflzf",
+  "result": "PASS_HOSTED_API_AND_DATABASE_ONLY",
+  "checks_passed": 53,
+  "checks_failed": 0,
+  "test_accounts": 2,
+  "verified_at_hosted_staging": true,
+  "synthetic_emails_admin_confirmed": true,
+  "email_delivery_tested": false,
+  "browser_tested": false,
+  "frontend_connected": false,
+  "seed_items_each": 75,
+  "readonly_financial_rows_each": 24,
+  "owner_sql_reconciliation": {
+    "workspace_item_counts": [
+      76,
+      75
+    ],
+    "financial_totals_per_workspace": {
+      "invoiced": 6420,
+      "paid": 5580,
+      "outstanding": 840,
+      "currency": "RON"
+    },
+    "leads_present_private": true,
+    "marketing_consent_optional_verified": true
+  },
+  "isolation_and_critical_checks": [
+    "cross-user reads/writes and cross-workspace parent denied",
+    "forged user role/workspace metadata gives no authority",
+    "native platform access remainsfalse and native MFA stillrequired",
+    "finance/payment/role/voting writes rejected",
+    "reports reflect own persisted change and other workspace remains unchanged",
+    "duplicate request creates one record; stale version gives terminal HTTP409"
+  ],
+  "cleanup": {
+    "accounts_removed": 2,
+    "demo_workspaces": 0,
+    "demo_items": 0,
+    "demo_finance_samples": 0,
+    "demo_leads": 0,
+    "private_session_file_removed": true
+  },
+  "native_memberships_created": 0,
+  "active_platform_roles": 0,
+  "historical_first_attempt": "Stale-version request timed out with SQLSTATE40001; fixtures removed; terminal PT409 fix applied and full regression passed",
+  "sql_files": {
+    "public-demo-version-conflict-v1.sql": "f093dc35eef0a7c3ec8ff39360ce634aceafea80f70ddff511d47c80210bfd5a",
+    "public-demo-workspaces-v1.sql": "f5aadf917cc80cf40b3451a888b03b6e9c51c59e8243b699f5d8419af5f006ed"
+  },
+  "security_advisors": {
+    "before_demo": {
+      "info111": 111,
+      "authenticated_security_definer_warn": 11,
+      "leaked_password_protection_warn": 1
+    },
+    "after_demo": {
+      "info111": 111,
+      "authenticated_security_definer_warn": 17,
+      "leaked_password_protection_warn": 1
+    },
+    "note": "Six new authenticated security-definer RPCs are intentional, reviewed for actual verified Auth UID/ownership, FORCE RLS and exact ACLs, and tested with two real users. Existing password-protection configuration warning remains; not full security acceptance."
+  }
+}
