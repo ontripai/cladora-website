@@ -1,0 +1,344 @@
+{
+  "format": "platform-core12-ordinary-source-delivery.v1",
+  "task_id": "PLATFORM-CORE12-ORDINARY-FIXTURE-SOURCE-11",
+  "parent": "3d8cc8f757babbb986762318be81b01eed522442",
+  "branch": "codex/program-local-runtime-lane-01",
+  "core_source": "1eb8b5a1e522a529b39af02e32748756ee04dfec",
+  "new_paths": [
+    "docs/reviews/PLATFORM-CORE12-ORDINARY-FIXTURE-SOURCE-11.md",
+    "scripts/core12_ordinary_contract.py",
+    "scripts/core12_ordinary_wire.py",
+    "scripts/run-core12-ordinary.py",
+    "scripts/test-core12-ordinary-source.py",
+    "supabase/local-profiles/core12-ordinary-reviews-v1.json",
+    "supabase/local-profiles/core12-ordinary-v1/catalog-snapshot.sql",
+    "supabase/local-profiles/core12-ordinary-v1/custodian-identity.sql",
+    "supabase/local-profiles/core12-ordinary-v1/ordinary-identity.sql",
+    "supabase/local-profiles/core12-ordinary-v1/setup-access.sql",
+    "supabase/local-profiles/core12-ordinary-v1/setup-database.sql",
+    "supabase/local-profiles/core12-ordinary-v1/setup-local.sql",
+    "supabase/local-profiles/core12-ordinary-v1/setup-roles.sql",
+    "supabase/local-profiles/core12-ordinary.request.json",
+    "supabase/local-profiles/runtime-pg-only-core12-ordinary-v1.json",
+    "docs/reviews/PLATFORM-CORE12-ORDINARY-FIXTURE-SOURCE-11.manifest.json"
+  ],
+  "files": [
+    {
+      "path": "docs/reviews/PLATFORM-CORE12-ORDINARY-FIXTURE-SOURCE-11.md",
+      "bytes": 8904,
+      "sha256": "e56d87016c60084d0d07e203ce61f5018a2384f01d3625e60b921d0788be92a6",
+      "git_blob": "0ed671e500a22cfc7c6b71464407943bba586a89"
+    },
+    {
+      "path": "scripts/core12_ordinary_contract.py",
+      "bytes": 8228,
+      "sha256": "d2734ac224490a23e9f2904f5b3f1ea9d5831c61a001102ef26d8308e96eea1e",
+      "git_blob": "624b6ce73ec341b4be78b11c4f23a373ca00fc45"
+    },
+    {
+      "path": "scripts/core12_ordinary_wire.py",
+      "bytes": 14300,
+      "sha256": "f7c2ab88780f82dfaf65d8037be7c1a0d130e631a3911080162cae3783b3e943",
+      "git_blob": "2018b1446bd5464a973a98a3312aa4ce80d58d1b"
+    },
+    {
+      "path": "scripts/run-core12-ordinary.py",
+      "bytes": 9476,
+      "sha256": "8571de55c4a28e887af29c8d11a619619e61141bd07ce6b23f86e57de87f3a27",
+      "git_blob": "c67fbbbca20133e0b6a10c9692242da0d5a2d7a8"
+    },
+    {
+      "path": "scripts/test-core12-ordinary-source.py",
+      "bytes": 19242,
+      "sha256": "79b10a0caa2a6ff24705ecba8e0d377d7772de45a0b6b09f7b40ad215f26dd21",
+      "git_blob": "ec103cae23d0392c9ecd0042f3ca0c65e18b0aad"
+    },
+    {
+      "path": "supabase/local-profiles/core12-ordinary-reviews-v1.json",
+      "bytes": 70,
+      "sha256": "d9cd9ce867725fc6126ca87a230f7da10a921f905ad0797339d3afffa4e53a0f",
+      "git_blob": "a452ef0262f4d92043fed3aa8d7b45c72f4c9156"
+    },
+    {
+      "path": "supabase/local-profiles/core12-ordinary-v1/catalog-snapshot.sql",
+      "bytes": 2609,
+      "sha256": "74310697e7be4bc1cba661cbc818fa998cef02ab2eeafa1d819d3bb69927df48",
+      "git_blob": "5e6255bf7f6176e6859ff539097904ca1949ddae"
+    },
+    {
+      "path": "supabase/local-profiles/core12-ordinary-v1/custodian-identity.sql",
+      "bytes": 898,
+      "sha256": "e7cc9068437d03a5327d6b32592f8041baf7d7d5ed6a4ccb4c9943c6affce758",
+      "git_blob": "baedeca100d2fbca294834062505a9a414cf875a"
+    },
+    {
+      "path": "supabase/local-profiles/core12-ordinary-v1/ordinary-identity.sql",
+      "bytes": 1244,
+      "sha256": "5276e96dd503c99df7f0aa95137d5e908a493b4d029ddd80db3732377088257d",
+      "git_blob": "490ac7ae4122d985cde76062e610625b9fbce0dc"
+    },
+    {
+      "path": "supabase/local-profiles/core12-ordinary-v1/setup-access.sql",
+      "bytes": 432,
+      "sha256": "6bb549e3327494954fe85f0bbf38cc3b1c6ca014f679ef03c315b10995cb274a",
+      "git_blob": "71473a7a24bd35e1cfa10b2195d520d8f888799b"
+    },
+    {
+      "path": "supabase/local-profiles/core12-ordinary-v1/setup-database.sql",
+      "bytes": 179,
+      "sha256": "fe09c4874e6fa4731a85802671593681259f8b94d0d897e86954b1842be38644",
+      "git_blob": "d6a4d26b94b8470af2c05606be9d014f1dbb3f7d"
+    },
+    {
+      "path": "supabase/local-profiles/core12-ordinary-v1/setup-local.sql",
+      "bytes": 982,
+      "sha256": "0025d408afaadd6aa8937db2315679ca1e12c45ce578d2ca35a02d1cb6ded64d",
+      "git_blob": "34289945ed820c3f84c11612692394febfa9e978"
+    },
+    {
+      "path": "supabase/local-profiles/core12-ordinary-v1/setup-roles.sql",
+      "bytes": 1095,
+      "sha256": "bb074abb4e7d40e3b2d3796245ebd637a36ae9e1ae04c1ae1f241e17b0b0c15a",
+      "git_blob": "96a073500c69e51e7d8855746c23933917286d08"
+    },
+    {
+      "path": "supabase/local-profiles/core12-ordinary.request.json",
+      "bytes": 7523,
+      "sha256": "cd2f721ab920e0931a97ee8514a64abde033830bc0ec951a9933d862a77dfd35",
+      "git_blob": "6bb533460dba13b5bbae41426aa58923516e1804"
+    },
+    {
+      "path": "supabase/local-profiles/runtime-pg-only-core12-ordinary-v1.json",
+      "bytes": 3917,
+      "sha256": "2456f87cfd1ce0064c90d2f4fe3327a18a44c2ca325093b4f5bcabb6b6714533",
+      "git_blob": "800f9077ee8d829eaabf4882f8a61702fe85b0c3"
+    }
+  ],
+  "manifest_self_hash": "outside-file delivery receipt; no circular self-hash",
+  "source_seal": {
+    "files": {
+      "scripts/run-local-runtime-lane.py": "8f0a964041cb4c2a78ab37ec7fc5c36be817d106cb396f598e625ef62907068e",
+      "scripts/local_runtime_consumer.py": "b240725de9119e0176e49fb0bc55f4917ef8df79a9383cb8d77ed97ca579d439",
+      "scripts/run-acl02-pg-only.py": "bde75479e6b90c4ebec91742e19f8962d50b8842597b8362459d91dc0b5e5c4a",
+      "scripts/acl02_pg_adapter.py": "72d7a69026cfe5d0dd15d6d5d4394ef62c4fced016919064150d3bc5ab5c361a",
+      "scripts/acl02_pg_wire.py": "4fa852fbdb6047ec3c264e1fee53b6218d9db9abf8b462d29e10d24fc4b242c3",
+      "supabase/local-profiles/runtime-pg-only-acl02-v1.json": "aa394a6068f75a438a3118f63c949984745d8ce46fc9cb69c525e51dd67cfaaa",
+      "scripts/core12_ordinary_contract.py": "d2734ac224490a23e9f2904f5b3f1ea9d5831c61a001102ef26d8308e96eea1e",
+      "scripts/core12_ordinary_wire.py": "f7c2ab88780f82dfaf65d8037be7c1a0d130e631a3911080162cae3783b3e943",
+      "scripts/run-core12-ordinary.py": "8571de55c4a28e887af29c8d11a619619e61141bd07ce6b23f86e57de87f3a27",
+      "supabase/local-profiles/runtime-pg-only-core12-ordinary-v1.json": "2456f87cfd1ce0064c90d2f4fe3327a18a44c2ca325093b4f5bcabb6b6714533",
+      "supabase/local-profiles/core12-ordinary-v1/catalog-snapshot.sql": "74310697e7be4bc1cba661cbc818fa998cef02ab2eeafa1d819d3bb69927df48",
+      "supabase/local-profiles/core12-ordinary-v1/custodian-identity.sql": "e7cc9068437d03a5327d6b32592f8041baf7d7d5ed6a4ccb4c9943c6affce758",
+      "supabase/local-profiles/core12-ordinary-v1/ordinary-identity.sql": "5276e96dd503c99df7f0aa95137d5e908a493b4d029ddd80db3732377088257d",
+      "supabase/local-profiles/core12-ordinary-v1/setup-access.sql": "6bb549e3327494954fe85f0bbf38cc3b1c6ca014f679ef03c315b10995cb274a",
+      "supabase/local-profiles/core12-ordinary-v1/setup-database.sql": "fe09c4874e6fa4731a85802671593681259f8b94d0d897e86954b1842be38644",
+      "supabase/local-profiles/core12-ordinary-v1/setup-local.sql": "0025d408afaadd6aa8937db2315679ca1e12c45ce578d2ca35a02d1cb6ded64d",
+      "supabase/local-profiles/core12-ordinary-v1/setup-roles.sql": "bb074abb4e7d40e3b2d3796245ebd637a36ae9e1ae04c1ae1f241e17b0b0c15a"
+    },
+    "sha256": "628f3da8137b184e90fd66699826337d566150b73592f74aefbe3ee631a95703"
+  },
+  "request": {
+    "path": "supabase/local-profiles/core12-ordinary.request.json",
+    "bytes": 7523,
+    "sha256": "cd2f721ab920e0931a97ee8514a64abde033830bc0ec951a9933d862a77dfd35",
+    "git_blob": "6bb533460dba13b5bbae41426aa58923516e1804"
+  },
+  "profile": {
+    "path": "supabase/local-profiles/runtime-pg-only-core12-ordinary-v1.json",
+    "bytes": 3917,
+    "sha256": "2456f87cfd1ce0064c90d2f4fe3327a18a44c2ca325093b4f5bcabb6b6714533",
+    "git_blob": "800f9077ee8d829eaabf4882f8a61702fe85b0c3"
+  },
+  "witness": {
+    "source_commit": "1eb8b5a1e522a529b39af02e32748756ee04dfec",
+    "path": "supabase/proposals/core-canonical-sqlstate-boundary-v1/pg-only-boundary.test.sql",
+    "bytes": 20744,
+    "sha256": "07072fdae234825786709260befa0b2c5337b0379ce852f072fdbfb9d17a9158",
+    "git_blob": "0a187e6d8d8025108578583b5401c78114883c64",
+    "frame_bytes": 20750,
+    "transformation": null
+  },
+  "preservation": {
+    "all_2433_preexisting_tracked_paths": "BYTE_IDENTICAL_TO_PARENT",
+    "old_tree_inventory_sha256": "1d8ca4b3ec83689ac079a03b9378797b1f973947560d6cb710d608b83c91c2ac",
+    "tracked_before": 2433,
+    "tracked_after_expected": 2449,
+    "modified_or_deleted_existing_paths": [],
+    "source10": "preserved unchanged; version11 is separate"
+  },
+  "inspection": {
+    "status": "SOURCE_VALID_LIVE_HOLD",
+    "source_seal": "628f3da8137b184e90fd66699826337d566150b73592f74aefbe3ee631a95703",
+    "request_sha256": "cd2f721ab920e0931a97ee8514a64abde033830bc0ec951a9933d862a77dfd35",
+    "planned_calls": 176,
+    "executed_calls": null
+  },
+  "tests": {
+    "distinct_new_tests": 22,
+    "test_names": [
+      "test_01_exact_source_and_empty_registry_no_allocation",
+      "test_02_wrong_source_flags_and_arbitrary_mode",
+      "test_03_startup_actor_options_compact_and_no_injection",
+      "test_04_default_wire_and_default_profile_unchanged",
+      "test_05_closed_core_startup_uses_same_process_and_single_packet",
+      "test_06_witness_one20750_frame_exact_no_split_render_or_replay",
+      "test_07_partial_os_writes_preserve_one_frame_and_budget",
+      "test_08_revoke_after_wait_no_write_unknown_quarantine",
+      "test_09_wrong_or_missing_terminal_ack_never_success",
+      "test_10_actor_and_recovery_no_superuser_witness_or_generic_query",
+      "test_11_inherited_binary_reader_requires_real_C_and_Z_on_same_stream",
+      "test_12_custodian_correlation_rejects_foreign_partial_or_guessed_address",
+      "test_13_partial_observer_nonzero_and_frozen_baseline",
+      "test_14_partial_cleanup_nonzero_preserves_first_error",
+      "test_15_setup_minimal_and_no_system_identity_privilege_bridge",
+      "test_16_data_or_typed_shell_object_cannot_create_initial_grant",
+      "test_17_termination_failure_does_not_suppress_safe_relay_close",
+      "test_18_fixed_run_entry_still_holds_before_any_effect",
+      "test_19_ordinary_identity_rejects_privilege_latch_and_foreign_target",
+      "test_20_profile_and_payload_pin_drift_fail_before_send",
+      "test_21_receipt_failure_cannot_skip_owned_cleanup_or_replace_primary",
+      "test_22_close_and_error_receipt_failures_still_reach_cleanup"
+    ],
+    "successful_runs": {
+      "tests-03.log": "18 tests; final wire implementation",
+      "tests-05.log": "2 added identity/pin tests",
+      "tests-06.log": "3 affected controls plus new receipt-failure test",
+      "tests-07.log": "2 affected controls plus new close/persistence cleanup test"
+    },
+    "preliminary_failures": {
+      "tests-01.log": "comment-only invariant false positive corrected without SQL modification",
+      "tests-04.log": "wrong unittest class invocation corrected"
+    },
+    "prior_accepted_suites_replayed": false,
+    "python_ast": "PASS; 4 new Python files only",
+    "json_integrity": "PASS",
+    "native": "NOT_RUN_NOT_PASS",
+    "private_log_identities": {
+      "tests-01.log": {
+        "bytes": 1811,
+        "sha256": "07173f00e3890bac619f3f3f08934348883f13a11992ebe789e85e024d3dd7d0"
+      },
+      "tests-02.log": {
+        "bytes": 114,
+        "sha256": "a2dc3c137a58e07b1fd7b3c8f9e51920dcf77b1e278bedb9dc1292f27cdb7160"
+      },
+      "tests-03.log": {
+        "bytes": 117,
+        "sha256": "7090416cd97249eb280bc438dadba0beff5edea1aec6881b91bee405297b4abd"
+      },
+      "tests-04.log": {
+        "bytes": 629,
+        "sha256": "48e5526c09fd5e35e8a9f9b39eb1f9bc3e39b29e00e2748549a0d8bb0b183a50"
+      },
+      "tests-05.log": {
+        "bytes": 100,
+        "sha256": "6f283ee6225d2cef4c0127d95456a6f954c45141c92b97dd89016cb1c630e8f4"
+      },
+      "tests-06.log": {
+        "bytes": 102,
+        "sha256": "0292b91377e3f5de5fc72b83a91ddacbecbc2c226b761793f9b4babe85f7ad63"
+      },
+      "tests-07.log": {
+        "bytes": 101,
+        "sha256": "41cee9cc70f8e2902ff4277cf9577cbdf05c130cf7652490990fd48efa2e4859"
+      },
+      "inspect-source.log": {
+        "bytes": 190,
+        "sha256": "eb3bb03716d50b016f0f2b6a8db5ed44bae979db1cd36219e61235aac81f0700"
+      }
+    }
+  },
+  "rebuild": {
+    "base": "3d8cc8f757babbb986762318be81b01eed522442",
+    "steps": [
+      "Restore the exact base on the already assigned branch without overwriting WIP.",
+      "Add the 15 exact files identified here plus this manifest once; no old fullpatch replay.",
+      "Obtain the unmodified witness only from the pinned Core source; it is not repackaged.",
+      "Recompute the canonical 17-file source seal and request using core12_ordinary_contract.request_bytes; compare bytes and hashes.",
+      "Keep registry EMPTY and all runtime bindings NULL; no effect or native execution is authorized."
+    ],
+    "syntax_scope": "Python AST and JSON only; SQL read/hash only; no SQL parser or execution"
+  },
+  "contract": {
+    "setup_order": [
+      "setup-roles",
+      "setup-database",
+      "setup-access",
+      "setup-local"
+    ],
+    "actors": {
+      "custodian-root": {
+        "user": "postgres",
+        "database": "postgres",
+        "options": ""
+      },
+      "custodian-target": {
+        "user": "postgres",
+        "database": "core_sqlstate_boundary_proof",
+        "options": ""
+      },
+      "executor": {
+        "user": "core12_boundary_executor",
+        "database": "core_sqlstate_boundary_proof",
+        "options": "-c core12.reviewed_pg_only_capsule=core12-boundary-v1 -c search_path=pg_catalog"
+      },
+      "observer": {
+        "user": "core12_boundary_observer",
+        "database": "core_sqlstate_boundary_proof",
+        "options": "-c default_transaction_read_only=on -c search_path=pg_catalog"
+      }
+    },
+    "wire_limits": {
+      "bytes_per_connection": 1048576,
+      "frames_per_connection": 4096
+    },
+    "deadlines_seconds": {
+      "pull": 180,
+      "command": 20,
+      "health": 65,
+      "wire_startup": 35,
+      "witness": 30,
+      "observer": 15,
+      "settlement": 5,
+      "relay_close": 2,
+      "cleanup_each": 20
+    },
+    "baseline": "read-only independent snapshot after setup before witness; frozen; strict post-rollback equality",
+    "custodian": "limited same-CID system_identifier and actual PID/datid/application/backend_start correlation; no ordinary grant/SECURITY DEFINER",
+    "rollback": "same physical connection durable C ROLLBACK plus Z I; unknown/skip never success",
+    "cleanup": "bounded exact owned resources, first error retained, receipt failure cannot skip owned cleanup",
+    "source_only": true
+  },
+  "state": {
+    "registry": "EMPTY",
+    "live": "HOLD",
+    "authority": null,
+    "execution_binding": null,
+    "target": null,
+    "executor": null,
+    "observer": null,
+    "planned_calls": 176,
+    "executed_calls": null,
+    "native_consumer_verified": false,
+    "historical_slots": "BLOCKED"
+  },
+  "gates": [
+    "Independent review of exact source/profile/admission",
+    "Explicit separate one-use execution authorization",
+    "Fresh Docker/image/private custody evidence",
+    "Actual PG setup/catalog permissions/startup and guard latch",
+    "Actual system/CID/PID/database correlation",
+    "Independent baseline; exact one-frame witness; durable rollback/idle ACK",
+    "Complete observer residue and lifecycle cleanup"
+  ],
+  "automation": {
+    "classification": "نیازمند بررسی",
+    "input": "pinned Core witness and versioned request",
+    "automatable": "hash/seal/admission comparison",
+    "human_decision": "coordinator source review; owner one-use execution authorization",
+    "conditions": "exact pins and fresh owned custody",
+    "exception_owner": "Platform/coordinator; stop on UNKNOWN without retry",
+    "formal_dependency": "reviewed Core12 and exact source11",
+    "value": "repeatable evidence; estimate unknown"
+  }
+}

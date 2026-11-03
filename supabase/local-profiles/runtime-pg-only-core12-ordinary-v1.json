@@ -1,0 +1,116 @@
+{
+  "profile": "runtime-pg-only-core12-ordinary-v1",
+  "target": "owned-disposable-pg17-only",
+  "pg": {
+    "image": "docker.io/library/postgres@sha256:2cd2c0f809604aaeff6f0ec8f40aecbd025613107561015c69369a1a7f1d3416",
+    "image_id": "sha256:99445113a4a19e82dd3713c65bd9f6fb5bf972065ab043df8d1e1c93e957da9a",
+    "major": 17
+  },
+  "auth": null,
+  "isolation": {
+    "network": "none",
+    "user": "999:999",
+    "rootfs_readonly": true,
+    "cap_drop": [
+      "ALL"
+    ],
+    "security_opt": [
+      "no-new-privileges:true"
+    ],
+    "published_ports": [],
+    "bind_mounts": [],
+    "named_volumes": [],
+    "memory": 536870912,
+    "nano_cpus": 500000000,
+    "pids": 128,
+    "tmpfs": {
+      "/tmp": "rw,noexec,nosuid,nodev,size=16m,uid=999,gid=999,mode=1770",
+      "/var/lib/postgresql/data": "rw,noexec,nosuid,nodev,size=512m,uid=999,gid=999,mode=0700",
+      "/var/run/postgresql": "rw,noexec,nosuid,nodev,size=8m,uid=999,gid=999,mode=0770"
+    }
+  },
+  "deadlines_seconds": {
+    "pull": 180,
+    "command": 20,
+    "health": 65,
+    "wire_startup": 35,
+    "witness": 30,
+    "observer": 15,
+    "settlement": 5,
+    "relay_close": 2,
+    "cleanup_each": 20
+  },
+  "wire_limits": {
+    "bytes_per_connection": 1048576,
+    "frames_per_connection": 4096
+  },
+  "core_dispatch": "HOLD_EMPTY_REGISTRY_NOT_AUTHORIZED",
+  "lifecycle": "one attempt per fresh directory; preserve first error; cleanup owned CID and newly acquired unused image only",
+  "format": "core12-ordinary-fixture-profile.v1",
+  "database_name": "core_sqlstate_boundary_proof",
+  "live": "HOLD",
+  "registry": "EMPTY",
+  "execution_binding": null,
+  "authority": null,
+  "executor": null,
+  "observer": null,
+  "actors": {
+    "custodian-root": {
+      "user": "postgres",
+      "database": "postgres",
+      "options": ""
+    },
+    "custodian-target": {
+      "user": "postgres",
+      "database": "core_sqlstate_boundary_proof",
+      "options": ""
+    },
+    "executor": {
+      "user": "core12_boundary_executor",
+      "database": "core_sqlstate_boundary_proof",
+      "options": "-c core12.reviewed_pg_only_capsule=core12-boundary-v1 -c search_path=pg_catalog"
+    },
+    "observer": {
+      "user": "core12_boundary_observer",
+      "database": "core_sqlstate_boundary_proof",
+      "options": "-c default_transaction_read_only=on -c search_path=pg_catalog"
+    }
+  },
+  "sql_pins": {
+    "catalog-snapshot.sql": {
+      "bytes": 2609,
+      "sha256": "74310697e7be4bc1cba661cbc818fa998cef02ab2eeafa1d819d3bb69927df48"
+    },
+    "custodian-identity.sql": {
+      "bytes": 898,
+      "sha256": "e7cc9068437d03a5327d6b32592f8041baf7d7d5ed6a4ccb4c9943c6affce758"
+    },
+    "ordinary-identity.sql": {
+      "bytes": 1244,
+      "sha256": "5276e96dd503c99df7f0aa95137d5e908a493b4d029ddd80db3732377088257d"
+    },
+    "setup-access.sql": {
+      "bytes": 432,
+      "sha256": "6bb549e3327494954fe85f0bbf38cc3b1c6ca014f679ef03c315b10995cb274a"
+    },
+    "setup-database.sql": {
+      "bytes": 179,
+      "sha256": "fe09c4874e6fa4731a85802671593681259f8b94d0d897e86954b1842be38644"
+    },
+    "setup-local.sql": {
+      "bytes": 982,
+      "sha256": "0025d408afaadd6aa8937db2315679ca1e12c45ce578d2ca35a02d1cb6ded64d"
+    },
+    "setup-roles.sql": {
+      "bytes": 1095,
+      "sha256": "bb074abb4e7d40e3b2d3796245ebd637a36ae9e1ae04c1ae1f241e17b0b0c15a"
+    }
+  },
+  "wire_abi": "core12-ordinary-wire.v1",
+  "witness_frame_bytes": 20750,
+  "planned_calls": 176,
+  "native_result": "NOT_RUN_NOT_PASS",
+  "baseline": "after committed setup; independent read-only observer before witness; fresh observer after rollback; no automatic temp-namespace exclusions",
+  "custodian_identity": "system_identifier from postgres only; actual ordinary backend PID/datid/application_name/backend_start correlated through pg_stat_activity in same CID",
+  "scope": "exception clause boundary semantics only; not canonical authority or genuine SSI"
+}
