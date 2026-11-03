@@ -1,0 +1,132 @@
+{
+  "task": "PLATFORM-CORE-ACL02-PUREPG-BIND-03",
+  "base": "10b840b023d62fd59ba265cd3fea6d325066fe70",
+  "producer": "3cbfc877e5334c5189778b2003e308e3dddf0b2e",
+  "core_execution": "NOT_RUN",
+  "registry": "EMPTY_NOT_EXECUTABLE",
+  "seal": {
+    "files": {
+      "scripts/run-local-runtime-lane.py": "8f0a964041cb4c2a78ab37ec7fc5c36be817d106cb396f598e625ef62907068e",
+      "scripts/local_runtime_consumer.py": "b240725de9119e0176e49fb0bc55f4917ef8df79a9383cb8d77ed97ca579d439",
+      "scripts/run-acl02-pg-only.py": "bde75479e6b90c4ebec91742e19f8962d50b8842597b8362459d91dc0b5e5c4a",
+      "scripts/acl02_pg_adapter.py": "72d7a69026cfe5d0dd15d6d5d4394ef62c4fced016919064150d3bc5ab5c361a",
+      "scripts/acl02_pg_wire.py": "4fa852fbdb6047ec3c264e1fee53b6218d9db9abf8b462d29e10d24fc4b242c3",
+      "supabase/local-profiles/runtime-pg-only-acl02-v1.json": "aa394a6068f75a438a3118f63c949984745d8ce46fc9cb69c525e51dd67cfaaa",
+      "supabase/local-profiles/acl02-pg-only/request.json": "fecd8012f0ad9a82e098d8f513f9e9d694b2731e06067c49e70e029eb1671155",
+      "supabase/local-profiles/acl02-pg-only/witness.sql": "514b3d01c1b0dcca967923128348856cdf9b6871ff86db1b76766dc9551e4ddc",
+      "supabase/local-profiles/acl02-pg-only/verify-clean.sql": "c5aad25fcc2c6ac1c1c9690631464442d4585cf2a00db8ba6ae50963dee85b23"
+    },
+    "sha256": "f737eab2ccf89a336fbfaac8c6b4369a2b7eca11b3f7adf1c4c32d2795122097"
+  },
+  "inventory": [
+    {
+      "path": "docs/testing/PLATFORM-CORE-ACL02-PUREPG-BIND-03.md",
+      "bytes": 9317,
+      "sha256": "535f150849f8a8a07231b3dd6acfe2174f7e2a8ebbb6381126d2ff0a34728ebc",
+      "git_blob": "b0b5059c7a5334ee4b048aa4419288a7bb20990b"
+    },
+    {
+      "path": "scripts/acl02_pg_adapter.py",
+      "bytes": 7675,
+      "sha256": "72d7a69026cfe5d0dd15d6d5d4394ef62c4fced016919064150d3bc5ab5c361a",
+      "git_blob": "a5ff6012fe803227213a3ecd0d393ee8f111c65d"
+    },
+    {
+      "path": "scripts/acl02_pg_wire.py",
+      "bytes": 10257,
+      "sha256": "4fa852fbdb6047ec3c264e1fee53b6218d9db9abf8b462d29e10d24fc4b242c3",
+      "git_blob": "eedd4e0957171b1b65099bd0c0ad6ced3984bfd4"
+    },
+    {
+      "path": "scripts/local_runtime_consumer.py",
+      "bytes": 7091,
+      "sha256": "b240725de9119e0176e49fb0bc55f4917ef8df79a9383cb8d77ed97ca579d439",
+      "git_blob": "f8a3e767d63dfc49eb688af18853b82a9831355a"
+    },
+    {
+      "path": "scripts/run-acl02-pg-only.py",
+      "bytes": 9402,
+      "sha256": "bde75479e6b90c4ebec91742e19f8962d50b8842597b8362459d91dc0b5e5c4a",
+      "git_blob": "6555cb1279e7078623d1ecb1310aee4dd42512d3"
+    },
+    {
+      "path": "scripts/run-local-runtime-lane.py",
+      "bytes": 21005,
+      "sha256": "8f0a964041cb4c2a78ab37ec7fc5c36be817d106cb396f598e625ef62907068e",
+      "git_blob": "679390896c7a63ae619bd0fd7856e48247ac2032"
+    },
+    {
+      "path": "scripts/test-acl02-pg-only.py",
+      "bytes": 20392,
+      "sha256": "36a9658b52e2d942a6f1831871bcb549286717263b8fdc5fcdd97b2c91b381b0",
+      "git_blob": "3c8eb220322090c1e0df4b7537d1ec9359be2143"
+    },
+    {
+      "path": "supabase/local-profiles/acl02-pg-only-reviews.json",
+      "bytes": 68,
+      "sha256": "20dbe5289d04fa81a3af52612afbe41a976d6ed29b106e4b2a7fe9d4d835253d",
+      "git_blob": "e3ab60e05693d3ba12c110bd0d590aad56318980"
+    },
+    {
+      "path": "supabase/local-profiles/acl02-pg-only.envelope.json",
+      "bytes": 1561,
+      "sha256": "79c710d0d910ef61100645b52e3eafdfefbabe239e417837cf2192ce8ff8d140",
+      "git_blob": "bb1a2200389cd8ed261832922274a73b82be98c1"
+    },
+    {
+      "path": "supabase/local-profiles/acl02-pg-only/request.json",
+      "bytes": 4660,
+      "sha256": "fecd8012f0ad9a82e098d8f513f9e9d694b2731e06067c49e70e029eb1671155",
+      "git_blob": "ea7be435c968e4b0db827bab6263cccbc05e11b5"
+    },
+    {
+      "path": "supabase/local-profiles/acl02-pg-only/verify-clean.sql",
+      "bytes": 651,
+      "sha256": "c5aad25fcc2c6ac1c1c9690631464442d4585cf2a00db8ba6ae50963dee85b23",
+      "git_blob": "bf50485e0fc9314722ad82d94c11d9605b24e646"
+    },
+    {
+      "path": "supabase/local-profiles/acl02-pg-only/witness.sql",
+      "bytes": 11271,
+      "sha256": "514b3d01c1b0dcca967923128348856cdf9b6871ff86db1b76766dc9551e4ddc",
+      "git_blob": "bea168d6d694967730ca7a840fa2b2228b7032c9"
+    },
+    {
+      "path": "supabase/local-profiles/runtime-pg-only-acl02-v1.json",
+      "bytes": 1377,
+      "sha256": "aa394a6068f75a438a3118f63c949984745d8ce46fc9cb69c525e51dd67cfaaa",
+      "git_blob": "9cab3bffd00fe621f5183175e1a6df616e32d6a8"
+    }
+  ],
+  "preserved": [
+    {
+      "path": "supabase/local-profiles/runtime-lane-v1.json",
+      "sha256": "71647e9dbd24d50137cb8ea0d3c3f3854bc1c32a44c364da0acf9ef5ce6818ef",
+      "match_base": true
+    },
+    {
+      "path": "supabase/local-profiles/runtime-consumer-reviews-v1.json",
+      "sha256": "5ce21903480c8aacc3379414ba3cfec299072410516aeffb5b03d209b51be184",
+      "match_base": true
+    },
+    {
+      "path": "docs/testing/local-runtime-lane-01.receipt.json",
+      "sha256": "301d84ce1596cc47fac95aef1dc073d9121692021a6b2e431a5eeead097f7669",
+      "match_base": true
+    },
+    {
+      "path": "docs/testing/local-runtime-cleanup-consumer-02.receipt.json",
+      "sha256": "356095fc52da0dac473e9a08b399f4cb85a578b0c151e554f0085eb7acdf0969",
+      "match_base": true
+    }
+  ],
+  "tests": {
+    "new_delta_tests": 19,
+    "result": "PASS",
+    "old_26_and_7": "NOT_REPLAYED",
+    "native_core_sql": "NOT_RUN"
+  },
+  "provision_only_result": "PG17_ONLY_HEALTH_ISOLATION_CLEANUP_PASSED_PRIVATE_RECEIPT",
+  "reconstruction": "checkout parent; apply this child once; immutable producer copies match pinned source; no install required; no self hash",
+  "provision_source_relation": "unchanged profile/native helper proved once; final shared hook wrapper delta only checked offline; exact executed source snapshot and historical seal retained privately"
+}

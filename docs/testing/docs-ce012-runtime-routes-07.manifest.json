@@ -1,0 +1,307 @@
+{
+  "format": "documents-ce012-runtime-routes-delivery.v1",
+  "task": "PLATFORM-DOCS-CE012-RUNTIME-ROUTES-07",
+  "base": "c4e0c14b3f140fe5c44bee4eb1f16c2bd6ed767c",
+  "branch": "codex/program-local-runtime-lane-01",
+  "observed_utc": "2026-11-02T15:08:06.110073+00:00",
+  "status": "SOURCE_POLICY_GUARD_AND_OFFLINE_SMOKE_DELIVERED_NOT_RUNTIME_READY",
+  "source_seal": {
+    "files": {
+      "scripts/run-local-runtime-lane.py": "8f0a964041cb4c2a78ab37ec7fc5c36be817d106cb396f598e625ef62907068e",
+      "scripts/local_runtime_consumer.py": "b240725de9119e0176e49fb0bc55f4917ef8df79a9383cb8d77ed97ca579d439",
+      "supabase/local-profiles/runtime-lane-v1.json": "71647e9dbd24d50137cb8ea0d3c3f3854bc1c32a44c364da0acf9ef5ce6818ef",
+      "scripts/run-docs-ce012-pgauth.py": "00e983f53e77e4dd30cd1a102cee7d086f8a3eca06c6b9604c1ff5fcb0aea58d",
+      "supabase/local-profiles/docs-ce012-pgauth-binding-v1.json": "8fa3b78ffc5a78732d9494a6533ae5d134433da9a107d58265f15562e64ec5bd",
+      "scripts/docs-ce012-platform-v1/contract.mjs": "08182b51d7c5e5f2a0c0fc9386890095da8a51d36af07c0f4b465a9d0816dd96",
+      "scripts/docs-ce012-platform-v1/custody.mjs": "9c3d9bea4c9bc2f7061bd6770f162255b0d97cebb608c9ea2afe9c5293e1516e",
+      "scripts/docs-ce012-platform-v1/transport.mjs": "25c9edf54030196a753c2c71309400099aabb08697b3807ddde695c50f8370d3",
+      "scripts/docs-ce012-platform-v1/worker.mjs": "8b69c38afc37ac6abbabe8a5eb52912636eaa9f6abfb3d9456cbfb348b6fa345",
+      "scripts/docs-ce012-platform-v1/runtime-collector.mjs": "e3d65d7e946310b99fa2b42ce1e4461aa1671443c3541cac108164bd44012e41",
+      "scripts/docs-ce012-platform-v1/runtime-smoke.mjs": "f7e0fab3389e83d88fd48289906078ef6ec8a3021f92d79d7029c77635c0d473",
+      "scripts/docs-ce012-platform-v1/runtime-routes.mjs": "13fe200fe672b224b527358ade89451c992aeb3ceafc99e0091b5ed8f1ae8100",
+      "scripts/docs-ce012-platform-v1/runtime-route-policy.v1.json": "fd0ef9f882452887a6abedd7ba75acf3cbdd021efb11813ec0409a6d0ae77400",
+      "scripts/docs-ce012-platform-v1/runtime-routes-smoke.mjs": "21a1cff178cb9168c18e3b7112900b360146ba3db9bfa0ccbc6aca5b145a57d0"
+    },
+    "sha256": "b5351deb2e17c56141859c0cacc93964b9baddfba213ea4c418f0f9d6107678f"
+  },
+  "before_source_seal": {
+    "files": {
+      "scripts/run-local-runtime-lane.py": "8f0a964041cb4c2a78ab37ec7fc5c36be817d106cb396f598e625ef62907068e",
+      "scripts/local_runtime_consumer.py": "b240725de9119e0176e49fb0bc55f4917ef8df79a9383cb8d77ed97ca579d439",
+      "supabase/local-profiles/runtime-lane-v1.json": "71647e9dbd24d50137cb8ea0d3c3f3854bc1c32a44c364da0acf9ef5ce6818ef",
+      "scripts/run-docs-ce012-pgauth.py": "00e983f53e77e4dd30cd1a102cee7d086f8a3eca06c6b9604c1ff5fcb0aea58d",
+      "supabase/local-profiles/docs-ce012-pgauth-binding-v1.json": "8fa3b78ffc5a78732d9494a6533ae5d134433da9a107d58265f15562e64ec5bd",
+      "scripts/docs-ce012-platform-v1/contract.mjs": "81c202a5df7e17022bd81c8ae421e9a4bbfb98410becad06fcefa8ef26ae6f46",
+      "scripts/docs-ce012-platform-v1/custody.mjs": "9c3d9bea4c9bc2f7061bd6770f162255b0d97cebb608c9ea2afe9c5293e1516e",
+      "scripts/docs-ce012-platform-v1/transport.mjs": "25c9edf54030196a753c2c71309400099aabb08697b3807ddde695c50f8370d3",
+      "scripts/docs-ce012-platform-v1/worker.mjs": "4fd6f8e8ec2f9677145b2ee08d0bf8c48cbb5bdec3c3e6ca5185f4bd2b32b438",
+      "scripts/docs-ce012-platform-v1/runtime-collector.mjs": "e3d65d7e946310b99fa2b42ce1e4461aa1671443c3541cac108164bd44012e41",
+      "scripts/docs-ce012-platform-v1/runtime-smoke.mjs": "f7e0fab3389e83d88fd48289906078ef6ec8a3021f92d79d7029c77635c0d473"
+    },
+    "sha256": "6773cc1c80c5e3ee7d62348e0c0572177c077fb20ad13fbf96a9a53b2a478baf"
+  },
+  "inventory": {
+    "before": {
+      "tracked_paths": 2408,
+      "sealed_paths": 11,
+      "runtime": {
+        "files": 271,
+        "bytes": 11650553,
+        "packages": 29,
+        "edges": 525,
+        "blocked": 43,
+        "graph_sha256": "c9e7635b9009d2898be3115af36de6f2c0140bce142510eccbc680c996dba3ab",
+        "file_pins_sha256": "b7c0f3435b670dccb172a7fa673dd5397b6269a138c04b983c71d3d83f5518d1",
+        "runtime_inputs_bytes": 187363,
+        "runtime_inputs_sha256": "7df062450cbd4bac61acf9a71137ee51423e23ab3a49d74d2752cc329da577de"
+      }
+    },
+    "after": {
+      "tracked_paths_expected": 2414,
+      "changed_paths": 8,
+      "sealed_paths": 14,
+      "runtime": {
+        "files": 271,
+        "bytes": 11650553,
+        "packages": 29,
+        "edges": 525,
+        "blocked": 43,
+        "graph_sha256": "c9e7635b9009d2898be3115af36de6f2c0140bce142510eccbc680c996dba3ab",
+        "file_pins_sha256": "b7c0f3435b670dccb172a7fa673dd5397b6269a138c04b983c71d3d83f5518d1",
+        "runtime_inputs_bytes": 187363,
+        "runtime_inputs_sha256": "7df062450cbd4bac61acf9a71137ee51423e23ab3a49d74d2752cc329da577de"
+      },
+      "materialized_additional_pinned_sources": 4,
+      "policy_declared_source_inputs": 20
+    },
+    "files_excluding_this_manifest": [
+      {
+        "path": "scripts/docs-ce012-platform-v1/contract.mjs",
+        "before": {
+          "bytes": 12197,
+          "sha256": "81c202a5df7e17022bd81c8ae421e9a4bbfb98410becad06fcefa8ef26ae6f46",
+          "git_blob": "e6bbd23a537bb8ebd37d1ab3e8ede3c4ef974b2d"
+        },
+        "after": {
+          "bytes": 12279,
+          "sha256": "08182b51d7c5e5f2a0c0fc9386890095da8a51d36af07c0f4b465a9d0816dd96",
+          "git_blob": "00d70b7d86ddec4b8aabb5cecdfe96b273fc7303"
+        }
+      },
+      {
+        "path": "scripts/docs-ce012-platform-v1/worker.mjs",
+        "before": {
+          "bytes": 15476,
+          "sha256": "4fd6f8e8ec2f9677145b2ee08d0bf8c48cbb5bdec3c3e6ca5185f4bd2b32b438",
+          "git_blob": "65b6b7aa4ca57a2e0bc028e74f5ef72af90a6e85"
+        },
+        "after": {
+          "bytes": 16095,
+          "sha256": "8b69c38afc37ac6abbabe8a5eb52912636eaa9f6abfb3d9456cbfb348b6fa345",
+          "git_blob": "d1cb20d19139494d09c74a85ddacedbb174e0eba"
+        }
+      },
+      {
+        "path": "scripts/docs-ce012-platform-v1/runtime-route-policy.v1.json",
+        "before": null,
+        "after": {
+          "bytes": 35962,
+          "sha256": "fd0ef9f882452887a6abedd7ba75acf3cbdd021efb11813ec0409a6d0ae77400",
+          "git_blob": "c84e48cc65012fd2d06d181fdf7898c385969a68"
+        }
+      },
+      {
+        "path": "scripts/docs-ce012-platform-v1/runtime-routes.mjs",
+        "before": null,
+        "after": {
+          "bytes": 13063,
+          "sha256": "13fe200fe672b224b527358ade89451c992aeb3ceafc99e0091b5ed8f1ae8100",
+          "git_blob": "9ccc0e754803559babe399dac25bacdfbaf8a952"
+        }
+      },
+      {
+        "path": "scripts/docs-ce012-platform-v1/runtime-routes-smoke.mjs",
+        "before": null,
+        "after": {
+          "bytes": 4539,
+          "sha256": "21a1cff178cb9168c18e3b7112900b360146ba3db9bfa0ccbc6aca5b145a57d0",
+          "git_blob": "9fe7c401c5fee1f33ddbba53dcd8b5afa5e44141"
+        }
+      },
+      {
+        "path": "scripts/test-docs-ce012-runtime-routes-v1.mjs",
+        "before": null,
+        "after": {
+          "bytes": 12652,
+          "sha256": "ea9205222f28e9171b1b737a45074b4b06fd36417e21f20f2602c2abb4166bc0",
+          "git_blob": "cebcfd3f80cff5d742b3c337adc0957669bb6c66"
+        }
+      },
+      {
+        "path": "docs/testing/PLATFORM-DOCS-CE012-RUNTIME-ROUTES-07.md",
+        "before": null,
+        "after": {
+          "bytes": 9447,
+          "sha256": "29acca5b6f3b0e0ca4c3050897965e793ec384834315c93d884ea16b5e8e7efb",
+          "git_blob": "04225ba426bf23c1f9eb2ab05f155b457900457a"
+        }
+      }
+    ],
+    "manifest_self_identity": "external_delivery_receipt_only_no_self_hash"
+  },
+  "policy": {
+    "path": "scripts/docs-ce012-platform-v1/runtime-route-policy.v1.json",
+    "bytes": 35962,
+    "sha256": "fd0ef9f882452887a6abedd7ba75acf3cbdd021efb11813ec0409a6d0ae77400",
+    "occurrences": 43,
+    "classification": {
+      "REQUIRED_PINNED_DATA": 0,
+      "DENIED_AT_RUNTIME": 8,
+      "STILL_UNRESOLVED": 35
+    },
+    "historical_graph_preserved": true,
+    "trace_absence_used_as_unreachability_proof": false
+  },
+  "consumer": {
+    "head": "c0caf3e70d97c3d09b16cbff91188367804cba6b",
+    "contract": "documents-ce012-live-connection-request.v2",
+    "request_sha256": "3ca7a18b4789d262565dc3289cf029d633b36a0fa155c5f3a575dfeedc619873",
+    "native_closure_sha256": "55093d835a860ceeb414fbd097d3b62af2520e60cee5b093763ff7f983f928ee",
+    "inventory_sha256": "6388b257096dbc094f9513e40a06cebaf9042f55720b89c93cfd89b68b717a11",
+    "runtime_binding": null,
+    "registry": "EMPTY"
+  },
+  "compiler_reference": {
+    "head": "5f6b671d2ea1b1a7341d1ed0352fe2ae2713bdaa",
+    "abi": "documents-ce012-case-plan-compiler.v1",
+    "role": "PURE_SOURCE_ONLY_NOT_CONSUMED_AS_HARNESS_OR_FIXTURE",
+    "historical_slots": "TWO_BLOCKED_OFFICIAL_STORED_RECEIPT_RELATION_VERIFIER_REQUIRED"
+  },
+  "materialization": {
+    "strategy": "fresh_private_clone_via_unchanged_accepted_materializer_no_recollection",
+    "original_and_cloned_271_runtime_files": "BYTES_SHA256_MATCH",
+    "source_package_lock": "MATCH_ORIGINAL_AND_ACCEPTED_CACHE",
+    "symlinks": 0,
+    "additional_sources": [
+      {
+        "path": "src/lib/customer/documents-ce012-reference-contract.ts",
+        "bytes": 1998,
+        "sha256": "1c6cae9052fb8bb1910f88af4ef264dbd973c52fe81e5394e1527db4aa2d4b93"
+      },
+      {
+        "path": "src/lib/community/experience-guide-command-contract.ts",
+        "bytes": 14414,
+        "sha256": "324d30b10eecb1b1f03f706118b51b7dc80605892f1ec267e9d4dc44a5f8e2e6"
+      },
+      {
+        "path": "src/lib/core/current-authority-transaction-port-v1.ts",
+        "bytes": 9496,
+        "sha256": "02e0b85d1dba7ca87ec0eddff5d3f3552bed518794888e9ee0f34c0de962c14f"
+      },
+      {
+        "path": "src/lib/security/same-origin.ts",
+        "bytes": 532,
+        "sha256": "b00a95fb384e286fd116c979847693d0e286283c19750e254f934576a55f96cc"
+      }
+    ]
+  },
+  "tests": {
+    "command": "DOCS_ROUTES_TEST_SCOPE=PRIVATE_SOURCE_ONLY_SCOPE node --test scripts/test-docs-ce012-runtime-routes-v1.mjs",
+    "groups": 19,
+    "pass": 19,
+    "fail": 0,
+    "skip": 0,
+    "names": [
+      "43 occurrence bijection, exact source bytes and AST offsets",
+      "missing/extra/duplicate/reordered rows cannot close the original graph",
+      "source/hash/offset/specifier mismatch and new graph edge rejected",
+      "35 unresolved callbacks remain HOLD, immutable and independent of a trace",
+      "real TypeScript accepts only pinned source + fixed in-memory options",
+      "TypeScript effect/plugin/dynamic APIs denied; swallowed denial quarantines",
+      "arbitrary source was allowed by raw library; membrane rejects it",
+      "pinned source hash changed, source symlink, undeclared data and external path rejected",
+      "pinned dependency source tamper and symlink rejected before load",
+      "current file pin rechecked after guard construction, including cached modules",
+      "each SSL selector and encoded selector rejected before the actual parser reads",
+      "only fixed loopback parser shape accepted, no connection",
+      "consumer parser is bound to the exact descriptor database and roles",
+      "pg-native/libpq, source-map-support, absolute/dynamic selectors and new edges denied",
+      "runtime fs promises/read/readdir/data writes denied, never forwarded",
+      "source smoke denies Client/Pool construction and lazy native getter",
+      "installed guards deny builtin fs and dynamic import then restore correctly",
+      "expanded read-only fixed-source/library smoke: real effects fenced, no consumer run",
+      "registry remains empty, accepted runtime NULL, c0 harness exact and no test-input fixture"
+    ],
+    "private_tap_receipt": {
+      "bytes": 1865,
+      "sha256": "402e3c5e042bd6537764550641dba26ede510dd15f0fa67453ba9a17d03a08ca"
+    },
+    "syntax_pass": [
+      "scripts/docs-ce012-platform-v1/contract.mjs",
+      "scripts/docs-ce012-platform-v1/worker.mjs",
+      "scripts/docs-ce012-platform-v1/runtime-routes.mjs",
+      "scripts/docs-ce012-platform-v1/runtime-routes-smoke.mjs",
+      "scripts/test-docs-ce012-runtime-routes-v1.mjs"
+    ],
+    "diff_check": "PASS",
+    "smoke": {
+      "result": "PASS_EXPANDED_SOURCE_SMOKE",
+      "operations": 8,
+      "pinned_sources_transpiled": 4,
+      "schema": "ACTUAL_PINNED_DOCUMENTS_SCHEMA_EMPTY_SHAPE_REJECTED_REAL_ZOD",
+      "parse": "ACTUAL_FIXED_LOOPBACK_SHAPE_ONLY_NO_CONNECTION",
+      "connection": "NOT_RUN",
+      "consumer_run": "NOT_RUN",
+      "auth": "NOT_RUN",
+      "evidence_location": "private_child_output_asserted_by_target_test_18_not_published"
+    }
+  },
+  "preservation": {
+    "accepted_profile_custody_transport_collector_smoke_admission": "UNCHANGED_EXCEPT_CONTRACT_FILES_SEAL_LIST",
+    "documents_harness_provider_selector": "UNCHANGED_V2_SOURCE_PINS",
+    "package_lock_runtime_dependency_bytes": "MATCH",
+    "acl02_lane": "UNCHANGED",
+    "original_06_graph_and_history": "PRESERVED",
+    "old_product_and_collector_suites": "NOT_REPEATED"
+  },
+  "execution": {
+    "authorized": false,
+    "binding": null,
+    "registry": "EMPTY",
+    "native": "NOT_RUN",
+    "pg": "NOT_RUN",
+    "sql": "NOT_RUN",
+    "session": "NOT_RUN",
+    "docker": "NOT_RUN",
+    "install": "NOT_RUN"
+  },
+  "remaining_gates": [
+    "coordinator_review_of_route_policy_and_guard",
+    "35_opaque_callback_occurrences_STILL_UNRESOLVED",
+    "complete_exact_consumer_source_materialization",
+    "native_target_compatibility",
+    "real_owner_raw_canonical_plan_provenance",
+    "exclusive_fixture_custody",
+    "genuine_current_session_and_assurance",
+    "official_Core_CE_stored_receipt_relationship_verifier_two_historical_slots",
+    "separate_exact_source_runtime_binding_and_execution_approval"
+  ],
+  "reconstruct": {
+    "base": "c4e0c14b3f140fe5c44bee4eb1f16c2bd6ed767c",
+    "method": "normal_direct_child_source_commit_no_cherry_pick_stack",
+    "runtime_inputs": "retain_exact_accepted_06_materialization_graph_and_files",
+    "library_sources": "same_cached_bytes_no_install",
+    "source_inputs": "only_exact_policy_pins",
+    "policy_offset_semantics": "TypeScript 5.9.3 CallExpression.pos: UTF-16 offset before leading trivia, not getStart; literal require entries retain the argument specifier",
+    "documentation": "docs/testing/PLATFORM-DOCS-CE012-RUNTIME-ROUTES-07.md"
+  },
+  "skills": {
+    "policy_url": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-6316739482",
+    "policy_version": "CLADORA-SKILLS-USAGE v1.1.0",
+    "applied": [
+      "cloud-environment:cloud-environment-runtime"
+    ],
+    "skill_version": "UNKNOWN",
+    "impact": "read_environment_and_permission_boundaries_no_authority_expansion_no_unrelated_retest"
+  }
+}

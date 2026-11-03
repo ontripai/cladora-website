@@ -1,0 +1,100 @@
+{
+  "format": "core12-pg-only-preflight-profile.v1",
+  "profile": "runtime-pg-only-core12-preflight-v1",
+  "execution_enabled": false,
+  "live": "HOLD",
+  "target_kind": "owned-disposable-pg17-only",
+  "database_name": "core_sqlstate_boundary_proof",
+  "pg": {
+    "image": "docker.io/library/postgres@sha256:2cd2c0f809604aaeff6f0ec8f40aecbd025613107561015c69369a1a7f1d3416",
+    "image_id": "sha256:99445113a4a19e82dd3713c65bd9f6fb5bf972065ab043df8d1e1c93e957da9a",
+    "major": 17
+  },
+  "auth": null,
+  "isolation": {
+    "network": "none",
+    "user": "999:999",
+    "rootfs_readonly": true,
+    "cap_drop": [
+      "ALL"
+    ],
+    "security_opt": [
+      "no-new-privileges:true"
+    ],
+    "published_ports": [],
+    "bind_mounts": [],
+    "named_volumes": [],
+    "memory": 536870912,
+    "nano_cpus": 500000000,
+    "pids": 128,
+    "tmpfs": {
+      "/tmp": "rw,noexec,nosuid,nodev,size=16m,uid=999,gid=999,mode=1770",
+      "/var/lib/postgresql/data": "rw,noexec,nosuid,nodev,size=512m,uid=999,gid=999,mode=0700",
+      "/var/run/postgresql": "rw,noexec,nosuid,nodev,size=8m,uid=999,gid=999,mode=0770"
+    }
+  },
+  "deadlines_seconds": {
+    "pull": 180,
+    "command": 20,
+    "health": 65,
+    "wire_startup": 35,
+    "witness": 30,
+    "observer": 15,
+    "settlement": 5,
+    "relay_close": 2,
+    "cleanup_each": 20
+  },
+  "wire_limits": {
+    "bytes_per_connection": 1048576,
+    "frames_per_connection": 4096
+  },
+  "existing_runtime": {
+    "lane": "scripts/run-local-runtime-lane.py",
+    "pg_only_runner": "scripts/run-acl02-pg-only.py",
+    "wire": "scripts/acl02_pg_wire.py",
+    "profile": "supabase/local-profiles/runtime-pg-only-acl02-v1.json",
+    "profile_sha256": "aa394a6068f75a438a3118f63c949984745d8ce46fc9cb69c525e51dd67cfaaa",
+    "core12_dispatch_ready": false,
+    "new_generic_runner": false
+  },
+  "executor_required": {
+    "rolsuper": false,
+    "rolbypassrls": false,
+    "rolcreaterole": false,
+    "rolcreatedb": false,
+    "rolreplication": false,
+    "current_user_equals_session_user": true,
+    "database_connect": true,
+    "database_temp": true,
+    "own_pg_temp_function_rights": true,
+    "plpgsql_usage": true,
+    "function_default_acl_rows": 0,
+    "permanent_schema_create_required": false,
+    "managed_role_or_grant_required": false
+  },
+  "namespaces_absent": [
+    "auth",
+    "app_private",
+    "identity",
+    "platform"
+  ],
+  "guard_latch": {
+    "name": "core12.reviewed_pg_only_capsule",
+    "value": "core12-boundary-v1",
+    "authority_source": false,
+    "transport_binding": null
+  },
+  "target": null,
+  "executor": null,
+  "observer": null,
+  "authority": null,
+  "execution_binding": null,
+  "readiness_gaps": [
+    "ordinary_role_and_named_database_fixture_producer_exact_payload_unbound",
+    "existing_Wire_startup_and_identity_are_postgres_postgres_only",
+    "ordinary_role_system_identity_transport_not_reviewed",
+    "guard_latch_startup_option_binding_not_reviewed",
+    "independent_observer_payload_and_baseline_exact_pins_unbound",
+    "source_and_contract_independent_review_and_owner_authorization_required"
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "profile": "runtime-lane-v1",
+  "base": "1afe40aedbfc44855ccea676fb92fd4e6ec61e83",
+  "predecessor_profile": "baseline-v14",
+  "scope": "provision-health-cleanup only; NO application migrations, seed, native installers or grants",
+  "pg": {
+    "image": "docker.io/library/postgres@sha256:2cd2c0f809604aaeff6f0ec8f40aecbd025613107561015c69369a1a7f1d3416",
+    "image_id": "sha256:99445113a4a19e82dd3713c65bd9f6fb5bf972065ab043df8d1e1c93e957da9a",
+    "major": 17,
+    "provenance": "Platform295 immutable image receipt; consumed request295 is NOT replayed"
+  },
+  "auth": {
+    "image": "docker.io/supabase/gotrue@sha256:839f529492d116b4e8b7777c953a27c381d34c15a744b1bcefde5eefaa1f9f9f",
+    "image_id": "sha256:1181bff5ba4ce440013a63cef9f4cf13024c432d705c9b1fbc9e5b949e852f48",
+    "version": "v2.197.0",
+    "namespace_bootstrap": "CREATE SCHEMA auth AUTHORIZATION postgres; -- fresh isolated PG only, before GoTrue migrations",
+    "provenance": "supabase/cli v2.121.0 apps/cli-go/pkg/config/templates/Dockerfile blob563c96ccd7ce0a7d1f4052750b391a1a46ca3836 + official registry linux/amd64 descriptor",
+    "signup": false,
+    "external_delivery": false
+  },
+  "isolation": {
+    "pg_network": "none",
+    "auth_network": "container:actual-pg-CID",
+    "loopback_only": true,
+    "published_ports": [],
+    "bind_mounts": [],
+    "named_volumes": [],
+    "rootfs_readonly": true,
+    "user": "999:999",
+    "cap_drop": ["ALL"],
+    "security_opt": ["no-new-privileges:true"],
+    "pgdata": "512MiB tmpfs owned UID999; removed with owned PG container",
+    "fixture_credentials": "ephemeral JWT secret in process environment only; no host/cloud credentials inherited"
+  },
+  "deadlines_seconds": {"pull": 180, "command": 20, "health": 60, "cleanup_each": 20},
+  "lifecycle": "one attempt per run directory; first-error stops new stages; cleanup scoped to actual label/CIDs; timeout UNKNOWN no replay",
+  "consumers": ["Core", "SERVICE", "AIRPROP", "CE"],
+  "consumer_gate": "health proof is not domain installation or session acceptance; consumers require separate accepted source pins/requests; default action removes fixture"
+}

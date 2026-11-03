@@ -1,0 +1,142 @@
+{
+  "format": "OPS_ACL_CONSUMER_REQUEST_02",
+  "task": "OPS-POPULATED-TRANSITION-01A / ACL-PROJECTION-02",
+  "base": "91a8c05a13ef890f386997f29230a352e235e79c",
+  "stage": "synthetic_pg17_acl_witness",
+  "status": "SOURCE_READY_FOR_COORDINATOR_REVIEW_EXECUTION_HOLD",
+  "target": {
+    "kind": "disposable_pg17_only",
+    "database": "postgres",
+    "host": null,
+    "port": null,
+    "container_identity": null,
+    "pg_system_identifier": null,
+    "project_ref": null,
+    "production_or_staging": false
+  },
+  "bindings": {
+    "coordinator_review": null,
+    "platform_profile_sha256": null,
+    "platform_adapter_identity": null,
+    "run_attempt": null
+  },
+  "execution_authorized": false,
+  "approval_is_external": true,
+  "order": [
+    {
+      "id": "witness",
+      "payload": {
+        "path": "scripts/review-ops-populated-transition-01a/acl-projection-02/witness.sql",
+        "bytes": 11271,
+        "sha256": "514b3d01c1b0dcca967923128348856cdf9b6871ff86db1b76766dc9551e4ddc",
+        "git_blob": "bea168d6d694967730ca7a840fa2b2228b7032c9"
+      },
+      "transaction": "BEGIN ... ROLLBACK",
+      "connection": "one admitted PG17 lab backend; CommandComplete ROLLBACK + ReadyForQuery I required",
+      "failure": "first unexpected error -> STOP; explicit same-backend ROLLBACK with ACK; cleanup UNKNOWN if not observed"
+    },
+    {
+      "id": "residue",
+      "payload": {
+        "path": "scripts/review-ops-populated-transition-01a/acl-projection-02/verify-clean.sql",
+        "bytes": 651,
+        "sha256": "c5aad25fcc2c6ac1c1c9690631464442d4585cf2a00db8ba6ae50963dee85b23",
+        "git_blob": "bf50485e0fc9314722ad82d94c11d9605b24e646"
+      },
+      "transaction": "REPEATABLE READ READ ONLY ... ROLLBACK",
+      "connection": "same admitted database; record independent observer/backend correlation",
+      "failure": "missing/mismatched result or nonzero residue -> FAIL/UNKNOWN; never blind retry"
+    }
+  ],
+  "allowed_effects": {
+    "roles": [
+      "ops_acl02_owner",
+      "ops_acl02_caller"
+    ],
+    "schemas": [
+      "ops_acl02_api",
+      "ops_acl02_private"
+    ],
+    "routines": [
+      "ops_acl02_private.command_v1(text)",
+      "ops_acl02_private.other_v1()",
+      "ops_acl02_api.facade_v1(text)"
+    ],
+    "tables": [],
+    "transaction_local": true,
+    "commits": 0,
+    "application_objects": false,
+    "provider_role_changes": false,
+    "network_expansion": false,
+    "auth_session_email": false
+  },
+  "prestate": {
+    "pg_major": 17,
+    "bootstrap": "isolated lab superuser, current_user=session_user, solely for synthetic role/schema ownership and SET ROLE; not a hosted prerequisite",
+    "fixture_absent": true,
+    "application_schemas_absent": [
+      "app_private",
+      "customer_api",
+      "platform",
+      "identity",
+      "maintenance",
+      "auth"
+    ]
+  },
+  "test_principals": {
+    "owner": "NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOREPLICATION NOBYPASSRLS",
+    "caller": "same restricted attributes; no membership as role or member"
+  },
+  "expected_cases": {
+    "D00": "42501 closed API schema",
+    "D01": "42501 facade grant only",
+    "D02": "42501 private EXECUTE without schema USAGE",
+    "D03": "42501 private USAGE without EXECUTE",
+    "P01": "facade returns exact synthetic json; executor owner",
+    "P02": "direct private returns same synthetic json; not native authorization bypass",
+    "D04": "42501 toy guard via facade",
+    "D05": "42501 toy guard direct",
+    "D06": "42501 unrelated private function",
+    "D07": "42501 facade after private EXECUTE revoked",
+    "D08": "42501 direct after revoke"
+  },
+  "success_contract": {
+    "pre_rollback_marker": "ACL02_ASSERTIONS_REACHED",
+    "case_ids": [
+      "D00",
+      "D01",
+      "D02",
+      "D03",
+      "P01",
+      "P02",
+      "D04",
+      "D05",
+      "D06",
+      "D07",
+      "D08"
+    ],
+    "rollback_ack_same_backend": true,
+    "ready_for_query": "I",
+    "residue": {
+      "roles_remaining": 0,
+      "schemas_remaining": 0
+    },
+    "clean_observer_completion": true,
+    "native_or_staging_acceptance": false
+  },
+  "gate_policy": {
+    "self_declared_approval_is_authorization": false,
+    "source_review_required": true,
+    "platform_lifecycle_cleanup_required": true,
+    "no_arbitrary_exec_hook": true,
+    "unknown_or_timeout": "STOP UNKNOWN; preserve first error; no retry or success inferred from assertion marker"
+  },
+  "not_in_request": [
+    "catalog-projection.sql",
+    "native Operations or business functions",
+    "Auth/session fixture",
+    "guard300 or role graph correction",
+    "positive native caller grants",
+    "Platform runner changes"
+  ]
+}

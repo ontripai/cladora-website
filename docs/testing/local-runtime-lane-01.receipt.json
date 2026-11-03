@@ -1,0 +1,517 @@
+{
+  "task_id": "PLATFORM-V14-LOCAL-RUNTIME-LANE-01",
+  "base": "1afe40aedbfc44855ccea676fb92fd4e6ec61e83",
+  "environment_revision": "83",
+  "current_observations": true,
+  "execution_inputs": [
+    {
+      "path": "scripts/run-local-runtime-lane.py",
+      "bytes": 14231,
+      "sha256": "8a590fc30643fbf6ea44ee38ddcbb74b4421bfb5ff800f507683d01633fe9057"
+    },
+    {
+      "path": "supabase/local-profiles/runtime-lane-v1.json",
+      "bytes": 2137,
+      "sha256": "71647e9dbd24d50137cb8ea0d3c3f3854bc1c32a44c364da0acf9ef5ce6818ef"
+    }
+  ],
+  "images": {
+    "profile": "runtime-lane-v1",
+    "base": "1afe40aedbfc44855ccea676fb92fd4e6ec61e83",
+    "predecessor_profile": "baseline-v14",
+    "scope": "provision-health-cleanup only; NO application migrations, seed, native installers or grants",
+    "pg": {
+      "image": "docker.io/library/postgres@sha256:2cd2c0f809604aaeff6f0ec8f40aecbd025613107561015c69369a1a7f1d3416",
+      "image_id": "sha256:99445113a4a19e82dd3713c65bd9f6fb5bf972065ab043df8d1e1c93e957da9a",
+      "major": 17,
+      "provenance": "Platform295 immutable image receipt; consumed request295 is NOT replayed"
+    },
+    "auth": {
+      "image": "docker.io/supabase/gotrue@sha256:839f529492d116b4e8b7777c953a27c381d34c15a744b1bcefde5eefaa1f9f9f",
+      "image_id": "sha256:1181bff5ba4ce440013a63cef9f4cf13024c432d705c9b1fbc9e5b949e852f48",
+      "version": "v2.197.0",
+      "namespace_bootstrap": "CREATE SCHEMA auth AUTHORIZATION postgres; -- fresh isolated PG only, before GoTrue migrations",
+      "provenance": "supabase/cli v2.121.0 apps/cli-go/pkg/config/templates/Dockerfile blob563c96ccd7ce0a7d1f4052750b391a1a46ca3836 + official registry linux/amd64 descriptor",
+      "signup": false,
+      "external_delivery": false
+    },
+    "isolation": {
+      "pg_network": "none",
+      "auth_network": "container:actual-pg-CID",
+      "loopback_only": true,
+      "published_ports": [],
+      "bind_mounts": [],
+      "named_volumes": [],
+      "rootfs_readonly": true,
+      "user": "999:999",
+      "cap_drop": [
+        "ALL"
+      ],
+      "security_opt": [
+        "no-new-privileges:true"
+      ],
+      "pgdata": "512MiB tmpfs owned UID999; removed with owned PG container",
+      "fixture_credentials": "ephemeral JWT secret in process environment only; no host/cloud credentials inherited"
+    },
+    "deadlines_seconds": {
+      "pull": 180,
+      "command": 20,
+      "health": 60,
+      "cleanup_each": 20
+    },
+    "lifecycle": "one attempt per run directory; first-error stops new stages; cleanup scoped to actual label/CIDs; timeout UNKNOWN no replay",
+    "consumers": [
+      "Core",
+      "SERVICE",
+      "AIRPROP",
+      "CE"
+    ],
+    "consumer_gate": "health proof is not domain installation or session acceptance; consumers require separate accepted source pins/requests; default action removes fixture"
+  },
+  "attempts": [
+    {
+      "attempt": "run-01",
+      "run_id": "cladora-lane-b4b1047b08d6",
+      "utc_start": "2026-11-02T08:30:58Z",
+      "utc_end": "2026-11-02T08:32:20Z",
+      "health_result": "FAILED_OR_UNKNOWN",
+      "primary_error": "auth-health:COMMAND_FAILED",
+      "auth_startup_cause": "3F000 missing auth namespace",
+      "pg_identity": "170011|postgres|postgres",
+      "auth_health": null,
+      "resources": [
+        {
+          "name": "cladora-lane-b4b1047b08d6-pg",
+          "cid": "0f17b5d3a4e8d2427c46c5842cea21c75d4c143c3d4b9d1ae533631d8c74b2e8",
+          "role": "pg"
+        },
+        {
+          "name": "cladora-lane-b4b1047b08d6-auth",
+          "cid": "c805efab828e282ccf8749750abab61420315130e15bd1df4a52743617cbe5c1",
+          "role": "auth"
+        }
+      ],
+      "cleanup": [
+        {
+          "resource": "auth",
+          "state": "acknowledged-absent"
+        },
+        {
+          "resource": "pg",
+          "state": "acknowledged-absent"
+        },
+        {
+          "image_id": "sha256:1181bff5ba4ce440013a63cef9f4cf13024c432d705c9b1fbc9e5b949e852f48",
+          "state": "removal-acknowledged"
+        },
+        {
+          "image_id": "sha256:99445113a4a19e82dd3713c65bd9f6fb5bf972065ab043df8d1e1c93e957da9a",
+          "state": "removal-acknowledged"
+        }
+      ],
+      "stages": {
+        "docker-info": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:30:58Z"
+        },
+        "pg-image-inventory": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:30:58Z"
+        },
+        "pg-pull": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:30:58Z"
+        },
+        "pg-image-inspect": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:31:13Z"
+        },
+        "auth-image-inventory": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:31:13Z"
+        },
+        "auth-pull": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:31:13Z"
+        },
+        "auth-image-inspect": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:31:16Z"
+        },
+        "pg-names": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:31:16Z"
+        },
+        "pg-create": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:31:16Z"
+        },
+        "pg-prestart": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:31:17Z"
+        },
+        "pg-start": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:31:17Z"
+        },
+        "pg-live": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:31:17Z"
+        },
+        "pg-health": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:31:17Z"
+        },
+        "pg-identity": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:31:18Z"
+        },
+        "auth-names": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:31:18Z"
+        },
+        "auth-create": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:31:18Z"
+        },
+        "auth-prestart": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:31:18Z"
+        },
+        "auth-start": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:31:18Z"
+        },
+        "auth-live": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:31:18Z"
+        },
+        "auth-health": {
+          "status": "FAILED",
+          "exit_code": 1,
+          "at_utc": "2026-11-02T08:31:18Z"
+        },
+        "auth-cleanup-inspect": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:32:19Z"
+        },
+        "auth-private-process-log": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:32:19Z"
+        },
+        "auth-destroy": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:32:19Z"
+        },
+        "auth-absence": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:32:19Z"
+        },
+        "pg-cleanup-inspect": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:32:19Z"
+        },
+        "pg-private-process-log": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:32:19Z"
+        },
+        "pg-destroy": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:32:19Z"
+        },
+        "pg-absence": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:32:19Z"
+        },
+        "image-users-0": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:32:19Z"
+        },
+        "image-remove-0": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:32:19Z"
+        },
+        "image-users-1": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:32:19Z"
+        },
+        "image-remove-1": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:32:19Z"
+        }
+      },
+      "private_receipt_sha256": "9b3f4e6b5c85a7a20c68d9d455b06192af12b99359b1203dafdefac50cdd4481",
+      "domain_installation": "NOT_RUN",
+      "session": "NOT_RUN",
+      "email": "NOT_RUN"
+    },
+    {
+      "attempt": "run-02",
+      "run_id": "cladora-lane-365e892ca149",
+      "utc_start": "2026-11-02T08:33:14Z",
+      "utc_end": "2026-11-02T08:33:40Z",
+      "health_result": "PG17_AND_REAL_AUTH_HEALTH_PROVED_NO_DOMAIN_INSTALL",
+      "primary_error": null,
+      "auth_startup_cause": null,
+      "pg_identity": "170011|postgres|postgres",
+      "auth_health": {
+        "http": 200,
+        "version": "v2.197.0",
+        "provider": "real GoTrue",
+        "session_proof": false
+      },
+      "resources": [
+        {
+          "name": "cladora-lane-365e892ca149-pg",
+          "cid": "dff01f7e37c8c058da625f91b32e9c9415b7eeb9239a8cd80209905a99e32ed5",
+          "role": "pg"
+        },
+        {
+          "name": "cladora-lane-365e892ca149-auth",
+          "cid": "4562baff3ad7077decaf86a27a32dab882de4ec9199ef0c8ea423a11114fcf83",
+          "role": "auth"
+        }
+      ],
+      "cleanup": [
+        {
+          "resource": "auth",
+          "state": "acknowledged-absent"
+        },
+        {
+          "resource": "pg",
+          "state": "acknowledged-absent"
+        },
+        {
+          "image_id": "sha256:1181bff5ba4ce440013a63cef9f4cf13024c432d705c9b1fbc9e5b949e852f48",
+          "state": "removal-acknowledged"
+        },
+        {
+          "image_id": "sha256:99445113a4a19e82dd3713c65bd9f6fb5bf972065ab043df8d1e1c93e957da9a",
+          "state": "removal-acknowledged"
+        }
+      ],
+      "stages": {
+        "docker-info": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:14Z"
+        },
+        "pg-image-inventory": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:14Z"
+        },
+        "pg-pull": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:14Z"
+        },
+        "pg-image-inspect": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:31Z"
+        },
+        "auth-image-inventory": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:31Z"
+        },
+        "auth-pull": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:31Z"
+        },
+        "auth-image-inspect": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:34Z"
+        },
+        "pg-names": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:34Z"
+        },
+        "pg-create": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:34Z"
+        },
+        "pg-prestart": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:35Z"
+        },
+        "pg-start": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:35Z"
+        },
+        "pg-live": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:35Z"
+        },
+        "pg-health": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:35Z"
+        },
+        "pg-identity": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:36Z"
+        },
+        "auth-namespace-bootstrap": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:37Z"
+        },
+        "auth-names": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:37Z"
+        },
+        "auth-create": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:37Z"
+        },
+        "auth-prestart": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:37Z"
+        },
+        "auth-start": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:37Z"
+        },
+        "auth-live": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:37Z"
+        },
+        "auth-health": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:37Z"
+        },
+        "auth-schema-identity": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:38Z"
+        },
+        "network-proof": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:38Z"
+        },
+        "auth-cleanup-inspect": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:38Z"
+        },
+        "auth-private-process-log": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:38Z"
+        },
+        "auth-destroy": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:38Z"
+        },
+        "auth-absence": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:38Z"
+        },
+        "pg-cleanup-inspect": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:38Z"
+        },
+        "pg-private-process-log": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:38Z"
+        },
+        "pg-destroy": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:38Z"
+        },
+        "pg-absence": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:39Z"
+        },
+        "image-users-0": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:39Z"
+        },
+        "image-remove-0": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:39Z"
+        },
+        "image-users-1": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:39Z"
+        },
+        "image-remove-1": {
+          "status": "ACKNOWLEDGED",
+          "exit_code": 0,
+          "at_utc": "2026-11-02T08:33:39Z"
+        }
+      },
+      "private_receipt_sha256": "fe383e22708a78075e46f5b2d325d5f079eeb28a6be5087e82f884ab72e2e1d7",
+      "domain_installation": "NOT_RUN",
+      "session": "NOT_RUN",
+      "email": "NOT_RUN"
+    }
+  ],
+  "offline_targeted_tests": {
+    "initial_cases_passed": 5,
+    "successor_delta_cases_passed": 2,
+    "unaffected_cases_repeated": false,
+    "mock_only": true
+  },
+  "accepted_suites_repeated": false,
+  "raw_evidence": "PRIVATE_PLATFORM_CUSTODY_MINIMUM_30_DAYS",
+  "consumer_connected_tested": false,
+  "domain_install_ready": false
+}

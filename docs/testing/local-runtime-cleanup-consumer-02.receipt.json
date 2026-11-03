@@ -1,0 +1,64 @@
+{
+  "task_id": "PLATFORM-V14-LOCAL-RUNTIME-LANE-01 / CLEANUP-CONSUMER-02",
+  "parent": "61a05b5dbbc72e1b60d7bcb5204cf5e5244eeb19",
+  "observed_at_utc": "2026-11-02T09:10:53.969591+00:00",
+  "finding": "PFL-CLEANUP-F01",
+  "source_result": "FIXED_PENDING_COORDINATOR_REVIEW",
+  "tests": {
+    "cli_receipt_cases": 14,
+    "admission_cases": 12,
+    "all_pass": true,
+    "execution_model": "offline actual CLI subprocess with fake Docker; no socket/network/SQL",
+    "prior_seven_repeated": false,
+    "health_replayed": false,
+    "syntax": "PASS",
+    "diff_check": "PASS"
+  },
+  "consumer": {
+    "id": "Core/ACL-PROJECTION-02",
+    "production_review_registry_entries": 0,
+    "production_adapter_entries": 0,
+    "execution": "NOT_RUN",
+    "connected_tested": false
+  },
+  "lifecycle": "health preserved; primary first error retained; overall exit nonzero for UNKNOWN/FAILED/INCOMPLETE/missing cleanup",
+  "inventory_excluding_this_receipt": [
+    {
+      "path": "scripts/run-local-runtime-lane.py",
+      "bytes": 20536,
+      "sha256": "ff2320bba53ad50be2f5bb3b1a09feaa1a2b791ced59181dcd0f3c14ef1717f8"
+    },
+    {
+      "path": "scripts/local_runtime_consumer.py",
+      "bytes": 7091,
+      "sha256": "b240725de9119e0176e49fb0bc55f4917ef8df79a9383cb8d77ed97ca579d439"
+    },
+    {
+      "path": "scripts/test-local-runtime-closeout.py",
+      "bytes": 8660,
+      "sha256": "ce0ecf6e7b068fb8b5db83bd441f9eb94e4e70e02132e7a05884968f652ae1ff"
+    },
+    {
+      "path": "scripts/test-local-runtime-admission.py",
+      "bytes": 8040,
+      "sha256": "cb8c63f5aad375abda5d1192579702b1d6b0fe390901fac9848ab6d0a69f378a"
+    },
+    {
+      "path": "supabase/local-profiles/runtime-consumer-reviews-v1.json",
+      "bytes": 71,
+      "sha256": "5ce21903480c8aacc3379414ba3cfec299072410516aeffb5b03d209b51be184"
+    },
+    {
+      "path": "docs/testing/LOCAL-RUNTIME-LANE-01.md",
+      "bytes": 12912,
+      "sha256": "980cf56a956de778f43012f0f4d57914fc84f06d04f16bfb63e199878025ae56"
+    }
+  ],
+  "preserved": {
+    "supabase/local-profiles/runtime-lane-v1.json": "71647e9dbd24d50137cb8ea0d3c3f3854bc1c32a44c364da0acf9ef5ce6818ef",
+    "docs/testing/local-runtime-lane-01.receipt.json": "301d84ce1596cc47fac95aef1dc073d9121692021a6b2e431a5eeead097f7669",
+    "scripts/test-local-runtime-lane.py": "25f58a6f011b982f12f1349165a1eef7c38e8076393efaf3bffa2ba64053cf8c"
+  },
+  "real_runtime_this_task": "NOT_RUN",
+  "raw_private_evidence_published": false
+}

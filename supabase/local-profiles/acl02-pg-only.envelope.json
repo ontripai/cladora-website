@@ -1,0 +1,27 @@
+{
+  "adapter": "acl02-pg-wire-v1",
+  "authority": null,
+  "execution_binding": null,
+  "format": "acl02-pure-pg-envelope-v1",
+  "order": [
+    "witness.sql",
+    "verify-clean.sql"
+  ],
+  "producer_request_sha256": "fecd8012f0ad9a82e098d8f513f9e9d694b2731e06067c49e70e029eb1671155",
+  "seal": {
+    "files": {
+      "scripts/acl02_pg_adapter.py": "72d7a69026cfe5d0dd15d6d5d4394ef62c4fced016919064150d3bc5ab5c361a",
+      "scripts/acl02_pg_wire.py": "4fa852fbdb6047ec3c264e1fee53b6218d9db9abf8b462d29e10d24fc4b242c3",
+      "scripts/local_runtime_consumer.py": "b240725de9119e0176e49fb0bc55f4917ef8df79a9383cb8d77ed97ca579d439",
+      "scripts/run-acl02-pg-only.py": "bde75479e6b90c4ebec91742e19f8962d50b8842597b8362459d91dc0b5e5c4a",
+      "scripts/run-local-runtime-lane.py": "8f0a964041cb4c2a78ab37ec7fc5c36be817d106cb396f598e625ef62907068e",
+      "supabase/local-profiles/acl02-pg-only/request.json": "fecd8012f0ad9a82e098d8f513f9e9d694b2731e06067c49e70e029eb1671155",
+      "supabase/local-profiles/acl02-pg-only/verify-clean.sql": "c5aad25fcc2c6ac1c1c9690631464442d4585cf2a00db8ba6ae50963dee85b23",
+      "supabase/local-profiles/acl02-pg-only/witness.sql": "514b3d01c1b0dcca967923128348856cdf9b6871ff86db1b76766dc9551e4ddc",
+      "supabase/local-profiles/runtime-pg-only-acl02-v1.json": "aa394a6068f75a438a3118f63c949984745d8ce46fc9cb69c525e51dd67cfaaa"
+    },
+    "sha256": "f737eab2ccf89a336fbfaac8c6b4369a2b7eca11b3f7adf1c4c32d2795122097"
+  },
+  "source_commit": "3cbfc877e5334c5189778b2003e308e3dddf0b2e",
+  "target": "owned-disposable-pg17-only"
+}
