@@ -1,0 +1,77 @@
+{
+  "task": "CE-FUNCTIONAL-GUIDE-13",
+  "status": "PARTIAL_SOURCE_FUNCTIONAL_ACCEPTANCE_BLOCKED",
+  "worker": "CLADORA-CE-WORKER-01",
+  "shared_base": "ec639884452cc0cb6dfef520339791a5c20e9b39",
+  "actual_parent": "ec639884452cc0cb6dfef520339791a5c20e9b39",
+  "prior_published_head": "0191e0415297a76f3073cbeef7396f4799d3a25c",
+  "base_adoption": "FAST_FORWARD",
+  "branch": "codex/program-ce-independent-base-02",
+  "source": [
+    {
+      "path": "src/lib/community/experience-guide-save-writer-v1.ts",
+      "bytes": 27453,
+      "sha256": "6bc23cc3403da9970664c8446e0a100f56155306992d70cf8db56ab126eeebfb",
+      "git_blob": "da99f2b6efdec45c8ae514c68ada8e3411ddada1"
+    },
+    {
+      "path": "scripts/test-ce-functional-guide13.mjs",
+      "bytes": 6163,
+      "sha256": "7636c8f6475693fc1b8b8bc8aada8dbe4c0bb4eb95d4a6bbf4ab7e1a9c76fc04",
+      "git_blob": "27743d1ceb4e4df55ac1721ca4458b856a2aec36"
+    },
+    {
+      "path": "docs/contracts/ce-functional-guide-13/README.md",
+      "bytes": 6873,
+      "sha256": "5f3f721dab9b25b22466d56f107e23775631bf2e6954a3f6b500cfb4bb796431",
+      "git_blob": "0c381150b31a4dee176819ff17a5f78f6e8dbf5f"
+    }
+  ],
+  "manifest_self": "bound by final Git tree/external delivery, excluded from own inventory hash",
+  "evidence": {
+    "exact_toolchain": {
+      "next": "16.4.1",
+      "zod": "4.6.6",
+      "typescript": "5.9.3",
+      "method": "isolated npm ci from unchanged Base package/lock/vendor; previous cache untouched"
+    },
+    "affected_controlled_groups": 6,
+    "controlled_result": "PASS",
+    "full_typecheck": "PASS exact toolchain in verification copy",
+    "scoped_lint": "PASS exact toolchain",
+    "syntax_diff": "PASS",
+    "native_auth_db_restart": "NOT_RUN_NOT_PASS",
+    "old_suites": "NOT_RERUN CE010/CE011/G1/G2/CE27/Core23"
+  },
+  "evidence_hashes": {
+    "controlled.txt": {
+      "bytes": 850,
+      "sha256": "d431fd81b5cf6d4e5897613266f941ad06e73f089075955945ab7a2be6cb229a",
+      "git_blob": "ae4f45021e1f7b78d580f15dbbabafef7dceab85"
+    },
+    "typecheck.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "lint.txt": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    }
+  },
+  "blockers": {
+    "core15": "official FullSHA/ABI not delivered; inspected current Core remote3e9593af25433dcf32042f624731f514d09ec35b is Core14",
+    "development_target": "no admitted owned PG/Auth/roles/profile/credentials/volume; Docker28.4.0 socket ready, image/container lists empty",
+    "creation": "existing positive-version save contract edits an existing Guide; no silent version0/adoption/legacy substitution",
+    "functional_flow": "real create/save/readback/reload/process restart/security/recovery still OPEN"
+  },
+  "preservation": [
+    "CE010/CE011/G1/G2 source",
+    "Core/Docs/Platform owner source from Shared Base unchanged",
+    "previous CE012 schemas/editor/checkpoints/fingerprint/receipt",
+    "package/lock/vendor/config"
+  ],
+  "automation": "نیازمند بررسی",
+  "inventory_seal": "53abd65426eecdf14b1b165ab8d28a94093fdc3a0166ce89255c858cf310be4c"
+}
