@@ -61,11 +61,23 @@
     "public": "f0b88ac1d9376c46d08c554f3a6b8d0c5f938982"
   },
   "current_truth": {
-    "source_integration": "COMPILES_AND_REAL_WEBPACK_BUILDS_604_STATIC_PAGES",
+    "source_integration": "SERVICE_AIRPROP_DOCUMENTS_SOURCE_INTEGRATED_FULL_ES5_TYPECHECK_PASS",
     "service_runtime": "UNBOUND_REQUIRES_IMPLEMENTATION",
     "listing_read_control_runtime": "UNBOUND_REQUIRES_IMPLEMENTATION",
     "native_product_E2E": "NOT_READY",
-    "production_release": "NOT_READY"
+    "production_release": "NOT_READY",
+    "production_build": "BLOCKED_UNRESOLVED_INTER_NEXT_FONT_GOOGLE_LOADER_FAILURE",
+    "latest_build_attempt": {
+      "head": "aee717b297538393c6f799fa96cf5eec6bba2502",
+      "exit": 1,
+      "generated_static_pages": 0,
+      "error": "next/font Inter: loader.js:122 null extension match",
+      "font_mock": false,
+      "framework_patch": false,
+      "ignoreBuildErrors": false
+    },
+    "previous_build_evidence": "REVIEW105_PASS_604_PRESERVED_FOR_ITS_EXACT_HEAD_NOT_TRANSFERRED_TO_SUCCESSOR",
+    "documents_upload_download_runtime": "MAINTENANCE_REQUIRES_REAL_CORE_PLATFORM_COMPOSITION"
   },
   "automation": {
     "classification": "نیازمند بررسی",
