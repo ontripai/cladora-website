@@ -1,0 +1,191 @@
+{
+  "task": "CE-GUIDE-CREATE-14",
+  "continuation_of": "CE-FUNCTIONAL-GUIDE-13",
+  "worker": "CLADORA-CE-WORKER-01",
+  "parent": "47a2d22beffeb76fcb0d13612eb2a006df21c7fb",
+  "branch": "codex/program-ce-independent-base-02",
+  "status": "SOURCE_DELIVERED_INDEPENDENT_REVIEW_REQUIRED_NATIVE_TASK13_OPEN",
+  "source": [
+    {
+      "path": "src/components/customer/CustomerExperienceGuidePage.tsx",
+      "bytes": 10115,
+      "sha256": "db0b81e32df9099b69ec050051488ba50abd6c175ee72286d394a78b230115df",
+      "git_blob": "246edffa41679f2c2a537a027bf209fc3b630a0a"
+    },
+    {
+      "path": "src/components/customer/CustomerExperienceGuideCreate.tsx",
+      "bytes": 5202,
+      "sha256": "7af4a41b039cca59f9f4b9ed930cb1bb0cd97796d1a50857b22491c8d47477a9",
+      "git_blob": "1ca8f1213452fc6ca3a0f802a32f9a09b65854f9"
+    },
+    {
+      "path": "src/lib/community/experience-guide-functional-http-v1.ts",
+      "bytes": 14193,
+      "sha256": "34fe6f492984b72d03c214c821d7d6921eb8f751a6f3462c78ea5814bde0804c",
+      "git_blob": "55c8c4ca6b3c34ce7a18987b5399ae8398e971a5"
+    },
+    {
+      "path": "src/lib/community/experience-guide-create-client.ts",
+      "bytes": 5985,
+      "sha256": "60cd7646a1d7a6d59868b9d55540ec5c1f71eace856011dbe7b7024911d48c8a",
+      "git_blob": "6c3ff1c7fccced52996013ae01cd1608570fd9bb"
+    },
+    {
+      "path": "src/lib/community/experience-guide-create-writer-v1.ts",
+      "bytes": 9330,
+      "sha256": "fad5c5897368780893f826ea7ae7f9f313a1e4a032bbe8b44825371eb50b1474",
+      "git_blob": "d7990ad830cadfdb11e98b06ffa1525a2be40e75"
+    },
+    {
+      "path": "scripts/test-ce-guide-create14.mjs",
+      "bytes": 20566,
+      "sha256": "6608714273994d1565c1c250bbb49944daa66528a9c7bd9fc1bc1a6dcec221f1",
+      "git_blob": "46b5769af7649398f6fbd829efd6dc66c9095b44"
+    },
+    {
+      "path": "docs/contracts/ce-guide-create-14/README.md",
+      "bytes": 13154,
+      "sha256": "5f521d1563184d8020fb7138f7bdb9f75d4e91b6e198b54da7434e7be87f600a",
+      "git_blob": "0335d5fea5dae198c916a1b785c323997149ca3e"
+    }
+  ],
+  "inventory_seal": "1f4259669583e7bf9e282c6b5f01ab3e09daaf1d495b02bcc9ba7a5382cc4f33",
+  "manifest_self": "excluded; final Git tree/external delivery binds bytes",
+  "product_path": "/{lang}/app/experience/guides -> actual Page/Create form -> CE create transport -> existing draft handler -> CE create provider -> existing CoreTransactionHostV1.execute",
+  "ABI": {
+    "create_command": "existing ce012CommandSchema/create_guide expected_version=0; subset one step/references=[]",
+    "prepare": "prepare_create -> ce012-prepared-create.v1 (read-only)",
+    "execute": "execute_create with retained parsed command/CoreTransactionCommandV2",
+    "Core_effect": "experience_guide version1 subject relation=create_guide, subject version1 (created-result version, not positive expected_version)",
+    "provider": "ce-guide-create-provider.v1, provider_current_state_required",
+    "fingerprint": "sha256: + SHA256 stable sorted-key serialization of strict parsed create_guide; distinct CREATE mapping, save fingerprint/golden unchanged",
+    "mutation_tables": [
+      "experience.guides",
+      "experience.guide_steps"
+    ],
+    "settlement": "existing Core C03 receipt/audit/outbox same transaction; no CE create receipt table or new engine",
+    "receipt_projection": "bounded actual Core receipt ID + command_id/guide_id/version/key/fingerprint/replayed; not a new persisted receipt type",
+    "authority": "existing canonical resolveAuthority and request-bound official role lease; validation, immediately pre-mutation after reservation, post-effect and replay checkpoints",
+    "storage_ids": "Guide/step allocated before fingerprint and retained unchanged for unresolved command",
+    "default_binding": null
+  },
+  "evidence": {
+    "toolchain": {
+      "node": "24.19.0",
+      "next": "16.4.1",
+      "zod": "4.6.6",
+      "typescript": "5.9.3",
+      "install": "NOT_PERFORMED; existing exact isolated toolchain"
+    },
+    "distinct_new_groups": 12,
+    "result": "PASS_CONTROLLED_SOURCE",
+    "execution_detail": "Initial combined run passed9 then failed mounted fixture initialization. Corrected React DOM/JSDOM initialization; affected mounted create, mounted UNKNOWN and read-preservation groups passed. Cross-scope denial strengthened and rerun independently. No earlier successful suite replayed.",
+    "typecheck": "PASS full unchanged ES5 target and exact packages in verification copy",
+    "lint": "PASS scoped5 product TS/TSX + new MJS, max-warnings=0",
+    "syntax_diff_inventory": "PASS",
+    "old16_G2_CE010_CE011": "NOT_RERUN",
+    "build": "NOT_RUN; previous unchanged next/font integration failure retained",
+    "native_auth_pg_restart": "NOT_RUN_NOT_PASS",
+    "proof_kind": "actual handler/provider/Core host and mounted Page/form with modeled role/Auth/SQL boundary only"
+  },
+  "evidence_hashes": {
+    "targeted.txt": {
+      "path": "/workspace/work/ce-guide-create14/targeted.txt",
+      "bytes": 1368,
+      "sha256": "67c58132152d6cacf2592187767dc546ac78e8d61d1f443f2a98ac6662f7d491",
+      "git_blob": "db6f26cb6535019f4ef48a622d520454b59a13a1"
+    },
+    "denial-final.txt": {
+      "path": "/workspace/work/ce-guide-create14/denial-final.txt",
+      "bytes": 277,
+      "sha256": "57dcc31c81cacb616f53f706718721ed0676f78682731aa05f371a0397065a1a",
+      "git_blob": "584bdf2bc718bbfbbee924823cd2e102e07043c2"
+    },
+    "mounted-create-final.txt": {
+      "path": "/workspace/work/ce-guide-create14/mounted-create-final.txt",
+      "bytes": 304,
+      "sha256": "8728e39bd4f01c616fbeeabbf10336c9d5100bbb4a5409abf8bc96e243878b07",
+      "git_blob": "551ed2860c0984da2986dffdf04cc829b2e6cdff"
+    },
+    "mounted-unknown-final.txt": {
+      "path": "/workspace/work/ce-guide-create14/mounted-unknown-final.txt",
+      "bytes": 298,
+      "sha256": "8a2b18f411531fa5d98ed4c932a44a063b4ac171a73f9ab1b523cf68124f6f27",
+      "git_blob": "7163bc8992609036a62345222961677f45f24b71"
+    },
+    "read-preservation-delivery.txt": {
+      "path": "/workspace/work/ce-guide-create14/read-preservation-delivery.txt",
+      "bytes": 312,
+      "sha256": "caee4acee603cf47dced8f8c0714c5e8aecf55e52bf1dd6be5883084ab77f48f",
+      "git_blob": "ffffac6f4ca234b66edb3675ce3f50246f54ed4e"
+    },
+    "typecheck-source-final.txt": {
+      "path": "/workspace/work/ce-guide-create14/typecheck-source-final.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "lint-source-final.txt": {
+      "path": "/workspace/work/ce-guide-create14/lint-source-final.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "protected-identity.json": {
+      "path": "/workspace/work/ce-guide-create14/protected-identity.json",
+      "bytes": 355,
+      "sha256": "9b9e637fd682d156715435aeffe77e5ee8b0badf9660b440663b856793fc240f",
+      "git_blob": "54d5578216fdca74e55dff3b42a4bdaa0c828005"
+    }
+  },
+  "protected_identity": {
+    "parent": "47a2d22beffeb76fcb0d13612eb2a006df21c7fb",
+    "Task13_read_selector_and_accepted_GET_route": "BYTE_IDENTICAL",
+    "save_draft_prepare_execute_and_cutover_tail": "BYTE_IDENTICAL",
+    "Core_Docs_CE010_CE011_SQL_guard_schema_package_lock": "UNCHANGED",
+    "default_role_bound_pool": "NULL_UNCONFIGURED",
+    "native_execution": "NOT_RUN_NOT_PASS"
+  },
+  "official_dependencies": {
+    "Core_host": "existing Parent/src/lib/core/postgres-transaction-host-v1.ts CoreTransactionHostV1.execute / CoreTransactionProvidersV2",
+    "authority": "existing Parent/src/lib/core/current-authority-postgres-provider-v1.ts resolveAuthority(scope,request)",
+    "lease": "existing Parent/src/lib/core/platform-role-bound-pool-v1.ts CorePlatformRoleBoundPoolV1.connect; exact CE executor/runtime roles",
+    "Core15_partial": "a0a37f3c573558d14be2e62ba27e6e5475b9c4fe official checkpoint read; session observation only, not C01/C03 or CE authority",
+    "Core15_report": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-6603918348",
+    "Platform12": "reported owned isolated infrastructure794f5a12; no CE-local domain installation/role/session admission assumed"
+  },
+  "open_gates": [
+    "official native C01/read/manage/entitlement and C03 domain binding",
+    "admitted ordinary CE CorePlatformRoleBoundPoolV1 and canonical schema/RLS/ACL custody",
+    "CE-local isolated issued Auth and durable target admission",
+    "real create/readback after reload/restart, denial/revoke after wait, conflict and same-wire replay without second save",
+    "native browser and prior unresolved build gate",
+    "independent source acceptance"
+  ],
+  "non_goals": [
+    "no hard-reload duplicate-free intent guarantee",
+    "no legacy writer fallback",
+    "no new table/ledger/receipt engine",
+    "no SQL/Auth/DB install/grant/activation",
+    "no Core/Docs/CE010/CE011 edits",
+    "no package/lock/dependency/config change",
+    "no staging/Production or deployment"
+  ],
+  "automation": {
+    "classification": "نیازمند بررسی",
+    "opportunity": "controlled version/identity regression preparation",
+    "human_role": "authorized user explicitly creates/retries; CE/Core/Platform review exceptions",
+    "dependency": "official Core/Platform native custody and current authority",
+    "value": "UNKNOWN_NOT_ESTIMATED"
+  },
+  "skills_policy": {
+    "version": "CLADORA-SKILLS-USAGE v1.1.0",
+    "url": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-6316739482",
+    "applied": [
+      "cloud-environment runtime/network",
+      "Supabase source security",
+      "React best practices",
+      "AGENTS exact Next route-handler guide"
+    ]
+  }
+}

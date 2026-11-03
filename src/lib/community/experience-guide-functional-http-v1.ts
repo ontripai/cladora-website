@@ -10,6 +10,7 @@ import {authenticateExperienceGuideLifecycleServerSessionV1,createExperienceGuid
 import {buildCe012NewSaveCommandV1,createCe012SaveWriterExecutorV1,ce012SaveCoreBindingMatchesV1} from './experience-guide-save-writer-v1';
 import {ce012GuideSaveCommandV1Schema} from './experience-guide-command-contract';
 import {ce012CommandSchema} from './experience-guide-schema';
+import {ce012CreateCommandV1Schema,ce012CreateExecutionV1Schema,ce012CreateCoreMatchesV1,createCe012CreateWriterProviderV1,fingerprintCe012CreateV1} from './experience-guide-create-writer-v1';
 import {guideReadResponseSchema} from './experience-guide-client';
 import {hasTrustedMutationOrigin} from '../security/same-origin';
 import {parseJsonWithLimit,isApplicationJson} from '../security/request-body';
@@ -67,7 +68,7 @@ export function createCe012FunctionalHandlersV1(deps:Ce012FunctionalDependencies
    const final=await client.query(CE012_FUNCTIONAL_AUTH_SQL,[scope.context_id,scope.workspace_id]);
    if(final.rowCount!==1)throw Object.assign(Error(),{code:'42501'});const b=authRow.parse(final.rows[0]);
    if(b.tenant_id!==a.tenant_id||b.membership_id!==a.membership_id||b.revision!==a.revision||!b.can_read||(!projection&&!b.can_manage)||a.can_manage!==b.can_manage)throw Object.assign(Error(),{code:'42501'});
-   return {pool,revision:b.revision,data};
+   return {pool,revision:b.revision,data,can_manage:b.can_manage};
   }finally{try{await client.query('rollback');}finally{client.release();}}
  }
  function error(e:unknown){const code=(e as {code?:string})?.code;
@@ -77,15 +78,40 @@ export function createCe012FunctionalHandlersV1(deps:Ce012FunctionalDependencies
    if(Array.from(url.searchParams.keys()).some(k=>url.searchParams.getAll(k).length!==1))return fail(400,'INVALID_REQUEST');
    const s=await session(request);if(!s)return fail(401,'UNAUTHORIZED');const p=await probe(s,q,true);
    const fresh=await session(request);if(!fresh||fresh.actor_id!==s.actor_id)return fail(401,'UNAUTHORIZED');
-   const response=json(200,{contract:'ce012-functional-guide.v1',projection:p.data,can_create:false,reference_editing:false});
+   const response=json(200,{contract:'ce012-functional-guide.v1',projection:p.data,can_create:p.can_manage,reference_editing:false});
    response.headers.set('X-Cladora-Guide-Read','functional-v1');return response;
   }catch(e){return e instanceof z.ZodError?fail(400,'INVALID_REQUEST'):error(e);}},
   async POST(request:NextRequest){if(!hasTrustedMutationOrigin(request))return fail(403,'BAD_ORIGIN');
    if(!isApplicationJson(request.headers.get('content-type')))return fail(415,'UNSUPPORTED_MEDIA_TYPE');
    const parsed=await parseJsonWithLimit<unknown>(request,64*1024);if(parsed.errorResponse){for(const [key,value]of Object.entries(headers))parsed.errorResponse.headers.set(key,value);return parsed.errorResponse;}
    try{const body=parsed.data as {op?:unknown};const s=await session(request);if(!s)return fail(401,'UNAUTHORIZED');
-    if(body?.op==='create'){const envelope=z.strictObject({op:z.literal('create'),command:ce012CommandSchema}).parse(body);const c=envelope.command;
-     if(c.type!=='create_guide')return fail(400,'INVALID_REQUEST');return fail(503,'CE_GUIDE_CREATE_CORE15_NOT_READY');}
+    if(body?.op==='create'){const envelope=z.strictObject({op:z.literal('create'),command:ce012CommandSchema}).parse(body);
+     if(envelope.command.type!=='create_guide')return fail(400,'INVALID_REQUEST');return fail(503,'CE_GUIDE_CREATE_CORE15_NOT_READY');}
+    if(body?.op==='prepare_create'){
+     const q=z.strictObject({op:z.literal('prepare_create'),command:ce012CreateCommandV1Schema}).parse(body),g=q.command;
+     if(g.guide_id===g.steps[0].id)return fail(400,'INVALID_REQUEST');
+     const p=await probe(s,g,false);
+     const core=coreTransactionCommandV2Schema.parse({contract_version:'core-transaction-command.v2',transaction_id:randomUUID(),command_id:g.command_id,
+      context_id:g.context_id,workspace_id:g.workspace_id,actor_id:s.actor_id,authority_version:p.revision,
+      permission_code:'experience.guide.manage',module_code:'experience_guides',evaluation_purpose:'experience.guide.command',
+      aggregate_type:'experience_guide',aggregate_id:g.guide_id,aggregate_version:1,provider_source_ids:[g.guide_id,g.steps[0].id],
+      idempotency_key:g.idempotency_key,input_fingerprint:fingerprintCe012CreateV1(g),
+      subject_reference:{kind:'experience.guide',id:g.guide_id,version:1,relation:'create_guide',request_version:1}});
+     return json(200,{contract:'ce012-prepared-create.v1',command:g,core_command:core});
+    }
+    if(body?.op==='execute_create'){
+     const q=ce012CreateExecutionV1Schema.parse(body),g=q.command,c=q.core_command;
+     if(!ce012CreateCoreMatchesV1(c,g))return fail(400,'INVALID_REQUEST');
+     if(c.actor_id!==s.actor_id)return fail(403,'CE_GUIDE_ACCESS_DENIED');
+     if(!deps.role_bound_pool)return fail(503,'CE_GUIDE_CONNECTION_NOT_READY');
+     const pool=createExperienceGuideLifecycleRequestPoolV1(deps.role_bound_pool,s,g);
+     const result=await createCorePostgresTransactionHostV1(pool).execute(c,createCe012CreateWriterProviderV1(g));
+     if(result.status==='unknown_commit')return json(202,{outcome:'unknown'});
+     if(result.status==='denied')return fail(result.code==='AUTHORITY_DENIED'?403:409,'CE_GUIDE_CREATE_DENIED');
+     const fresh=await session(request);if(!fresh||fresh.actor_id!==s.actor_id)return json(202,{outcome:'unknown'});
+     return json(200,{outcome:'created',command_id:g.command_id,guide_id:g.guide_id,version:result.receipt.aggregate_version,
+      receipt_id:result.receipt.receipt_id,idempotency_key:g.idempotency_key,payload_fingerprint:c.input_fingerprint,replayed:result.status==='exact_replay'});
+    }
     if(body?.op==='prepare'){const q=prepareSchema.parse(body);const p=await probe(s,q,false);
      const guide=buildCe012NewSaveCommandV1({contract:'ce012-guide-command.v1',version:1,command_id:q.command_id,
       action:'save_draft',context_id:q.context_id,workspace_id:q.workspace_id,guide_id:q.guide_id,expected_guide_version:q.expected_guide_version,
