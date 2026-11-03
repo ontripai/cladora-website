@@ -1,0 +1,36 @@
+{
+  "contract": "core15-safe-native-session-evidence.v1",
+  "platform": "794f5a12c3928ae0a3585ab679a3cbe60aab49a3",
+  "module_sha256": "dd1e8c34380a3f1d991462c9f8b62e8442984d130ea9ca8aa1b004df814b3ca8",
+  "source_receipt_sha256": "9f1724e7fe937946fbb8f9280018cca8551981117b2c9be2e42da74829ff2db6",
+  "native_state": "PASS_REAL_AUTH_PG_SESSION_SLICE_ONLY",
+  "checks": {
+    "real_auth_current_session": true,
+    "rollback_same_backend_readyforquery_I": true,
+    "runtime_no_auth_direct_or_raw_clock_guard": true,
+    "invalid_jwt_denied": true,
+    "real_auth_logout_denied": true,
+    "expiry_real_block_observed": true,
+    "expiry_after_wait_denied": true,
+    "real_40001_preserved_no_retry": true,
+    "no_core_session_ledger_or_memberships": true
+  },
+  "wire": {
+    "rollback_tags": 3,
+    "readyforquery_I": 8
+  },
+  "bootstrap": {
+    "source_sha256": "566f53876352618f4b74cd79ffe1b5a093ce788c165f020659bb7a6c0e8bdcb8",
+    "settlement": "COMMIT_TAG_AND_INDEPENDENT_CATALOG_OBSERVED",
+    "raw_readyforquery": "NOT_CAPTURED_FOR_BOOTSTRAP"
+  },
+  "compatibility_delta": {
+    "source_sha256": "0fc67958b6811a254603e3d4743e965288ede5d13c28fe8b6cb9825bad56ef4c",
+    "settlement": "COMMIT_TAG_AND_INDEPENDENT_CATALOG_OBSERVED",
+    "raw_readyforquery": "NOT_CAPTURED"
+  },
+  "first_attempt": "FAILED_ACL_ONLY_OWNER_HIDDEN_BY_REAL_AUTH_RLS; preserved privately",
+  "full_task": "IN_PROGRESS",
+  "Context_authority_C03_S01_AIRPROP": "NOT_READY",
+  "data": "synthetic owned development only; no IDs/tokens/credentials/catalog rows included"
+}
