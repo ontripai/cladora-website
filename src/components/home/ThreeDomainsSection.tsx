@@ -41,10 +41,10 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
           </h2>
           <p className="text-base sm:text-lg text-[#52667A] leading-relaxed">
             {lang === 'ro'
-              ? 'CLADORA adună totul la un loc: datele clădirii, plățile și actele sunt păstrate în siguranță, în timp ce domeniile dedicate se ocupă de tranzacții și închirieri, comenzi de servicii, reparații tehnice și experiența comunitară.'
+              ? 'AIRPROP acoperă promovarea și tranzacțiile imobiliare, SERVICE nevoile și comenzile de servicii, Operations mentenanța și ordinele de lucru, iar CE anunțurile, interacțiunile, evenimentele și ghidurile proprietății. Domeniile folosesc informații comune; disponibilitatea fiecărei funcționalități depinde de stadiul lansării și implementării.'
               : lang === 'fa'
-              ? 'کلادورا همه چیز را یکپارچه می‌کند: مشخصات ساختمان، حساب‌ها و اسناد در مکانی امن نگهداری می‌شوند و چهار حوزه مجزا به امور اجاره و فروش، سفارش خدمات، تعمیرات فنی و جامعه و تجربه سکونت اختصاص دارند.'
-              : 'CLADORA brings everything together: building records, payments, and documents stay organized in one place, while dedicated domains handle transactions & leasing, service requests, technical operations, and community experience.'}
+              ? 'AIRPROP برای عرضه و معاملات ملک، SERVICE برای نیازها و سفارش‌های خدمات، Operations برای نگهداری و دستورکارها، و CE برای اعلان‌ها، تعاملات، رویدادها و راهنماهای ملک؛ همه بر اطلاعات مشترک ملک تکیه دارند. دسترسی هر قابلیت با وضعیت انتشار و پروژه مشخص می‌شود.'
+              : "AIRPROP covers property marketing and transactions, SERVICE covers service needs and orders, Operations covers maintenance and work orders, and CE covers property notices, interactions, events and guides. They share property information; each capability's availability depends on its release and implementation status."}
           </p>
         </div>
 
@@ -275,16 +275,16 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
                   {lang === 'ro' ? 'Comunitate & Experiență' : lang === 'fa' ? 'جامعه و تجربه' : 'Community & Experience'}
                 </h3>
                 <p className="text-xs text-[#627D98] font-medium mt-0.5">
-                  {lang === 'ro' ? 'Ghiduri de spațiu, facilități & comunicare' : lang === 'fa' ? 'راهنمای فضاها، امکانات رفاهی و ارتباط مستقیم' : 'Space guides, amenities & resident updates'}
+                  {lang === 'ro' ? 'Anunțuri, evenimente și ghiduri pentru proprietate' : lang === 'fa' ? 'اعلان‌ها، رویدادها و راهنماهای ملک' : 'Property notices, events and guides'}
                 </p>
               </div>
 
               <p className="text-xs sm:text-sm text-[#52667A] leading-relaxed">
                 {lang === 'ro'
-                  ? 'Conectează rezidenții și utilizatorii clădirii la facilități, evenimente și ghiduri utile de utilizare a spațiului, păstrând comunicarea directă și sigură fără a amesteca rolurile de administrare.'
+                  ? 'Anunțuri, interacțiuni comunitare, evenimente și ghiduri legate de proprietate, cu starea fiecărei funcționalități explicată clar.'
                   : lang === 'fa'
-                  ? 'ساکنان و بهره‌برداران را به امکانات رفاهی، رویدادها و راهنمای فضاهای ساختمان متصل می‌کند؛ با برقراری ارتباط مستقیم و امن، بدون تداخل با اختیارات مدیریتی یا دسترسی‌های محرمانه.'
-                  : 'Connects residents and occupants to amenities, local events, and practical space guides, maintaining direct and secure communication without conflating administrative roles.'}
+                  ? 'اعلان‌ها و تعاملات جامعه، رویدادها و راهنماهای مرتبط با ملک؛ با توضیح روشن وضعیت هر قابلیت.'
+                  : 'Property-related notices, community interactions, events and guides, with a clear status for each capability.'}
               </p>
 
               <ul className="space-y-2 text-xs text-[#334E68] pt-2 border-t border-[#F0F4F8]">
@@ -294,7 +294,7 @@ export const ThreeDomainsSection: React.FC<ThreeDomainsSectionProps> = ({ lang }
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-indigo-500 shrink-0" />
-                  <span>{lang === 'ro' ? 'Canale clare de anunțuri și consultare a comunității' : lang === 'fa' ? 'کانال‌های اطلاع‌رسانی رسمی و نظرسنجی از ساکنان' : 'Structured announcements and community notice channels'}</span>
+                  <span>{lang === 'ro' ? 'Anunțuri și interacțiuni pentru comunitatea proprietății' : lang === 'fa' ? 'اعلان‌ها و تعاملات مرتبط با جامعهٔ ملک' : 'Notices and interactions for the property community'}</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-indigo-500 shrink-0" />

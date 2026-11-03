@@ -75,6 +75,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const triggerBtnRef = useRef<HTMLButtonElement>(null);
   const pathname = usePathname();
 
   // Helper to compute localized equivalent path
@@ -100,16 +101,48 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Close on Escape
+  // Close on Escape & preserve focus ownership before unmount (PUBLIC-BR-01-LANGUAGE, PUBLIC-BR-04)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        const activeEl = (typeof document !== 'undefined' ? document.activeElement : null) as HTMLElement | null;
+        const targetEl = (typeof HTMLElement !== 'undefined' && event.target instanceof HTMLElement ? event.target : null) as HTMLElement | null;
+        const isFocusOrTargetInside = Boolean(
+          dropdownRef.current && (
+            (activeEl && dropdownRef.current.contains(activeEl)) ||
+            (targetEl && dropdownRef.current.contains(targetEl))
+          )
+        );
+
+        if (isFocusOrTargetInside) {
+          // Tag event and refocus trigger button before unmount destroys activeElement
+          (event as any).__cladoraLangFocusPreserved = true;
+          (event as any).__cladoraLangTrigger = triggerBtnRef.current;
+          triggerBtnRef.current?.focus();
+        }
+
         setIsOpen(false);
       }
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  // Direct element listener for bubbling keydown events to ensure synchronous focus preservation
+  useEffect(() => {
+    const el = dropdownRef.current;
+    if (!el) return;
+    const handleLocalKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        (event as any).__cladoraLangFocusPreserved = true;
+        (event as any).__cladoraLangTrigger = triggerBtnRef.current;
+        triggerBtnRef.current?.focus();
+        setIsOpen(false);
+      }
+    };
+    el.addEventListener('keydown', handleLocalKeyDown);
+    return () => el.removeEventListener('keydown', handleLocalKeyDown);
+  }, [isOpen]);
 
   const activeLangObj = LANGUAGES.find((l) => l.code === currentLang) || LANGUAGES[0];
   const ActiveFlag = activeLangObj.flag;
@@ -184,8 +217,20 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
 
   // Dropdown Variant (Default for Desktop Header and App Shell Topbar)
   return (
-    <div className={`relative inline-block text-start ${className}`} ref={dropdownRef}>
+    <div
+      className={`relative inline-block text-start ${className}`}
+      ref={dropdownRef}
+      onKeyDown={(event) => {
+        if (event.key === 'Escape') {
+          (event.nativeEvent as any).__cladoraLangFocusPreserved = true;
+          (event.nativeEvent as any).__cladoraLangTrigger = triggerBtnRef.current;
+          triggerBtnRef.current?.focus();
+          setIsOpen(false);
+        }
+      }}
+    >
       <button
+        ref={triggerBtnRef}
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         aria-expanded={isOpen}
