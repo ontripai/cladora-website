@@ -1,0 +1,176 @@
+{
+  "format": "platform-storage-documents-native-abi-15.safe-receipt.v1",
+  "parent": "432598c0c5b1ec4632161cf3f328d5092b7e68f2",
+  "consumer": {
+    "head": "16daca595aa2fad8300c8d4d3d6ea4b28980fed8",
+    "readback_git_blob": "3e4f4fa01f826ef451f14f6e48f6e83e47f375a6"
+  },
+  "observed": {
+    "contract": "platform15.native-preflight.v1",
+    "status": "BLOCKED",
+    "reasons": [
+      "AUTHENTICATED_STORAGE_SCHEMA_USAGE_MISSING",
+      "PROVIDER_SERVICE_STORAGE_SCHEMA_USAGE_MISSING"
+    ],
+    "query": {
+      "bytes": 1500,
+      "sha256": "a0c615cdeea018cffbad173144a1a74ff2c90fc8d705b89bf5cb95e6cd572c2e",
+      "started_utc": "2026-11-03T14:44:26.415584+00:00",
+      "completed_utc": "2026-11-03T14:44:26.700572+00:00"
+    },
+    "sdk_identity": {
+      "bytes": 8681,
+      "sha256": "ca57ef4c80aca5e50014e05e92890d386986610e8984938d518f3ed7a9075239"
+    },
+    "catalog_identity": {
+      "bytes": 729,
+      "sha256": "576555ef2957532dc1388dc60e423429b32ac23c9ef2febc05ed74e27e7279d2"
+    },
+    "service_identity_unchanged": true,
+    "five_sealed_unchanged": true,
+    "new_sessions": 0,
+    "new_buckets": 0,
+    "new_policies": 0,
+    "cleanup": "NOT_REQUIRED_NO_RUN_RESOURCES_CREATED",
+    "native_stages": {
+      "real_session": "NOT_RUN",
+      "bucket_provision": "NOT_RUN",
+      "upload": "NOT_RUN",
+      "info": "NOT_RUN",
+      "download_bytes": "NOT_RUN",
+      "duplicate_denial": "NOT_RUN",
+      "overwrite_denial": "NOT_RUN",
+      "foreign_denial": "NOT_RUN",
+      "anonymous_denial": "NOT_RUN",
+      "native_cleanup": "NOT_RUN"
+    },
+    "finished_utc": "2026-11-03T14:44:27.262616+00:00"
+  },
+  "preflight_exit": 2,
+  "sdk": {
+    "packages": [
+      {
+        "name": "@supabase/supabase-js",
+        "version": "2.112.4",
+        "entry": "@supabase/supabase-js/dist/index.cjs",
+        "bytes": 38839,
+        "sha256": "35c56301a441e47d1f4da848b57faced7e21d84b25f55ceac027bf01321a24fe"
+      },
+      {
+        "name": "@supabase/storage-js",
+        "version": "2.112.4",
+        "entry": "@supabase/storage-js/dist/index.cjs",
+        "bytes": 109629,
+        "sha256": "e64331d730751c51c96419e0dd0a6e09a9262859f2a95faf8582e0e7e773cfb2"
+      },
+      {
+        "name": "@supabase/auth-js",
+        "version": "2.112.4",
+        "entry": "@supabase/auth-js/dist/main/index.js",
+        "bytes": 1516,
+        "sha256": "a43ea0c523b8f4f8b8d59bc3b16b9ec9158cad05de53ffc92238fceb26d8bcfd"
+      }
+    ],
+    "loaded_file_count": 43,
+    "closure_sha256": "c1781b17a471fb1c996e3828561911f0629ec8c98439aad1acb3e29f654b4f41",
+    "fetch_attempts": 0,
+    "host_node": "v24.19.0",
+    "scope": "real SDK load and client/method construction only; no Storage/Auth request"
+  },
+  "metadata": {
+    "tables": [
+      {
+        "rls": true,
+        "name": "buckets",
+        "force": false,
+        "owner": "supabase_storage_admin",
+        "authenticated_insert": true,
+        "authenticated_select": true,
+        "authenticated_update": true
+      },
+      {
+        "rls": true,
+        "name": "objects",
+        "force": false,
+        "owner": "supabase_storage_admin",
+        "authenticated_insert": true,
+        "authenticated_select": true,
+        "authenticated_update": true
+      }
+    ],
+    "anon_usage": false,
+    "bucket_count": 0,
+    "object_count": 0,
+    "policy_count": 0,
+    "schema_owner": "supabase_storage_admin",
+    "service_usage": false,
+    "service_restricted": true,
+    "authenticated_usage": false,
+    "authenticated_restricted": true
+  },
+  "schema_usage_change_impact": {
+    "authenticated_relations_with_existing_dml": 9,
+    "authenticated_functions_with_existing_execute": 20,
+    "service_relations_with_existing_dml": 9,
+    "service_functions_with_existing_execute": 20
+  },
+  "impact_query": {
+    "identity": {
+      "bytes": 966,
+      "sha256": "92a293f231fc1c955fb7586651f732ede941aa36dcc6ed49381933057a302476"
+    },
+    "sql": "SELECT json_build_object('authenticated_relations_with_existing_dml', (SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='storage' AND c.relkind IN ('r','p','v','m','f') AND has_table_privilege('authenticated',c.oid,'SELECT,INSERT,UPDATE,DELETE')), 'authenticated_functions_with_existing_execute',(SELECT count(*) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='storage' AND has_function_privilege('authenticated',p.oid,'EXECUTE')), 'service_relations_with_existing_dml',(SELECT count(*) FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='storage' AND c.relkind IN ('r','p','v','m','f') AND has_table_privilege('service_role',c.oid,'SELECT,INSERT,UPDATE,DELETE')), 'service_functions_with_existing_execute',(SELECT count(*) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='storage' AND has_function_privilege('service_role',p.oid,'EXECUTE')));"
+  },
+  "private_receipts": {
+    "receipt.json": {
+      "bytes": 1263,
+      "sha256": "dd342bb745fcd29eb714dfcade047cf5baa3dd98749aae8004c7a3b7ee1d1464"
+    },
+    "catalog.json": {
+      "bytes": 729,
+      "sha256": "576555ef2957532dc1388dc60e423429b32ac23c9ef2febc05ed74e27e7279d2"
+    },
+    "sdk-load.json": {
+      "bytes": 8681,
+      "sha256": "ca57ef4c80aca5e50014e05e92890d386986610e8984938d518f3ed7a9075239"
+    }
+  },
+  "guard_tests": {
+    "count": 6,
+    "result": "PASS",
+    "scope": "offline preflight gates/custody only; not mocked Storage/Auth proof"
+  },
+  "syntax": "PASS_NODE_CHECK_AND_PYTHON_COMPILE",
+  "native_functional_harness": "NOT_DELIVERED_BLOCKED_BEFORE_FIXTURE_PROVISION",
+  "authorization_expansion": false,
+  "automation": "نیازمند بررسی",
+  "targeted_lint": {
+    "result": "PASS",
+    "config_sha256": "b8e19062ff97ec73e56b47e37c4d66ed5b0f51a53a21f91c9d27ca2645185ba9",
+    "config_identity": "existing cache config byte-identical to assigned worktree",
+    "initial_tool_resolution": "worktree node_modules absent; no install",
+    "initial_source_finding": "no-require-imports in new probe only",
+    "correction": "dynamic core imports; no suppression",
+    "postchange_check": "SDK load smoke only; full/catalog preflight not rerun",
+    "load_result_byte_content_equivalent": true
+  },
+  "executed_preflight_source": {
+    "catalog-preflight.sql": {
+      "bytes": 1500,
+      "sha256": "a0c615cdeea018cffbad173144a1a74ff2c90fc8d705b89bf5cb95e6cd572c2e"
+    },
+    "preflight.py": {
+      "bytes": 6761,
+      "sha256": "facbc7633a02c318d7da5f9f14d5f49b050385263f05192666f576fceed1da50"
+    },
+    "sdk-load.cjs": {
+      "bytes": 3172,
+      "sha256": "f388d8d6de3ad556c4b3422ddb0436f59f6e2d5d0d0defb2c3150b18c724b8a2"
+    }
+  },
+  "final_sdk_load_receipt": {
+    "bytes": 7030,
+    "sha256": "37fbb7854c21ca6c233782d9ec02ed2c0cd5b13ae20506acabfa855101c77ee3",
+    "json_equal_original": true
+  }
+}
