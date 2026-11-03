@@ -334,6 +334,68 @@ export function coreHostJointReplaySealV1(result: unknown) {
   return typeof result === 'object' && result !== null ? jointResults.get(result)?.info ?? null : null;
 }
 
+/** Read-only, historical comparison against the actual closed Core13 record.
+ * Expectations describe a record; they cannot create one or grant disclosure.
+ */
+export const CORE_CE012_CLOSED_BINDING_MATCHER_V1 = 'core-ce012-closed-binding-matcher.v1' as const;
+export const CORE_CE012_CLOSED_BINDING_RUNTIME_BINDING = null;
+const closedBindingUuid = z.string().uuid();
+const closedBindingPositive = z.number().int().positive().safe();
+export const coreCe012ClosedBindingExpectationV1Schema = z.strictObject({
+  contract: z.literal(CORE_CE012_CLOSED_BINDING_MATCHER_V1),
+  command: coreTransactionCommandV2Schema,
+  binding: z.strictObject({
+    transaction_id: closedBindingUuid,
+    database_transaction_id: z.string().regex(/^[1-9][0-9]*$/),
+    attempt: closedBindingPositive, backend_pid: closedBindingPositive,
+    actor_id: closedBindingUuid, tenant_id: closedBindingUuid, context_id: closedBindingUuid,
+    workspace_id: closedBindingUuid, membership_id: closedBindingUuid, command_id: closedBindingUuid,
+    canonical_key: z.string().min(1).max(256), command_hash: z.string().regex(/^[a-f0-9]{64}$/),
+    authority_revision: closedBindingPositive,
+    ce_save_receipt_id: closedBindingUuid, core_receipt_id: closedBindingUuid,
+    core_receipt_hash: z.string().regex(/^[a-f0-9]{64}$/), mutation_id: closedBindingUuid,
+    target: z.strictObject({document_id: closedBindingUuid, document_version_id: closedBindingUuid,
+      document_version: closedBindingPositive}),
+  }),
+});
+export type CoreCe012ClosedBindingExpectationV1 = z.infer<typeof coreCe012ClosedBindingExpectationV1Schema>;
+/** No query, execution, token registration, clock, callback, retry or mutation. */
+export function matchCoreCe012ClosedBindingV1(result: unknown, responseBytes: Uint8Array, expected: unknown) {
+  const answer = (match: 'MATCH' | 'NO_MATCH') => Object.freeze({
+    contract: CORE_CE012_CLOSED_BINDING_MATCHER_V1, match, status: 'not_ready' as const,
+    projection: null, current_authority: 'not_evaluated' as const,
+  });
+  try {
+    if (typeof result !== 'object' || result === null || !(responseBytes instanceof Uint8Array)) return answer('NO_MATCH');
+    const record = jointResults.get(result), terminal = terminalResults.get(result);
+    if (!record || !terminal || !record.token || terminal.info.settlement !== 'replay_rolled_back'
+      || terminal.info.observation !== 'sealed_and_closed' || terminal.info.first_error_code !== null
+      || record.info.settlement !== 'replay_rolled_back') return answer('NO_MATCH');
+    const bytes = Buffer.from(responseBytes);
+    if (!terminal.bytes.equals(bytes) || createHash('sha256').update(bytes).digest('hex') !== record.info.response_sha256
+      || record.info.response_sha256 !== terminal.info.response_sha256
+      || record.info.seal_sha256 !== terminal.info.seal_sha256) return answer('NO_MATCH');
+    const parsed = coreCe012ClosedBindingExpectationV1Schema.safeParse(expected);
+    if (!parsed.success) return answer('NO_MATCH');
+    const {command: c, binding: e} = parsed.data, b = record.binding;
+    // The hash is recomputed from the strict canonical command, never accepted
+    // as an independent proof. Every scalar is compared to the PRIVATE record.
+    if (createHash('sha256').update(JSON.stringify(c)).digest('hex') !== b.command_hash
+      || e.canonical_key !== `core-tx.v1:${c.workspace_id}:${c.idempotency_key}`
+      || c.transaction_id !== b.transaction_id || c.command_id !== b.command_id
+      || c.actor_id !== b.actor_id || c.context_id !== b.context_id || c.workspace_id !== b.workspace_id
+      || c.authority_version !== b.authority_revision) return answer('NO_MATCH');
+    const {ce_save_receipt_id, target, ...scalars} = e;
+    if (ce_save_receipt_id !== b.ce_receipt_id
+      || !Object.entries(scalars).every(([key, value]) => b[key as keyof typeof b] === value)
+      || target.document_id !== b.target.document_id || target.document_version_id !== b.target.document_version_id
+      || target.document_version !== b.target.document_version
+      || b.attempt !== record.info.attempt || b.backend_pid !== record.info.backend_pid
+      || b.database_transaction_id !== record.info.database_transaction_id) return answer('NO_MATCH');
+    return answer('MATCH');
+  } catch { return answer('NO_MATCH'); } // Malformed comparison input only; no async/provider boundary.
+}
+
 function entitlementBindingsMatch(
   stored: CurrentAuthorityTransactionDecisionReceiptV1['entitlement'],
   current: CurrentAuthorityTransactionDecisionReceiptV1['entitlement'],
