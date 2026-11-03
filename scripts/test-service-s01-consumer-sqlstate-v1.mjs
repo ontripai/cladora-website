@@ -62,7 +62,15 @@ function authority(command,attempt=1){return{contract_version:'core-current-auth
   rechecked_after_lock:true,transaction_bound:true,reusable_as_command_authority:false,
   current_authority_recheck_required_on_retry:true,decision:'allowed',denial_reason:null};}
 function scope(){return{transaction_id:ids.transaction,database_transaction_id:'901',workspace_id:ids.workspace,
-  tenant_id:ids.tenant,actor_id:ids.actor,attempt:1,async query(){throw new Error('must not query after S01 failure');}};}
+  tenant_id:ids.tenant,actor_id:ids.actor,attempt:1,async query(sql){
+    // The published Core15 successor observes only the same-scope DB clock
+    // when producing denied evidence; no business read or write is permitted.
+    assert.match(sql,/^select txid_current\(\)::text as database_transaction_id,/);
+    assert.match(sql,/pg_catalog\.to_jsonb\(pg_catalog\.clock_timestamp\(\)\)/);
+    assert.doesNotMatch(sql,/\b(?:insert|update|delete|from|join|call|grant|revoke|alter|create)\b/i);
+    return one({database_transaction_id:'901',actor_id:ids.actor,workspace_id:ids.workspace,
+      evaluated_at:'2026-11-02T09:30:00.000123+00:00'});
+  }};}
 const cases=[];async function check(name,fn){try{await fn();cases.push({name,ok:true});}catch(error){cases.push({name,ok:false,error});}}
 
 await check('preflight passes the exact S01 serialization object to its trusted caller',async()=>{
@@ -86,9 +94,11 @@ await check('ordinary S01 failures remain bounded for preflight, providers and r
   const dispatch=prepareCreateVersionedServiceRequestV1(request(),readers);
   const evidence=await dispatch.providers.validateProviders(scope(),dispatch.command,authority(dispatch.command));
   assert.equal(evidence.decision,'denied');assert.equal(evidence.denial_reason,'PROVIDER_UNAVAILABLE');
+  assert.equal(evidence.evaluated_at,'2026-11-02T09:30:00.000123+00:00');
   const replay=await dispatch.providers.validateReplay(scope(),dispatch.command,authority(dispatch.command),
     {receipt_id:id(30),contract_version:'core-transaction-receipt.v2'});
   assert.equal(replay.decision,'denied');assert.equal(replay.denial_reason,'PROVIDER_UNAVAILABLE');
+  assert.equal(replay.evaluated_at,'2026-11-02T09:30:00.000123+00:00');
   assert.doesNotMatch(JSON.stringify({evidence,replay}),/private provider failure/);
 });
 
