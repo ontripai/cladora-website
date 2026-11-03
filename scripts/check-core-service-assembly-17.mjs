@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {createHash} from 'node:crypto';
+import {execFileSync} from 'node:child_process';
 const sha=x=>createHash('sha256').update(x).digest('hex'),path='supabase/install/core-service-app-assembly-v1/manifest.json',m=JSON.parse(readFileSync(path));
 function validate(v){
  assert.equal(v.contract,'core-service-real-app-assembly.delivery.v1');assert.equal(v.base,'29ed18541c602dae4e6db5c98a96201250af630b');assert.equal(v.branch,'codex/core-service-real-app-assembly-17');
@@ -9,7 +10,11 @@ function validate(v){
  assert.equal(new Set(v.inventory.map(x=>x.path)).size,v.inventory.length);for(const x of v.inventory){const b=readFileSync(x.path);assert.equal(b.length,x.after.bytes);assert.equal(sha(b),x.after.sha256,x.path);}
  for(const x of v.protectedSources){assert.equal(x.unchanged,true);assert.equal(sha(readFileSync(x.path)),x.sha256);}
  for(const u of v.units){assert.equal(sha(readFileSync(u.path)),u.sha256);assert.equal(u.actor,'cladora_core_installer');assert.equal(u.settlement,'COMMIT_AND_READYFORQUERY_I');}
- for(const w of v.witnesses)if(w.sourcePins)for(const [p,h]of Object.entries(w.sourcePins))assert.equal(sha(readFileSync(p)),h);
+ for(const w of v.witnesses){
+  if(v.review_revision)assert.equal(w.source_revision,'686475cc9606888f41b46ffd7a0ef544484b6b30');
+  if(w.sourcePins)for(const [p,h]of Object.entries(w.sourcePins))assert.equal(sha(w.source_revision?execFileSync('git',['show',w.source_revision+':'+p]):readFileSync(p)),h);
+ }
+ if(v.review_revision){assert.equal(v.review_revision.native_current_revision,'NOT_RUN_NOT_PASS');assert.equal(v.historical_checks.source_revision,v.review_revision.reviewed_parent);}
  assert.equal(v.installer_binding.generation_selected,'historical-v2');assert.equal(v.installer_binding.fresh_v3,'CONTROLLED_POSITIVE_NEGATIVE_ONLY_NATIVE_FRESH_NOT_RUN');assert.equal(v.witnesses.find(x=>x.receipt==='core17-installer-binding-native.json').generation,'historical-v2');
  for(const key of ['staging_production_changed','public_grants_added','default_ACL_changed','shared_host_evaluator_S01_changed','historical_migrations_changed','frontend_changed','package_lock_changed','rejected_report_republished'])assert.equal(v.scope[key],false,key);
  assert.ok(v.open_gates.includes('consumer browser entry/shared-shell integration'));
@@ -29,4 +34,8 @@ reject('historical credential relabeled fresh',x=>{x.installer_binding.generatio
 reject('controlled fresh case relabeled native',x=>{x.installer_binding.fresh_v3='NATIVE_PASS';});
 reject('public activation claimed',x=>{x.scope.public_grants_added=true;});
 reject('browser gate erased',x=>{x.open_gates=x.open_gates.filter(x=>x!=='consumer browser entry/shared-shell integration');});
+if(m.review_revision){
+ reject('historical native witness relabeled current',x=>{x.witnesses[0].source_revision='CONTAINING_GIT_COMMIT';});
+ reject('current revision native overclaim',x=>{x.review_revision.native_current_revision='PASS';});
+}
 console.log(JSON.stringify({manifest_positive:1,negative_controls:negatives,native:'NOT_CLAIMED_BY_CHECKER'}));

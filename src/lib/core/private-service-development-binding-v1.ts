@@ -13,7 +13,8 @@ const schema=z.strictObject({contract:z.literal('core15-owned-service-private-bi
  * the actual database marker, OID, PID and ordinary role. No public activation.
  */
 let readFactory:((request:Request)=>ReturnType<typeof createCoreFunctionalCommandRuntimeV1>)|null=null;
-export function getCoreServiceAppRuntimeV1(request:Request){getCore15PrivateServiceDevelopmentBindingV1();return readFactory?.(request)??null;}
+export function getCoreServiceAppRuntimeV1(request:Request){const binding=getCore15PrivateServiceDevelopmentBindingV1();return binding?readFactory?.(request)??null:null;}
+let cachedIdentity:string|null=null;
 let cached:ReturnType<typeof createCoreServiceFunctionalBindingV1>|null=null;
 export function getCore15PrivateServiceDevelopmentBindingV1(){
  const selected=process.env.CLADORA_CORE15_SERVICE_BINDING_FILE;
@@ -31,12 +32,17 @@ export function getCore15PrivateServiceDevelopmentBindingV1(){
  const config=parsed.data,t=config.target;
  if(t.database_name!=='postgres'||t.host!=='127.0.0.1'||t.port!==55422||t.auth_origin!=='http://127.0.0.1:55421'
   ||t.runtime_role!=='cladora_core_runtime'||!/^core15-dev:[a-f0-9]{32}$/.test(t.backend_id))throw new Error('CORE15_PRIVATE_BINDING_TARGET');
- if(cached)return cached;
+ // Revalidate custody/content on every use, including warm-cache reads. An
+ // identity change never silently reuses the previous target or opens a new pool.
+ const identity=JSON.stringify({path:selected,digest:process.env.CLADORA_CORE15_SERVICE_BINDING_SHA256,
+  mode:process.env.NODE_ENV,profile:process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE??null,
+  publicProfile:process.env.NEXT_PUBLIC_CLADORA_OWNED_SERVICE_ASSEMBLY??null,platform:config.platform,target:t});
+ if(cached){if(identity!==cachedIdentity)throw new Error('CORE15_PRIVATE_BINDING_RESTART_REQUIRED');return cached;}
  const pool=new Pool({host:t.host,port:t.port,database:t.database_name,user:t.runtime_role,password:config.password,
   max:4,connectionTimeoutMillis:5000,query_timeout:15000});
  // Idle socket loss has no pending result/settlement to acknowledge. Active
  // query failures still propagate unchanged through the lease/host boundary.
  pool.on('error',()=>{console.error('CORE15_SERVICE_IDLE_POOL_LEASE_LOST');});
  readFactory=request=>createCoreFunctionalCommandRuntimeV1({pool,target:t,offering:null,request});
- cached=createCoreServiceFunctionalBindingV1({pool,target:t});return cached;
+ cached=createCoreServiceFunctionalBindingV1({pool,target:t});cachedIdentity=identity;return cached;
 }

@@ -114,3 +114,26 @@ and universal writer/deferred-wait currentness guarantees are not added.
 Automation: نیازمند بررسی — pin/order/custody checks are mechanical candidates;
 Coordinator/Platform retain acceptance, target and install decisions. No automation
 or permission engine was started.
+
+## Review correction R1 — F01/F02
+
+Direct reviewed Parent: `686475cc9606888f41b46ffd7a0ef544484b6b30`.
+F01 is reproduced from the actual predecessor launcher filter using synthetic
+sentinels for the three reported credentials, independently for build/start.
+The revised actual filter excludes these and other application/credential
+selectors, preserves proxy/CA/network-guard/deployment markers, and does not mutate
+the parent environment. No secret values or live endpoints are used.
+
+F02 is reproduced by evaluating the actual predecessor binding module with
+controlled filesystem/Pool dependencies: removing the selector after warm-up
+still returned a read runtime; changing the validated target silently reused the
+old pool. Revised checks cover cold/warm, missing/invalid selector, digest,
+profile and custody, unchanged cache identity, re-sealed target/password changes,
+mode/profile changes, and restart-only identity transitions. Both binding and
+runtime factories are the real source module under these controlled dependencies.
+
+Results: 26 focused checks PASS; full current ES5 typecheck PASS; limited lint,
+JS syntax and diff checks PASS. Manifest validation includes two new negatives
+against relabeling historical source/native witnesses. No previous successful
+runtime suite, SQL, Auth, build/server or native workflow was rerun. All previous
+private evidence remains intact; this revision makes no new native claim.

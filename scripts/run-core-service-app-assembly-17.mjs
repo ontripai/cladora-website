@@ -3,6 +3,7 @@
  * browser-safe local selectors, never the runtime password/binding file.
  */
 import assert from 'node:assert/strict';
+import {coreServiceAssemblyChildEnvironmentV1} from './lib/core-service-assembly-environment-v1.mjs';
 import {readFileSync,openSync,appendFileSync} from 'node:fs';
 import {spawn,execFileSync} from 'node:child_process';
 import {createRequire} from 'node:module';
@@ -11,9 +12,8 @@ const phase=process.argv[2];assert.ok(['build','start'].includes(phase));assert.
 const root='/workspace/private/cladora-functional-dev-v1',read=n=>JSON.parse(readFileSync(root+'/'+n));
 execFileSync('python3',['-I','-B','-c',"import importlib.util;from pathlib import Path;p=Path('/workspace/work/platform12-core15-input-794f5a1/scripts/functional-dev-stack-v1/stack.py');s=importlib.util.spec_from_file_location('p12',p);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);m.state();m.cid('pg');m.gateway_process()"],{stdio:'pipe'});
 for(const [receipt,source] of [['core17-install-receipt.json','read-access.sql'],['core17-catalog-compatibility-receipt.json','catalog-compatibility.sql']]){const r=read(receipt);assert.equal(r.state,'COMMIT_AND_READYFORQUERY_I');assert.equal(r.sha256,createHash('sha256').update(readFileSync(new URL('../supabase/install/core-service-app-assembly-v1/'+source,import.meta.url))).digest('hex'));}
-const env={...process.env};
-// The application child has no use for staging/admin selectors or credentials.
-for(const key of ['SUPABASE_ACCESS_TOKEN','SUPABASE_DB_PASSWORD','SUPABASE_PROJECT_REF','CLADORA_STAGING_PROJECT_REF','CLADORA_STAGING_SUPABASE_URL','CLADORA_STAGING_SUPABASE_PUBLISHABLE_KEY'])delete env[key];delete env.NODE_ENV;delete env.CLADORA_CORE15_SERVICE_BINDING_FILE;delete env.CLADORA_CORE15_SERVICE_BINDING_SHA256;
+const env=coreServiceAssemblyChildEnvironmentV1(process.env,phase);
+// NODE_ENV and all application credentials/selectors are absent here.
 assert.ok(!env.VERCEL&&!env.VERCEL_ENV&&!env.NEXT_PUBLIC_VERCEL_ENV);
 Object.assign(env,{CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE:'core-service-real-app-assembly.v1',NEXT_PUBLIC_CLADORA_OWNED_SERVICE_ASSEMBLY:'v1',NEXT_PUBLIC_CLADORA_EPHEMERAL_LOCAL_SUPABASE:'1',NEXT_PUBLIC_SUPABASE_URL:'http://127.0.0.1:55421',NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:read('secrets.json').anon_key});
 if(phase==='start'){const i=read('core15/private-binding-identity.json');Object.assign(env,{CLADORA_CORE15_SERVICE_BINDING_FILE:i.path,CLADORA_CORE15_SERVICE_BINDING_SHA256:i.sha256});execFileSync('python3',['-I','-c',"import socket;s=socket.socket();assert s.connect_ex(('127.0.0.1',3008))!=0,'PORT_COLLISION';s.close()"],{stdio:'pipe'});}

@@ -48,7 +48,8 @@
       "state": "COMMIT_AND_READYFORQUERY_I",
       "checks": null,
       "generation": null,
-      "sourcePins": null
+      "sourcePins": null,
+      "source_revision": "686475cc9606888f41b46ffd7a0ef544484b6b30"
     },
     {
       "receipt": "core17-catalog-compatibility-receipt.json",
@@ -57,7 +58,8 @@
       "state": "COMMIT_AND_READYFORQUERY_I",
       "checks": null,
       "generation": null,
-      "sourcePins": null
+      "sourcePins": null,
+      "source_revision": "686475cc9606888f41b46ffd7a0ef544484b6b30"
     },
     {
       "receipt": "core17-installer-binding-native.json",
@@ -66,7 +68,8 @@
       "state": "PASS_EXPLICIT_BINDING_ACTUAL_OWNED_PRINCIPAL",
       "checks": null,
       "generation": "historical-v2",
-      "sourcePins": null
+      "sourcePins": null,
+      "source_revision": "686475cc9606888f41b46ffd7a0ef544484b6b30"
     },
     {
       "receipt": "core17-proof-after-compatibility-private.json",
@@ -89,7 +92,8 @@
         "no_extra_effects_from_reads_or_denials": true
       },
       "generation": null,
-      "sourcePins": null
+      "sourcePins": null,
+      "source_revision": "686475cc9606888f41b46ffd7a0ef544484b6b30"
     },
     {
       "receipt": "core17-final-verify-private.json",
@@ -112,7 +116,8 @@
         "src/app/api/customer/v1/services/assembly-bootstrap/route.ts": "327790b1cea05beada33529c286cba592bf7872b902527532eb02f69bc451bc6",
         "src/app/api/customer/v1/services/catalog/route.ts": "212e8773998dcd0581081575549550b9448ea89d692cc05996da6393f236e435",
         "src/app/api/customer/v1/services/requests/route.ts": "ac228efc2340cf49bc2aa0e1bfe937b847712af6e894cf8dbc861bae068bbea2"
-      }
+      },
+      "source_revision": "686475cc9606888f41b46ffd7a0ef544484b6b30"
     }
   ],
   "protectedSources": [
@@ -221,18 +226,18 @@
       "path": "docs/contracts/CORE-SERVICE-REAL-APP-ASSEMBLY-17.md",
       "before": null,
       "after": {
-        "bytes": 13288,
-        "sha256": "273053759db5d14317e665de4fd27efcd038a3ed2eab746254c46830df300bbe",
-        "git_blob": "f8f55937ab7a9c335e24f343fd49ac22b10787f7"
+        "bytes": 15095,
+        "sha256": "e4984a128bdf7163ba912b2fe62b8b5286d4fd5f1462911af7c33a7c93334ee1",
+        "git_blob": "e75955b3533490a330cbce5fbccf95c1c1f17999"
       }
     },
     {
       "path": "docs/testing/CORE-SERVICE-REAL-APP-ASSEMBLY-17.md",
       "before": null,
       "after": {
-        "bytes": 7249,
-        "sha256": "f52421ac2bcc90f8f27609cbd9c9885f58d44bcb85bcbda1bc959ee30da78f1d",
-        "git_blob": "a6982c30b506ffe7da18935e3566777040ae170e"
+        "bytes": 8683,
+        "sha256": "b7b97590c2fe250b74ca73c3f8dd2fca3167d07cbfac3d496f810e6f17612764",
+        "git_blob": "3f03b2ea88bae1e1ba0ba559a474a82e03f993eb"
       }
     },
     {
@@ -261,9 +266,9 @@
       "path": "scripts/check-core-service-assembly-17.mjs",
       "before": null,
       "after": {
-        "bytes": 3665,
-        "sha256": "821606d4dcd84ad7360535e1471ca75d63ceed8ff9eefbf3495e7dc734e87032",
-        "git_blob": "3c18fc60972acdd3e6dc606a7dd98fd545809a83"
+        "bytes": 4318,
+        "sha256": "f5b9a7390e8bcd30f81e297c39224b03c85bbffd713fde49a6dc773a8a578ca1",
+        "git_blob": "1e732d97a16cc27165c02034e3260657a66169c2"
       }
     },
     {
@@ -273,6 +278,15 @@
         "bytes": 5483,
         "sha256": "6abe79b47b720ee19c8cbd2ac0425ff6a56e958d9df6a33825b202a583491e7d",
         "git_blob": "f0e16f96bfd47e8d0902bd1f917718127338724d"
+      }
+    },
+    {
+      "path": "scripts/lib/core-service-assembly-environment-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 1488,
+        "sha256": "e18225bc814f3a250e661a5f9efa6850bc8716f6d473c08ab85ff10c01f48b13",
+        "git_blob": "4bdad11b7845dc87a0488ea467304f8b1e96ad55"
       }
     },
     {
@@ -328,9 +342,9 @@
       "path": "scripts/run-core-service-app-assembly-17.mjs",
       "before": null,
       "after": {
-        "bytes": 3936,
-        "sha256": "81ae1966874ea5279f3d49d29831cc960c9400b3ab9383966ce1a8a2f635d76c",
-        "git_blob": "0e8cc47243f8efbbb73a9e38f1d6a03545680c08"
+        "bytes": 3743,
+        "sha256": "16c15cccf686f8d775ba27a68cb6809ca3fbaa1b61d4805a88eb8eed1e90a2be",
+        "git_blob": "3ed17741e168feed37461690f5e0ae63c6b1184c"
       }
     },
     {
@@ -372,9 +386,9 @@
       "path": "scripts/seal-core-service-assembly-17.mjs",
       "before": null,
       "after": {
-        "bytes": 6159,
-        "sha256": "5985134c0d1c63b7ae21fb3d989b22d38974bcaf4592e3143b64d2db3c5f0562",
-        "git_blob": "17c32d9be5346575be77373cdbb9066711741853"
+        "bytes": 7152,
+        "sha256": "402c52ddf54d8ca8b7eeed77c4ab28142004d7b7ab9b96b403a93a58f5ffd58e",
+        "git_blob": "c37d813114d8ba5d0c843ffe3ab0231bb54fc491"
       }
     },
     {
@@ -390,9 +404,18 @@
       "path": "scripts/test-core-service-app-assembly-17.mjs",
       "before": null,
       "after": {
-        "bytes": 9350,
-        "sha256": "c93fc52fffc57ea65643894041b01007bb5c549d9e8d84dfb9feb8424657b400",
-        "git_blob": "69eeba441c150f448b97a1555c5eb9f391ce842b"
+        "bytes": 9389,
+        "sha256": "424e47d876f7f1c2434ee50778015962cb22a962ad4158e47aa16311e069e4ed",
+        "git_blob": "f38052c062fda412e2b55d2c5002a83276132e11"
+      }
+    },
+    {
+      "path": "scripts/test-core-service-assembly-review-r1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 7914,
+        "sha256": "c462e23b52a11fed8e95f3a4316c6a71be3c1432458bd044c66cfa71e7a0bf5f",
+        "git_blob": "adbe2dab75c84f2fa19346a40d98b60b9be8aef2"
       }
     },
     {
@@ -469,9 +492,9 @@
         "git_blob": "4e5cb615a701e50415f5db8ca395b36d1e53a3d9"
       },
       "after": {
-        "bytes": 3412,
-        "sha256": "84c5694a8cef523375bf65bfffd1f00417abf7cd789bc39762766163508c15b7",
-        "git_blob": "a26dd5a2ef23340e675a2910427bebcbff2e9e7e"
+        "bytes": 4060,
+        "sha256": "543e6dbb4120497737d5957f665505529e6100cc09c3969ca01b034347f41253",
+        "git_blob": "55d0f65e7f10cb3db93887aa9d3b92742275bbb7"
       }
     },
     {
@@ -516,15 +539,12 @@
     }
   ],
   "checks": {
-    "controlled_runtime_profile": 27,
-    "controlled_installer_binding": 20,
-    "production_next_build": "PASS",
-    "production_next_start_API_native": "PASS",
+    "review_r1": 26,
     "ES5_typecheck": "PASS",
-    "limited_lint": "PASS_APPLICATION_AND_UPDATED_NEW_OPERATOR_SCOPE",
+    "limited_lint": "PASS",
     "syntax": "PASS",
     "diff": "PASS",
-    "native_40001_new": "NOT_RUN_NOT_PASS; original-object propagation controlled; old native proof preserved"
+    "production_build_start_native": "PRIOR_REVISION_ONLY_NOT_REPEATED"
   },
   "installer_binding": {
     "contract": "core-installer-credential-binding.v1",
@@ -564,5 +584,33 @@
     "exception_owner": "Core/Platform on mismatch or settlement uncertainty",
     "formal_dependency": "Platform12 + canonical Core/Service ABI",
     "value": "detect wrong credential lineage before connection; no invented savings"
+  },
+  "review_revision": {
+    "reviewed_parent": "686475cc9606888f41b46ffd7a0ef544484b6b30",
+    "findings": [
+      "F01",
+      "F02"
+    ],
+    "checks": 26,
+    "proof": "synthetic sentinels/controlled private filesystem and Pool; no PG/Auth/network",
+    "typecheck": "PASS_ES5",
+    "lint": "PASS_LIMITED",
+    "native_current_revision": "NOT_RUN_NOT_PASS",
+    "fresh_v3": "NOT_RUN_NOT_PASS",
+    "browser": "NOT_RUN_NOT_PASS"
+  },
+  "historical_checks": {
+    "source_revision": "686475cc9606888f41b46ffd7a0ef544484b6b30",
+    "checks": {
+      "controlled_runtime_profile": 27,
+      "controlled_installer_binding": 20,
+      "production_next_build": "PASS",
+      "production_next_start_API_native": "PASS",
+      "ES5_typecheck": "PASS",
+      "limited_lint": "PASS_APPLICATION_AND_UPDATED_NEW_OPERATOR_SCOPE",
+      "syntax": "PASS",
+      "diff": "PASS",
+      "native_40001_new": "NOT_RUN_NOT_PASS; original-object propagation controlled; old native proof preserved"
+    }
   }
 }

@@ -200,3 +200,37 @@ execution remain distinct gates. Existing Core15 proofs were not rerun or relabe
 Automation: نیازمند بررسی — source pin and binding/custody validation can be
 mechanical; Coordinator/Platform retain target approval, fixture authorization and
 installation decisions. This classification creates no execution permission.
+
+## Scoped source review R1 (F01/F02)
+
+Reviewed Parent: `686475cc9606888f41b46ffd7a0ef544484b6b30`.
+The launcher now constructs both build/start child environments from a closed
+OS/proxy/CA/host-guard allowlist in
+`scripts/lib/core-service-assembly-environment-v1.mjs`. Runtime network-guard
+preloads (`NODE_OPTIONS`), module resolution, TLS trust, deployment rejection
+markers and existing session proxy settings are preserved. Inherited application,
+GitHub/cloud/database credentials and unrelated public/private selectors are not
+copied. Only the validated local profile adds application selectors; build still
+receives neither the runtime binding selector nor its digest. No real inherited
+secret was printed or inspected for this review.
+
+Each private runtime access revalidates selector, profile, custody, digest,
+platform and target before using its cache. An absent selector returns no binding
+and no read runtime, including after warm-up. Invalid inputs fail before factory
+use. A valid changed identity (including digest/target or mode/profile) throws
+`CORE15_PRIVATE_BINDING_RESTART_REQUIRED` before reusing the pool. Restart under
+the newly validated configuration is the supported identity transition; an old
+pool is never silently relabeled. This check does not revoke previously leased
+transactions or replace their existing session/current-authority checks.
+
+Run only the affected review checks:
+
+```sh
+node scripts/test-core-service-assembly-review-r1.mjs
+node scripts/check-core-service-assembly-17.mjs
+```
+
+The manifest preserves native receipts/source pins at the reviewed Parent.
+Those receipts are historical evidence, not native proof of this source revision.
+Fresh-v3 complete installation, browser product acceptance and a new native run
+of this revision remain `NOT_RUN_NOT_PASS`.
