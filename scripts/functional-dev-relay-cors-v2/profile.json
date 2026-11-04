@@ -1,0 +1,25 @@
+{
+  "contract": "platform17.owned-loopback-cors-relay.v2",
+  "backend_provenance": "794f5a12c3928ae0a3585ab679a3cbe60aab49a3",
+  "installed_Core_base": "ee883b62cf4a318af3450c506931a969623b8987",
+  "legacy_relative_path": "scripts/functional-dev-stack-v1/stack.py",
+  "legacy_files": {
+    "stack.py": "2049056db7bf4dc47c7d57b3bbaf0da5e57812a3b1fe55685a9d263533cc10f7",
+    "profile.json": "5287f38709eb71e85915c9e23a18dd3f7cbb8276346f271ded1dd485de792218",
+    "bootstrap.sql": "fd77a96615502200d51046c6ab98485e81763377dd605b21426503a8ee25a540",
+    "provider-compatibility.sql": "5e6214c55dde2c4e2328c19cb79fc5a9a3ae0d84ecaab9544c419ff40a34fd7d",
+    "gateway.conf": "dd60b2cd8e28bae75b0ba32943e65f236682d7a9e5ad43ca630e97bd8e23b8c1"
+  },
+  "origins": ["http://127.0.0.1:3000", "http://localhost:3000", "http://localhost:3008"],
+  "environment_filter_files": {
+    "scripts/service-consumer-rehearsal-17/lane.py": "81f35757510de10b6d68eb9869f3e03109f9ef39e11c814774c8b379eaf408ad",
+    "scripts/lib/core-service-assembly-environment-v1.mjs": "e18225bc814f3a250e661a5f9efa6850bc8716f6d473c08ab85ff10c01f48b13"
+  },
+  "http_listener": ["127.0.0.1", 55421],
+  "pg_listener": ["127.0.0.1", 55422],
+  "operator_binding": "relay-cors-v2/activation-binding.json",
+  "compatible_launcher_abi": "platform17.relay-cors-preflight.v2",
+  "known_incompatible_app": "5aa951bfbe8b1254b81212aa248f51a13179f890",
+  "final_app_binding": null,
+  "execution_authority": null
+}
