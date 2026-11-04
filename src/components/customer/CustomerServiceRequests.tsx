@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useId, useRef, useState } from 'react';
-import type { z } from 'zod';
+import { z } from 'zod';
 import type { Language } from '@/types';
 import { useDashboardFetch } from '@/components/dashboard-lab/DashboardTransport';
 import { createServiceRequestSchema, type CreateServiceRequest } from '@/lib/customer/service-request-schema';
@@ -29,6 +29,8 @@ type ReadyPreflight = Extract<ServiceOfferingRequestPreflightResultV1, { status:
 type FlowStatus = 'idle'|'loading'|'ready'|'denied'|'conflict'|'not_ready'|'retry';
 type FlowState = { key:string; status:FlowStatus; preflight:ReadyPreflight|null };
 type CustomerServiceRequestsProps = {contextId:string;workspaceId:string;lang:Language;offerings:Offering[];onRefreshCatalog?:()=>Promise<Offering[]>;onCommandCustodyChange?:(held:boolean)=>void};
+const commandFailureSchema=z.strictObject({error:z.strictObject({code:z.string().min(1)})});
+const definitiveNotReadyCodes=new Set(['SERVICE_S01_NOT_READY','SERVICE_S02_NOT_READY','SERVICE_S03_NOT_READY','ELIGIBILITY_SOURCE_NOT_READY','RUNTIME_BINDING_INACTIVE']);
 // Scope identity owns all form and pending-command state even when a caller
 // rerenders this component without supplying its own React key.
 export function CustomerServiceRequests(props:CustomerServiceRequestsProps) {
@@ -119,10 +121,10 @@ function CustomerServiceRequestsScope({contextId,workspaceId,lang,offerings,onRe
       setPending(command);setPendingUnknown(false);onCommandCustodyChange?.(true);}
     submitting.current=true;setBusy(true);setNotice('');const controller=new AbortController();writeAbort.current=controller;
     try {const response=await fetch(command.endpoint,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(command.body),signal:controller.signal});
-      if(!response.ok){if(alive.current){
+      if(!response.ok){const failureCode=response.status===503?await response.json().then(value=>commandFailureSchema.parse(value).error.code).catch(()=>null):null;if(alive.current&&!controller.signal.aborted){
         if(response.status===401||response.status===403){setData(null);setReadStatus(response.status===401?'session':'denied');setNotice('');}
-        else if(response.status===503){setNotice(t.sourceNotReady);}
-        else{setConflict(response.status===409);setNotice(response.status===409?t.conflict:t.error);}
+        else if(response.status===503){const definitive=failureCode!==null&&definitiveNotReadyCodes.has(failureCode);if(!definitive)setPendingUnknown(true);setNotice(definitive?t.sourceNotReady:t.error);}
+        else{const definitive=response.status===409;if(!definitive)setPendingUnknown(true);setConflict(definitive);setNotice(definitive?t.conflict:t.error);}
       }return;}
       serviceRequestResultSchema.parse(await response.json());
       if(!alive.current||controller.signal.aborted)return;setPending(null);setPendingUnknown(false);onCommandCustodyChange?.(false);setDescription('');setNotice(t.success);

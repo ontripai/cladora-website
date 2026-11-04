@@ -23,7 +23,10 @@ launcher. In that profile the Service page:
    custody by switching Workspaces. A later conflict response or successful
    catalogue/history refresh does not resolve an earlier lost acknowledgement;
    only a valid result for that same command releases custody. An initial
-   conflict remains definitive under the existing refresh behavior.
+   conflict remains definitive under the existing refresh behavior. The same
+   custody rule applies when the official HTTP handler returns
+   `503 READBACK_REQUIRED`; malformed or unknown failures are conservative and
+   cannot authorize a new command identity.
 
 An unavailable, denied or malformed bootstrap fails closed. It does not fall
 back to `/api/customer/v1/workspace/targets`, guess the first Workspace, or

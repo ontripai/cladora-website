@@ -42,6 +42,7 @@ const fetch = async (url, options = {}) => {
   if (String(url).endsWith('/services/offering-request-flow') && options.method === 'POST') {
     const body = JSON.parse(options.body);
     if (postMode === 'lost') { effects.add(body.idempotency_key); throw new Error('synthetic lost acknowledgement'); }
+    if (postMode === 'readback_required') { effects.add(body.idempotency_key); return Response.json({ error: { code: 'READBACK_REQUIRED' } }, { status: 503 }); }
     if (postMode === 'conflict') return Response.json({ error: { code: 'CONFLICT' } }, { status: 409 });
     effects.add(body.idempotency_key);
     return Response.json({ request_id: id(61), status: 'submitted' });
@@ -220,6 +221,36 @@ try {
     const posts = calls.filter(call => call.options.method === 'POST');
     assert.equal(posts.length, 2); assert.notEqual(posts[1].options.body, firstBody);
     assert.equal(effects.size, 1); journeyMode = false;
+  });
+  await check('HTTP 503 READBACK_REQUIRED survives retry conflict and GET refresh until exact confirmation', async () => {
+    journeyMode = true; postMode = 'readback_required'; effects.clear(); calls = [];
+    await render(); await choose(scopeA);
+    await act(async () => {
+      const selects = document.querySelectorAll('select');
+      selects[1].value = offering.offering_id; selects[1].dispatchEvent(new window.Event('change', { bubbles: true }));
+    });
+    await act(async () => {
+      const selects = document.querySelectorAll('select');
+      selects[2].value = id(51); selects[2].dispatchEvent(new window.Event('change', { bubbles: true }));
+      const input = document.querySelector('textarea');
+      Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set.call(input, 'Synthetic HTTP unknown command');
+      input.dispatchEvent(new window.Event('input', { bubbles: true }));
+    });
+    const commandButton = () => [...document.querySelectorAll('button')].find(button => /Send request|Retry the same request/.test(button.textContent));
+    await act(async () => commandButton().click());
+    const first = calls.find(call => call.options.method === 'POST'); assert.ok(first);
+    assert.match(document.body.textContent, /result is unknown/);
+    postMode = 'conflict'; await act(async () => commandButton().click());
+    const refresh = [...document.querySelectorAll('button')].find(button => button.textContent === 'Refresh catalogue');
+    assert.ok(refresh); await act(async () => refresh.click());
+    const workspaceSelect = document.querySelector('select[aria-label="Choose a workspace"]');
+    assert.equal(workspaceSelect.disabled, true); assert.equal(commandButton().textContent, 'Retry the same request');
+    postMode = 'success'; await act(async () => commandButton().click());
+    const posts = calls.filter(call => call.options.method === 'POST');
+    assert.equal(posts.length, 3);
+    for (const post of posts.slice(1)) { assert.equal(post.url, first.url); assert.equal(post.options.body, first.options.body); }
+    assert.equal(effects.size, 1); assert.equal(workspaceSelect.disabled, false);
+    journeyMode = false;
   });
   console.log(JSON.stringify({ task: 'SERVICE-FIRST-USER-JOURNEY-12', cases, status: 'PASS', evidence: 'mounted real SERVICE components with controlled HTTP only', native_Auth_DB_restart: 'NOT_RUN_NOT_PASS' }));
 } finally {
