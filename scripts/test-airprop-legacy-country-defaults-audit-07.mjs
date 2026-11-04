@@ -269,10 +269,23 @@ const supplement=JSON.parse(read('docs/verification/CLADORA-V14-COUNTRY-SIGNAL-A
 assert.equal(supplement.official_manifest_blob,'3a52004d7281fac5f64780d00101c5daebdb3639');
 assert.equal(supplement.authority,'NONE');assert.equal(supplement.runtime_adoption,'NOT_READY');
 assert.equal(supplement.entries.length,5);
-const additions=supplement.entries.map(entry=>entry.path).sort();
+// The reviewed SERVICE shell test mentions AIRPROP navigation and Romanian
+// rendering. Keep it separate from the historical Platform264 packet and bind
+// its exact test bytes; unknown paths and mutations remain rejected.
+const shellFixturePath='docs/verification/SERVICE08-COUNTRY-SIGNAL-FIXTURE-01.json';
+assert.equal(createHash('sha256').update(readFileSync(shellFixturePath)).digest('hex'),
+ 'fca508d6181985a58fa9cc76c24384602a34e0fa127dfa71603ce40e5d0ea168');
+const shellFixture=JSON.parse(read(shellFixturePath));
+assert.equal(shellFixture.schema,'service-shell-country-signal-fixture.v1');
+assert.equal(shellFixture.source_commit,'26e8b1eb0e753f8ec4a6a42d66180a12c8d49907');
+assert.equal(shellFixture.authority,'NONE');assert.equal(shellFixture.runtime_adoption,'NOT_READY');
+assert.equal(shellFixture.classification,'synthetic/test fixture');
+assert.deepEqual(shellFixture.entries.map(entry=>entry.path),['scripts/test-real-authenticated-service-08.mjs']);
+const reviewedEntries=[...supplement.entries,...shellFixture.entries];
+const additions=reviewedEntries.map(entry=>entry.path).sort();
 assert.deepEqual(signalCandidates.filter(path=>!additions.includes(path)), expectedSignalCandidates);
 assert.deepEqual(signalCandidates.filter(path=>additions.includes(path)),additions);
-for(const entry of supplement.entries){
+for(const entry of reviewedEntries){
  const bytes=readFileSync(entry.path);assert.equal(bytes.length,entry.bytes);
  assert.equal(createHash('sha256').update(bytes).digest('hex'),entry.sha256);
  assert.ok(['presentation-only','synthetic/test fixture','dormant or superseded definition'].includes(entry.classification));
