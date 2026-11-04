@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useId, useRef, useState } from 'react';
-import type { z } from 'zod';
+import { z } from 'zod';
 import type { Language } from '@/types';
 import { useDashboardFetch } from '@/components/dashboard-lab/DashboardTransport';
 import { createServiceRequestSchema, type CreateServiceRequest } from '@/lib/customer/service-request-schema';
@@ -28,13 +28,15 @@ type PendingCommand =
 type ReadyPreflight = Extract<ServiceOfferingRequestPreflightResultV1, { status:'ready' }>;
 type FlowStatus = 'idle'|'loading'|'ready'|'denied'|'conflict'|'not_ready'|'retry';
 type FlowState = { key:string; status:FlowStatus; preflight:ReadyPreflight|null };
-type CustomerServiceRequestsProps = {contextId:string;workspaceId:string;lang:Language;offerings:Offering[];onRefreshCatalog?:()=>Promise<Offering[]>};
+type CustomerServiceRequestsProps = {contextId:string;workspaceId:string;lang:Language;offerings:Offering[];onRefreshCatalog?:()=>Promise<Offering[]>;onCommandCustodyChange?:(held:boolean)=>void};
+const commandFailureSchema=z.strictObject({error:z.strictObject({code:z.string().min(1)})});
+const definitiveNotReadyCodes=new Set(['SERVICE_S01_NOT_READY','SERVICE_S02_NOT_READY','SERVICE_S03_NOT_READY','ELIGIBILITY_SOURCE_NOT_READY','RUNTIME_BINDING_INACTIVE']);
 // Scope identity owns all form and pending-command state even when a caller
 // rerenders this component without supplying its own React key.
 export function CustomerServiceRequests(props:CustomerServiceRequestsProps) {
   return <CustomerServiceRequestsScope key={`${props.contextId}:${props.workspaceId}`} {...props}/>;
 }
-function CustomerServiceRequestsScope({contextId,workspaceId,lang,offerings,onRefreshCatalog}:CustomerServiceRequestsProps) {
+function CustomerServiceRequestsScope({contextId,workspaceId,lang,offerings,onRefreshCatalog,onCommandCustodyChange}:CustomerServiceRequestsProps) {
   const fetch = useDashboardFetch(); const t=copy[lang];
   const fieldId=useId();
   const [fieldErrors,setFieldErrors]=useState({offering:false,party:false,resource:false,description:false});
@@ -42,6 +44,7 @@ function CustomerServiceRequestsScope({contextId,workspaceId,lang,offerings,onRe
   const [data,setData]=useState<Read|null>(null); const [notice,setNotice]=useState('');
   const [offering,setOffering]=useState(''); const [party,setParty]=useState(''); const [description,setDescription]=useState('');
   const [pending,setPending]=useState<PendingCommand|null>(null); const [busy,setBusy]=useState(false); const [conflict,setConflict]=useState(false);
+  const [pendingUnknown,setPendingUnknown]=useState(false);
   const [resource,setResource]=useState<ServiceOfferingRequestPublicInputV1['resource']>(null);
   const [flowState,setFlowState]=useState<FlowState>({key:'',status:'idle',preflight:null}); const [flowAttempt,setFlowAttempt]=useState(0);
   const [readStatus,setReadStatus]=useState<'loading'|'ready'|'denied'|'session'|'retry'>('loading'); const [readAttempt,setReadAttempt]=useState(0);
@@ -84,9 +87,11 @@ function CustomerServiceRequestsScope({contextId,workspaceId,lang,offerings,onRe
       if(!response.ok)throw new Error(response.status===401?'session':response.status===403||response.status===404?'denied':'retry');
       const updated=serviceRequestReadSchema.parse(await response.json());
       if(!alive.current)return;
-      setData(updated);setPending(null);setConflict(false);setNotice('');setFlowState({key:'',status:'idle',preflight:null});setFlowAttempt(value=>value+1);
-      if(!updatedOfferings.some(item=>item.offering_id===offering&&item.acquisition_mode!=='reservation'))setOffering('');
-      if(!updated.beneficiaries.some(item=>item.party_id===party))setParty('');
+      const preserveUnknown=Boolean(pending&&pendingUnknown);
+      setData(updated);setConflict(false);setNotice('');setFlowState({key:'',status:'idle',preflight:null});setFlowAttempt(value=>value+1);
+      if(!preserveUnknown){setPending(null);setPendingUnknown(false);onCommandCustodyChange?.(false);}
+      if(!preserveUnknown&&!updatedOfferings.some(item=>item.offering_id===offering&&item.acquisition_mode!=='reservation'))setOffering('');
+      if(!preserveUnknown&&!updated.beneficiaries.some(item=>item.party_id===party))setParty('');
     }catch(reason){if(alive.current){
       if(reason instanceof Error&&(reason.message==='denied'||reason.message==='session')){
         setData(null);setReadStatus(reason.message);
@@ -113,22 +118,22 @@ function CustomerServiceRequestsScope({contextId,workspaceId,lang,offerings,onRe
       command=usesV14Flow
         ? {protocol:SERVICE_OFFERING_REQUEST_FLOW_CONTRACT,endpoint:'/api/customer/v1/services/offering-request-flow',body:serviceOfferingRequestPublicInputV1Schema.parse(parsed.data)}
         : {protocol:'service-request-command.v1',endpoint:'/api/customer/v1/services/requests',body:createServiceRequestSchema.parse(parsed.data)};
-      setPending(command);}
+      setPending(command);setPendingUnknown(false);onCommandCustodyChange?.(true);}
     submitting.current=true;setBusy(true);setNotice('');const controller=new AbortController();writeAbort.current=controller;
     try {const response=await fetch(command.endpoint,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(command.body),signal:controller.signal});
-      if(!response.ok){if(alive.current){
+      if(!response.ok){const failureCode=response.status===503?await response.json().then(value=>commandFailureSchema.parse(value).error.code).catch(()=>null):null;if(alive.current&&!controller.signal.aborted){
         if(response.status===401||response.status===403){setData(null);setReadStatus(response.status===401?'session':'denied');setNotice('');}
-        else if(response.status===503){setNotice(t.sourceNotReady);}
-        else{setConflict(response.status===409);setNotice(response.status===409?t.conflict:t.error);}
+        else if(response.status===503){const definitive=failureCode!==null&&definitiveNotReadyCodes.has(failureCode);if(!definitive)setPendingUnknown(true);setNotice(definitive?t.sourceNotReady:t.error);}
+        else{const definitive=response.status===409;if(!definitive)setPendingUnknown(true);setConflict(definitive);setNotice(definitive?t.conflict:t.error);}
       }return;}
       serviceRequestResultSchema.parse(await response.json());
-      if(!alive.current||controller.signal.aborted)return;setPending(null);setDescription('');setNotice(t.success);
+      if(!alive.current||controller.signal.aborted)return;setPending(null);setPendingUnknown(false);onCommandCustodyChange?.(false);setDescription('');setNotice(t.success);
       // Confirmed writes remain confirmed even when refreshing history fails.
       try {const read=await fetch(`/api/customer/v1/services/requests?${query}`,{cache:'no-store',credentials:'same-origin',signal:controller.signal});
         if(read.ok){const updated=serviceRequestReadSchema.parse(await read.json());if(alive.current&&!controller.signal.aborted)setData(updated);}
         else if(alive.current&&!controller.signal.aborted&&(read.status===401||read.status===403)){setData(null);setReadStatus(read.status===401?'session':'denied');}
       }catch{/* Keep the confirmed result. */}
-    }catch{if(alive.current&&!controller.signal.aborted)setNotice(t.error);}finally{submitting.current=false;if(alive.current)setBusy(false);}
+    }catch{if(alive.current&&!controller.signal.aborted){setPendingUnknown(true);setNotice(t.error);}}finally{submitting.current=false;if(alive.current)setBusy(false);}
   }
   return <section dir={lang==='fa'?'rtl':'ltr'} className="min-w-0 space-y-4 rounded-2xl border bg-white p-6"><h2 className="text-xl font-bold">{t.title}</h2>
     {notice?<p role="status">{notice}</p>:null}{conflict?<button type="button" disabled={busy} onClick={()=>void refreshConflict()} className="min-h-11 rounded-xl border px-4 py-2">{t.refresh}</button>:null}
