@@ -1,0 +1,45 @@
+{
+  "contract": "core17-relay-cors-launcher-source-successor.v1",
+  "classification": "SOURCE_COMPATIBILITY_ONLY_NATIVE_AUTH_BROWSER_NOT_RUN",
+  "prior_app_source": "5aa951bfbe8b1254b81212aa248f51a13179f890",
+  "installed_Core_base": "ee883b62cf4a318af3450c506931a969623b8987",
+  "historical_manifest": "supabase/install/core-service-app-assembly-v1/manifest.json",
+  "historical_manifest_sha256": "4e8972cef4cff39cb707ab1dca8613c4c23089e178a7658a7dbcd3f597050a4f",
+  "relay_source": "b20d0bf33a01e5f846421d852c7e778aaa26f4e6",
+  "relay_seal_file_sha256": "c3cb3af536866aac88513c402a3a4484f48103583592a9e86e9e3926112aaf02",
+  "ABI": "platform17.relay-cors-preflight.v2",
+  "selectors": [
+    "CLADORA_CORE17_TRANSPORT_PROFILE",
+    "CLADORA_CORE17_TRANSPORT_BINDING_SHA256"
+  ],
+  "launcher_before": {
+    "bytes": 3743,
+    "sha256": "16c15cccf686f8d775ba27a68cb6809ca3fbaa1b61d4805a88eb8eed1e90a2be",
+    "git_blob": "3ed17741e168feed37461690f5e0ae63c6b1184c"
+  },
+  "current_sources": [
+    {
+      "path": "scripts/run-core-service-app-assembly-17.mjs",
+      "bytes": 4053,
+      "sha256": "5a25abd1847b7ff928fb310b14f9aadbfcda554eb1c29d1a146e66e6cb944092"
+    },
+    {
+      "path": "scripts/lib/core-service-relay-cors-v2-preflight.mjs",
+      "bytes": 4790,
+      "sha256": "c44c33788b37c7dd1c1381af634eac862526f53796852fc1875ba3f9bf41b3ee"
+    },
+    {
+      "path": "scripts/test-core-service-relay-cors-v2-preflight.mjs",
+      "bytes": 6798,
+      "sha256": "75063f1a3654ee1dd3d6c0a11fa6f1d02e9e932ad77758200fd46889c61e0789"
+    },
+    {
+      "path": "docs/contracts/CORE17-RELAY-CORS-LAUNCHER-01.md",
+      "bytes": 4595,
+      "sha256": "8f9c45c1249e8265eb6402cc4476e8a957e028c815592a794bc6b90e2814bb63"
+    }
+  ],
+  "runtime_binding": null,
+  "execution_authority": "existing Task17 owned-target scope only; actual private digest is not authority",
+  "native": "NOT_RUN_NOT_PASS"
+}

@@ -13,6 +13,12 @@ on:
       - 'scripts/test-core-service-*.mjs'
       - 'scripts/test-core-installer-credential-binding-17.mjs'
       - 'scripts/check-core-service-assembly-17.mjs'
+      - 'scripts/run-core-service-app-assembly-17.mjs'
+      - 'scripts/check-core-service-relay-cors-v2.mjs'
+      - 'scripts/lib/core-service-relay-cors-v2-preflight.mjs'
+      - 'scripts/functional-dev-relay-cors-v2/**'
+      - 'docs/contracts/CORE17-RELAY-CORS-LAUNCHER-01.md'
+      - 'docs/verification/CORE17-RELAY-CORS-LAUNCHER-01.json'
       - 'scripts/lib/core-service-assembly-environment-v1.mjs'
       - 'scripts/lib/core-installer-credential-binding-v1.mjs'
       - 'scripts/service-consumer-rehearsal-17/**'
@@ -87,6 +93,12 @@ on:
       - 'scripts/test-core-service-*.mjs'
       - 'scripts/test-core-installer-credential-binding-17.mjs'
       - 'scripts/check-core-service-assembly-17.mjs'
+      - 'scripts/run-core-service-app-assembly-17.mjs'
+      - 'scripts/check-core-service-relay-cors-v2.mjs'
+      - 'scripts/lib/core-service-relay-cors-v2-preflight.mjs'
+      - 'scripts/functional-dev-relay-cors-v2/**'
+      - 'docs/contracts/CORE17-RELAY-CORS-LAUNCHER-01.md'
+      - 'docs/verification/CORE17-RELAY-CORS-LAUNCHER-01.json'
       - 'scripts/lib/core-service-assembly-environment-v1.mjs'
       - 'scripts/lib/core-installer-credential-binding-v1.mjs'
       - 'scripts/service-consumer-rehearsal-17/**'
@@ -199,6 +211,24 @@ jobs:
             node scripts/test-core15-integration-lineage-v1.mjs
             node scripts/check-core15-service-cut-v1.mjs
           )
+      - name: Preserve the sealed Core17 delivery at its reviewed revision
+        run: |
+          core17_checkpoint=ee883b62cf4a318af3450c506931a969623b8987
+          git diff --exit-code "$core17_checkpoint" HEAD -- \
+            scripts/check-core-service-assembly-17.mjs \
+            supabase/install/core-service-app-assembly-v1/manifest.json
+          core17_checkpoint_dir="$RUNNER_TEMP/cladora-core17-checkpoint-ee883b6"
+          git worktree add --detach "$core17_checkpoint_dir" "$core17_checkpoint"
+          ln -s "$GITHUB_WORKSPACE/node_modules" "$core17_checkpoint_dir/node_modules"
+          cleanup_core17_checkpoint() {
+            rm "$core17_checkpoint_dir/node_modules"
+            git worktree remove "$core17_checkpoint_dir"
+          }
+          trap cleanup_core17_checkpoint EXIT
+          (
+            cd "$core17_checkpoint_dir"
+            node scripts/check-core-service-assembly-17.mjs
+          )
       - name: Integrated Core session and command source (controlled; no native execution)
         run: |
           node scripts/test-core-functional-runtime-v1.mjs
@@ -209,7 +239,8 @@ jobs:
           node scripts/test-core-installer-credential-binding-17.mjs
           node scripts/test-core-service-assembly-review-r1.mjs
           node scripts/test-core-service-app-assembly-17.mjs
-          node scripts/check-core-service-assembly-17.mjs
+          node scripts/check-core-service-relay-cors-v2.mjs
+          node scripts/test-core-service-relay-cors-v2-preflight.mjs
       - name: Inactive Operations and Platform source (offline; no ACL or target changes)
         run: |
           python -B scripts/review-ops-populated-transition-01a/test.py
@@ -223,6 +254,8 @@ jobs:
           node scripts/test-storage-documents-abi15-capture-r1.mjs
           python -B scripts/service-consumer-rehearsal-17/test_lane.py
           python -B scripts/service-consumer-rehearsal-17/test_continuation.py
+          python -B scripts/service-consumer-rehearsal-17/test_integrated_app_adoption.py
+          python -B scripts/functional-dev-relay-cors-v2/test_cors_v2.py
           node scripts/service-consumer-rehearsal-17/test_api_continuation.mjs
       - run: npm run test:ce:member-benefit-terminology
       - run: npm run test:ce:benefit-ownership-reconciliation
