@@ -15,12 +15,18 @@ let result = { data: [], error: null };
 let calls = [];
 function load(file) {
   if (cache.has(file.href)) return cache.get(file.href);
+  if (file.pathname.endsWith('.json')) {
+    const value = JSON.parse(readFileSync(file, 'utf8'));
+    cache.set(file.href, value); return value;
+  }
   const filename = fileURLToPath(file);
   const mod = new Module(filename);
-  mod.require = name => name === '@/lib/supabase/server' ? { createClient: async () => ({
+  // Next resolves this build-time server marker for route modules. The standalone
+  // Node fixture still loads the real Core read bridge; no runtime authority is mocked.
+  mod.require = name => name === 'server-only' ? {} : name === '@/lib/supabase/server' ? { createClient: async () => ({
     auth: { getClaims: async () => auth }, schema: name => { assert.equal(name, 'customer_api'); return { rpc: async (name, args) => { calls.push({ name, args }); return result; } }; },
   }) } : name.startsWith('@/') ? load(new URL(`../src/${name.slice(2)}.ts`, import.meta.url))
-    : name.startsWith('.') ? load(new URL(`${name}.ts`, file)) : require(name);
+    : name.startsWith('.') ? load(new URL(/\.(?:json|[cm]?[jt]sx?)$/.test(name) ? name : `${name}.ts`, file)) : require(name);
   mod._compile(ts.transpileModule(readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, filename);
   cache.set(file.href, mod.exports); return mod.exports;
 }
@@ -100,6 +106,22 @@ for (const [code, status, publicCode] of [
     } }]);
   });
 }
+
+await check('owned Core read without an official binding fails closed without legacy RPC fallback', async () => {
+  const profile = process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE;
+  const binding = process.env.CLADORA_CORE15_SERVICE_BINDING_FILE;
+  try {
+    process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE = 'core-service-real-app-assembly.v1';
+    process.env.CLADORA_CORE15_SERVICE_BINDING_FILE = '';
+    await assertBoundedFailure(await get(`context_id=${contextId}&workspace_id=${workspaceId}`), 503, 'CORE_SERVICE_ASSEMBLY_NOT_READY');
+    assert.deepEqual(calls, []);
+  } finally {
+    if (profile === undefined) delete process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE;
+    else process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE = profile;
+    if (binding === undefined) delete process.env.CLADORA_CORE15_SERVICE_BINDING_FILE;
+    else process.env.CLADORA_CORE15_SERVICE_BINDING_FILE = binding;
+  }
+});
 
 if (!readAuthorityOnly) {
   await check('valid JSON writes only parsed request to canonical RPC', async () => { result = { data: { offering_id: id, status: 'draft' }, error: null }; assert.equal((await post()).status, 200); assert.deepEqual(calls, [{ name: 'create_service_request_v1', args: { p_request: command } }]); });

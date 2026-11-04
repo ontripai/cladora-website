@@ -42,6 +42,7 @@ on:
       - 'supabase/migrations/*_service_quote_draft_runtime_v1.sql'
       - 'src/lib/customer/service-request-*.ts'
       - 'scripts/test-service-request-*.mjs'
+      - 'scripts/test-service-first-user-journey-12.mjs'
       - 'package.json'
       - 'package-lock.json'
 permissions:
@@ -70,11 +71,12 @@ jobs:
       - run: npx eslint src/components/customer/CustomerServiceQuotes.tsx src/lib/customer/service-quote-read-schema.ts src/app/api/customer/v1/services/quotes/route.ts scripts/test-service-quote-*-014.mjs --max-warnings=0
       - run: node scripts/test-service-request-route-010.mjs
       - run: node scripts/test-service-request-ui-010.mjs
+      - run: node scripts/test-service-first-user-journey-12.mjs
       - run: node scripts/test-service-self-person-route-012.mjs
       - run: node scripts/test-service-self-person-ui-012.mjs
       - run: CLADORA_PGLITE_PACKAGE="file://$RUNNER_TEMP/cladora-service-pg/node_modules/@electric-sql/pglite/dist/index.js" node scripts/test-service-self-person-db-012.mjs
       - run: npx eslint src/components/customer/ServicePilotSelfPerson.tsx src/app/api/customer/v1/services/self-person/route.ts src/lib/customer/service-self-person-schema.ts scripts/test-service-self-person-*-012.mjs --max-warnings=0
-      - run: npx eslint src/components/customer/CustomerServiceRequests.tsx src/app/api/customer/v1/services/requests/route.ts src/lib/customer/service-request-read-schema.ts scripts/test-service-request-*-010.mjs --max-warnings=0
+      - run: npx eslint src/components/customer/CustomerServiceRequests.tsx src/app/api/customer/v1/services/requests/route.ts src/lib/customer/service-request-read-schema.ts scripts/test-service-request-*-010.mjs scripts/test-service-first-user-journey-12.mjs --max-warnings=0
       - run: node scripts/test-service-catalog-route-002.mjs
       - run: node scripts/test-service-catalog-ui-003.mjs
       - run: node scripts/test-service-catalog-contract-001.mjs
