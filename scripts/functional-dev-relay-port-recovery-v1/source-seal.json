@@ -1,0 +1,12 @@
+{
+  "contract": "platform17.relay-port-recovery-source-seal.v1",
+  "files": {
+    "CONTRACT.md": "1978446ddaa13d7b635330cc1621e9b6453564f4e29a87d054f94dce2bfcb6a1",
+    "port_admission.py": "e4654b42543af43c1483c0ef32392b7eddef6ab58705e8632d0f31106936f4d2",
+    "profile.json": "f7017048041f7af31ebdf2304a876947c4cf041ff2aa435b092d358c08963019",
+    "recovery.py": "e2981b9d5feaabf3135433dc4d2b845f26480c4225814ebd2ada0bf0aeeddeef",
+    "request.template.json": "6c186f39f7c1c72ff2fbe1d8385eb22f0f7047f7143a3d9092c1a2b10f8a478d",
+    "test_port_recovery.py": "7c22491e4f35ab2c4946d5b8972bbb23af62475e7b04fc9da04ee281e283d7f0"
+  },
+  "sha256": "a415d46a9ee0475259a8439f8a923014841e51e57bb9174d6ef2089cedb3f365"
+}

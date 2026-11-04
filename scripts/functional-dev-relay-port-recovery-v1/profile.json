@@ -1,0 +1,26 @@
+{
+  "contract": "platform17.relay-port-recovery-profile.v1",
+  "app_sha": "b696ff211daabd4be3989522c569f24ccccd0dce",
+  "app_tree": "534ec94f21699a65686bade5539517dfd818ec1e",
+  "launcher_sha256": "5a25abd1847b7ff928fb310b14f9aadbfcda554eb1c29d1a146e66e6cb944092",
+  "relay_seal_file_sha256": "c3cb3af536866aac88513c402a3a4484f48103583592a9e86e9e3926112aaf02",
+  "relay_abi": "platform17.relay-cors-preflight.v2",
+  "Core_install_base": "ee883b62cf4a318af3450c506931a969623b8987",
+  "listeners_in_server_order": [
+    {"kind": "PG", "host": "127.0.0.1", "port": 55422, "backlog": 5},
+    {"kind": "HTTP", "host": "127.0.0.1", "port": 55421, "backlog": 5}
+  ],
+  "family": "AF_INET",
+  "socket_type": "SOCK_STREAM",
+  "protocol": 0,
+  "SO_REUSEADDR": 1,
+  "SO_REUSEPORT": 0,
+  "port_release_deadline_seconds": 10,
+  "startup_deadline_seconds": 20,
+  "child_cleanup_deadline_seconds": 10,
+  "maximum_request_lifetime_seconds": 600,
+  "maximum_child_creations": 1,
+  "request_selector": "relay-cors-v2/port-admission-recovery-v1/request.json",
+  "effective_authority": null,
+  "native_continuation": "HOLD_PENDING_REVIEW_AND_EXACT_OWNER_EXECUTION_AUTHORITY"
+}
