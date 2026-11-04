@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
     if (!bootstrapRes) {
       return NextResponse.json({ error: { code: 'CORE_SERVICE_ASSEMBLY_NOT_READY' } }, { status: 503, headers: HEADERS });
     }
+    // Genuine Core 401 or 403 or 503 from session lease is preserved
     if (!bootstrapRes.ok) {
       return bootstrapRes;
     }
@@ -34,18 +35,20 @@ export async function GET(request: NextRequest) {
       }>;
     };
     const selections = data?.selections ?? [];
-    const matching = selections.filter(s => s.context_id === context.data);
-    if (matching.length === 0) {
-      const hasAny = selections.length > 0;
+    const authorizedContexts = new Set(selections.map(s => s.context_id));
+    if (!authorizedContexts.has(context.data)) {
+      // Authenticated session, but this context_id is not in user's authorized selections:
+      // Return 403 WORKSPACE_ACCESS_DENIED (absence of selection is not unauthenticated 401)
       return NextResponse.json(
-        { error: { code: hasAny ? 'WORKSPACE_ACCESS_DENIED' : 'UNAUTHORIZED' } },
-        { status: hasAny ? 403 : 401, headers: HEADERS }
+        { error: { code: 'WORKSPACE_ACCESS_DENIED' } },
+        { status: 403, headers: HEADERS }
       );
     }
+    const matching = selections.filter(s => s.context_id === context.data);
     const seen = new Set<string>();
     const workspaces = [];
     for (const s of matching) {
-      if (!seen.has(s.workspace_id)) {
+      if (s.workspace_id && !seen.has(s.workspace_id)) {
         seen.add(s.workspace_id);
         workspaces.push({
           workspace_id: s.workspace_id,

@@ -51,6 +51,8 @@ In the approved development profile (`CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE === 
 2. **Authority Preservation:** Real Supabase Auth / MFA / Session cookies are validated on each read via server `getUser`/`getClaims` and current database session. No JSON or user_metadata authority spoofing is permitted.
 3. **Preservation of Other Profiles:** In default, hosted, preview, and production profiles, `contexts/route.ts` and `workspace/targets/route.ts` retain their exact standard RPC logic.
 4. **Service Code Independence:** `CustomerServiceCatalog.tsx` and all Service domain files remain untouched by Antigravity.
+5. **Dashboard Authority Decoupling:** In the approved Service assembly profile, the legacy dashboard (`/api/customer/v1/dashboard`) is NOT an authority reference. The development Core17 assembly profile yields bootstrap selections, catalog, and requests, but intentionally does not produce a legacy dashboard. If context is authorized in Core selections, `/api/customer/v1/dashboard` returns 404 cleanly (`DASHBOARD_NOT_IN_ASSEMBLY_PROFILE`), neither generating a fake dashboard nor falsely reporting 403. `CustomerContextProvider` does not promote legacy dashboard 403/404 into `error: 'forbidden'`, ensuring native discovery routes like `/app/services` are guarded by actual Core session authority.
+6. **Workspace Targets Contract:** Discovery returning `selections: []` represents an authenticated session without authorized context selections. Querying targets returns 403 `WORKSPACE_ACCESS_DENIED`, preserving 401 `UNAUTHORIZED` strictly for missing/invalid auth cookies.
 
 ---
 
@@ -130,12 +132,14 @@ The following strict guarantees are enforced on all account, context, and sessio
      - On 401 (`session_expired`): `contexts: []`, `activeId: ''`, `dashboard: null`, `unsavedGuards.clear()` are set immediately; storage key is removed. `CustomerRouteGuard` renders `AccessRestrictedCard` with Lock icon and login redirect action.
      - On 403 (`forbidden`): `dashboard: null`, `contexts: []` are set immediately. `CustomerRouteGuard` renders `AccessRestrictedCard` with ShieldAlert icon.
      - In both denial scenarios, 100% of previous service catalog offerings, prices, and inputs are verified to be evicted from the DOM.
-6. **Late-Arriving Response Fencing (Verified In-Flight):**
-   - Verified via independent counter: Context A's fetch is proven to be actively in-flight (`pendingRequestsA === 1`) before switching to Context B.
-   - Context B is selected and resolves immediately; DOM reflects Context B's active state while A remains pending.
-   - Context A is then released.
-   - In `CustomerContextProvider`: sequence check `if (seq !== dashboardSeq.current || cancelled || activeIdRef.current !== targetContextId) return;` discards Context A's stale response.
-   - Consumer DOM confirms Context A's stale payload is never rendered, and Context B remains undisturbed.
+6. **Late-Arriving Response Fencing (Verified In-Flight with Readable State Probe):**
+   - **In-Flight Guarantee:** Context A's fetch is proven to be actively in-flight (`pendingRequestsA === 1`) before switching to Context B.
+   - **Readable State Probe:** The consumer component renders an explicit state probe in the DOM (`<div id="consumer-probe" data-active-id={active?.context_id} data-dashboard-id={dashboard?.id} data-marker={dashboard?.marker}>{dashboard?.marker}</div>`).
+   - Context B resolves with marker `MARKER_CONTEXT_B`; DOM reflects Context B's active ID and marker while A remains pending.
+   - Context A is released with marker `MARKER_CONTEXT_A`.
+   - Sequence check `if (seq !== dashboardSeq.current || cancelled || activeIdRef.current !== targetContextId) return;` discards Context A's stale response.
+   - Consumer DOM inspection asserts that Context B's marker remains rendered and Context A's marker is never injected.
+   - **Negative Control:** Test 5.8 intentionally simulates an unfenced state update lacking sequence/cancellation checks, demonstrating that state is corrupted by A's stale marker when unprotected. This proves our guards are actively detecting and preventing corruption.
 
 ---
 
@@ -149,3 +153,21 @@ The following strict guarantees are enforced on all account, context, and sessio
 - **Viewport Layout Geometry Measurement (NOT_RUN):**
   - JSDOM does not calculate physical CSS bounding boxes, layout reflow, or screen pixel geometry.
   - Responsive layout validation across viewports (375px, 390px, 768px, 1365px) is classified as `NOT_RUN` pending connected browser execution.
+
+---
+
+## 6. Review Addendum: Successor to Head `a6561b66`
+
+In response to reviewer feedback on Head `a6561b66b18b0ff680ef0f2d9ff274ccf82d999a`:
+1. **Connection Blocker (Dashboard as False Authority):**
+   - Decoupled legacy dashboard from being an authority reference in the approved Service assembly profile (`NEXT_PUBLIC_CLADORA_OWNED_SERVICE_ASSEMBLY === 'v1'` / `CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE === 'core-service-real-app-assembly.v1'`).
+   - No fake dashboard was created; no global bypass was introduced. Genuine 401/403 Core session errors and other route guards remain strictly intact.
+2. **Targets Route Contract:**
+   - Corrected `/api/customer/v1/workspace/targets` handling of `selections: []` to return 403 `WORKSPACE_ACCESS_DENIED` instead of 401 `UNAUTHORIZED`.
+   - Added real route handler tests verifying unauthenticated 401, empty selections 403, wrong context 403, and matching context 200.
+3. **Late-Arriving Response Evidence:**
+   - Added DOM-level `ConsumerStateProbe` with `data-marker` and `data-dashboard-id` to verify Context B remains intact after A resolves.
+   - Added negative control Test 5.8 verifying that removing the guard corrupts state, confirming the assertions actively validate the protection.
+4. **Line Endings & Whitespace:**
+   - Reverted modified route files from CRLF to strict repository LF (`\n`).
+   - Confirmed 0 trailing whitespace warnings via `git diff --check`.

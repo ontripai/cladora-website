@@ -195,7 +195,17 @@ export function CustomerContextProvider({ children }: { children: React.ReactNod
         }
         if (response.status === 403) {
           setDashboard(null);
-          setError('forbidden');
+          // In approved Service assembly profile, the legacy dashboard is not the authority reference.
+          // Context authority is resolved from Core bootstrap. In standard profiles, preserve error: 'forbidden'.
+          const isAssembly = typeof process !== 'undefined' &&
+            process.env.NEXT_PUBLIC_CLADORA_OWNED_SERVICE_ASSEMBLY === 'v1';
+          if (!isAssembly) {
+            setError('forbidden');
+          }
+          return;
+        }
+        if (response.status === 404) {
+          setDashboard(null);
           return;
         }
         if (!response.ok) throw new Error('dashboard');
@@ -209,7 +219,11 @@ export function CustomerContextProvider({ children }: { children: React.ReactNod
       } catch {
         if (seq === dashboardSeq.current && !cancelled && activeIdRef.current === targetContextId) {
           setDashboard(null);
-          setError('dashboard');
+          const isAssembly = typeof process !== 'undefined' &&
+            process.env.NEXT_PUBLIC_CLADORA_OWNED_SERVICE_ASSEMBLY === 'v1';
+          if (!isAssembly) {
+            setError('dashboard');
+          }
         }
       } finally {
         if (seq === dashboardSeq.current && !cancelled && activeIdRef.current === targetContextId) {
