@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createClient } from '@/lib/supabase/server';
 import { dashboardRpcResponseSchema, uuidSchema } from '@/lib/customer/dashboard-schema';
+import { coreServiceAppReadV1 } from '@/lib/core/service-app-read-v1';
 
 const HEADERS = {
   'Cache-Control': 'no-store, private',
@@ -23,6 +24,30 @@ export async function GET(request: NextRequest) {
       { error: { code: 'INVALID_CONTEXT' } },
       { status: 400, headers: HEADERS }
     );
+  }
+
+  // In approved Service assembly profile, legacy dashboard is not the authority reference.
+  // Validate real session and context permission from Core bootstrap, without creating a fake dashboard.
+  if (process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE === 'core-service-real-app-assembly.v1') {
+    const bootstrapRequest = new NextRequest(new URL('/api/customer/v1/services/assembly-bootstrap', request.url), {
+      headers: request.headers,
+    });
+    const bootstrapRes = await coreServiceAppReadV1(bootstrapRequest, 'selections');
+    if (!bootstrapRes) {
+      return NextResponse.json({ error: { code: 'CORE_SERVICE_ASSEMBLY_NOT_READY' } }, { status: 503, headers: HEADERS });
+    }
+    if (!bootstrapRes.ok) {
+      return bootstrapRes;
+    }
+    const data = (await bootstrapRes.json()) as { selections?: Array<{ context_id: string }> };
+    const selections = data?.selections ?? [];
+    const isAuthorized = selections.some(s => s.context_id === parsed.data.context_id);
+    if (!isAuthorized) {
+      return NextResponse.json({ error: { code: 'CONTEXT_ACCESS_DENIED' } }, { status: 403, headers: HEADERS });
+    }
+    // Authorized context in Service assembly profile: Core17 does not produce a legacy dashboard.
+    // Return 404 cleanly without creating a fake dashboard or claiming false 403 access denial.
+    return NextResponse.json({ error: { code: 'DASHBOARD_NOT_IN_ASSEMBLY_PROFILE' } }, { status: 404, headers: HEADERS });
   }
 
   // Authoritative user client (strictly NO service role)
