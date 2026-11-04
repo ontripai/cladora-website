@@ -222,6 +222,13 @@ check(dashboardRouteCode.includes("process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PRO
 check(dashboardRouteCode.includes("DASHBOARD_NOT_IN_ASSEMBLY_PROFILE"),
   'dashboard/route.ts returns 404 in assembly profile without creating fake dashboard');
 
+const contextProviderPath = path.join(root, 'src', 'components', 'customer', 'CustomerContextProvider.tsx');
+check(existsSync(contextProviderPath), 'src/components/customer/CustomerContextProvider.tsx exists');
+const contextProviderCode = readFileSync(contextProviderPath, 'utf8');
+check(contextProviderCode.includes("setError('forbidden')"), 'CustomerContextProvider sets error forbidden on 403');
+check(contextProviderCode.includes("body?.error?.code === 'DASHBOARD_NOT_IN_ASSEMBLY_PROFILE'"),
+  'CustomerContextProvider only exempts exact DASHBOARD_NOT_IN_ASSEMBLY_PROFILE error in assembly profile');
+
 // 4.4 Real Route Execution Tests: GET /api/customer/v1/workspace/targets
 const uuid = (n) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const contextIdA = uuid(101);
@@ -252,6 +259,18 @@ function loadModule(relativePath) {
           if (mockCoreServiceAppRead) return mockCoreServiceAppRead(req, kind);
           return null;
         },
+      };
+    }
+    if (request === '@/lib/supabase/server') {
+      return {
+        createClient: async () => ({
+          auth: {
+            getClaims: async () => ({ data: { claims: { sub: 'mock-sub' } }, error: null }),
+          },
+          schema: () => ({
+            rpc: async () => ({ data: [], error: null }),
+          }),
+        }),
       };
     }
     if (request.startsWith('@/')) {
@@ -288,6 +307,7 @@ function loadModule(relativePath) {
 
 const targetsRoute = loadModule('src/app/api/customer/v1/workspace/targets/route.ts');
 const contextsRoute = loadModule('src/app/api/customer/v1/contexts/route.ts');
+const dashboardRoute = loadModule('src/app/api/customer/v1/dashboard/route.ts');
 
 // Route Test 4.4.1: Real 401 when session unauthenticated
 mockCoreServiceAppRead = async () => NextResponse.json({ error: { code: 'UNAUTHORIZED' } }, { status: 401 });
@@ -363,6 +383,36 @@ const bodyContexts = await resContexts.json();
 equal(bodyContexts.contexts?.length, 1, 'contexts/route.ts deduplicates by context_id');
 equal(bodyContexts.contexts?.[0]?.context_id, contextIdA, 'Context id matches selection');
 equal(bodyContexts.contexts?.[0]?.scope_type, 'tenant', 'scope_type is tenant');
+
+// Route Test 4.4.6: dashboard/route.ts preserves real 401 UNAUTHORIZED from Core session
+mockCoreServiceAppRead = async () => NextResponse.json({ error: { code: 'UNAUTHORIZED' } }, { status: 401 });
+const resDash401 = await dashboardRoute.GET(new NextRequest(`http://localhost:3008/api/customer/v1/dashboard?context_id=${contextIdA}`));
+equal(resDash401.status, 401, 'dashboard/route.ts preserves genuine 401 UNAUTHORIZED when session unauthenticated');
+
+// Route Test 4.4.7: dashboard/route.ts preserves real 403 FORBIDDEN from Core session
+mockCoreServiceAppRead = async () => NextResponse.json({ error: { code: 'FORBIDDEN' } }, { status: 403 });
+const resDash403 = await dashboardRoute.GET(new NextRequest(`http://localhost:3008/api/customer/v1/dashboard?context_id=${contextIdA}`));
+equal(resDash403.status, 403, 'dashboard/route.ts preserves genuine 403 FORBIDDEN from Core');
+
+// Route Test 4.4.8: dashboard/route.ts returns 403 CONTEXT_ACCESS_DENIED when context not authorized
+mockCoreServiceAppRead = async () => NextResponse.json({
+  contract_version: 'core-service-app-read.v1',
+  selections: [{ context_id: contextIdB }],
+});
+const resDashDenied = await dashboardRoute.GET(new NextRequest(`http://localhost:3008/api/customer/v1/dashboard?context_id=${contextIdA}`));
+equal(resDashDenied.status, 403, 'dashboard/route.ts returns 403 CONTEXT_ACCESS_DENIED when context is not in selections');
+const bodyDashDenied = await resDashDenied.json();
+equal(bodyDashDenied.error?.code, 'CONTEXT_ACCESS_DENIED', 'Error code is CONTEXT_ACCESS_DENIED');
+
+// Route Test 4.4.9: dashboard/route.ts returns 404 DASHBOARD_NOT_IN_ASSEMBLY_PROFILE when authorized
+mockCoreServiceAppRead = async () => NextResponse.json({
+  contract_version: 'core-service-app-read.v1',
+  selections: [{ context_id: contextIdA }],
+});
+const resDashAuth = await dashboardRoute.GET(new NextRequest(`http://localhost:3008/api/customer/v1/dashboard?context_id=${contextIdA}`));
+equal(resDashAuth.status, 404, 'dashboard/route.ts returns 404 when context is authorized in assembly profile');
+const bodyDashAuth = await resDashAuth.json();
+equal(bodyDashAuth.error?.code, 'DASHBOARD_NOT_IN_ASSEMBLY_PROFILE', 'Exact error code is DASHBOARD_NOT_IN_ASSEMBLY_PROFILE');
 
 // 4.5 Service Domain Boundary & File Invariance Check
 // Antigravity MUST NOT modify Service Domain files
@@ -489,7 +539,7 @@ function loadJsdModule(relativePath) {
 
 const { CustomerAppShell } = loadJsdModule('src/components/customer/CustomerAppShell.tsx');
 const { CustomerServiceCatalog } = loadJsdModule('src/components/customer/CustomerServiceCatalog.tsx');
-const { useCustomerContext } = loadJsdModule('src/components/customer/CustomerContextProvider.tsx');
+const { CustomerContextProvider, useCustomerContext } = loadJsdModule('src/components/customer/CustomerContextProvider.tsx');
 
 // ConsumerStateProbe: directly probes readable context/dashboard state inside consumer tree
 const ConsumerStateProbe = () => {
@@ -1030,7 +1080,202 @@ try {
   equal(corrupted.marker, 'STALE_CONTEXT_A_LEAK', 'NEGATIVE CONTROL: Without sequence guards, stale marker leaks into state');
   check(corrupted.marker !== 'FRESH_CONTEXT_B_DATA', 'NEGATIVE CONTROL: Corrupted state failed to retain fresh B data');
 
-  console.log('PASS Dynamic AppShell, Context switch, Account switch, 403/401 pre-denial presence, logout, in-flight late fencing with readable probe, and negative control verified');
+  // -----------------------------------------------------------------------
+  // Test 5.9: Real composition of Provider / Guard / Dashboard Route / Core Adapter
+  // -----------------------------------------------------------------------
+  console.log('Testing real composition: Provider + RouteGuard + dashboard/route + Core adapter in assembly profile...');
+
+  process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE = 'core-service-real-app-assembly.v1';
+  process.env.NEXT_PUBLIC_CLADORA_OWNED_SERVICE_ASSEMBLY = 'v1';
+
+  let dashboardCoreBehavior = 403;
+
+  currentFetchHandler = async (url) => {
+    const urlStr = String(url);
+    if (urlStr.includes('/api/customer/v1/profile')) {
+      return { ok: true, status: 200, json: async () => ({ display_name: 'Elena Vancea' }) };
+    }
+    if (urlStr.includes('/api/customer/v1/contexts')) {
+      // Discovery always succeeds with 200
+      mockCoreServiceAppRead = async () => NextResponse.json({
+        contract_version: 'core-service-app-read.v1',
+        selections: [{
+          context_id: contextIdA,
+          membership_id: uuid(501),
+          tenant_id: uuid(601),
+          workspace_id: workspaceId1,
+          tenant_name: 'Alpha Property Association',
+          role_code: 'property_manager',
+          role_name: 'Property Manager',
+          workspace_type: 'ASSOCIATION',
+          environment: 'PRODUCTION',
+        }],
+      });
+      return contextsRoute.GET(new NextRequest(`http://localhost:3008${urlStr}`));
+    }
+    if (urlStr.includes('/api/customer/v1/dashboard')) {
+      if (dashboardCoreBehavior === 403) {
+        mockCoreServiceAppRead = async () => NextResponse.json({ error: { code: 'FORBIDDEN' } }, { status: 403 });
+      } else if (dashboardCoreBehavior === 401) {
+        mockCoreServiceAppRead = async () => NextResponse.json({ error: { code: 'UNAUTHORIZED' } }, { status: 401 });
+      } else {
+        mockCoreServiceAppRead = async () => NextResponse.json({
+          contract_version: 'core-service-app-read.v1',
+          selections: [{
+            context_id: contextIdA,
+            membership_id: uuid(501),
+            tenant_id: uuid(601),
+            workspace_id: workspaceId1,
+            tenant_name: 'Alpha Property Association',
+            role_code: 'property_manager',
+            role_name: 'Property Manager',
+            workspace_type: 'ASSOCIATION',
+            environment: 'PRODUCTION',
+          }],
+        });
+      }
+      return dashboardRoute.GET(new NextRequest(`http://localhost:3008${urlStr}`));
+    }
+    if (urlStr.includes('/api/customer/v1/workspace/targets')) {
+      return targetsRoute.GET(new NextRequest(`http://localhost:3008${urlStr}`));
+    }
+    if (urlStr.includes('/api/customer/v1/services/catalog')) {
+      return { ok: true, status: 200, json: async () => ({ offerings: sampleOfferings }) };
+    }
+    if (urlStr.includes('/api/customer/v1/services/requests')) {
+      return { ok: true, status: 200, json: async () => ({ can_request: true, beneficiaries: [], requests: [] }) };
+    }
+    return { ok: false, status: 404, json: async () => ({}) };
+  };
+
+  // 5.9.1: discovery 200, then Core 403 on dashboard -> RouteGuard must close protected view
+  console.log('Testing composition 5.9.1: discovery 200 then Core 403 closes protected view...');
+  dom.window.sessionStorage.clear();
+  dashboardCoreBehavior = 403;
+
+  await act(async () => {
+    reactRoot.render(
+      React.createElement(CustomerAppShell, { key: 'comp-403', lang: 'en' },
+        React.createElement(CustomerServiceCatalog, { lang: 'en' })
+      )
+    );
+    await tick();
+  });
+
+  // VERIFY: RouteGuard closed protected child with Access Denied (403)!
+  check(dom.window.document.body.textContent.includes('Access Denied'),
+    'COMPOSITION: Discovery 200 followed by Core 403 causes RouteGuard to block protected child with Access Denied');
+  check(!dom.window.document.body.textContent.includes('Choose a workspace'),
+    'COMPOSITION: Protected child CustomerServiceCatalog is completely unmounted/blocked');
+  check(!dom.window.document.body.textContent.includes('HVAC Seasonal Inspection'),
+    'COMPOSITION: Protected service offerings are completely absent from DOM');
+
+  // 5.9.2: Core 401 remains blocked
+  console.log('Testing composition 5.9.2: Core 401 remains blocked...');
+  dom.window.sessionStorage.clear();
+  dashboardCoreBehavior = 401;
+
+  await act(async () => {
+    reactRoot.render(
+      React.createElement(CustomerAppShell, { key: 'comp-401', lang: 'en' },
+        React.createElement(CustomerServiceCatalog, { lang: 'en' })
+      )
+    );
+    await tick();
+  });
+
+  check(dom.window.document.body.textContent.includes('Session Expired'),
+    'COMPOSITION: Core 401 causes RouteGuard to render Session Expired');
+  check(!dom.window.document.body.textContent.includes('Choose a workspace'),
+    'COMPOSITION: Protected child remains blocked on 401');
+
+  // 5.9.3: Authorized context + exact 404 DASHBOARD_NOT_IN_ASSEMBLY_PROFILE leaves SERVICE entry open
+  console.log('Testing composition 5.9.3: Authorized context + exact 404 opens SERVICE entry...');
+  dom.window.sessionStorage.clear();
+  dashboardCoreBehavior = 'authorized';
+
+  await act(async () => {
+    reactRoot.render(
+      React.createElement(CustomerAppShell, { key: 'comp-auth', lang: 'en' },
+        React.createElement(CustomerServiceCatalog, { lang: 'en' })
+      )
+    );
+    await tick();
+  });
+
+  check(dom.window.document.body.textContent.includes('Choose a workspace'),
+    'COMPOSITION: Authorized context with exact 404 leaves SERVICE entry open');
+
+  const compWorkspaceSelect = dom.window.document.querySelector('select[aria-label="Choose a workspace"]');
+  check(compWorkspaceSelect !== null, 'COMPOSITION: Workspace selector mounted in CustomerServiceCatalog');
+
+  await act(async () => {
+    compWorkspaceSelect.value = workspaceId1;
+    compWorkspaceSelect.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+    await tick();
+  });
+
+  check(dom.window.document.body.textContent.includes('HVAC Seasonal Inspection'),
+    'COMPOSITION: Service offerings mount successfully for selected workspace');
+
+  // 5.9.4: Standard profile regression & unknown 404 error handling
+  console.log('Testing composition 5.9.4: Standard profile regression & unknown 404 error handling...');
+  process.env.NEXT_PUBLIC_CLADORA_OWNED_SERVICE_ASSEMBLY = '';
+  let providerState = null;
+  const ProbeState = () => {
+    providerState = useCustomerContext();
+    return React.createElement('div', { 'data-testid': 'probe-state' }, providerState.error || 'no-error');
+  };
+
+  currentFetchHandler = async (url) => {
+    const urlStr = String(url);
+    if (urlStr.includes('/api/customer/v1/contexts')) {
+      return { ok: true, status: 200, json: async () => ({ contexts: [tenantContextA] }) };
+    }
+    if (urlStr.includes('/api/customer/v1/dashboard')) {
+      return { ok: false, status: 404, json: async () => ({}) };
+    }
+    return { ok: false, status: 404, json: async () => ({}) };
+  };
+
+  await act(async () => {
+    reactRoot.render(
+      React.createElement(CustomerContextProvider, { key: 'reg-std' },
+        React.createElement(ProbeState)
+      )
+    );
+    await tick();
+  });
+
+  equal(providerState.error, 'dashboard',
+    'REGRESSION: Standard profile without assembly flag sets error="dashboard" on 404');
+
+  // In assembly profile with unknown 404 body code, error is also set to 'dashboard'
+  process.env.NEXT_PUBLIC_CLADORA_OWNED_SERVICE_ASSEMBLY = 'v1';
+  currentFetchHandler = async (url) => {
+    const urlStr = String(url);
+    if (urlStr.includes('/api/customer/v1/contexts')) {
+      return { ok: true, status: 200, json: async () => ({ contexts: [tenantContextA] }) };
+    }
+    if (urlStr.includes('/api/customer/v1/dashboard')) {
+      return { ok: false, status: 404, json: async () => ({ error: { code: 'UNKNOWN_404_CODE' } }) };
+    }
+    return { ok: false, status: 404, json: async () => ({}) };
+  };
+
+  await act(async () => {
+    reactRoot.render(
+      React.createElement(CustomerContextProvider, { key: 'reg-asm-unk' },
+        React.createElement(ProbeState)
+      )
+    );
+    await tick();
+  });
+
+  equal(providerState.error, 'dashboard',
+    'REGRESSION: Assembly profile with unknown 404 body code sets error="dashboard"');
+
+  console.log('PASS Dynamic AppShell, Context switch, Account switch, 403/401 pre-denial presence, logout, in-flight late fencing with readable probe, negative control, and real composition verified');
 } finally {
   await act(async () => reactRoot.unmount());
   dom.window.close();
@@ -1205,6 +1450,7 @@ const receipt = {
     logout_sessionstorage_auth_eviction: 'PASS',
     genuine_in_flight_late_response_fencing_with_readable_probe: 'PASS',
     negative_control_guard_corruption_detection: 'PASS',
+    real_composition_provider_guard_dashboard_core_adapter: 'PASS',
     static_multilingual_dictionary_inspection: 'PASS',
     dynamic_3_language_dom_rendering_fa_rtl_en_ltr_ro_ltr: 'PASS',
   },

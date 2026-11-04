@@ -26,17 +26,6 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // Authoritative user client (strictly NO service role)
-  const supabase = await createClient();
-  const { data: claims, error: authError } = await supabase.auth.getClaims();
-
-  if (authError || !claims?.claims?.sub) {
-    return NextResponse.json(
-      { error: { code: 'UNAUTHORIZED' } },
-      { status: 401, headers: HEADERS }
-    );
-  }
-
   // In approved Service assembly profile, legacy dashboard is not the authority reference.
   // Validate real session and context permission from Core bootstrap, without creating a fake dashboard.
   if (process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE === 'core-service-real-app-assembly.v1') {
@@ -44,8 +33,11 @@ export async function GET(request: NextRequest) {
       headers: request.headers,
     });
     const bootstrapRes = await coreServiceAppReadV1(bootstrapRequest, 'selections');
-    if (!bootstrapRes || !bootstrapRes.ok) {
-      return bootstrapRes ?? NextResponse.json({ error: { code: 'CORE_SERVICE_ASSEMBLY_NOT_READY' } }, { status: 503, headers: HEADERS });
+    if (!bootstrapRes) {
+      return NextResponse.json({ error: { code: 'CORE_SERVICE_ASSEMBLY_NOT_READY' } }, { status: 503, headers: HEADERS });
+    }
+    if (!bootstrapRes.ok) {
+      return bootstrapRes;
     }
     const data = (await bootstrapRes.json()) as { selections?: Array<{ context_id: string }> };
     const selections = data?.selections ?? [];
@@ -56,6 +48,17 @@ export async function GET(request: NextRequest) {
     // Authorized context in Service assembly profile: Core17 does not produce a legacy dashboard.
     // Return 404 cleanly without creating a fake dashboard or claiming false 403 access denial.
     return NextResponse.json({ error: { code: 'DASHBOARD_NOT_IN_ASSEMBLY_PROFILE' } }, { status: 404, headers: HEADERS });
+  }
+
+  // Authoritative user client (strictly NO service role)
+  const supabase = await createClient();
+  const { data: claims, error: authError } = await supabase.auth.getClaims();
+
+  if (authError || !claims?.claims?.sub) {
+    return NextResponse.json(
+      { error: { code: 'UNAUTHORIZED' } },
+      { status: 401, headers: HEADERS }
+    );
   }
 
   // Call Customer API Gateway dashboard RPC (delegates to platform.get_customer_dashboard)

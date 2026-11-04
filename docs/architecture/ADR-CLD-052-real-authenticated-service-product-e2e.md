@@ -171,3 +171,26 @@ In response to reviewer feedback on Head `a6561b66b18b0ff680ef0f2d9ff274ccf82d99
 4. **Line Endings & Whitespace:**
    - Reverted modified route files from CRLF to strict repository LF (`\n`).
    - Confirmed 0 trailing whitespace warnings via `git diff --check`.
+
+---
+
+## 7. Review Addendum: Successor to Head `d2174792` (DENIAL-R4)
+
+In response to reviewer feedback on Base `d2174792fad86a9ee1675a9f1e8edc1c33199008`:
+1. **Unconditional 403 Forbidden Denial:**
+   - Removed the general 403 bypass from `CustomerContextProvider`.
+   - When Core denies access (403 from Core adapter or database 42501), `dashboard/route.ts` returns 403, and `CustomerContextProvider` unconditionally sets `setDashboard(null)` and `setError('forbidden')`.
+   - `CustomerRouteGuard` intercepts `state.error === 'forbidden'` before native discovery evaluation and renders `AccessRestrictedCard` (reason="forbidden"), strictly closing the protected view and preventing data leaks.
+2. **Precise Scoping of 404 Dashboard Exemption:**
+   - Replaced broad 404 suppression with strict contract matching.
+   - `CustomerContextProvider` ONLY omits setting an error when:
+     - `NEXT_PUBLIC_CLADORA_OWNED_SERVICE_ASSEMBLY === 'v1'` is active, AND
+     - `response.status === 404`, AND
+     - `body?.error?.code === 'DASHBOARD_NOT_IN_ASSEMBLY_PROFILE'`.
+   - In all other profiles, or when 404 has an unknown error payload, `CustomerContextProvider` sets `setError('dashboard')`, preserving standard regression behavior.
+3. **Real Composition Verification in JSDOM:**
+   - Added Test 5.9 wiring real `contextsRoute.GET`, `dashboardRoute.GET`, `targetsRoute.GET`, and `CustomerContextProvider` with Core adapter:
+     - Verified discovery 200 followed by Core 403 on dashboard closes the protected view.
+     - Verified Core 401 on dashboard remains blocked with Session Expired.
+     - Verified authorized context + exact 404 leaves SERVICE entry open and mounts catalog.
+     - Verified standard profile regression sets `error: 'dashboard'` on 404.
