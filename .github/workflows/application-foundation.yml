@@ -6,6 +6,9 @@ on:
       - 'src/**'
       - '.gitattributes'
       - 'scripts/test-authenticated-app-07.mjs'
+      - 'scripts/test-real-authenticated-service-08.mjs'
+      - 'scripts/test-context-denial-regression-02.mjs'
+      - 'scripts/test-reviewer-workspace-routing.mjs'
       - 'scripts/test-core-functional-*.mjs'
       - 'scripts/test-core-service-*.mjs'
       - 'scripts/test-core-installer-credential-binding-17.mjs'
@@ -76,6 +79,9 @@ on:
       - 'src/**'
       - '.gitattributes'
       - 'scripts/test-authenticated-app-07.mjs'
+      - 'scripts/test-real-authenticated-service-08.mjs'
+      - 'scripts/test-context-denial-regression-02.mjs'
+      - 'scripts/test-reviewer-workspace-routing.mjs'
       - 'scripts/test-core-functional-*.mjs'
       - 'scripts/test-core-service-*.mjs'
       - 'scripts/test-core-installer-credential-binding-17.mjs'
@@ -164,6 +170,11 @@ jobs:
       - run: npm run lint
       - name: Authenticated shell source and exact local font licenses (static only)
         run: node scripts/test-authenticated-app-07.mjs
+      - name: Integrated SERVICE shell and genuine Core denial (controlled; not native browser)
+        run: |
+          node scripts/test-real-authenticated-service-08.mjs
+          node scripts/test-context-denial-regression-02.mjs
+          node scripts/test-reviewer-workspace-routing.mjs
       - name: Preserve Core15 checkpoint identities at their reviewed source revision
         run: |
           checkpoint=29ed18541c602dae4e6db5c98a96201250af630b

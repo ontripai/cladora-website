@@ -244,6 +244,10 @@ process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE = 'core-service-real-app-assem
 // Setup module loading for route test execution
 const modulesCache = new Map();
 let mockCoreServiceAppRead = null;
+let actualCoreRuntimeMode = 'ok';
+let actualCoreSelections = [];
+let actualCoreReadRequests = [];
+let actualLegacyRpcCalls = 0;
 
 function loadModule(relativePath) {
   const fullPath = path.resolve(root, relativePath);
@@ -253,6 +257,18 @@ function loadModule(relativePath) {
   modulesCache.set(fullPath, mod);
 
   mod.require = (request) => {
+    if (request === 'server-only') return {};
+    if (request === './private-service-development-binding-v1') return {
+      getCoreServiceAppRuntimeV1: req => actualCoreRuntimeMode === 'missing' ? null : {
+        readServiceApp: async (kind, scope) => {
+          actualCoreReadRequests.push({kind, scope, cookie: req.headers.get('cookie')});
+          if (actualCoreRuntimeMode === 'denied') throw {code: '42501'};
+          if (actualCoreRuntimeMode === 'unauthenticated') throw {code: 'AUTHENTICATION_REQUIRED'};
+          return {value: actualCoreRuntimeMode === 'empty' ? []
+            : actualCoreRuntimeMode === 'malformed' ? [{context_id: 'invalid'}] : actualCoreSelections};
+        },
+      },
+    };
     if (request === '@/lib/core/service-app-read-v1') {
       return {
         coreServiceAppReadV1: async (req, kind) => {
@@ -268,7 +284,7 @@ function loadModule(relativePath) {
             getClaims: async () => ({ data: { claims: { sub: 'mock-sub' } }, error: null }),
           },
           schema: () => ({
-            rpc: async () => ({ data: [], error: null }),
+            rpc: async () => { actualLegacyRpcCalls++; return { data: [], error: null }; },
           }),
         }),
       };
@@ -428,8 +444,44 @@ for (const file of serviceDomainFiles) {
   check(existsSync(path.join(root, file)), `Service domain file ${file} exists and is preserved`);
 }
 
+// These cases load the actual Core read adapter. Only its private Auth/runtime
+// boundary is controlled; the route/helper mapping and projection are real source.
+const actualCoreRead = loadModule('src/lib/core/service-app-read-v1.ts').coreServiceAppReadV1;
+actualCoreSelections = [{context_id: contextIdA, membership_id: uuid(501), tenant_id: uuid(601),
+  workspace_id: workspaceId1, tenant_name: 'Synthetic controlled tenant', role_code: 'property_manager',
+  role_name: 'Property Manager', workspace_type: 'ASSOCIATION', environment: 'PILOT'}];
+mockCoreServiceAppRead = actualCoreRead;
+for (const [mode, expected] of [
+  ['ok', [200, 404, 200]], ['denied', [403, 403, 403]],
+  ['unauthenticated', [401, 401, 401]], ['empty', [200, 403, 403]],
+  ['missing', [503, 503, 503]], ['malformed', [503, 503, 503]],
+]) {
+  actualCoreRuntimeMode = mode; actualCoreReadRequests = []; actualLegacyRpcCalls = 0;
+  const requests = [
+    ['contexts', contextsRoute.GET, '/api/customer/v1/contexts'],
+    ['dashboard', dashboardRoute.GET, `/api/customer/v1/dashboard?context_id=${contextIdA}`],
+    ['targets', targetsRoute.GET, `/api/customer/v1/workspace/targets?context_id=${contextIdA}`],
+  ];
+  for (let index = 0; index < requests.length; index++) {
+    const [name, handler, route] = requests[index];
+    const response = await handler(new NextRequest(`http://localhost:3008${route}`,
+      {headers: {cookie: 'controlled_test_session=synthetic'}}));
+    equal(response.status, expected[index], `Actual Core adapter ${mode}: ${name} status`);
+    equal(response.headers.get('cache-control'), 'no-store, private', `Actual Core ${name}: private no-store`);
+    equal(response.headers.get('vary'), 'Cookie', `Actual Core ${name}: Cookie variance`);
+    if (mode === 'ok' && name === 'dashboard') equal((await response.json()).error.code,
+      'DASHBOARD_NOT_IN_ASSEMBLY_PROFILE', 'Authorized actual Core discovery only exempts the exact dashboard code');
+  }
+  equal(actualLegacyRpcCalls, 0, `Actual Core ${mode}: no legacy RPC fallback`);
+  check(actualCoreReadRequests.every(call => call.kind === 'selections'
+    && call.cookie === 'controlled_test_session=synthetic'), `Actual Core ${mode}: discovery/cookie binding retained`);
+}
+actualCoreRuntimeMode = 'ok';
+mockCoreServiceAppRead = null;
+
 // Restore profile env
-process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE = prevProfile;
+if (prevProfile === undefined) delete process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE;
+else process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE = prevProfile;
 
 // =========================================================================
 // SECTION 5: DYNAMIC APPSHELL RENDER & LIFECYCLE SIMULATION (JSDOM)
@@ -1095,6 +1147,9 @@ try {
     if (urlStr.includes('/api/customer/v1/profile')) {
       return { ok: true, status: 200, json: async () => ({ display_name: 'Elena Vancea' }) };
     }
+    if (urlStr.endsWith('/api/customer/v1/services/assembly-bootstrap')) {
+      return mockCoreServiceAppRead(new NextRequest(`http://localhost:3008${urlStr}`), 'selections');
+    }
     if (urlStr.includes('/api/customer/v1/contexts')) {
       // Discovery always succeeds with 200
       mockCoreServiceAppRead = async () => NextResponse.json({
@@ -1210,7 +1265,7 @@ try {
   check(compWorkspaceSelect !== null, 'COMPOSITION: Workspace selector mounted in CustomerServiceCatalog');
 
   await act(async () => {
-    compWorkspaceSelect.value = workspaceId1;
+    compWorkspaceSelect.value = `${contextIdA}:${workspaceId1}`;
     compWorkspaceSelect.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
     await tick();
   });
@@ -1312,6 +1367,7 @@ check(catalogCode.includes("choose: 'Choose a workspace'"), '[STATIC DICTIONARY]
 
 // 6.2 Dynamic 3-Language DOM Rendering (FA RTL / EN LTR / RO LTR)
 console.log('Rendering 3-language DOM (FA RTL / EN LTR / RO LTR)...');
+delete process.env.NEXT_PUBLIC_CLADORA_OWNED_SERVICE_ASSEMBLY;
 const langDom = new JSDOM('<div id="lang-root"></div>', { url: 'https://cladora.test' });
 globalThis.window = langDom.window;
 globalThis.document = langDom.window.document;
