@@ -1,0 +1,16 @@
+{
+  "kind": "existing-installed-source-observation; dependency contents not packaged",
+  "versions": {"@supabase/supabase-js": "2.112.4", "@supabase/auth-js": "2.112.4", "@supabase/ssr": "0.12.5"},
+  "files": {
+    "@supabase/auth-js/dist/main/lib/constants.js": {"bytes": 2693, "sha256": "9218c8a8da3825083fcb3b105a8c52c1c5a542a865f5abf2ab5185b7b4beabf9"},
+    "@supabase/auth-js/dist/main/lib/fetch.js": {"bytes": 9052, "sha256": "50fa4e318e07a49de1179256e3fa3dc927a6a46664386f0baed30ef80f3c1d0b"},
+    "@supabase/ssr/dist/main/createBrowserClient.js": {"bytes": 3041, "sha256": "90b9547ece379199347bab37f4b55e6e94e7677746ba6aac1c1575afc7f06148"}
+  },
+  "observations": [
+    "Auth fetch builds method/headers/body and sets X-Supabase-Api-Version when absent",
+    "createBrowserClient supplies X-Client-Info",
+    "Fixed consumer does not set cross-origin fetch credentials=include; no new Allow-Credentials is introduced",
+    "The existing exact request-header set is retained; x-supabase-api-version is the explicit addition",
+    "No SDK, Node package, lockfile or installed byte was changed"
+  ]
+}
