@@ -62,6 +62,28 @@ check(overlay.classification === 'SOURCE_RECONCILIATION_NOT_NATIVE_ACCEPTANCE', 
 check(overlay.integrated_source === '1d17c2483eeebf2b0f187fa9ac48ccb9e4757842', 'integration must pin its exact reviewed source');
 const changes = new Map(overlay.changes.map(entry => [entry.path, entry]));
 check(changes.size === 10 && overlay.changes.length === 10, 'only ten reviewed source successors supersede inventory pins');
+const serviceSuccessorPath = 'docs/verification/CE-BENEFIT-HANDOFF-SERVICE-SUCCESSOR-02.json';
+check(sha256(bytes(serviceSuccessorPath)) === '6e50e7f95719d897068d9bb9c884ea255f74ea6dff2bf1849ecb78780762a954',
+  'SERVICE successor reconciliation must retain its exact reviewed identity');
+const serviceSuccessor = JSON.parse(read(serviceSuccessorPath));
+check(serviceSuccessor.schema === 'ce-benefit-handoff-service-successor.v1'
+  && serviceSuccessor.previous_overlay === overlayPath
+  && serviceSuccessor.previous_overlay_sha256 === sha256(bytes(overlayPath)),
+  'SERVICE successor must extend the unchanged historical overlay');
+check(serviceSuccessor.source_commit === '0e07ff13de4d26fa793f55d7ff90df14a47f3b57'
+  && serviceSuccessor.source_tree === 'b8b22f51e85ca456a63390d2a56e113c084938c8'
+  && serviceSuccessor.source_prerequisite === 'ee883b62cf4a318af3450c506931a969623b8987',
+  'SERVICE successor must pin the independently reviewed R3 source');
+check(serviceSuccessor.classification === 'SOURCE_AND_CONTROLLED_ACCEPTANCE_NOT_NATIVE_ACCEPTANCE'
+  && serviceSuccessor.native_browser === 'NOT_RUN_NOT_PASS',
+  'reconciliation must not turn source acceptance into native acceptance');
+const serviceChanges = new Map(serviceSuccessor.changes.map(entry => [entry.path, entry]));
+assertions += 1;
+assert.deepEqual([...serviceChanges.keys()].sort(), [
+  'src/components/customer/CustomerServiceCatalog.tsx',
+  'src/components/customer/CustomerServiceRequests.tsx',
+], 'only the two reviewed SERVICE components may supersede the prior overlay');
+check(serviceSuccessor.changes.length === 2, 'duplicate SERVICE successor entries are forbidden');
 
 check(inventory.schema === 'ce-benefit-presentation-service-handoff-inventory.v1', 'inventory schema must be exact');
 check(inventory.baseline_commit === baselineCommit, 'inventory must pin the reviewed live-main commit');
@@ -114,13 +136,23 @@ for (const entry of inventory.entries) {
     check(successor.before_sha256 === entry.sha256, `successor must bind the historical pin: ${entry.path}`);
     check(/^[a-f0-9]{40}$/.test(successor.source_commit) && /^[a-f0-9]{40}$/.test(successor.source_git_blob),
       `successor must retain exact owner provenance: ${entry.path}`);
-    check(bytes(entry.path).length === successor.after_bytes && sha256(bytes(entry.path)) === successor.after_sha256,
+    const serviceChange = serviceChanges.get(entry.path);
+    if (serviceChange) {
+      check(serviceChange.before_sha256 === successor.after_sha256
+        && serviceChange.source_commit === serviceSuccessor.source_commit
+        && /^[a-f0-9]{40}$/.test(serviceChange.source_git_blob),
+        `SERVICE successor must bind the exact prior pin and reviewed source: ${entry.path}`);
+      serviceChanges.delete(entry.path);
+    }
+    const current = serviceChange ?? successor;
+    check(bytes(entry.path).length === current.after_bytes && sha256(bytes(entry.path)) === current.after_sha256,
       `covered file bytes must match the reviewed owner successor: ${entry.path}`);
     changes.delete(entry.path);
   } else check(sha256(bytes(entry.path)) === entry.sha256, `covered file bytes must match the reviewed inventory: ${entry.path}`);
   computedCounts[entry.classification] += 1;
 }
 check(changes.size === 0, 'no unrelated source may enter the integration overlay');
+check(serviceChanges.size === 0, 'every SERVICE successor must extend a reviewed inventory entry');
 assertions += 1;
 assert.deepEqual(computedCounts, { accepted: 10, inactive: 9, internal_only: 4 }, 'classification counts must be computed from entries');
 assertions += 1;

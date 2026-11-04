@@ -1,0 +1,29 @@
+{
+  "schema": "ce-benefit-handoff-service-successor.v1",
+  "previous_overlay": "docs/verification/CE-BENEFIT-HANDOFF-INTEGRATION-01.json",
+  "previous_overlay_sha256": "de414e403fe45b7c6682c58460a0bcaf6a70aa5200fc6d97735fc05ef4d0498e",
+  "source_commit": "0e07ff13de4d26fa793f55d7ff90df14a47f3b57",
+  "source_tree": "b8b22f51e85ca456a63390d2a56e113c084938c8",
+  "source_prerequisite": "ee883b62cf4a318af3450c506931a969623b8987",
+  "classification": "SOURCE_AND_CONTROLLED_ACCEPTANCE_NOT_NATIVE_ACCEPTANCE",
+  "scope": "Canonical SERVICE selection and UNKNOWN command custody; previous CE ownership, benefit copy and historical inventory remain unchanged.",
+  "native_browser": "NOT_RUN_NOT_PASS",
+  "changes": [
+    {
+      "path": "src/components/customer/CustomerServiceCatalog.tsx",
+      "before_sha256": "dbdc5b9f54ab2af5cd076d1b2a88b1164dd9f1c2f76659131f23a3676abee32a",
+      "after_bytes": 18011,
+      "after_sha256": "f931b78722973c63c1520cefe5e1c24268d527c13ca9a4a0e5224be82d10403f",
+      "source_commit": "0e07ff13de4d26fa793f55d7ff90df14a47f3b57",
+      "source_git_blob": "9d51480381f7f5ebc85f1d89f4c6be2f9aa8a6ff"
+    },
+    {
+      "path": "src/components/customer/CustomerServiceRequests.tsx",
+      "before_sha256": "84bfe5237c2ab138d359b94bdede9f9b76763781c24a3b4e069d88a00154bb6a",
+      "after_bytes": 23047,
+      "after_sha256": "a2b1c51e4751792a170ea6c87ac5e1651ca29e7aea0959a8374c036184ba3c5d",
+      "source_commit": "0e07ff13de4d26fa793f55d7ff90df14a47f3b57",
+      "source_git_blob": "6146beb0de667b4abd4411c4ac521c9328914128"
+    }
+  ]
+}
