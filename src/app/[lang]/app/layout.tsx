@@ -3,6 +3,7 @@ import { isSupportedLocale } from '@/types';
 import { CustomerAppShell } from '@/components/customer/CustomerAppShell';
 import { isSupabaseConfigured } from '@/lib/supabase/env';
 import { createClient } from '@/lib/supabase/server';
+import { isCoreServiceAssemblyProfile } from '@/lib/auth/post-auth-route';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,6 +39,23 @@ export default async function AppLayout(
   const { data: factors, error: factorsError } = await supabase.auth.mfa.listFactors();
   if (factorsError) redirect(`/${lang}/login?reason=security`);
   const hasVerifiedFactor = factors.totp.some((factor) => factor.status === 'verified');
+
+  const isAssembly = isCoreServiceAssemblyProfile();
+  if (isAssembly) {
+    // In approved assembly profile: official Auth API only; MFA is mandatory for accessing protected app.
+    if (!hasVerifiedFactor) {
+      redirect(`/${lang}/mfa/setup?reason=customer_required`);
+    }
+
+    const { data: assurance, error: assuranceError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (assuranceError) redirect(`/${lang}/login?reason=security`);
+    if (assurance.currentLevel !== 'aal2') {
+      redirect(`/${lang}/mfa`);
+    }
+
+    return <CustomerAppShell lang={lang}>{children}</CustomerAppShell>;
+  }
+
   // Customer API Gateway: delegates to platform.my_customer_mfa_requirement
   const { data: mfaRequired, error: requirementError } = await supabase
     .schema('customer_api')
