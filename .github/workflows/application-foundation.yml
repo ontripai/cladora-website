@@ -7,6 +7,9 @@ on:
       - '.gitattributes'
       - 'scripts/test-authenticated-app-07.mjs'
       - 'scripts/test-real-authenticated-service-08.mjs'
+      - 'scripts/test-post-auth-compat-01.mjs'
+      - 'scripts/test-owned-post-auth-boundaries-01.mjs'
+      - 'scripts/functional-dev-relay-port-recovery-v1/**'
       - 'scripts/test-context-denial-regression-02.mjs'
       - 'scripts/test-reviewer-workspace-routing.mjs'
       - 'scripts/test-core-functional-*.mjs'
@@ -92,6 +95,9 @@ on:
       - '.gitattributes'
       - 'scripts/test-authenticated-app-07.mjs'
       - 'scripts/test-real-authenticated-service-08.mjs'
+      - 'scripts/test-post-auth-compat-01.mjs'
+      - 'scripts/test-owned-post-auth-boundaries-01.mjs'
+      - 'scripts/functional-dev-relay-port-recovery-v1/**'
       - 'scripts/test-context-denial-regression-02.mjs'
       - 'scripts/test-reviewer-workspace-routing.mjs'
       - 'scripts/test-core-functional-*.mjs'
@@ -199,6 +205,8 @@ jobs:
           node scripts/test-real-authenticated-service-08.mjs
           node scripts/test-context-denial-regression-02.mjs
           node scripts/test-reviewer-workspace-routing.mjs
+          node scripts/test-post-auth-compat-01.mjs
+          node scripts/test-owned-post-auth-boundaries-01.mjs
       - name: Preserve Core15 checkpoint identities at their reviewed source revision
         run: |
           checkpoint=29ed18541c602dae4e6db5c98a96201250af630b
@@ -286,6 +294,7 @@ jobs:
           python -B scripts/service-consumer-rehearsal-17/test_continuation.py
           python -B scripts/service-consumer-rehearsal-17/test_integrated_app_adoption.py
           python -B scripts/functional-dev-relay-cors-v2/test_cors_v2.py
+          python -B scripts/functional-dev-relay-port-recovery-v1/test_port_recovery.py
           node scripts/service-consumer-rehearsal-17/test_api_continuation.mjs
       - run: npm run test:ce:member-benefit-terminology
       - run: npm run test:ce:benefit-ownership-reconciliation
