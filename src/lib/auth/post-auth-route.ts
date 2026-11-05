@@ -14,7 +14,9 @@ export const isPublicServiceAssemblyProfile = (): boolean =>
   process.env.NEXT_PUBLIC_CLADORA_OWNED_SERVICE_ASSEMBLY === 'v1';
 
 export const isServiceAssemblyProfile = (): boolean =>
-  isCoreServiceAssemblyProfile() || isPublicServiceAssemblyProfile();
+  typeof window === 'undefined'
+    ? isCoreServiceAssemblyProfile()
+    : isPublicServiceAssemblyProfile();
 
 const ALLOWED_NEXT_KEYS = new Set([
   'workspace-access',
@@ -33,6 +35,7 @@ export function sanitizeAllowedNextRoute(
   isAssembly: boolean = isServiceAssemblyProfile(),
 ): string | null {
   if (!rawNext || typeof rawNext !== 'string') return null;
+  if (Array.from(rawNext).some((char) => char.charCodeAt(0) < 32 || char.charCodeAt(0) === 127)) return null;
   const trimmed = rawNext.trim();
   if (!trimmed) return null;
 
@@ -56,7 +59,9 @@ export function sanitizeAllowedNextRoute(
     return null;
   }
 
-  if (cleanKey === 'account' && isAssembly) {
+  // This assembly contains the SERVICE journey; other destinations retain
+  // their own legacy producers only in standard profiles.
+  if (isAssembly) {
     return getCustomerServicesRoute(lang);
   }
   if (cleanKey === 'services' || cleanKey === 'app/services') {

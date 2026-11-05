@@ -676,7 +676,7 @@ for (const lang of ['fa', 'en', 'ro']) {
   const alertEl = container.querySelector('[role="alert"]');
   check(alertEl !== null, `${lang}: User-facing alert message rendered on routing failure`);
 
-  reactRoot.unmount();
+  await act(async () => { reactRoot.unmount(); });
   container.remove();
 }
 
@@ -710,15 +710,15 @@ for (const lang of ['fa', 'en', 'ro']) {
     equal(sanitized, null, `Rejected unsafe next input: "${bad}" in ${lang}`);
   }
 
-  // Allowed legitimate relative targets
-  equal(sanitizeAllowedNextRoute('workspace-access', lang), `/${lang}/workspace-access`, 'workspace-access accepted');
-  equal(sanitizeAllowedNextRoute(`/${lang}/workspace-access`, lang), `/${lang}/workspace-access`, 'full relative path accepted');
-  equal(sanitizeAllowedNextRoute('cases', lang), `/${lang}/cases`, 'cases accepted');
-  equal(sanitizeAllowedNextRoute('invitation-continuation', lang), `/${lang}/invitation-continuation`, 'invitation-continuation accepted');
-  equal(sanitizeAllowedNextRoute('owner-portfolio', lang), `/${lang}/owner-portfolio`, 'owner-portfolio accepted');
-  equal(sanitizeAllowedNextRoute('pilot-reviewer', lang), `/${lang}/pilot-reviewer`, 'pilot-reviewer accepted');
-  equal(sanitizeAllowedNextRoute('services', lang), `/${lang}/app/services`, 'services mapped to /app/services');
-  equal(sanitizeAllowedNextRoute('app/services', lang), `/${lang}/app/services`, 'app/services mapped to /app/services');
+  // Allowed legitimate relative targets in the standard profile
+  equal(sanitizeAllowedNextRoute('workspace-access', lang, false), `/${lang}/workspace-access`, 'workspace-access accepted');
+  equal(sanitizeAllowedNextRoute(`/${lang}/workspace-access`, lang, false), `/${lang}/workspace-access`, 'full relative path accepted');
+  equal(sanitizeAllowedNextRoute('cases', lang, false), `/${lang}/cases`, 'cases accepted');
+  equal(sanitizeAllowedNextRoute('invitation-continuation', lang, false), `/${lang}/invitation-continuation`, 'invitation-continuation accepted');
+  equal(sanitizeAllowedNextRoute('owner-portfolio', lang, false), `/${lang}/owner-portfolio`, 'owner-portfolio accepted');
+  equal(sanitizeAllowedNextRoute('pilot-reviewer', lang, false), `/${lang}/pilot-reviewer`, 'pilot-reviewer accepted');
+  equal(sanitizeAllowedNextRoute('services', lang, false), `/${lang}/app/services`, 'services mapped to /app/services');
+  equal(sanitizeAllowedNextRoute('app/services', lang, false), `/${lang}/app/services`, 'app/services mapped to /app/services');
 
   // In assembly profile, 'account' safely maps to /app/services
   equal(sanitizeAllowedNextRoute('account', lang, true), `/${lang}/app/services`, 'assembly profile maps account to /app/services');
