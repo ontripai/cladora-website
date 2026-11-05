@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
-import { isSupportedLocale } from '@/types';
+import { isSupportedLocale, type Language } from '@/types';
 import { SignOutButton } from '@/components/auth/SignOutButton';
 import { listServiceReviewTargets } from '@/lib/customer/service-catalog-review-targets';
+import { isCoreServiceAssemblyProfile, getCustomerServicesRoute } from '@/lib/auth/post-auth-route';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { robots: { index: false, follow: false } };
@@ -21,6 +22,9 @@ export default async function AccountPage({params,searchParams}:{params:Promise<
   const {data:aal,error:aalError}=await db.auth.mfa.getAuthenticatorAssuranceLevel();
   if(aalError||!aal) redirect(`/${lang}/login?reason=security`);
   if(aal.currentLevel!=='aal2') redirect(`/${lang}/mfa`);
+  if (typeof isCoreServiceAssemblyProfile === 'function' && isCoreServiceAssemblyProfile()) {
+    redirect(typeof getCustomerServicesRoute === 'function' ? getCustomerServicesRoute(lang as Language) : `/${lang}/app/services`);
+  }
   const {data:pendingUnitInvites,error:pendingError}=await db.schema('customer_api').rpc('list_my_unit_invitations_v1' as never);
   const hasPendingInvites=!pendingError&&Array.isArray(pendingUnitInvites as unknown)&&(pendingUnitInvites as unknown[]).length>0;
   const [platform,owner,contexts,reviewer]=await Promise.all([
