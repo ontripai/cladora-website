@@ -9,11 +9,12 @@ import {spawn,execFileSync} from 'node:child_process';
 import {createRequire} from 'node:module';
 import {createHash} from 'node:crypto';
 import {fileURLToPath} from 'node:url';
-import {core17RelayPreflightV2,CORE17_RELAY_ABI_V2} from './lib/core-service-relay-cors-v2-preflight.mjs';
+import {CORE17_RELAY_ABI_V2} from './lib/core-service-relay-cors-v2-preflight.mjs';
+import {core17ConsumerAdoptionPreflightV1} from './lib/core17-exact-consumer-admission-v1.mjs';
 const phase=process.argv[2];assert.ok(['build','start'].includes(phase));assert.equal(process.argv.length,3);
 const root='/workspace/private/cladora-functional-dev-v1',read=n=>JSON.parse(readFileSync(root+'/'+n));
 assert.equal(CORE17_RELAY_ABI_V2,'platform17.relay-cors-preflight.v2');
-if(!core17RelayPreflightV2(fileURLToPath(new URL('../',import.meta.url)),process.env)){
+if(!core17ConsumerAdoptionPreflightV1(fileURLToPath(new URL('../',import.meta.url)),process.env)){
  execFileSync('python3',['-I','-B','-c',"import importlib.util;from pathlib import Path;p=Path('/workspace/work/platform12-core15-input-794f5a1/scripts/functional-dev-stack-v1/stack.py');s=importlib.util.spec_from_file_location('p12',p);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);m.state();m.cid('pg');m.gateway_process()"],{stdio:'pipe'});
 }
 for(const [receipt,source] of [['core17-install-receipt.json','read-access.sql'],['core17-catalog-compatibility-receipt.json','catalog-compatibility.sql']]){const r=read(receipt);assert.equal(r.state,'COMMIT_AND_READYFORQUERY_I');assert.equal(r.sha256,createHash('sha256').update(readFileSync(new URL('../supabase/install/core-service-app-assembly-v1/'+source,import.meta.url))).digest('hex'));}
