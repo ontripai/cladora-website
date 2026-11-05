@@ -66,6 +66,24 @@ try{
   ['different observed HEAD',(cmd,args,opts)=>cmd==='git'&&opts.cwd===consumer&&args[0]==='rev-parse'&&args[1]==='HEAD'?'d'.repeat(40):undefined],
  ])check(name+' stops before relay check',()=>{const e=executor(hook);assert.throws(()=>core17ConsumerAdoptionPreflightV1(consumer,materialize(),e.run));assert.equal(e.calls.filter(c=>c.cmd==='python3').length,0);});
  check('source drift after transport wait cannot become success',()=>{let after=false;const e=executor((cmd,args,opts)=>{if(cmd==='python3')after=true;if(after&&cmd==='git'&&opts.cwd===consumer&&args[0]==='rev-parse'&&args[1]==='HEAD')return'd'.repeat(40);});assert.throws(()=>core17ConsumerAdoptionPreflightV1(consumer,materialize(),e.run));});
+ for(const kind of ['removed','bytes','permission','symlink','hardlink'])check('admission '+kind+' during transport wait stops readiness without fallback',()=>{
+  const env=materialize(),alias=join(directory,'wait-replacement.json');
+  const e=executor(cmd=>{if(cmd==='python3'){
+   if(kind==='removed')rmSync(path);
+   if(kind==='bytes')writeFileSync(path,JSON.stringify({...record,origin:'http://unadmitted.local'})+'\n');
+   if(kind==='permission')chmodSync(path,0o644);
+   if(kind==='symlink'){copyFileSync(path,alias);rmSync(path);symlinkSync(alias,path);}
+   if(kind==='hardlink')linkSync(path,alias);
+  }});
+  try{assert.throws(()=>core17ConsumerAdoptionPreflightV1(consumer,env,e.run));assert.equal(e.calls.filter(c=>c.cmd==='python3').length,1);}
+  finally{rmSync(path,{force:true});rmSync(alias,{force:true});materialize();}
+ });
+ check('final admission check follows all final source checks',()=>{
+  const env=materialize();let after=false;
+  const e=executor((cmd,args,options)=>{if(cmd==='python3')after=true;if(after&&cmd==='git'&&options.cwd===transport&&args[0]==='ls-files')rmSync(path);});
+  try{assert.throws(()=>core17ConsumerAdoptionPreflightV1(consumer,env,e.run));assert.equal(e.calls.filter(c=>c.cmd==='python3').length,1);}
+  finally{materialize();}
+ });
  check('protected authority/source drift stops before relay dispatch',()=>{const p=join(consumer,CORE17_CONSUMER_PROTECTED_SOURCES[2]),old=readFileSync(p);writeFileSync(p,'synthetic wrong source');try{const e=executor();assert.throws(()=>core17ConsumerAdoptionPreflightV1(consumer,materialize(),e.run));assert.equal(e.calls.filter(c=>c.cmd==='python3').length,0);}finally{writeFileSync(p,old);}});
  check('custody requires private file mode',()=>{const env=materialize();chmodSync(path,0o644);assert.throws(()=>readCore17ConsumerAdmissionV1(path,env.CLADORA_CORE17_CONSUMER_ADMISSION_SHA256));});
  for(const kind of ['symlink','hardlink'])check('reject admission '+kind,()=>{const env=materialize(),alias=join(directory,kind+'.json');if(kind==='symlink')symlinkSync(path,alias);else linkSync(path,alias);try{assert.throws(()=>readCore17ConsumerAdmissionV1(alias,env.CLADORA_CORE17_CONSUMER_ADMISSION_SHA256));}finally{rmSync(alias);}});

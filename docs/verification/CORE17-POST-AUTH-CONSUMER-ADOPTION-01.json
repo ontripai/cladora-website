@@ -26,27 +26,27 @@
       "path": "docs/contracts/CORE17-POST-AUTH-CONSUMER-ADOPTION-01.md",
       "before": null,
       "after": {
-        "bytes": 11741,
-        "sha256": "8d8ab374404111f631658150b16590e3aafd6822a5957e1344542757e52a2503",
-        "git_blob": "fbe70f99d46c21f9b5381dff4153ffecf591b1cf"
+        "bytes": 12759,
+        "sha256": "98ca10dfbcfcc9dc50be7433f5cba0f0c7161e074a5a59288010650bfa5d0f1a",
+        "git_blob": "f6bb01ee80275262dc0f1ae0c766f9082615e055"
       }
     },
     {
       "path": "scripts/check-core17-post-auth-consumer-adoption.mjs",
       "before": null,
       "after": {
-        "bytes": 3536,
-        "sha256": "3cca531b0b71ff01a53d008999b279bd515f32eeda0727974609af6c16be5352",
-        "git_blob": "d7117b1330749b4363f63cb7ae51b1df34c65df1"
+        "bytes": 3684,
+        "sha256": "44db250cece52319585dd21376799a8ab75d1976b7bc5d2cd18938ac75928f85",
+        "git_blob": "dcb7957d229d9eabb0a981a9e99e06335a31b2c6"
       }
     },
     {
       "path": "scripts/lib/core17-exact-consumer-admission-v1.mjs",
       "before": null,
       "after": {
-        "bytes": 8920,
-        "sha256": "446fe8d404a438fc70351a234b8dc37639a4998bd43b42680fbf090e0904feae",
-        "git_blob": "20f84a2a1547f152a1d760fff3ff4bac3a7719b9"
+        "bytes": 9184,
+        "sha256": "e131b28e01f86487ec2ebd7ca10e9f6724d234ec013cb70fa3fa49b502da6b00",
+        "git_blob": "25bd032282998a0aec08baf1e79478e7ccc596f1"
       }
     },
     {
@@ -66,9 +66,9 @@
       "path": "scripts/test-core17-consumer-admission-v1.mjs",
       "before": null,
       "after": {
-        "bytes": 10896,
-        "sha256": "07a6ac96d21e22a0629a5586950fa9e9f6c50c26339212291e0247d53305f1d9",
-        "git_blob": "3964034e16d70a186072b994e954df8fd9ee6aa9"
+        "bytes": 12176,
+        "sha256": "3bee0d82f6a85b5b967ddf89f882fae308b045e8a4653279ffc190dc1b3c37ac",
+        "git_blob": "aa2cdf9f959e116a7c0f48d6784b6003db9975a7"
       }
     },
     {
@@ -294,12 +294,16 @@
     }
   ],
   "checks": {
-    "consumer_admission": 39,
+    "consumer_admission": 45,
     "post_auth_contract": 19,
     "typecheck": "PASS_ES5",
     "lint": "PASS_LIMITED",
     "syntax": "PASS",
-    "diff": "PASS"
+    "diff": "PASS",
+    "post_auth_contract_provenance": {
+      "FullSHA": "8667d6c3913ece6096717870b522c274eb20a17e",
+      "result": "19_ACCEPTED_PREVIOUSLY_NOT_RERUN"
+    }
   },
   "NOT_RUN": [
     "native preflight",
@@ -331,5 +335,21 @@
       "consumed_by": "both build and start selectors"
     }
   ],
-  "automation": "نیازمند بررسی"
+  "automation": "نیازمند بررسی",
+  "review_revision": {
+    "parent": "8667d6c3913ece6096717870b522c274eb20a17e",
+    "finding": "CORE17-CONSUMER-F01",
+    "change": "Re-read exact selected admission via existing custody reader after all final source checks immediately before readiness",
+    "new_cases": 6,
+    "Auth_MFA_business_authority": "UNCHANGED_ACCEPTED_NOT_RERUN",
+    "native": "NOT_RUN_NOT_PASS",
+    "typescript": "UNCHANGED_NO_NEW_TYPECHECK_REQUIRED",
+    "delta_paths": [
+      "docs/contracts/CORE17-POST-AUTH-CONSUMER-ADOPTION-01.md",
+      "docs/verification/CORE17-POST-AUTH-CONSUMER-ADOPTION-01.json",
+      "scripts/check-core17-post-auth-consumer-adoption.mjs",
+      "scripts/lib/core17-exact-consumer-admission-v1.mjs",
+      "scripts/test-core17-consumer-admission-v1.mjs"
+    ]
+  }
 }

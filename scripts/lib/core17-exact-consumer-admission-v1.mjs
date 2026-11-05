@@ -104,5 +104,8 @@ export function core17ConsumerAdoptionPreflightV1(appRoot,environment,execute=ex
  // Recheck local source identities after the transport await as well.
  const final=observeApp(root,execute,env),finalAnchor=observeApp(record.transport.app.root,execute,env);
  validateCore17ConsumerAdmissionV1(record,{...provisional,consumer:final.identity,transport:finalAnchor.identity});
+ // Final readiness premise: the same selected admission still has valid
+ // custody and exact bytes after transport and every final source check.
+ assert.deepEqual(readCore17ConsumerAdmissionV1(selection.path,selection.digest),record,'CORE17_ADMISSION_CHANGED');
  return true;
 }

@@ -179,3 +179,20 @@ record/checker belongs to its recorded B696 source; it is not rewritten to make
 an old launcher seal describe this new launcher. The new source inventory and
 preserved pin closure are checked by
 `node scripts/check-core17-post-auth-consumer-adoption.mjs`.
+
+## R1 — CORE17-CONSUMER-F01
+
+Direct Parent: `8667d6c3913ece6096717870b522c274eb20a17e`.
+After the original transport preflight and every final source identity check,
+read the exact same selected admission path/digest through the existing custody
+reader again. Compare it with the original admission immediately before returning
+readiness. Any missing file, wrong owner/mode/link/hash or changed admission
+stops readiness; no fallback follows that failure. There is no intervening
+transport/source operation after this final read. This is an observation at that
+boundary, not a guarantee against a later filesystem change after return.
+
+The admission suite now passes 45 controlled cases, including stable success,
+removal/changed bytes/open permissions/symlink/hardlink during transport wait and
+removal during the final source checks. Existing source-drift and original
+transport-failure controls remain. The 19 accepted Auth/MFA controls were not
+rerun or relabeled. Native/activation remains `NOT_RUN_NOT_PASS`.

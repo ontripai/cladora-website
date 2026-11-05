@@ -31,7 +31,9 @@ function validate(m){
  for(const p of m.preserved_source_pins){assert.equal(p.unchanged,true);assert.equal(sha(readFileSync(p.path)),p.sha256,p.path);}
  assert.equal(m.transport_anchor.sha,m.source_base);assert.equal(m.transport_anchor.tree,'534ec94f21699a65686bade5539517dfd818ec1e');
  assert.equal(m.transport_anchor.launcher_sha256,'5a25abd1847b7ff928fb310b14f9aadbfcda554eb1c29d1a146e66e6cb944092');
- assert.equal(m.checks.consumer_admission,39);assert.equal(m.checks.post_auth_contract,19);
+ assert.equal(m.checks.consumer_admission,45);
+ assert.equal(m.review_revision.parent,'8667d6c3913ece6096717870b522c274eb20a17e');
+ assert.equal(m.review_revision.finding,'CORE17-CONSUMER-F01');assert.equal(m.checks.post_auth_contract,19);
  assert.equal(m.authorization,'AUTH_MFA_PRE_AAL2_IS_NOT_BUSINESS_AUTHORITY');
  return true;
 }
