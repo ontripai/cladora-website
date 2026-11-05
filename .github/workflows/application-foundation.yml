@@ -15,6 +15,11 @@ on:
       - 'scripts/check-core-service-assembly-17.mjs'
       - 'scripts/run-core-service-app-assembly-17.mjs'
       - 'scripts/check-core-service-relay-cors-v2.mjs'
+      - 'scripts/lib/core17-exact-consumer-admission-v1.mjs'
+      - 'scripts/test-core17-*.mjs'
+      - 'scripts/check-core17-post-auth-consumer-adoption.mjs'
+      - 'docs/contracts/CORE17-POST-AUTH-CONSUMER-ADOPTION-01.md'
+      - 'docs/verification/CORE17-POST-AUTH-CONSUMER-ADOPTION-01.json'
       - 'scripts/lib/core-service-relay-cors-v2-preflight.mjs'
       - 'scripts/functional-dev-relay-cors-v2/**'
       - 'docs/contracts/CORE17-RELAY-CORS-LAUNCHER-01.md'
@@ -95,6 +100,11 @@ on:
       - 'scripts/check-core-service-assembly-17.mjs'
       - 'scripts/run-core-service-app-assembly-17.mjs'
       - 'scripts/check-core-service-relay-cors-v2.mjs'
+      - 'scripts/lib/core17-exact-consumer-admission-v1.mjs'
+      - 'scripts/test-core17-*.mjs'
+      - 'scripts/check-core17-post-auth-consumer-adoption.mjs'
+      - 'docs/contracts/CORE17-POST-AUTH-CONSUMER-ADOPTION-01.md'
+      - 'docs/verification/CORE17-POST-AUTH-CONSUMER-ADOPTION-01.json'
       - 'scripts/lib/core-service-relay-cors-v2-preflight.mjs'
       - 'scripts/functional-dev-relay-cors-v2/**'
       - 'docs/contracts/CORE17-RELAY-CORS-LAUNCHER-01.md'
@@ -229,6 +239,24 @@ jobs:
             cd "$core17_checkpoint_dir"
             node scripts/check-core-service-assembly-17.mjs
           )
+      - name: Preserve the reviewed transport launcher at its B696 checkpoint
+        run: |
+          relay_checkpoint=b696ff211daabd4be3989522c569f24ccccd0dce
+          git diff --exit-code "$relay_checkpoint" HEAD -- \
+            scripts/check-core-service-relay-cors-v2.mjs \
+            docs/verification/CORE17-RELAY-CORS-LAUNCHER-01.json
+          relay_checkpoint_dir="$RUNNER_TEMP/cladora-relay-checkpoint-b696ff2"
+          git worktree add --detach "$relay_checkpoint_dir" "$relay_checkpoint"
+          ln -s "$GITHUB_WORKSPACE/node_modules" "$relay_checkpoint_dir/node_modules"
+          cleanup_relay_checkpoint() {
+            rm "$relay_checkpoint_dir/node_modules"
+            git worktree remove "$relay_checkpoint_dir"
+          }
+          trap cleanup_relay_checkpoint EXIT
+          (
+            cd "$relay_checkpoint_dir"
+            node scripts/check-core-service-relay-cors-v2.mjs
+          )
       - name: Integrated Core session and command source (controlled; no native execution)
         run: |
           node scripts/test-core-functional-runtime-v1.mjs
@@ -239,7 +267,9 @@ jobs:
           node scripts/test-core-installer-credential-binding-17.mjs
           node scripts/test-core-service-assembly-review-r1.mjs
           node scripts/test-core-service-app-assembly-17.mjs
-          node scripts/check-core-service-relay-cors-v2.mjs
+          node scripts/check-core17-post-auth-consumer-adoption.mjs
+          node scripts/test-core17-consumer-admission-v1.mjs
+          node scripts/test-core17-post-auth-security-contract.mjs
           node scripts/test-core-service-relay-cors-v2-preflight.mjs
       - name: Inactive Operations and Platform source (offline; no ACL or target changes)
         run: |
