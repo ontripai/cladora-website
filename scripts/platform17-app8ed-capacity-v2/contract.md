@@ -3,7 +3,9 @@
 This version continues Task17/08/09 using the reviewed lifecycle engine,
 capacity watcher, owned Node observation and existing consumer-admission ABI.
 The old tool checkout, running preload, receipts, claims and permissions remain
-immutable. The replacement App is a separate clean checkout, never tool HEAD.
+immutable. The replacement App is a separate clean checkout, never tool HEAD. This tool
+successor adds only exact test-fixture provenance after the previous tool; the
+reviewed replacement application SHA/tree and runtime source stay unchanged.
 
 ## Exact profile
 
@@ -12,7 +14,7 @@ immutable. The replacement App is a separate clean checkout, never tool HEAD.
 | Replacement App | `fd7bc8799ce8aba970bb74e2a9035d4ee41e5119` |
 | Replacement tree | `6a660dc056e73dc547d9fd6b12fc0d83eca66ea2` |
 | Replacement direct parent | `79e2db9c42c61a217069f8e7412cc17179d720b3` |
-| Tool direct parent | Replacement App above |
+| Tool direct parent | `349634a13476690c5393f8c77917fd6a0a5bfe48` |
 | Active old App | `f2b3c01f1ffb49b202d5f5a8409137e4ec6643d2` |
 | Active old tree | `bf01acfaeba53c009ad6f9f6eeb2dcabffee7a5a` |
 | App launcher SHA256 | `cb887091c9045fba6b9eeb5ad2502ca6206006aa220b123d4594de8526828a5d` |
