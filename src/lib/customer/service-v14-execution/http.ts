@@ -11,6 +11,7 @@ import {
 
 const HEADERS = { 'Cache-Control': 'no-store, private', Pragma: 'no-cache', Vary: 'Cookie' };
 const MAX_BODY_BYTES = 32 * 1024;
+const CORE_AUTH_FAILURE_CODES = new Set(['AUTHENTICATION_REQUIRED', 'ACTOR_BINDING_MISMATCH']);
 
 export type ServiceOfferingRequestFlowPortResolverV1 = (
   request: NextRequest,
@@ -23,6 +24,21 @@ type ServiceOfferingRequestFlowBindingV1 =
 
 function failure(code: string, status: number) {
   return NextResponse.json({ error: { code } }, { status, headers: HEADERS });
+}
+
+function resolverFailure(error: unknown) {
+  let code: unknown;
+  if (typeof error === 'object' && error !== null) {
+    try {
+      const descriptor = Object.getOwnPropertyDescriptor(error, 'code');
+      code = descriptor && 'value' in descriptor ? descriptor.value : undefined;
+    } catch {
+      code = undefined;
+    }
+  }
+  return typeof code === 'string' && CORE_AUTH_FAILURE_CODES.has(code)
+    ? failure('UNAUTHORIZED', 401)
+    : failure('RUNTIME_BINDING_INACTIVE', 503);
 }
 
 function preflightResponse(result: Awaited<ReturnType<typeof preflightServiceOfferingRequestV1>>) {
@@ -59,8 +75,8 @@ export function createServiceOfferingRequestFlowHandlers(
       let ports: ServiceOfferingRequestFlowPortsV1 | null;
       try {
         ports = await resolvePorts(request);
-      } catch {
-        return failure('RUNTIME_BINDING_INACTIVE', 503);
+      } catch (error) {
+        return resolverFailure(error);
       }
       if (ports === null) return failure('RUNTIME_BINDING_INACTIVE', 503);
       return preflightResponse(await preflightServiceOfferingRequestV1(input.data, ports));
@@ -95,8 +111,8 @@ export function createServiceOfferingRequestFlowHandlers(
       let ports: ServiceOfferingRequestFlowPortsV1 | null;
       try {
         ports = await resolvePorts(request);
-      } catch {
-        return failure('RUNTIME_BINDING_INACTIVE', 503);
+      } catch (error) {
+        return resolverFailure(error);
       }
       if (ports === null) return failure('RUNTIME_BINDING_INACTIVE', 503);
       const result = await submitServiceOfferingRequestV1(input.data, ports);
