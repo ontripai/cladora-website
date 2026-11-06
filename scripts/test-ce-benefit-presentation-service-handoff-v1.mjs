@@ -85,6 +85,29 @@ assert.deepEqual([...serviceChanges.keys()].sort(), [
 ], 'only the two reviewed SERVICE components may supersede the prior overlay');
 check(serviceSuccessor.changes.length === 2, 'duplicate SERVICE successor entries are forbidden');
 
+const custodySuccessorPath = 'docs/verification/CE-BENEFIT-HANDOFF-SERVICE-SUCCESSOR-03.json';
+check(sha256(bytes(custodySuccessorPath)) === '9b39cf1464da4ddf0055fd767d55973b47b1adefbb3f80ece551442160fdb9c3',
+  'pending-custody successor must retain its exact reviewed identity');
+const custodySuccessor = JSON.parse(read(custodySuccessorPath));
+check(custodySuccessor.schema === 'ce-benefit-handoff-service-custody-successor.v1'
+  && custodySuccessor.previous_service_successor === serviceSuccessorPath
+  && custodySuccessor.previous_service_successor_sha256 === sha256(bytes(serviceSuccessorPath)),
+  'pending-custody successor must extend the unchanged prior SERVICE successor');
+check(custodySuccessor.source_commit === '79e2db9c42c61a217069f8e7412cc17179d720b3'
+  && custodySuccessor.source_tree === 'e3eb47f6b56111e8a079122731697d15c10b7edd'
+  && custodySuccessor.source_prerequisite === 'e5fe6eabd3a0d77128f0863b7a5ac9ce35535436',
+  'pending-custody successor pins the exact source review');
+check(custodySuccessor.classification === 'SOURCE_AND_CONTROLLED_ACCEPTANCE_NOT_NATIVE_ACCEPTANCE'
+  && custodySuccessor.native_browser === 'NOT_RUN_NOT_PASS',
+  'source reconciliation cannot claim native reload acceptance');
+const custodyChanges = new Map(custodySuccessor.changes.map(entry => [entry.path, entry]));
+assertions += 1;
+assert.deepEqual([...custodyChanges.keys()].sort(), [...serviceChanges.keys()].sort(),
+  'only the same two SERVICE components supersede the prior successor');
+check(custodyChanges.size === 2 && custodySuccessor.changes.length === 2,
+  'pending-custody successor may not contain duplicate or unrelated files');
+
+
 check(inventory.schema === 'ce-benefit-presentation-service-handoff-inventory.v1', 'inventory schema must be exact');
 check(inventory.baseline_commit === baselineCommit, 'inventory must pin the reviewed live-main commit');
 check(inventory.baseline_tree === baselineTree, 'inventory must pin the reviewed live-main tree');
@@ -144,7 +167,15 @@ for (const entry of inventory.entries) {
         `SERVICE successor must bind the exact prior pin and reviewed source: ${entry.path}`);
       serviceChanges.delete(entry.path);
     }
-    const current = serviceChange ?? successor;
+    const custodyChange = custodyChanges.get(entry.path);
+    if (custodyChange) {
+      check(serviceChange && custodyChange.before_sha256 === serviceChange.after_sha256
+        && custodyChange.source_commit === custodySuccessor.source_commit
+        && /^[a-f0-9]{40}$/.test(custodyChange.source_git_blob),
+        `pending-custody successor must bind the exact preceding SERVICE bytes: ${entry.path}`);
+      custodyChanges.delete(entry.path);
+    }
+    const current = custodyChange ?? serviceChange ?? successor;
     check(bytes(entry.path).length === current.after_bytes && sha256(bytes(entry.path)) === current.after_sha256,
       `covered file bytes must match the reviewed owner successor: ${entry.path}`);
     changes.delete(entry.path);
@@ -153,6 +184,7 @@ for (const entry of inventory.entries) {
 }
 check(changes.size === 0, 'no unrelated source may enter the integration overlay');
 check(serviceChanges.size === 0, 'every SERVICE successor must extend a reviewed inventory entry');
+check(custodyChanges.size === 0, 'every pending-custody successor must extend the preceding SERVICE entry');
 assertions += 1;
 assert.deepEqual(computedCounts, { accepted: 10, inactive: 9, internal_only: 4 }, 'classification counts must be computed from entries');
 assertions += 1;
