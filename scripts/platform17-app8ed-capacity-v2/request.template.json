@@ -7,9 +7,9 @@
     "seal_sha256": null
   },
   "consumer": {
-    "root": "/workspace/work/platform17-consumer-aa5f5b8f",
-    "sha": "aa5f5b8f1feeb6f81b340abd807456398fe1310d",
-    "tree": "7df8b81b18638b4d0051886b600f08babbf23d62",
+    "root": "/workspace/work/platform17-consumer-fd7bc879",
+    "sha": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119",
+    "tree": "6a660dc056e73dc547d9fd6b12fc0d83eca66ea2",
     "launcher_sha256": "cb887091c9045fba6b9eeb5ad2502ca6206006aa220b123d4594de8526828a5d"
   },
   "old_app": {
@@ -33,7 +33,7 @@
     }
   },
   "admission": {
-    "file": "/workspace/private/platform-service-consumer-rehearsal-17/exact-consumer-aa5f5b8f-01/consumer-admission.json",
+    "file": "/workspace/private/platform-service-consumer-rehearsal-17/exact-consumer-fd7bc879-01/consumer-admission.json",
     "sha256": null
   },
   "transport": {

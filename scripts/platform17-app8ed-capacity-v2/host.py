@@ -17,7 +17,7 @@ import urllib.request
 
 HERE = Path(__file__).resolve().parent
 TOOL = HERE.parents[1]
-TOOL_PARENT = 'aa5f5b8f1feeb6f81b340abd807456398fe1310d'
+TOOL_PARENT = 'fd7bc8799ce8aba970bb74e2a9035d4ee41e5119'
 APP_PORT = 3008
 OBSERVATION_HEADER = 'x-cladora-start-observation'
 AUTHORITY_ROOT = Path('/workspace/private/platform17-service-custody-adoption-01')

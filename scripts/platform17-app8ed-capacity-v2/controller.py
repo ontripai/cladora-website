@@ -6,11 +6,11 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-BASE = "aa5f5b8f1feeb6f81b340abd807456398fe1310d"
+BASE = "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
 OLD = "f2b3c01f1ffb49b202d5f5a8409137e4ec6643d2"
-MIDDLE = "e5fe6eabd3a0d77128f0863b7a5ac9ce35535436"
+MIDDLE = "79e2db9c42c61a217069f8e7412cc17179d720b3"
 OLD_TREE = "bf01acfaeba53c009ad6f9f6eeb2dcabffee7a5a"
-NEW_TREE = "7df8b81b18638b4d0051886b600f08babbf23d62"
+NEW_TREE = "6a660dc056e73dc547d9fd6b12fc0d83eca66ea2"
 LAUNCHER = "cb887091c9045fba6b9eeb5ad2502ca6206006aa220b123d4594de8526828a5d"
 CORE = "ee883b62cf4a318af3450c506931a969623b8987"
 ANCHOR = "b696ff211daabd4be3989522c569f24ccccd0dce"
@@ -20,10 +20,10 @@ EARLY_STOP = RESERVE + 134217728
 URGENT_KILL = RESERVE + 67108864
 POLL = .05
 DEADLINE = 600
-APP_ROOT = "/workspace/work/platform17-consumer-aa5f5b8f"
+APP_ROOT = "/workspace/work/platform17-consumer-fd7bc879"
 OLD_ROOT = "/workspace/work/platform17-consumer-f2b3c01f"
 ANCHOR_ROOT = "/workspace/work/platform17-integrated-app-b696ff21"
-PRIVATE = "/workspace/private/platform-service-consumer-rehearsal-17/exact-consumer-aa5f5b8f-01"
+PRIVATE = "/workspace/private/platform-service-consumer-rehearsal-17/exact-consumer-fd7bc879-01"
 ADMISSION = PRIVATE + "/consumer-admission.json"
 RUNTIME = "/workspace/private/cladora-functional-dev-v1"
 OLD_RECORD = PRIVATE + "/active-appf2.observation.private.json"

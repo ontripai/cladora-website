@@ -1,26 +1,26 @@
 {
   "contract": "platform17.app8ed-controller.source-seal.v2",
-  "source_base": "aa5f5b8f1feeb6f81b340abd807456398fe1310d",
+  "source_base": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119",
   "files": [
     {
       "path": "scripts/platform17-app8ed-capacity-v2/controller.py",
       "bytes": 13015,
-      "sha256": "8bcc657933e64a39e51cd3809e61eca1bf286b8b76fa4ad9dcec1b6ff4bf8c00"
+      "sha256": "34019b8d1ff154a7801f9dfecf55bc74da025575ac1390291dd901352e22aede"
     },
     {
       "path": "scripts/platform17-app8ed-capacity-v2/host.py",
       "bytes": 35665,
-      "sha256": "8e2125b7823f10a3ff9b5e6886c3de71c48bc1789f820575bb77c4accacf2821"
+      "sha256": "1910dd708fa8a6f998a436ef0c79fed50b5cae4f2e06ed290dc8aff006afeade"
     },
     {
       "path": "scripts/platform17-app8ed-capacity-v2/contract.md",
       "bytes": 7058,
-      "sha256": "7609e70b4bb7004f8ae7a7b4a98a023b07bd2aabd8f94aafa5a6fd69003606d4"
+      "sha256": "bbf21aa848481e1fc0c318c96379b087ea6c9c834eaf0f2dd578602e709f3ce7"
     },
     {
       "path": "scripts/platform17-app8ed-capacity-v2/request.template.json",
       "bytes": 2195,
-      "sha256": "52e160a68a60b66582ab4c9b8a6c47f50590ad38a7cc911401bd920477ff8166"
+      "sha256": "a2347437176cb66d3b90ef6b75d133a5b60d72be7a4c01d30ff031a4ff02a5d5"
     },
     {
       "path": "scripts/platform17-app8ed-capacity-v2/registry.template.json",

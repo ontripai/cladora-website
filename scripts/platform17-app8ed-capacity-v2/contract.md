@@ -9,9 +9,9 @@ immutable. The replacement App is a separate clean checkout, never tool HEAD.
 
 | Identity | Pin |
 |---|---|
-| Replacement App | `aa5f5b8f1feeb6f81b340abd807456398fe1310d` |
-| Replacement tree | `7df8b81b18638b4d0051886b600f08babbf23d62` |
-| Replacement direct parent | `e5fe6eabd3a0d77128f0863b7a5ac9ce35535436` |
+| Replacement App | `fd7bc8799ce8aba970bb74e2a9035d4ee41e5119` |
+| Replacement tree | `6a660dc056e73dc547d9fd6b12fc0d83eca66ea2` |
+| Replacement direct parent | `79e2db9c42c61a217069f8e7412cc17179d720b3` |
 | Tool direct parent | Replacement App above |
 | Active old App | `f2b3c01f1ffb49b202d5f5a8409137e4ec6643d2` |
 | Active old tree | `bf01acfaeba53c009ad6f9f6eeb2dcabffee7a5a` |
