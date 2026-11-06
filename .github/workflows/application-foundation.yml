@@ -11,6 +11,7 @@ on:
       - 'scripts/test-owned-post-auth-boundaries-01.mjs'
       - 'scripts/test-app-service-profile-*.mjs'
       - 'scripts/test-service-http-auth-*.mjs'
+      - 'scripts/test-service-scope-denial-http-*.mjs'
       - 'docs/testing/SERVICE-HTTP-AUTH-CLASSIFICATION-01.md'
       - 'docs/testing/APP-SERVICE-PROFILE-COMPAT-01.md'
       - 'scripts/functional-dev-relay-port-recovery-v1/**'
@@ -103,6 +104,7 @@ on:
       - 'scripts/test-owned-post-auth-boundaries-01.mjs'
       - 'scripts/test-app-service-profile-*.mjs'
       - 'scripts/test-service-http-auth-*.mjs'
+      - 'scripts/test-service-scope-denial-http-*.mjs'
       - 'docs/testing/SERVICE-HTTP-AUTH-CLASSIFICATION-01.md'
       - 'docs/testing/APP-SERVICE-PROFILE-COMPAT-01.md'
       - 'scripts/functional-dev-relay-port-recovery-v1/**'
@@ -223,6 +225,7 @@ jobs:
         run: |
           node scripts/test-service-http-auth-classification-01.mjs
           node scripts/test-service-http-auth-boundaries-01.mjs
+          node scripts/test-service-scope-denial-http-02.mjs
           node scripts/test-service-functional-request-runtime-binding-v1.mjs
           node scripts/test-service-offering-request-flow-02.mjs
       - name: Preserve Core15 checkpoint identities at their reviewed source revision

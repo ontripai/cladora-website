@@ -33,6 +33,10 @@ import {
 } from './request-command';
 import type { ServiceV14CanonicalReaders } from './provider-binding';
 import type { ServiceV14ExecutionResponse } from './response-schema';
+import {
+  isServiceRequestReadAccessDeniedV1,
+  isServiceRequestReadAuthenticationRequiredV1,
+} from './read-denial';
 
 export const SERVICE_S01_PROVIDER_AGREEMENT = 'provider-agreement-verification.v1' as const;
 export const SERVICE_S02_CANONICAL_RESOURCE = 'canonical-resource-reference.v1' as const;
@@ -117,12 +121,16 @@ function offeringUnavailable(snapshot: ServiceOfferingRequestSnapshotV1, observe
 }
 
 function sqlState(error: unknown) {
-  return typeof error === 'object' && error !== null && 'code' in error
-    ? (error as { code?: unknown }).code : undefined;
+  if (typeof error !== 'object' || error === null) return undefined;
+  try {
+    const property = Object.getOwnPropertyDescriptor(error, 'code');
+    return property && 'value' in property ? property.value : undefined;
+  } catch { return undefined; }
 }
 
 function preserveSerializationFailure(error: unknown) {
   if (sqlState(error) === '40001') throw error;
+  if (isServiceRequestReadAuthenticationRequiredV1(error)) throw error;
 }
 
 function snapshotsMatch(
@@ -150,6 +158,7 @@ async function providerAgreementGate(
     });
   } catch (error) {
     preserveSerializationFailure(error);
+    if (isServiceRequestReadAccessDeniedV1(error)) return { status: 'denied', code: 'SOURCE_ACCESS_DENIED' };
     return { status: 'not_ready', code: 'SERVICE_S01_NOT_READY' };
   }
   const parsed = providerAgreementVerificationV1Schema.safeParse(raw);
@@ -178,7 +187,7 @@ async function resolveNamedResource(
   input: ServiceOfferingRequestPreflightInputV1,
   reference: NamedServiceResourceV1['reference'],
 ): Promise<{ state: 'ready'; resource: NamedServiceResourceV1 }
-  | { state: 'denied' | 'conflict' | 'not_ready' }> {
+  | { state: 'denied' | 'scope_denied' | 'conflict' | 'not_ready' }> {
   const resourceType = canonicalResourceTypeV1Schema.safeParse(reference.resource_type);
   if (!resourceType.success) return { state: 'not_ready' };
   let raw: CanonicalResourceReferenceV1;
@@ -195,6 +204,7 @@ async function resolveNamedResource(
     });
   } catch (error) {
     preserveSerializationFailure(error);
+    if (isServiceRequestReadAccessDeniedV1(error)) return { state: 'scope_denied' };
     return { state: 'not_ready' };
   }
   const parsed = canonicalResourceReferenceV1Schema.safeParse(raw);
@@ -231,6 +241,7 @@ export async function preflightServiceOfferingRequestV1(
     snapshot = serviceOfferingRequestSnapshotV1Schema.nullable().parse(await ports.loadOffering(input));
   } catch (error) {
     preserveSerializationFailure(error);
+    if (isServiceRequestReadAccessDeniedV1(error)) return { status: 'denied', code: 'SERVICE_ACCESS_DENIED' };
     return { status: 'not_ready', code: 'RUNTIME_BINDING_INACTIVE' };
   }
   if (snapshot === null || !sameId(snapshot.workspace_id, input.workspace_id)
@@ -249,6 +260,7 @@ export async function preflightServiceOfferingRequestV1(
     current = serviceOfferingRequestSnapshotV1Schema.nullable().parse(await ports.loadOffering(input));
   } catch (error) {
     preserveSerializationFailure(error);
+    if (isServiceRequestReadAccessDeniedV1(error)) return { status: 'denied', code: 'SERVICE_ACCESS_DENIED' };
     return { status: 'not_ready', code: 'RUNTIME_BINDING_INACTIVE' };
   }
   if (current === null || !sameId(current.workspace_id, input.workspace_id)
@@ -283,6 +295,7 @@ export async function preflightServiceOfferingRequestV1(
   const resources: NamedServiceResourceV1[] = [];
   for (const reference of snapshot.coverage.resources) {
     const result = await resolveNamedResource(ports, input, reference);
+    if (result.state === 'scope_denied') return { status: 'denied', code: 'SERVICE_ACCESS_DENIED' };
     if (result.state === 'not_ready') return { status: 'not_ready', code: 'SERVICE_S02_NOT_READY' };
     if (result.state === 'ready') resources.push(result.resource);
   }
@@ -329,6 +342,7 @@ export async function submitServiceOfferingRequestV1(
     snapshot = serviceOfferingRequestSnapshotV1Schema.parse(current);
   } catch (error) {
     preserveSerializationFailure(error);
+    if (isServiceRequestReadAccessDeniedV1(error)) return { status: 'denied', code: 'SERVICE_ACCESS_DENIED' };
     return { status: 'not_ready', code: 'RUNTIME_BINDING_INACTIVE' };
   }
   if (!sameId(snapshot.workspace_id, input.workspace_id)
@@ -358,6 +372,7 @@ export async function submitServiceOfferingRequestV1(
     });
   } catch (error) {
     preserveSerializationFailure(error);
+    if (isServiceRequestReadAccessDeniedV1(error)) return { status: 'denied', code: 'SERVICE_ACCESS_DENIED' };
     return { status: 'not_ready', code: 'RUNTIME_BINDING_INACTIVE' };
   }
   if (principal === null) return { status: 'denied', code: 'SERVICE_ACCESS_DENIED' };

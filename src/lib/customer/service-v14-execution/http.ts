@@ -8,6 +8,7 @@ import {
   serviceOfferingRequestPreflightInputV1Schema,
   serviceOfferingRequestPublicInputV1Schema,
 } from '../service-offering-request-flow-contract';
+import { isServiceRequestReadAuthenticationRequiredV1 } from './read-denial';
 
 const HEADERS = { 'Cache-Control': 'no-store, private', Pragma: 'no-cache', Vary: 'Cookie' };
 const MAX_BODY_BYTES = 32 * 1024;
@@ -79,7 +80,12 @@ export function createServiceOfferingRequestFlowHandlers(
         return resolverFailure(error);
       }
       if (ports === null) return failure('RUNTIME_BINDING_INACTIVE', 503);
-      return preflightResponse(await preflightServiceOfferingRequestV1(input.data, ports));
+      try {
+        return preflightResponse(await preflightServiceOfferingRequestV1(input.data, ports));
+      } catch (error) {
+        if (isServiceRequestReadAuthenticationRequiredV1(error)) return failure('UNAUTHORIZED', 401);
+        throw error;
+      }
     },
 
     async POST(request: NextRequest) {
@@ -115,7 +121,12 @@ export function createServiceOfferingRequestFlowHandlers(
         return resolverFailure(error);
       }
       if (ports === null) return failure('RUNTIME_BINDING_INACTIVE', 503);
-      const result = await submitServiceOfferingRequestV1(input.data, ports);
+      let result: Awaited<ReturnType<typeof submitServiceOfferingRequestV1>>;
+      try { result = await submitServiceOfferingRequestV1(input.data, ports); }
+      catch (error) {
+        if (isServiceRequestReadAuthenticationRequiredV1(error)) return failure('UNAUTHORIZED', 401);
+        throw error;
+      }
       if (result.status === 'submitted') {
         return NextResponse.json({ request_id: result.request_id, status: 'submitted' }, { headers: HEADERS });
       }
