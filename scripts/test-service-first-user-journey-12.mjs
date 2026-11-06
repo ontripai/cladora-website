@@ -27,6 +27,7 @@ let postMode = 'lost';
 const effects = new Set();
 const fetch = async (url, options = {}) => {
   calls.push({ url: String(url), options });
+  if (String(url).endsWith('/services/command-custody')) return Response.json({ contract: 'service-request-custody-owner.v1', owner: 'a'.repeat(64) });
   if (String(url).endsWith('/services/assembly-bootstrap')) return Response.json(bootstrapStatus === 200 ? bootstrapBody : { error: { code: 'CORE_SERVICE_ASSEMBLY_NOT_READY' } }, { status: bootstrapStatus });
   if (String(url).includes('/workspace/targets')) assert.fail('assembly profile must not use the legacy workspace target route');
   if (String(url).includes('/services/catalog?')) {
@@ -73,6 +74,19 @@ const choose = async scope => act(async () => {
   select.dispatchEvent(new window.Event('change', { bubbles: true }));
 });
 async function check(name, operation) { await operation(); cases++; console.log(`PASS ${name}`); }
+async function commandClick(getButton) {
+  const before = calls.filter(call => call.options.method === 'POST').length;
+  await act(async () => getButton().click());
+  const deadline = Date.now() + 3000;
+  for (;;) {
+    await act(async () => { await new Promise(done => setTimeout(done, 5)); });
+    const refresh = [...document.querySelectorAll('button')].find(button => button.textContent === 'Refresh catalogue');
+    const button = getButton();
+    if (calls.filter(call => call.options.method === 'POST').length > before && ((!button || !button.disabled) || (refresh && !refresh.disabled))) return;
+    assert.ok(Date.now() < deadline, 'bounded actual command transport/UI settlement');
+  }
+}
+
 
 try {
   await check('official discovery is explicit and does not use ContextProvider targets', async () => {
@@ -139,7 +153,7 @@ try {
       description.dispatchEvent(new window.Event('input', { bubbles: true }));
     });
     const submit = () => [...document.querySelectorAll('button')].find(button => button.textContent === 'Send request' || button.textContent === 'Retry the same request');
-    await act(async () => submit().click());
+    await commandClick(submit);
     const workspaceSelect = document.querySelector('select[aria-label="Choose a workspace"]');
     assert.equal(workspaceSelect.disabled, true, 'the official selector must hold custody while the command is UNKNOWN');
     const firstPost = calls.find(call => call.options.method === 'POST');
@@ -153,7 +167,7 @@ try {
     assert.equal(calls.some(call => call.url.includes(`workspace_id=${scopeB.workspace_id}`)), false);
 
     postMode = 'success';
-    await act(async () => submit().click());
+    await commandClick(submit);
     const posts = calls.filter(call => call.options.method === 'POST');
     assert.equal(posts.length, 2);
     assert.equal(posts[1].url, firstPost.url);
@@ -179,9 +193,9 @@ try {
       input.dispatchEvent(new window.Event('input', { bubbles: true }));
     });
     const commandButton = () => [...document.querySelectorAll('button')].find(button => /Send request|Retry the same request/.test(button.textContent));
-    await act(async () => commandButton().click());
+    await commandClick(commandButton);
     const first = calls.find(call => call.options.method === 'POST'); assert.ok(first);
-    postMode = 'conflict'; await act(async () => commandButton().click());
+    postMode = 'conflict'; await commandClick(commandButton);
     let posts = calls.filter(call => call.options.method === 'POST');
     assert.equal(posts.length, 2); assert.equal(posts[1].url, first.url); assert.equal(posts[1].options.body, first.options.body);
     assert.equal(effects.size, 1);
@@ -190,7 +204,7 @@ try {
     const workspaceSelect = document.querySelector('select[aria-label="Choose a workspace"]');
     assert.equal(workspaceSelect.disabled, true, 'GET refresh cannot resolve an earlier UNKNOWN command');
     assert.equal(commandButton().textContent, 'Retry the same request');
-    postMode = 'success'; await act(async () => commandButton().click());
+    postMode = 'success'; await commandClick(commandButton);
     posts = calls.filter(call => call.options.method === 'POST');
     assert.equal(posts.length, 3); assert.equal(posts[2].url, first.url); assert.equal(posts[2].options.body, first.options.body);
     assert.equal(effects.size, 1); assert.equal(workspaceSelect.disabled, false);
@@ -211,13 +225,13 @@ try {
       input.dispatchEvent(new window.Event('input', { bubbles: true }));
     });
     const commandButton = () => [...document.querySelectorAll('button')].find(button => /Send request|Retry the same request/.test(button.textContent));
-    await act(async () => commandButton().click());
+    await commandClick(commandButton);
     const firstBody = calls.find(call => call.options.method === 'POST').options.body;
     const refresh = [...document.querySelectorAll('button')].find(button => button.textContent === 'Refresh catalogue');
     await act(async () => refresh.click());
     const workspaceSelect = document.querySelector('select[aria-label="Choose a workspace"]');
     assert.equal(workspaceSelect.disabled, false); assert.equal(commandButton().textContent, 'Send request');
-    postMode = 'success'; await act(async () => commandButton().click());
+    postMode = 'success'; await commandClick(commandButton);
     const posts = calls.filter(call => call.options.method === 'POST');
     assert.equal(posts.length, 2); assert.notEqual(posts[1].options.body, firstBody);
     assert.equal(effects.size, 1); journeyMode = false;
@@ -237,15 +251,15 @@ try {
       input.dispatchEvent(new window.Event('input', { bubbles: true }));
     });
     const commandButton = () => [...document.querySelectorAll('button')].find(button => /Send request|Retry the same request/.test(button.textContent));
-    await act(async () => commandButton().click());
+    await commandClick(commandButton);
     const first = calls.find(call => call.options.method === 'POST'); assert.ok(first);
     assert.match(document.body.textContent, /result is unknown/);
-    postMode = 'conflict'; await act(async () => commandButton().click());
+    postMode = 'conflict'; await commandClick(commandButton);
     const refresh = [...document.querySelectorAll('button')].find(button => button.textContent === 'Refresh catalogue');
     assert.ok(refresh); await act(async () => refresh.click());
     const workspaceSelect = document.querySelector('select[aria-label="Choose a workspace"]');
     assert.equal(workspaceSelect.disabled, true); assert.equal(commandButton().textContent, 'Retry the same request');
-    postMode = 'success'; await act(async () => commandButton().click());
+    postMode = 'success'; await commandClick(commandButton);
     const posts = calls.filter(call => call.options.method === 'POST');
     assert.equal(posts.length, 3);
     for (const post of posts.slice(1)) { assert.equal(post.url, first.url); assert.equal(post.options.body, first.options.body); }

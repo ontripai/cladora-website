@@ -493,7 +493,17 @@ globalThis.window = dom.window;
 globalThis.document = dom.window.document;
 globalThis.sessionStorage = dom.window.sessionStorage;
 let currentFetchHandler = async () => new Response('{}');
-globalThis.fetch = async (url, options) => currentFetchHandler(url, options);
+globalThis.fetch = async (url, options) => String(url).endsWith('/services/command-custody')
+  ? Response.json({ contract: 'service-request-custody-owner.v1', owner: 'a'.repeat(64) })
+  : currentFetchHandler(url, options);
+const mockTransportCache = new WeakMap();
+function mockTransportFor(handler) {
+  if (!mockTransportCache.has(handler)) mockTransportCache.set(handler, async (url, options) =>
+    String(url).endsWith('/services/command-custody')
+      ? Response.json({ contract: 'service-request-custody-owner.v1', owner: 'a'.repeat(64) })
+      : handler(url, options));
+  return mockTransportCache.get(handler);
+}
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 let signOutCalled = false;
@@ -511,7 +521,7 @@ function loadJsdModule(relativePath) {
   mod.require = (request) => {
     if (request === '@/components/dashboard-lab/DashboardTransport') {
       return {
-        useDashboardFetch: () => currentFetchHandler,
+        useDashboardFetch: () => mockTransportFor(currentFetchHandler),
         useDashboardPreview: () => false,
         DashboardTransportProvider: ({ children, value }) => {
           currentFetchHandler = value;

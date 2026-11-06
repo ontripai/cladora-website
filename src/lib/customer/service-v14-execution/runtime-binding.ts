@@ -3,6 +3,7 @@ import type { ServiceOfferingRequestFlowPortsV1 } from './application-flow';
 import type { ServiceOfferingRequestFlowPortResolverV1 } from './http';
 import { getCore15PrivateServiceDevelopmentBindingV1 } from '../../core/private-service-development-binding-v1';
 import { serviceRequestReadFailureBoundaryV1 } from './read-failure-boundary';
+import { assertServiceRequestCustodyOwner } from './custody-owner';
 
 export const SERVICE_FUNCTIONAL_REQUEST_RUNTIME_CONTRACT_V1 =
   'service-functional-request-runtime.v1' as const;
@@ -39,6 +40,7 @@ export function getServiceOfferingRequestRuntimeBinding(): ServiceOfferingReques
       || binding.database_contract !== 'platform12-service-request-database.v1') {
       return null;
     }
+    await assertServiceRequestCustodyOwner(request);
     const ports = await binding.bind(request);
     return ports === null ? null : serviceRequestReadFailureBoundaryV1(ports);
   };

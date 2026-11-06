@@ -12,6 +12,8 @@ on:
       - 'scripts/test-app-service-profile-*.mjs'
       - 'scripts/test-service-http-auth-*.mjs'
       - 'scripts/test-service-scope-denial-http-*.mjs'
+      - 'scripts/test-service-pending-custody-*.mjs'
+      - 'scripts/test-service-custody-*.mjs'
       - 'docs/testing/SERVICE-HTTP-AUTH-CLASSIFICATION-01.md'
       - 'docs/testing/APP-SERVICE-PROFILE-COMPAT-01.md'
       - 'scripts/functional-dev-relay-port-recovery-v1/**'
@@ -105,6 +107,8 @@ on:
       - 'scripts/test-app-service-profile-*.mjs'
       - 'scripts/test-service-http-auth-*.mjs'
       - 'scripts/test-service-scope-denial-http-*.mjs'
+      - 'scripts/test-service-pending-custody-*.mjs'
+      - 'scripts/test-service-custody-*.mjs'
       - 'docs/testing/SERVICE-HTTP-AUTH-CLASSIFICATION-01.md'
       - 'docs/testing/APP-SERVICE-PROFILE-COMPAT-01.md'
       - 'scripts/functional-dev-relay-port-recovery-v1/**'
@@ -228,6 +232,11 @@ jobs:
           node scripts/test-service-scope-denial-http-02.mjs
           node scripts/test-service-functional-request-runtime-binding-v1.mjs
           node scripts/test-service-offering-request-flow-02.mjs
+      - name: SERVICE same-tab pending custody and current owner boundaries (controlled)
+        run: |
+          node scripts/test-service-pending-custody-reload-01.mjs
+          node scripts/test-service-custody-owner-boundary-01.mjs
+          node scripts/test-service-custody-storage-01.mjs
       - name: Preserve Core15 checkpoint identities at their reviewed source revision
         run: |
           checkpoint=29ed18541c602dae4e6db5c98a96201250af630b

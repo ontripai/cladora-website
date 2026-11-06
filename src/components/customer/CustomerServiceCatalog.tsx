@@ -9,6 +9,8 @@ import { uuidSchema } from '@/lib/customer/workspace-composition-schema';
 import { serviceOfferingRevisionSchema } from '@/lib/customer/service-catalog-schema';
 import { CustomerServiceManagement } from './CustomerServiceManagement';
 import { CustomerServiceRequests } from './CustomerServiceRequests';
+import { useServiceRequestCustody, type ServiceRequestCustody } from '@/lib/customer/use-service-request-custody';
+import { sameServiceRequestCustodyScope, type ServiceRequestCustodyScope } from '@/lib/customer/service-request-custody';
 import { CustomerServiceQuotes, serviceQuoteCopy } from './CustomerServiceQuotes';
 import { CustomerServiceQuotePublications, quotePublicationCopy } from './CustomerServiceQuotePublications';
 import { serviceManagementCopy } from '@/lib/customer/service-catalog-management-copy';
@@ -23,6 +25,11 @@ const accessCopy = {
   fa: { session: 'نشست شما نیاز به بررسی دوباره دارد؛ دوباره وارد شوید.', denied: 'دسترسی به خدمات این فضای کاری فعال نیست. برای بررسی دسترسی با مدیر فضای کاری تماس بگیرید.', check: 'بررسی دوبارهٔ دسترسی' },
   en: { session: 'Your session needs verification. Sign in again.', denied: 'Service access is unavailable in this workspace. Ask the workspace administrator to check your access.', check: 'Check access again' },
   ro: { session: 'Sesiunea necesită verificare. Autentifică-te din nou.', denied: 'Accesul la servicii nu este disponibil în acest spațiu. Solicită administratorului să verifice accesul.', check: 'Verifică din nou accesul' },
+};
+const recoveryCopy = {
+  en: { resume: 'Resume the pending request', blocked: 'The saved request cannot be safely restored. Sending is blocked; keep this tab for recovery.', missing: 'The pending request’s workspace is no longer available. Keep this tab and ask the workspace administrator to check access.' },
+  fa: { resume: 'ادامهٔ همان درخواست در انتظار', blocked: 'بازیابی امن درخواست ذخیره‌شده ممکن نیست؛ ارسال بسته است. این تب را برای بازیابی نگه دارید.', missing: 'فضای کاری درخواست در انتظار دیگر در دسترس نیست؛ این تب را نگه دارید و دسترسی را با مدیر فضای کاری بررسی کنید.' },
+  ro: { resume: 'Reia cererea în așteptare', blocked: 'Cererea salvată nu poate fi recuperată în siguranță. Trimiterea este blocată; păstrează această filă pentru recuperare.', missing: 'Spațiul cererii în așteptare nu mai este disponibil. Păstrează fila și solicită administratorului verificarea accesului.' },
 };
 const CORE_SERVICE_APP_READ_V1 = 'core-service-app-read.v1' as const;
 type LoadFailure = 'session' | 'denied' | 'retry';
@@ -66,6 +73,7 @@ export function CustomerServiceCatalog({ lang }: { lang: Language }) {
 }
 function AssemblyWorkspaceChoice({ lang }: { lang: Language }) {
   const fetch = useDashboardFetch();
+  const custody = useServiceRequestCustody(fetch);
   const t = copy[lang];
   const [selections, setSelections] = useState<AssemblySelection[] | null>(null);
   const [selectedKey, setSelectedKey] = useState('');
@@ -92,18 +100,22 @@ function AssemblyWorkspaceChoice({ lang }: { lang: Language }) {
   if (error) return <Notice text={failureMessage(lang, error)} retry={error === 'session' ? undefined : () => {
     setError(null); setSelections(null); setSelectedKey(''); setAttempt(value => value + 1);
   }} retryLabel={error === 'denied' ? accessCopy[lang].check : t.retry} />;
-  if (selections === null) return <Notice text={t.loading} />;
+  if (selections === null || custody.status === 'loading') return <Notice text={t.loading} />;
+  if (custody.status === 'blocked') return <Notice text={recoveryCopy[lang].blocked} />;
   if (!selections.length) return <Notice text={t.noTargets} />;
   const selected = selections.find(item => `${item.context_id}:${item.workspace_id}` === selectedKey);
-  return <div className="space-y-5"><label className="block rounded-2xl border bg-white p-4"><span className="mb-2 block text-sm font-semibold">{t.choose}</span>
-    <select aria-label={t.choose} value={selectedKey} disabled={selectionLocked} onChange={event => {
-      if (!selectionLocked) setSelectedKey(event.target.value);
+  const savedSelection = custody.record ? selections.find(item => sameServiceRequestCustodyScope(item, custody.record!.scope)) : null;
+  if (custody.record && !savedSelection) return <Notice text={recoveryCopy[lang].missing} />;
+  const savedKey = savedSelection ? `${savedSelection.context_id}:${savedSelection.workspace_id}` : '';
+  return <div className="space-y-5">{savedKey && selectedKey !== savedKey ? <button type="button" onClick={() => setSelectedKey(savedKey)} className="min-h-11 rounded-xl border bg-white px-4 py-2 font-semibold">{recoveryCopy[lang].resume}</button> : null}<label className="block rounded-2xl border bg-white p-4"><span className="mb-2 block text-sm font-semibold">{t.choose}</span>
+    <select aria-label={t.choose} value={selectedKey} disabled={selectionLocked || custody.record !== null} onChange={event => {
+      if (!selectionLocked && custody.record === null) setSelectedKey(event.target.value);
     }} className="w-full rounded-xl border p-3">
       <option value="">{t.choose}</option>{selections.map(item => {
         const key = `${item.context_id}:${item.workspace_id}`;
         return <option key={`${key}:${item.membership_id}`} value={key}>{item.tenant_name} — {item.role_name} · {item.workspace_type} · {item.environment}</option>;
       })}
-    </select></label>{selected ? <Offerings key={`${selected.context_id}:${selected.workspace_id}`} contextId={selected.context_id} workspaceId={selected.workspace_id} lang={lang} onCommandCustodyChange={setSelectionLocked} /> : null}</div>;
+    </select></label>{selected ? <Offerings key={`${selected.context_id}:${selected.workspace_id}:${custody.owner}`} contextId={selected.context_id} workspaceId={selected.workspace_id} lang={lang} custody={custody} custodyScope={{ context_id: selected.context_id, workspace_id: selected.workspace_id, membership_id: selected.membership_id, tenant_id: selected.tenant_id }} onCommandCustodyChange={setSelectionLocked} /> : null}</div>;
 }
 function WorkspaceChoice({ contextId, lang }: { contextId: string; lang: Language }) {
   const fetch = useDashboardFetch();
@@ -135,7 +147,7 @@ function WorkspaceChoice({ contextId, lang }: { contextId: string; lang: Languag
       <option value="">{t.choose}</option>{targets.map((target, index) => <option key={target.workspace_id} value={target.workspace_id}>{t.workspace} {index + 1}</option>)}
     </select></label>{selected ? <><div className="flex flex-wrap gap-3"><button type="button" aria-pressed={!manage && !quotes && !publication} onClick={() => { setManage(false); setQuotes(false); setPublication(null); }} className="rounded-xl border bg-white px-4 py-2 font-semibold">{t.title}</button><button type="button" aria-pressed={manage && !publication} onClick={() => { setManage(true); setQuotes(false); setPublication(null); }} className="rounded-xl bg-[#087A6E] px-4 py-2 font-semibold text-white">{serviceManagementCopy[lang].title}</button><button type="button" aria-pressed={quotes && !publication} onClick={() => { setQuotes(true); setManage(false); setPublication(null); }} className="rounded-xl border bg-white px-4 py-2 font-semibold">{serviceQuoteCopy[lang].title}</button>{(['coordinator','recipient'] as const).map(mode=><button key={mode} type="button" aria-pressed={publication===mode} onClick={()=>{setPublication(mode);setManage(false);setQuotes(false);}} className="rounded-xl border bg-white px-4 py-2 font-semibold">{quotePublicationCopy[lang][mode]}</button>)}</div>{publication ? <CustomerServiceQuotePublications contextId={contextId} workspaceId={selected} lang={lang} mode={publication}/> : quotes ? <CustomerServiceQuotes key={`${contextId}:${selected}`} contextId={contextId} workspaceId={selected} lang={lang} /> : manage ? <CustomerServiceManagement key={`${contextId}:${selected}`} contextId={contextId} workspaceId={selected} lang={lang} /> : <Offerings key={`${contextId}:${selected}`} contextId={contextId} workspaceId={selected} lang={lang} />}</> : null}</div>;
 }
-function Offerings({ contextId, workspaceId, lang, onCommandCustodyChange }: { contextId: string; workspaceId: string; lang: Language; onCommandCustodyChange?: (held: boolean) => void }) {
+function Offerings({ contextId, workspaceId, lang, onCommandCustodyChange, custody, custodyScope }: { contextId: string; workspaceId: string; lang: Language; onCommandCustodyChange?: (held: boolean) => void; custody?: ServiceRequestCustody; custodyScope?: ServiceRequestCustodyScope }) {
   const fetch = useDashboardFetch();
   const t = copy[lang];
   const [items, setItems] = useState<Item[] | null>(null);
@@ -170,7 +182,7 @@ function Offerings({ contextId, workspaceId, lang, onCommandCustodyChange }: { c
     </>}</div><details className="border-t pt-4"><summary className="cursor-pointer text-sm font-semibold text-[#087A6E]">{t.terms}</summary>
       <h3 className="mt-4 text-sm font-bold">{t.cancellation}</h3><p className="mt-1 whitespace-pre-line text-sm">{item.cancellation_terms[lang]}</p>
       <h3 className="mt-4 text-sm font-bold">{t.acceptance}</h3><p className="mt-1 whitespace-pre-line text-sm">{item.acceptance_criteria[lang]}</p>
-    </details></article>)}</div>}<CustomerServiceRequests contextId={contextId} workspaceId={workspaceId} lang={lang} offerings={items} onRefreshCatalog={refreshCatalog} onCommandCustodyChange={onCommandCustodyChange}/></>;
+    </details></article>)}</div>}<CustomerServiceRequests contextId={contextId} workspaceId={workspaceId} lang={lang} offerings={items} custody={custody} custodyScope={custodyScope} onRefreshCatalog={refreshCatalog} onCommandCustodyChange={onCommandCustodyChange}/></>;
 }
 function Notice({ text, retry, retryLabel }: { text: string; retry?: () => void; retryLabel?: string }) {
   return <div role="status" className="rounded-2xl border bg-white p-8 text-center text-sm text-[#52667A]">{text}{retry ? <button type="button" onClick={retry} className="ms-3 rounded-xl bg-[#0E9F8E] px-4 py-2 font-semibold text-white">{retryLabel}</button> : null}</div>;
