@@ -17,10 +17,10 @@ import urllib.request
 
 HERE = Path(__file__).resolve().parent
 TOOL = HERE.parents[1]
-TOOL_PARENT = 'e8c9188cf487724c0dcccdbf20f509a23ece5fff'
+TOOL_PARENT = 'f2b3c01f1ffb49b202d5f5a8409137e4ec6643d2'
 APP_PORT = 3008
 OBSERVATION_HEADER = 'x-cladora-start-observation'
-AUTHORITY_ROOT = Path('/workspace/private/platform17-app8ed-capacity-controller-v2')
+AUTHORITY_ROOT = Path('/workspace/private/platform17-service-scope-adoption-01')
 REGISTRY = AUTHORITY_ROOT / 'coordinator-accepted-executions.json'
 C = None
 
@@ -38,6 +38,13 @@ def load_core():
 def load_resume():
     path = canonical(HERE / 'resume.py')
     module = types.ModuleType('platform17_exact_built_resume')
+    module.__file__ = str(path)
+    exec(compile(path.read_bytes(), str(path), 'exec'), module.__dict__)
+    return module
+
+def load_prepare():
+    path = canonical(HERE / 'prepare.py')
+    module = types.ModuleType('platform17_scope_adoption_prepare')
     module.__file__ = str(path)
     exec(compile(path.read_bytes(), str(path), 'exec'), module.__dict__)
     return module
@@ -126,6 +133,8 @@ def seal_identity(root=TOOL):
         'scripts/platform17-app8ed-capacity-v2/observation-probe.mjs',
         'scripts/platform17-app8ed-capacity-v2/resume.py',
         'tests/platform17-app8ed-capacity-v2/test_resume.py',
+        'scripts/platform17-app8ed-capacity-v2/prepare.py',
+        'tests/platform17-app8ed-capacity-v2/test_scope_adoption.py',
     }
     if seal['contract'] != 'platform17.app8ed-controller.source-seal.v2' or {x['path'] for x in seal['files']} != expected or len(seal['files']) != len(expected):
         raise ValueError('SEAL_FILE_SET')
@@ -203,7 +212,7 @@ class NativeHost:
         C.need(not self.git(TOOL, 'status', '--porcelain').strip(), 'TOOL_NOT_CLEAN')
         C.need(self.git(TOOL, 'rev-parse', 'HEAD^').decode().strip() == TOOL_PARENT, 'TOOL_EXACT_REVIEWED_PARENT')
         tool = {'sha': tool_sha, 'tree': tool_tree, 'seal_sha256': seal_identity()}
-        lineage = [self.git(C.APP_ROOT, 'rev-parse', 'HEAD^^').decode().strip(), self.git(C.APP_ROOT, 'rev-parse', 'HEAD^').decode().strip(), consumer['sha']]
+        lineage = [old_source['sha'], self.git(C.APP_ROOT, 'rev-parse', 'HEAD^').decode().strip(), consumer['sha']]
         self.git(C.APP_ROOT, 'merge-base', '--is-ancestor', C.OLD, C.BASE)
         for n in ('package.json', 'package-lock.json', 'src/lib/core/functional-command-runtime-v1.ts', 'src/lib/core/functional-request-auth-v1.ts', 'src/lib/core/private-service-development-binding-v1.ts', 'src/lib/core/service-functional-binding-v1.ts', 'src/lib/core/current-authority-postgres-provider-v1.ts', 'src/lib/core/postgres-transaction-host-v1.ts', 'src/lib/core/service-app-read-v1.ts', 'supabase/install/core-service-app-assembly-v1/catalog-compatibility.sql', 'supabase/install/core-service-app-assembly-v1/read-access.sql', 'supabase/install/core-service-app-assembly-v1/manifest.json'):
             C.need(hash_bytes(self.git(C.APP_ROOT, 'show', C.CORE + ':' + n)) == hash_bytes((Path(C.APP_ROOT) / n).read_bytes()), 'PROTECTED_CORE_SOURCE_CHANGED')
@@ -531,11 +540,11 @@ def main(argv):
     global C
     if argv == ['inspect-source']:
         print(json.dumps({'contract': 'platform17.app8ed-capacity-controller.v2', 'seal_sha256': seal_identity(), 'runtime': 'NOT_RUN', 'activation': 'EXTERNAL_COORDINATOR_GATE_REQUIRED'})); return 0
-    if len(argv) == 3 and argv[0] == 'prepare-resume' and re.fullmatch('[a-f0-9]{64}', argv[1]) and re.fullmatch(r'app8ed-[a-z0-9-]{8,64}', argv[2]):
+    if len(argv) == 2 and argv[0] == 'prepare-next' and re.fullmatch(r'app8ed-[a-z0-9-]{8,64}', argv[1]):
         seal_identity(); C = load_core()
-        print(json.dumps(load_resume().prepare_private(sys.modules[__name__], argv[1], argv[2], C)))
+        print(json.dumps(load_prepare().prepare_private(sys.modules[__name__], argv[1], C)))
         return 0
-    if len(argv) != 2 or argv[0] not in ('execute-once', 'resume-built-once') or not re.fullmatch('[a-f0-9]{64}', argv[1]):
+    if len(argv) != 2 or argv[0] != 'execute-once' or not re.fullmatch('[a-f0-9]{64}', argv[1]):
         print('HOLD_FIXED_MODE_ONLY'); return 2
     # No request path, SQL, shell, argv/env override, registry edit or activation
     # is accepted. The fixed coordinator registry is out-of-band authority.
@@ -544,14 +553,13 @@ def main(argv):
     C.fields(registry, ('contract', 'entries'), 'REGISTRY_FIELDS')
     C.need(registry['contract'] == 'platform17.coordinator-execution-registry.v2' and type(registry['entries']) is list and len(registry['entries']) == 1, 'REGISTRY_ONE_EXACT_EXECUTION_REQUIRED')
     raw = private_read(AUTHORITY_ROOT / 'requests' / (digest + '.json')); C.need(hash_bytes(raw) == digest, 'REQUEST_DIGEST')
-    resume = load_resume() if argv[0] == 'resume-built-once' else None
-    r = resume.validate(raw, C)[1] if resume else C.validate(C.parse(raw))
+    r = C.validate(C.parse(raw))
     matching = [x for x in registry['entries'] if type(x) is dict and x.get('request_sha256') == digest]
     C.need(len(matching) == 1, 'NO_UNIQUE_COORDINATOR_AUTHORIZATION')
     host = NativeHost(r, digest, registry_raw, matching[0])
-    result = resume.run(host, raw, sys.modules[__name__], C) if resume else C.Controller(host).run(raw)
+    result = C.Controller(host).run(raw)
     print(json.dumps({'state': result.state, 'first_error_code': result.first_error, 'raw_receipt': 'PRIVATE', 'old_stop': result.old_stop, 'start_dispatch': result.start_dispatch}))
-    return 0 if result.state == 'ACK_EXACT_APP8ED_RETAINED' else 1
+    return 0 if result.state == 'ACK_EXACT_CONSUMER_RETAINED' else 1
 
 if __name__ == '__main__':
     try: raise SystemExit(main(sys.argv[1:]))

@@ -1,157 +1,117 @@
-# platform17.app8ed-capacity-controller.v2
+# Exact SERVICE scope-denial consumer adoption
 
-Scope: source candidate for the existing Task17/08/09. This packet does not authorize native build/start/stop. No domain, SQL, Auth, fixture, relay activation, container or restart operation is implemented here. V1 source/seal/receipts remain immutable.
+This version continues Task17/08/09 using the reviewed lifecycle engine,
+capacity watcher, owned Node observation and existing consumer-admission ABI.
+The old tool checkout, running preload, receipts, claims and permissions remain
+immutable. The replacement App is a separate clean checkout, never tool HEAD.
 
-## Independent identities
+## Exact profile
 
-| Identity | Exact pin |
+| Identity | Pin |
 |---|---|
-| Original tool source base | `8edca9d64b78f1eea0a6f402a6dd0c522bdcd4ea` |
-| R3 final tool direct parent | `e8c9188cf487724c0dcccdbf20f509a23ece5fff` |
-| Active App | `198e8a35dc120b554468074dd689793addb54385` / tree `54e792e02ad7b92137b9699b67d5dc346024f23e` |
-| App intermediate | `445fcdcccf72f2038ed7abe7c96336864058cfe2` |
-| Replacement App | `8edca9d64b78f1eea0a6f402a6dd0c522bdcd4ea` / tree `ad31eebe4463921df63bda6617aa2fb30f623bde` |
-| App launcher | SHA256 `cb887091c9045fba6b9eeb5ad2502ca6206006aa220b123d4594de8526828a5d` |
+| Replacement App | `f2b3c01f1ffb49b202d5f5a8409137e4ec6643d2` |
+| Replacement tree | `bf01acfaeba53c009ad6f9f6eeb2dcabffee7a5a` |
+| Replacement direct parent | `3169f18d765d721debe39e00eae6ffe4fb1fbbd0` |
+| Tool direct parent | Replacement App above |
+| Active old App | `8edca9d64b78f1eea0a6f402a6dd0c522bdcd4ea` |
+| Active old tree | `ad31eebe4463921df63bda6617aa2fb30f623bde` |
+| App launcher SHA256 | `cb887091c9045fba6b9eeb5ad2502ca6206006aa220b123d4594de8526828a5d` |
 | Installed Core | `ee883b62cf4a318af3450c506931a969623b8987` |
 | Original transport | `b696ff211daabd4be3989522c569f24ccccd0dce` |
 
-The tool commit/tree/seal are separate, externally pinned after review. App source never follows tool HEAD. Native observation requires the exact chain `198 -> 445fcdcc -> 8ed`, including the intermediate; `parent(8ed)==198` is intentionally not required. Neither an arbitrary descendant nor App97 is accepted. The initial R3e8c9188c is a direct child of exact R2a2adc012. The final R3 adds only portable fixture capacity observation and the corresponding exact tool parent/seal; its direct parent is e8c9188c. All prior history remains intact. App and anchor checkouts must be independently clean and match the exact App tuples. The original consumer-admission ABI and original anchor transport preflight are reused; no guard is broadened to any HEAD/descendant.
+Native source observation checks the independently observed active source,
+the replacement's exact direct parent, the replacement SHA/tree and an actual
+Git ancestor check. HEAD^^ is not mistaken for the active source. Other
+successors are rejected. The12 protected Core/package/install files still
+match the installed Core. No SQL, schema, ACL, Auth fixture, relay activation,
+backend restart or product mutation is implemented by this controller.
 
-## Budget and fixed commands
+## Preparation and authority
 
-Start floor: **2147483648 bytes**. Protective reserve: **536870912 bytes**. The planning composition is 1073741824 build estimate + 536870912 margin + 536870912 reserve. These are not peak bounds or completion guarantees. The request must contain exactly this approved tuple, integer types and `peak_bound:false`; a lower or otherwise different/unapproved tuple is rejected before host action.
+The request ABI is `platform17.service-scope-adoption.request.v1`. NULL runtime
+values in the template are nonexecutable. Unknown fields, duplicate keys,
+arbitrary paths/commands/env and changed exact tuples are rejected.
 
-V1 stop semantics are retained: 0.05s polling; early stop at reserve+134217728; urgent escalation at reserve+67108864; 600s build deadline; TERM then bounded KILL only for the newly created, owned session/group. Samples are persisted at 0.25s cadence (or early-stop threshold) and fsynced at 1s cadence. Other filesystem users may change free space. Sampling and early-stop margin are not a hard quota or a guarantee against bursts.
+`prepare-next <app8ed-RUN_ID>` reads the old fixed private R3 registry, request,
+result and admission. It requires the exact R3 tool tuple, retained ACK, served
+source/build agreement, and the same active PID/start/cwd/argv/UID freshly
+observed through the kernel. It projects that evidence into a new operational
+observation, without rewriting the historical receipt or manufacturing a new
+start ACK. The same actual transport/binding/Core/admission fields are copied,
+with only the exact reviewed consumer tuple rebound. The actual read-only
+source/build/relay/admission snapshot is then validated. New0600 private
+observation/admission/request files are written exclusively and read back.
+No registry, claim or child is created. The old R3 directory is unchanged.
 
-The only native program argv are:
+A new private registry directory separates this attempt from consumed R3
+permissions. The trusted Coordinator/operator independently checks the final
+tool SHA/tree/seal and installs exactly one request/run/tool entry under the
+accepted owner decision. Registry ABI v2, current-clock expiry, maximum1200s
+window,0600/0700 custody, raw digest and exclusive durable claim remain. The
+controller cannot install registry authority. A source commit, prepared file
+or caller-supplied digest is not authority. CLI modes are only `inspect-source`,
+`prepare-next` and `execute-once`. Historical continuation code remains sealed
+for regression; `prepare-resume` and `resume-built-once` are not entrypoints
+for this new profile.
+
+## Probe before interruption, then one transition
+
+After exact initial snapshot, authorization and the unchanged2GiB floor, one
+claim is acquired and official read-only adoption preflight runs. Before any
+build or old-App stop, a disposable random-loopback Node probe verifies the
+sealed preload, environment filtering, owned PID/start/session/group/UID/cwd/
+argv and private HTTP nonce. Its cleanup is recorded separately. Failed or
+UNKNOWN observation prevents build/stop/start and leaves the active App live.
+No foreign-fd scan or privilege change is used. Proxy/CA/guard preloads remain.
+
+The commands remain exactly:
 
 ```text
 node scripts/run-core-service-app-assembly-17.mjs build
 node scripts/run-core-service-app-assembly-17.mjs start
 ```
 
-The existing official read-only adoption preflight is also called with a fixed Node expression. Its subprocesses inspect the original transport/backend; this controller itself contains no Docker, database, migration, HTTP mutation or business-operation transport. The only direct HTTP check is the exact local static build-manifest GET for startup ACK.
+One monitored build runs while the active App stays live. Start floor is
+2147483648 bytes; reserve536870912; early stop at reserve+134217728; urgent
+escalation at reserve+67108864; poll0.05s; deadline600s. Samples persist at0.25s
+and fsync at1s cadence. These are margins, not peak bounds or completion promises
+on a filesystem shared with other users.
 
-## Authority, request and custody
+Only exit0, an empty build group, exact build hashes and fresh preflight/source/
+authority checks allow pidfd stop of the exact old listener. End ACK and a free
+3008 slot precede one official new start. New start ACK requires immutable
+child-owned listen evidence, independent parent/kernel identity, matching static
+build bytes, a private nonce, and post-HTTP identity/source/currentness checks.
+A foreign/stale PID record or HTTP200 alone is insufficient. Success is
+`ACK_EXACT_CONSUMER_RETAINED`; the new App remains live.
 
-A budget record, request boolean, nonempty flag, GUC, arbitrary URL, or this source acceptance grants no execution authority. There is no activation command. Delivery includes an EMPTY registry template; it is not installed or populated by the controller or tests.
+There is no second build/start, automatic rollback or backend restart. First
+unexpected operational failure remains primary. Cleanup targets only newly
+owned child groups and reports ACK/SKIPPED/UNKNOWN. Probe cleanup is a separate
+field, never NO_CHILD. Missing returned handles do not erase Popen custody.
+Unknown custody belongs to Platform with bounded follow-up. Receipt persistence
+failure cannot replace the first failure or claim a retained child absent.
+Expiry/revocation stops normal work; bounded owned-child cleanup remains a duty.
 
-Future execution requires an independently accepted exact tool commit/tree/seal, a private exact request and a **Coordinator-installed out-of-band authorization entry** at the fixed private registry path named in `host.py`. The same registry grants one exact request digest/run/tool tuple with a nonextendable window no longer than1200s. The owner-decision digest is a reference to the separately approved decision; it is not a cryptographic verifier of owner identity. The trust boundary is the Coordinator/operator-controlled private registry, not caller-supplied request data. The controller has no API to write it. A privileged operator who can edit the controller/registry is outside the untrusted-request boundary. Source review does not attest that this later authorization exists.
+## Evidence and remaining acceptance
 
-The private files/directories must be owned by the executing Seat, 0600/0700, canonical, single-link regular files without symlink/alias. Unknown runtime bindings in the supplied template are NULL and fail validation; no actual admission, PID, credential, target snapshot or decision is fabricated. Tests use explicit synthetic values in memory and never create this private registry.
+Offline state/entrypoint tests trap real Popen, signals, sockets and private
+runtime reads. Preparation composition performs real temporary private file IO
+with controlled source/backend observations and zero process effects. Separate
+disposable Node/kernel/HTTP tests verify observation capabilities. These are
+not native adoption or A03 evidence.
 
-Currentness and byte identity are rechecked after waits and immediately before build, old-App signal and new start. Equality at expiry rejects. Revocation/expiry halts normal progress; it does not authorize replacement permits or retries. Cleanup of the already owned new child is a separate bounded duty and may continue after authority expiry, without permitting another unit/start.
+After the exact App is served, Task09 continues A03, logout and UNKNOWN/retry/
+reload on the same backend. Preserve the successful prior Request, refresh and
+restart evidence; adopting this source does not require repeating those writes
+or restarting the database. Historical unknowns remain unknown. A remaining503
+requires the bounded read-boundary diagnostic; infrastructure failures are not
+blanket-mapped to403. PID/build/trace/body/credential records remain private.
 
-R1 reads the source seal and request first, then re-reads authority bytes and
-samples the current clock last. Expiry or revocation during a blocking seal
-read cannot pass the actual Popen or old-App signal boundary. Currentness is
-also checked after the final post-start source/build observation and after
-retained-record persistence, before returning retained ACK. This closes the
-controlled counterexamples found in55bad9ff without changing App pins, budget,
-reserve, signal custody, first-error policy or the one-use authority contract.
+The source seal covers12 explicit files and excludes itself. Final tool SHA/
+tree/seal and transfer hashes are external, avoiding self-hash cycles.
+Import/inspection never activates the runtime.
 
-R2 closes the internal entrypoint composition defect: main and Controller.run
-independently parse the same request bytes, producing equal but distinct dicts.
-NativeHost.authorize checks the complete validated values and exact raw digest,
-validates the original request's current authority, then binds the Controller's
-object exactly once. Subsequent currentness checks retain strict object identity;
-changed values, changed raw digest, another equal object after binding and a
-second authorization are rejected. Tests run the real main/NativeHost/Controller
-composition with synthetic I/O, not just a permissive FakeHost authorization.
-This does not renew any consumed execution permit; a new pinned R2 attempt
-requires a separate Coordinator decision and fresh private run/request/entry.
-
-A fixed private request location is selected by SHA256; no arbitrary request path, SQL, shell, argv, env override or `--exec` is accepted. Claim directory creation is exclusive and durable. Once a valid request has been claimed, failure/UNKNOWN never resets it. Request schema/pins and the initial observations are checked before claim; rejected input causes no build/start/stop/signal/claim effect. Read-only source/process observations are distinguished from application mutation effects.
-
-## Runtime sequence and first-error policy
-
-### R3 accepted start-only continuation
-
-The existing full-build algorithm is retained for regression. R3 continuation
-authorization grants only `resume-built-once`, never another full-build attempt.
-It reuses the exact accepted build of App8ed, whose ID and hashes are held in
-the private request/prior receipt and Coordinator execution decision. No actual
-runtime build ID is embedded in this public source. The outer request
-contract is `platform17.exact-built-start-continuation.v1`, with `request`
-(the validated exact private V2 fields, fresh tool/run), `prior`
-(`request_sha256`, `result_sha256`) and `expected_build` (id, four file hashes
-and served-manifest hash). There is no arbitrary port/path/argv/budget input.
-
-The prior request must be exact R2a2adc012 and its unchanged target/admission/
-transport fields must equal the new request. The prior result must show build
-exit0, old-stopACK, exactly the reported listener-observation denial and both
-cleanupACKs. Both saved R2 process records are read; their original PID/start/
-session/group/UID pins must be valid and their groups must now be empty.
-The old App must independently be ended and3008 free. The current build bytes
-must match both the accepted prior evidence and expected build. Permission
-failures, other prior outcomes, missing/changed evidence or surviving children
-do not admit continuation. Nothing cleans or replays the prior attempt.
-
-`prepare-resume <PRIOR_REQUEST_SHA256> <NEW_RUN_ID>` is an explicitly authorized
-preparation helper: it reads the private prior request/result, constructs the
-closed request, writes it exclusively0600 and returns its digest. It never
-writes registry/claim or starts any child. Observed tool HEAD is request data,
-not authority; the operator must first match the externally accepted exact
-tool tuple. Then the separate trusted operator installs the one new registry
-entry under the Coordinator decision, preserving consumed prior entries.
-
-After fresh authorization and one claim, the continuation reuses the official
-read-only adoption preflight. A disposable Node server on a random loopback
-port then verifies child self-observation, the unchanged application environment
-filter, parent PID/start/session/UID/cwd/argv observation, a private HTTP nonce
-and probe exit/cleanupACK. It holds until the parent acknowledges those checks;
-probe failure occurs before the one product start. Proxy/CA/guard preloads are
-preserved; the sealed observer is appended to NODE_OPTIONS, never substituted
-for an existing preload. No privilege change or alternate foreign-fd read is used.
-
-Only after another exact prior/source/admission/build/port/currentness check
-does the same official start argv run once. There is no build or old-stop call
-in the continuation. Since no build work remains, the original2GiB build floor
-is not reapplied to this start-only unit: it requires more than the existing
-reserve-plus128MiB early-stop margin before dispatch, and protects512MiB during
-startup observation. The full-build2GiB floor and all original budget fields
-remain unchanged; neither threshold is a peak-resource guarantee.
-
-The sealed Node observer publishes one immutable private listen record by atomic
-rename after writing/fsync. PID/start/session/group/UID/cwd come from that live
-process; the parent independently checks its owned group and process identity.
-It also requires the same private nonce in the response from the existing static
-build-manifest URL, exact build bytes, and process identity again after HTTP.
-HTTP200 alone, a copied/stale/foreign PID record, an absent nonce or inaccessible
-required metadata cannot produce ACK. No scan of another process's fd directory
-is performed. Ordinary application responses/handlers are untouched; the nonce
-header applies only to this private startup challenge on the static manifest.
-
-One-use authority/currentness and bounded new-child cleanup retain first-error
-semantics. Probe cleanup and reused build/previous old-stop are explicitly
-labelled, never claimed as a new build or stop. After retained ACK, existing
-Task09 browser work can continue on the same backend without rebuilding,
-restarting the backend/relay or replaying successful positive/restart scenarios.
-Node/kernel and existing-Next static tests remain component evidence; actual
-Platform App8ed/browser/native acceptance is a separate open gate.
-
-1. Validate all input fields, budget, static pins and out-of-band authority. Check tool source seal/tree, exact App/anchor sources, original admission, Core-protected files, old PID/start/cwd/argv/build, relay and protected-file hashes. Confirm capacity and inode availability.
-2. Acquire a one-use claim. Run the unchanged official consumer adoption preflight. Recheck currentness, identities and capacity **after** preflight and immediately before the one build.
-3. Recheck capacity immediately at the Popen boundary; include spawn/PID-metadata wait in the build deadline. Launch one build in its own session/group. Store the Popen handle/custody slot before persisting PID metadata. Monitor shared filesystem capacity and deadline; any error stops progress. Group membership/start/UID/session and protected App/relay groups are checked before signals. App198 and Backend are retained throughout build.
-4. Require exit0, no surviving build descendants and exact new build identity. Recheck original App/build/admission/transport, authority and new build hashes after another preflight. Only then signal the exact App198 listener through pidfd, after another full identity/currentness check. A PID change before the signal rejects; pidfd pins the selected process at the signal boundary. No broad user/session/group stop is used for old App.
-5. Require old-process end ACK and a free3008 listener slot. Recheck authority/source/build and dispatch **one** official start with the same five selectors. Source/build/old-stop/port and currentness are checked again after intent/log setup at the actual Popen boundary. No startup retry is implemented.
-6. ACK requires a listener inside the new start's owned group, exact PID/start/UID/cwd/argv, a matching HTTP200 static build manifest, and identity/source/build rechecks after the HTTP wait. Probe/readiness alone is not start ACK.
-7. Keep the new App only after this ACK. Delivery of its process/build evidence is private. No browser, Request, successful prior scenario or restart acceptance is repeated by this tool.
-
-If PID persistence fails after Popen, a returned handle is absent or ACK is lost, `MAY_EXIST`/UNKNOWN is preserved. The Popen/custody slot is retained independently of receipt creation. There is no second start and no claim of `NO_CHILD` based on missing metadata. Cleanup is restricted to the owned newly dispatched build/start group with proven identity. Unprovable custody causes UNKNOWN, Platform ownership and a follow-up deadline of600s; no arbitrary process/resource is terminated to make cleanup look complete.
-
-Cleanup reports ACK, SKIPPED or UNKNOWN truthfully. First operational error remains primary if cleanup or final persistence also fails. A skipped cleanup is not an ACK. If final persistence fails after a verified retained App, state is UNKNOWN_RECEIPT_PERSISTENCE, the known retained child/custody and follow-up remain explicit; it is not reported as no child. Old-App stop may have completed even when the new start fails; no automatic old restart or chain rollback is claimed.
-
-## Seals, package and proof limits
-
-The fixed controller module is compiled from the sealed source bytes; cached Python bytecode is not a load path.
-
-`source-seal.json` contains the ten explicit source/contract/template/test files with bytes/SHA256, including resume/observer/probe support; it excludes itself. Its own SHA256 and the final tool commit/tree are recorded in the external delivery manifest. The Git tree covers the seal. The delivery manifest/bundle hashes are external, so there is no self-hash cycle.
-
-Offline tests exercise the controller and pure native-host guards with a synthetic host. Real Popen, signals, pidfd-open, network and private-file reads are trapped and must have zero attempted calls. Synthetic PASS is not a native monitor/start proof. Host implementations are supplied for review; actual platform PIDFD, socket, permission, filesystem behavior and process cleanup remain native gates. The real accepted request/registry, entrypoint invocation and eventual owner permission are not bundled.
-
-V1 receipts, the rejected capacity report and all real private admission/target/session/trace data are excluded from the public source bundle. Fixed source path constants identify the reviewed boundary; no runtime values are copied from private evidence.
-
-## Operational process record
-
-قابل خودکارسازی: **نیازمند بررسی**. ورودی، pinهای نسخه‌دار و درخواست پذیرفته‌شده است؛ بررسی schema/hash و ترتیب قابل اجرای خودکار است. تصمیم انسانی با Coordinator برای پذیرش source و مالک برای اختیار اجرای دقیق باقی می‌ماند. شرط اجرا registry بیرونی و claim یک‌بارمصرف است؛ UNKNOWN به Platform ارجاع می‌شود. وابستگی رسمی، App8ed و ABI اصلی transport/admission است. ارزش موردانتظار جلوگیری از تعویض App اشتباه و start تکراری است؛ برآورد عددی یا سامانهٔ اتوماسیون تازه‌ای ادعا نمی‌شود.
+قابل خودکارسازی: **نیازمند بررسی**. Coordinator pins the exact source and owns
+the scoped decision; Platform performs one native transition and truthful
+cleanup; Task08/09 independently review product evidence.

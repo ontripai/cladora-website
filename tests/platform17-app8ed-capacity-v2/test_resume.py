@@ -85,7 +85,7 @@ class ResumeTests(unittest.TestCase):
             with self.assertRaisesRegex(C.Rejected,'PREPARE_EXACT_PRIOR_R2'):
                 R.prepare_request(old_raw,path.read_bytes(),outer['request']['tool'],'app8ed-prior-synthetic-0001',C)
             self.assertEqual(fake.events,[])
-    def test_real_prepare_CLI_writes_exact_private_request_without_registry_or_claim(self):
+    def test_legacy_prepare_function_writes_exact_private_request_without_registry_or_claim(self):
         with self.fixture() as (outer,fake,files,result,path):
             directory=H.AUTHORITY_ROOT/'requests';directory.mkdir(mode=0o700)
             tool=outer['request']['tool']
@@ -97,8 +97,8 @@ class ResumeTests(unittest.TestCase):
             with mock.patch.object(R.subprocess,'check_output',git), \
                  mock.patch.object(H,'seal_identity',lambda:tool['seal_sha256']), \
                  contextlib.redirect_stdout(io.StringIO()) as output:
-                self.assertEqual(H.main(['prepare-resume',outer['prior']['request_sha256'],outer['request']['run_id']]),0)
-            reply=json.loads(output.getvalue());self.assertEqual(reply['state'],'REQUEST_PREPARED_NOT_AUTHORIZED')
+                reply=R.prepare_private(H,outer['prior']['request_sha256'],outer['request']['run_id'],C)
+            self.assertEqual(reply['state'],'REQUEST_PREPARED_NOT_AUTHORIZED')
             destination=directory/(reply['request_sha256']+'.json')
             self.assertEqual(C.sha(destination.read_bytes()),reply['request_sha256'])
             self.assertEqual(json.loads(destination.read_bytes()),outer)
@@ -113,7 +113,7 @@ class ResumeTests(unittest.TestCase):
     def test_exact_prior_success_resumes_start_without_build_or_old_stop(self):
         with self.fixture() as (outer, fake, *_):
             result = self.execute(outer, fake)
-            self.assertEqual(result.state, 'ACK_EXACT_APP8ED_RETAINED')
+            self.assertEqual(result.state, 'ACK_EXACT_CONSUMER_RETAINED')
             self.assertEqual(fake.events.count('start'), 1)
             self.assertEqual(fake.events.count('probe'), 1)
             self.assertNotIn('build', fake.events); self.assertNotIn('stop-old', fake.events)
@@ -177,7 +177,7 @@ class ResumeTests(unittest.TestCase):
         with self.fixture() as (outer, fake, *_):
             fake.free = C.EARLY_STOP + 1
             self.assertLess(fake.free, C.START)
-            self.assertEqual(self.execute(outer, fake).state, 'ACK_EXACT_APP8ED_RETAINED')
+            self.assertEqual(self.execute(outer, fake).state, 'ACK_EXACT_CONSUMER_RETAINED')
         with self.fixture() as (outer, fake, *_):
             fake.free = C.EARLY_STOP
             with self.assertRaisesRegex(C.Rejected, 'RESUME_START_CAPACITY_HOLD'): self.execute(outer, fake)
@@ -233,7 +233,7 @@ class ResumeTests(unittest.TestCase):
             self.assertEqual(result.first_error['message'],'ORIGINAL_START_FAILURE')
             self.assertEqual(result.state,'UNKNOWN_STOPPED_NO_RETRY')
             self.assertEqual(fake.events.count('start'),1)
-    def test_real_resume_CLI_authorization_and_runner_composition(self):
+    def test_legacy_runner_authorization_composition_without_new_CLI_permission(self):
         with self.fixture() as (outer, fake, files, result, path):
             raw = B.encode(outer); digest = C.sha(raw); r = outer['request']
             entry = {'request_sha256':digest,'tool':r['tool'],'run_id':r['run_id'],
@@ -251,8 +251,8 @@ class ResumeTests(unittest.TestCase):
                 return h
             with mock.patch.object(H,'NativeHost',construct), mock.patch.object(H,'seal_identity',lambda:r['tool']['seal_sha256']), \
                  mock.patch.object(H.time,'time',lambda:100.), contextlib.redirect_stdout(io.StringIO()) as output:
-                self.assertEqual(H.main(['resume-built-once',digest]),0)
-            self.assertEqual(json.loads(output.getvalue())['state'],'ACK_EXACT_APP8ED_RETAINED')
+                outcome=R.run(construct(r,digest,files[H.REGISTRY],entry),raw,H,C)
+            self.assertEqual(outcome.state,'ACK_EXACT_CONSUMER_RETAINED')
             self.assertEqual(fake.events.count('start'),1); self.assertNotIn('build',fake.events)
 
 class KernelObservationTests(unittest.TestCase):

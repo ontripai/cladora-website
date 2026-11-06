@@ -24,7 +24,7 @@ H = module('capacity_test_host', ROOT / 'scripts/platform17-app8ed-capacity-v2/h
 
 def fixture():
     """SYNTHETIC ONLY. Hashes/PID/build/registry values are not real evidence."""
-    return {'contract':'platform17.app198-app8ed.request.v2','run_id':'app8ed-synthetic-only-0001',
+    return {'contract':'platform17.service-scope-adoption.request.v1','run_id':'app8ed-synthetic-only-0001',
         'tool':{'sha':'1'*40,'tree':'2'*40,'seal_sha256':'3'*64},
         'consumer':{'root':C.APP_ROOT,'sha':C.BASE,'tree':C.NEW_TREE,'launcher_sha256':C.LAUNCHER},
         'old_app':{'root':C.OLD_ROOT,'sha':C.OLD,'tree':C.OLD_TREE,'launcher_sha256':C.LAUNCHER,'pid':4242,'start_ticks':'100','argv':['next-server (v16.4.1)'],'record_sha256':'4'*64,'build':{'id':'synthetic-old','files':{n:'5'*64 for n in C.BUILD_FILES},'served_manifest_sha256':'6'*64}},
@@ -41,7 +41,7 @@ class FakeHost:
         self.free=C.START; self.inodes=100; self.old_ended=False; self.old_ticks='100'; self.preflights=0
         self.after_preflight=None; self.after_wait=None; self.build_code=0; self.sample_free=None; self.polls=0
         self.build=None; self.new=None; self.start_error=None; self.cleanup_error=False; self.finish_error=False; self.pid_error=False
-        self.backend='UNCHANGED'; self.relay='UNCHANGED'; self.new_build={'id':'synthetic-new','files':{n:'a'*64 for n in C.BUILD_FILES},'served_manifest_sha256':'b'*64}
+        self.probe_cleanup=None; self.probe_error=None; self.backend='UNCHANGED'; self.relay='UNCHANGED'; self.new_build={'id':'synthetic-new','files':{n:'a'*64 for n in C.BUILD_FILES},'served_manifest_sha256':'b'*64}
     def effect(self,n):self.events.append(n)
     def authorize(self,r,d):
         if not self.approved:raise C.Rejected('NO_SYNTHETIC_TEST_AUTHORITY')
@@ -59,6 +59,9 @@ class FakeHost:
     def preflight(self,r):
         self.preflights+=1
         if self.after_preflight:self.after_preflight(self)
+    def probe_observation(self,r,build):
+        self.effect('probe'); self.probe_cleanup={'resource':'observation_probe','state':'ACK'}
+        if self.probe_error: raise C.Unknown(self.probe_error)
     def record(self,n,v):self.events.append('receipt:'+n)
     def spawn_build(self,r):self.effect('build');self.build={'kind':'build','live':True};return self.build
     def sample(self):return {'available_bytes':self.sample_free if self.sample_free is not None else self.free,'free_inodes':self.inodes}
@@ -111,7 +114,7 @@ class Tests(unittest.TestCase):
         with self.assertRaises((C.Rejected,ValueError,TypeError)):C.Controller(h).run(encode(r))
         self.assertEqual(h.events,[]);self.assertFalse(h.old_ended);self.assertIsNone(h.build);self.assertIsNone(h.new)
     def test_valid_budget_and_full_synthetic_transition(self):
-        h=FakeHost();x=C.Controller(h).run(encode(fixture()));self.assertEqual(x.state,'ACK_EXACT_APP8ED_RETAINED')
+        h=FakeHost();x=C.Controller(h).run(encode(fixture()));self.assertEqual(x.state,'ACK_EXACT_CONSUMER_RETAINED')
         self.assertEqual([n for n in h.events if n in ('build','stop-old','start')],['build','stop-old','start'])
         self.assertLess(h.events.index('receipt:build-pass'),h.events.index('stop-old'));self.assertEqual(h.backend,'UNCHANGED');self.assertEqual(h.relay,'UNCHANGED')
     def test_indirect_parent_chain(self):
@@ -367,7 +370,7 @@ class NativeCurrentnessTests(unittest.TestCase):
 
         h.observe = observe; h.read_build = read; h.record = record
         result = C.Controller(h).run(encode(fixture()))
-        self.assertNotEqual(result.state, 'ACK_EXACT_APP8ED_RETAINED')
+        self.assertNotEqual(result.state, 'ACK_EXACT_CONSUMER_RETAINED')
         self.assertEqual(result.first_error['message'], 'AUTHORITY_EXPIRED_OR_REVOKED')
         self.assertFalse(h.new['live'])
         self.assertEqual(h.events.count('start'), 1)
@@ -397,12 +400,15 @@ class EntrypointBindingTests(unittest.TestCase):
         def construct(*args):
             h = native_host(*args)
             # Keep actual authorize/current: these are the binding under test.
-            for name in ('observe', 'claim', 'preflight', 'record', 'spawn_build',
+            for name in ('observe', 'claim', 'preflight', 'probe_observation', 'record', 'spawn_build',
                          'sample', 'monotonic', 'sleep', 'build_poll', 'build_members',
                          'read_build', 'stop_old', 'port_free', 'spawn_start', 'start_ack',
                          'possible_build', 'possible_start', 'cleanup_build',
                          'cleanup_start', 'finish'):
                 setattr(h, name, getattr(fake, name))
+            def probe(*args):
+                fake.probe_observation(*args); h.probe_cleanup=fake.probe_cleanup
+            h.probe_observation=probe
             state['hosts'].append(h)
             return h
 
@@ -424,7 +430,7 @@ class EntrypointBindingTests(unittest.TestCase):
         with self.entrypoint() as (state, fake, direct, raw, digest):
             with contextlib.redirect_stdout(io.StringIO()) as output:
                 self.assertEqual(H.main(['execute-once', digest]), 0)
-            self.assertEqual(json.loads(output.getvalue())['state'], 'ACK_EXACT_APP8ED_RETAINED')
+            self.assertEqual(json.loads(output.getvalue())['state'], 'ACK_EXACT_CONSUMER_RETAINED')
             self.assertEqual(len(state['hosts']), 1)
             self.assertEqual([n for n in fake.events if n in ('build', 'stop-old', 'start')],
                              ['build', 'stop-old', 'start'])

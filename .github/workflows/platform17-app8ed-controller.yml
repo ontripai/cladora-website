@@ -36,6 +36,8 @@ jobs:
           for path in (Path('scripts/platform17-app8ed-capacity-v2/controller.py'),
                        Path('scripts/platform17-app8ed-capacity-v2/host.py'),
                        Path('scripts/platform17-app8ed-capacity-v2/resume.py'),
+                       Path('scripts/platform17-app8ed-capacity-v2/prepare.py'),
+                       Path('tests/platform17-app8ed-capacity-v2/test_scope_adoption.py'),
                        Path('tests/platform17-app8ed-capacity-v2/test_controller.py'),
                        Path('tests/platform17-app8ed-capacity-v2/test_resume.py')):
               ast.parse(path.read_text(), filename=str(path))
@@ -47,4 +49,6 @@ jobs:
         run: python -B tests/platform17-app8ed-capacity-v2/test_controller.py -v
       - name: Continuation contracts and disposable Node kernel HTTP observation (no product backend)
         run: python -B tests/platform17-app8ed-capacity-v2/test_resume.py -v
+      - name: Exact next-consumer preparation and pre-stop observation
+        run: python -B tests/platform17-app8ed-capacity-v2/test_scope_adoption.py -v
       - run: git diff --check

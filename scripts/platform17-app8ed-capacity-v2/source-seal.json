@@ -1,26 +1,26 @@
 {
   "contract": "platform17.app8ed-controller.source-seal.v2",
-  "source_base": "8edca9d64b78f1eea0a6f402a6dd0c522bdcd4ea",
+  "source_base": "f2b3c01f1ffb49b202d5f5a8409137e4ec6643d2",
   "files": [
     {
       "path": "scripts/platform17-app8ed-capacity-v2/controller.py",
-      "bytes": 12492,
-      "sha256": "fe13e8ac617d37f1df804e0da9570e816b06d2594d11c0d977b838e26e48c952"
+      "bytes": 13013,
+      "sha256": "5e4abf04adbc87628e023e3e2b781ce0e982f0962cadf4598ce0be6e9f00639f"
     },
     {
       "path": "scripts/platform17-app8ed-capacity-v2/host.py",
-      "bytes": 35580,
-      "sha256": "61ac53354f5f280fab10e26abe0d25a688093fbb67143001696d6a0e0cfbbddc"
+      "bytes": 35663,
+      "sha256": "a9412e74108cc7a391550b0fe15a15899e6b73193b8d8cd10729c26db8a3844b"
     },
     {
       "path": "scripts/platform17-app8ed-capacity-v2/contract.md",
-      "bytes": 16452,
-      "sha256": "beefa8a2c2f2e76d8b286cb9d9e4a072423f7601cd81d143b04bb87e989d5c37"
+      "bytes": 6671,
+      "sha256": "5e11ec11d9417100ac1ef832564746081f7cda1ed872756bf940d9a01b2c46a6"
     },
     {
       "path": "scripts/platform17-app8ed-capacity-v2/request.template.json",
-      "bytes": 2184,
-      "sha256": "1cb075610c385a8c6dd2d3675f82468cdcf54ebfcc1ead623bdc20d771937dff"
+      "bytes": 2193,
+      "sha256": "93fe386ab8bf73c45762b2e66693ee815dc5d67282e083c17955ada6bd228084"
     },
     {
       "path": "scripts/platform17-app8ed-capacity-v2/registry.template.json",
@@ -29,13 +29,13 @@
     },
     {
       "path": "tests/platform17-app8ed-capacity-v2/test_controller.py",
-      "bytes": 33281,
-      "sha256": "9927da7e4bc171d9c284fd420fff42f5eab3b7d230578175d7844c0225321ed2"
+      "bytes": 33715,
+      "sha256": "4866afd42b1b50d1bfeb81c8b329cce1a7da3d94ec0cd9b0c328a731ebbff692"
     },
     {
       "path": "scripts/platform17-app8ed-capacity-v2/resume.py",
-      "bytes": 9390,
-      "sha256": "0b6833138d1f362d8d5a3372958970b948c675c4868a9318a19c8672ec600cac"
+      "bytes": 9392,
+      "sha256": "09e776ae816d303b1ff65554f90110ad1f0930f1081a0bf90f5e7aa639071254"
     },
     {
       "path": "scripts/platform17-app8ed-capacity-v2/listen-observer.mjs",
@@ -49,8 +49,18 @@
     },
     {
       "path": "tests/platform17-app8ed-capacity-v2/test_resume.py",
-      "bytes": 24328,
-      "sha256": "8c22f4c968f264692048b25a7edd477c419afb2bc9a4db926d1ac0eb1a0094a1"
+      "bytes": 24286,
+      "sha256": "34fd5ebd1d1cb93627d2691f67dea35bafdb6fe0aa403d00f565813b2972db18"
+    },
+    {
+      "path": "scripts/platform17-app8ed-capacity-v2/prepare.py",
+      "bytes": 6706,
+      "sha256": "12aa11df2509e1d5776e7c1c990bf624e308cbb18aac6065b2a4f6661ffed9ae"
+    },
+    {
+      "path": "tests/platform17-app8ed-capacity-v2/test_scope_adoption.py",
+      "bytes": 10466,
+      "sha256": "edcf4e59f13b7efc4ba8299b0d8209099093bf8702bb93d76099dfa14cc658fe"
     }
   ]
 }

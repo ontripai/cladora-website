@@ -1,4 +1,4 @@
-"""Exact App198 -> App8ed controller. Importing this module performs no native action."""
+"""Exact active App8ed -> reviewed scope-denial consumer controller. Importing this module performs no native action."""
 from __future__ import annotations
 import hashlib
 import json
@@ -6,11 +6,11 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-BASE = "8edca9d64b78f1eea0a6f402a6dd0c522bdcd4ea"
-OLD = "198e8a35dc120b554468074dd689793addb54385"
-MIDDLE = "445fcdcccf72f2038ed7abe7c96336864058cfe2"
-OLD_TREE = "54e792e02ad7b92137b9699b67d5dc346024f23e"
-NEW_TREE = "ad31eebe4463921df63bda6617aa2fb30f623bde"
+BASE = "f2b3c01f1ffb49b202d5f5a8409137e4ec6643d2"
+OLD = "8edca9d64b78f1eea0a6f402a6dd0c522bdcd4ea"
+MIDDLE = "3169f18d765d721debe39e00eae6ffe4fb1fbbd0"
+OLD_TREE = "ad31eebe4463921df63bda6617aa2fb30f623bde"
+NEW_TREE = "bf01acfaeba53c009ad6f9f6eeb2dcabffee7a5a"
 LAUNCHER = "cb887091c9045fba6b9eeb5ad2502ca6206006aa220b123d4594de8526828a5d"
 CORE = "ee883b62cf4a318af3450c506931a969623b8987"
 ANCHOR = "b696ff211daabd4be3989522c569f24ccccd0dce"
@@ -20,13 +20,13 @@ EARLY_STOP = RESERVE + 134217728
 URGENT_KILL = RESERVE + 67108864
 POLL = .05
 DEADLINE = 600
-APP_ROOT = "/workspace/work/platform17-consumer-8edca9d6"
-OLD_ROOT = "/workspace/work/platform17-consumer-198e8a35"
+APP_ROOT = "/workspace/work/platform17-consumer-f2b3c01f"
+OLD_ROOT = "/workspace/work/platform17-consumer-8edca9d6"
 ANCHOR_ROOT = "/workspace/work/platform17-integrated-app-b696ff21"
-PRIVATE = "/workspace/private/platform-service-consumer-rehearsal-17/exact-consumer-8edca9d6-01"
+PRIVATE = "/workspace/private/platform-service-consumer-rehearsal-17/exact-consumer-f2b3c01f-01"
 ADMISSION = PRIVATE + "/consumer-admission.json"
 RUNTIME = "/workspace/private/cladora-functional-dev-v1"
-OLD_RECORD = "/workspace/private/platform-service-consumer-rehearsal-17/exact-consumer-198e8a35-01/monitored-build-02/consumer-process.private.json"
+OLD_RECORD = PRIVATE + "/active-app8ed.observation.private.json"
 RELAY_RECORD = RUNTIME + "/relay-cors-v2/process.json"
 PROTECTED_FILES = (RUNTIME + "/descriptor.json", RUNTIME + "/core15/service-runtime-binding.json", RELAY_RECORD)
 BUILD_FILES = (".next/BUILD_ID", ".next/build-manifest.json", ".next/routes-manifest.json", ".next/server/app-paths-manifest.json")
@@ -63,7 +63,7 @@ def parse(raw):
 
 def validate(r):
     fields(r, ("contract", "run_id", "tool", "consumer", "old_app", "admission", "transport", "protected_files", "budget", "deadline_seconds"), "REQUEST_FIELDS")
-    need(r["contract"] == "platform17.app198-app8ed.request.v2", "CONTRACT")
+    need(r["contract"] == "platform17.service-scope-adoption.request.v1", "CONTRACT")
     need(type(r["run_id"]) is str and re.fullmatch("app8ed-[a-z0-9-]{8,64}", r["run_id"]) is not None, "RUN_ID")
     fields(r["tool"], ("sha", "tree", "seal_sha256"), "TOOL_FIELDS")
     digest(r["tool"]["sha"], 40); digest(r["tool"]["tree"], 40); digest(r["tool"]["seal_sha256"])
@@ -72,7 +72,7 @@ def validate(r):
     need(r["consumer"] == {"root": APP_ROOT, "sha": BASE, "tree": NEW_TREE, "launcher_sha256": LAUNCHER}, "CONSUMER_PIN")
     old = r["old_app"]
     fields(old, ("root", "sha", "tree", "launcher_sha256", "pid", "start_ticks", "argv", "record_sha256", "build"), "OLD_FIELDS")
-    need((old["root"], old["sha"], old["tree"], old["launcher_sha256"]) == (OLD_ROOT, OLD, OLD_TREE, LAUNCHER), "OLD_APP198_ONLY")
+    need((old["root"], old["sha"], old["tree"], old["launcher_sha256"]) == (OLD_ROOT, OLD, OLD_TREE, LAUNCHER), "OLD_ACTIVE_APP8ED_ONLY")
     need(type(old["pid"]) is int and old["pid"] > 1, "OLD_PID")
     need(type(old["start_ticks"]) is str and re.fullmatch("[1-9][0-9]*", old["start_ticks"]) is not None, "OLD_TICKS")
     need(old["argv"] == ["next-server (v16.4.1)"], "OLD_ARGV")
@@ -108,8 +108,9 @@ def same_old(observed, r):
 def check_snapshot(snapshot, r, *, old_stopped=False):
     need(snapshot["consumer"] == r["consumer"], "OBSERVED_CONSUMER_DRIFT")
     need(snapshot["tool"] == r["tool"], "OBSERVED_TOOL_DRIFT")
-    # This is the exact observed three-commit chain, not a false direct-parent check.
-    need(snapshot["lineage"] == [OLD, MIDDLE, BASE], "LINEAGE_198_445_8ED")
+    # Independently observed old source, exact new direct parent and new source.
+    # NativeHost also checks old is an ancestor; old need not be HEAD^^.
+    need(snapshot["lineage"] == [OLD, MIDDLE, BASE], "EXACT_OLD_NEW_PARENT_CONSUMER")
     need(snapshot["admission_sha256"] == r["admission"]["sha256"], "ADMISSION_DRIFT")
     need(snapshot["protected_files"] == r["protected_files"] and snapshot["relay_identity_current"] is True, "PROTECTED_RUNTIME_DRIFT")
     need(snapshot["sources_clean"] is True and snapshot["protected_sources_match"] is True, "SOURCE_CLEAN_OR_PROTECTED_PIN")
@@ -153,6 +154,10 @@ class Controller:
             h.current(r)
             h.claim(r, sha(raw)); claimed = True
             h.current(r); h.preflight(r)
+            # Prove the same kernel/self/HTTP observation before any build or old stop.
+            h.current(r)
+            h.probe_observation(r, r["old_app"]["build"])
+            facts["observation_probe_cleanup"] = h.probe_cleanup
             h.current(r)
             fresh = h.observe(r); check_snapshot(fresh, r); enough(fresh)
             h.record("build-intent", {"argv": BUILD_ARGV, "App": BASE, "budget": r["budget"]})
@@ -199,7 +204,7 @@ class Controller:
             h.current(r)
             h.record("app-retained", facts["served"])
             h.current(r)
-            result = Outcome("ACK_EXACT_APP8ED_RETAINED", None, [], old_stop, "ACK", facts)
+            result = Outcome("ACK_EXACT_CONSUMER_RETAINED", None, [], old_stop, "ACK", facts)
         except BaseException as error:
             first = {"type": type(error).__name__, "message": str(error)}
             # A spawn method may fail while persisting PID evidence. Its own
@@ -213,7 +218,10 @@ class Controller:
             if build is not None:
                 try: clean.append(h.cleanup_build(build))
                 except BaseException as secondary: clean.append({"resource": "new_build", "state": "UNKNOWN", "error": str(secondary)})
-            unknown = isinstance(error, Unknown) or any(x["state"] == "UNKNOWN" for x in clean)
+            probe_cleanup = getattr(h, "probe_cleanup", None)
+            if probe_cleanup is not None:
+                facts["observation_probe_cleanup"] = probe_cleanup
+            unknown = isinstance(error, Unknown) or any(x["state"] == "UNKNOWN" for x in clean) or (probe_cleanup is not None and probe_cleanup["state"] == "UNKNOWN")
             result = Outcome("UNKNOWN_STOPPED_NO_RETRY" if unknown else "FAILED_STOPPED_NO_RETRY", first, clean, old_stop, start_state, facts)
         if claimed:
             try:

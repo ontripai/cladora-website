@@ -134,7 +134,7 @@ def run(h, raw, H, C):
         C.check_snapshot(h.observe(r, old_stopped=True), r, old_stopped=True)
         C.need(h.read_build(r) == outer['expected_build'], 'RESUME_BUILD_DRIFT_AFTER_ACK')
         h.current(r); h.record('app-retained', facts['served']); h.current(r)
-        result = C.Outcome('ACK_EXACT_APP8ED_RETAINED', None, clean,
+        result = C.Outcome('ACK_EXACT_CONSUMER_RETAINED', None, clean,
                            'PREVIOUS_ACK_NOT_REPLAYED', 'ACK', facts)
     except BaseException as error:
         new = new or h.possible_start()
