@@ -9,13 +9,13 @@
     },
     {
       "path": "scripts/platform17-app8ed-capacity-v2/host.py",
-      "bytes": 27352,
-      "sha256": "b0360264650a2187a00b1500e0aa6286f361eff21fe300b843e0aaf50fb15977"
+      "bytes": 27827,
+      "sha256": "bc6798b1ad0546da9f0ba2dea0f682f2291f6cb17c7e403a8b3ccb630eb5bb3c"
     },
     {
       "path": "scripts/platform17-app8ed-capacity-v2/contract.md",
-      "bytes": 11204,
-      "sha256": "8ef7d65148bfa17d6bc578943cebc284156648821a756d36886220e38129a9fd"
+      "bytes": 12000,
+      "sha256": "d704916cca865d1117e241c2eeebd5dbc5c5eec9a5566971c5a45ed0ffe9af8d"
     },
     {
       "path": "scripts/platform17-app8ed-capacity-v2/request.template.json",
@@ -29,8 +29,8 @@
     },
     {
       "path": "tests/platform17-app8ed-capacity-v2/test_controller.py",
-      "bytes": 26602,
-      "sha256": "d83575bb021c0da65d83ad00ea4131cc0cd7f7c8acd09e76a2881dc7930f1f61"
+      "bytes": 33281,
+      "sha256": "9927da7e4bc171d9c284fd420fff42f5eab3b7d230578175d7844c0225321ed2"
     }
   ]
 }

@@ -16,7 +16,7 @@ import urllib.request
 
 HERE = Path(__file__).resolve().parent
 TOOL = HERE.parents[1]
-TOOL_PARENT = '55bad9ff0b38e57c14cf0b660e32c5609a9745d6'
+TOOL_PARENT = '9a946f2b4523337927e45ca86ee4456eba31904b'
 AUTHORITY_ROOT = Path('/workspace/private/platform17-app8ed-capacity-controller-v2')
 REGISTRY = AUTHORITY_ROOT / 'coordinator-accepted-executions.json'
 C = None
@@ -134,6 +134,7 @@ def validate_registry_entry(entry, r, digest, now):
 class NativeHost:
     def __init__(self, request, digest, registry_raw, entry):
         self.request = request; self.digest = digest; self.registry_raw = registry_raw; self.entry = entry
+        self._authorized = False
         self.run = AUTHORITY_ROOT / 'runs' / request['run_id']; self.seq = 0
         self._build = self._start = None; self.old_stopped = False; self.protected = set()
         self.sample_fd = None; self.last_sample_write = -float('inf'); self.last_sample_sync = -float('inf')
@@ -146,9 +147,16 @@ class NativeHost:
         return result.stdout
 
     def authorize(self, r, digest):
-        C.need(r is self.request and digest == self.digest, 'INTERNAL_REQUEST_BINDING')
-        self.current(r)
+        C.need(not self._authorized, 'REQUEST_BINDING_ALREADY_AUTHORIZED')
+        # main and Controller independently validate the same sealed bytes.
+        # Bind their equal values/digest once; preserve strict identity for
+        # every subsequent currentness check rather than requiring two JSON
+        # parses to return the same Python object.
+        C.need(type(r) is dict and r == self.request and digest == self.digest, 'INTERNAL_REQUEST_BINDING')
+        self.current(self.request)
         C.need(hasattr(os, 'pidfd_open') and hasattr(signal, 'pidfd_send_signal'), 'PIDFD_CAPABILITY_REQUIRED')
+        self.request = r
+        self._authorized = True
 
     def current(self, r):
         C.need(r is self.request, 'REQUEST_OBJECT_CHANGED')

@@ -377,4 +377,123 @@ class NativeCurrentnessTests(unittest.TestCase):
     def test_no_retained_ACK_after_final_build_read_expiry(self): self.retention_boundary('build-read')
     def test_no_retained_ACK_after_receipt_wait_expiry(self): self.retention_boundary('retained-record')
 
+class EntrypointBindingTests(unittest.TestCase):
+    """Real main -> NativeHost -> Controller composition; host I/O is synthetic."""
+    setUp = Tests.setUp
+    tearDown = Tests.tearDown
+
+    @contextlib.contextmanager
+    def entrypoint(self, request=None):
+        r = request if request is not None else fixture()
+        raw = encode(r); digest = C.sha(raw)
+        entry = {'request_sha256': digest, 'tool': r['tool'], 'run_id': r['run_id'],
+                 'issued_at_epoch': 100, 'expires_at_epoch': 200, 'single_use': True,
+                 'owner_decision_sha256': 'a' * 64}
+        state = {'raw': raw, 'now': 100., 'hosts': [], 'private_reads': 0,
+                 'registry': {'contract': 'platform17.coordinator-execution-registry.v2',
+                              'entries': [entry]}}
+        fake = FakeHost(r); native_host = H.NativeHost
+
+        def construct(*args):
+            h = native_host(*args)
+            # Keep actual authorize/current: these are the binding under test.
+            for name in ('observe', 'claim', 'preflight', 'record', 'spawn_build',
+                         'sample', 'monotonic', 'sleep', 'build_poll', 'build_members',
+                         'read_build', 'stop_old', 'port_free', 'spawn_start', 'start_ack',
+                         'possible_build', 'possible_start', 'cleanup_build',
+                         'cleanup_start', 'finish'):
+                setattr(h, name, getattr(fake, name))
+            state['hosts'].append(h)
+            return h
+
+        def private(path):
+            state['private_reads'] += 1
+            if Path(path) == H.REGISTRY: return encode(state['registry'])
+            if Path(path) == H.AUTHORITY_ROOT / 'requests' / (digest + '.json'): return state['raw']
+            raise AssertionError('UNPLANNED_PRIVATE_READ')
+
+        registry_raw = encode(state['registry'])
+        direct = native_host(C.parse(raw), digest, registry_raw, entry)
+        with mock.patch.object(H, 'C', C), mock.patch.object(H, 'NativeHost', construct), \
+             mock.patch.object(H, 'private_read', private), \
+             mock.patch.object(H, 'seal_identity', lambda: r['tool']['seal_sha256']), \
+             mock.patch.object(H.time, 'time', lambda: state['now']):
+            yield state, fake, direct, raw, digest
+
+    def test_real_main_composition_accepts_same_bytes_and_dispatches_once(self):
+        with self.entrypoint() as (state, fake, direct, raw, digest):
+            with contextlib.redirect_stdout(io.StringIO()) as output:
+                self.assertEqual(H.main(['execute-once', digest]), 0)
+            self.assertEqual(json.loads(output.getvalue())['state'], 'ACK_EXACT_APP8ED_RETAINED')
+            self.assertEqual(len(state['hosts']), 1)
+            self.assertEqual([n for n in fake.events if n in ('build', 'stop-old', 'start')],
+                             ['build', 'stop-old', 'start'])
+            self.assertEqual(fake.backend, 'UNCHANGED'); self.assertEqual(fake.relay, 'UNCHANGED')
+            self.assertTrue(fake.claimed)
+
+    def test_authorize_binds_equal_separately_parsed_request(self):
+        with self.entrypoint() as (state, fake, h, raw, digest):
+            parsed = C.validate(C.parse(raw)); original = h.request
+            self.assertEqual(parsed, original); self.assertIsNot(parsed, original)
+            h.authorize(parsed, digest)
+            self.assertIs(h.request, parsed)
+            h.current(parsed)
+            self.assertEqual(fake.events, [])
+
+    def test_changed_request_value_rejected_before_authority_read(self):
+        with self.entrypoint() as (state, fake, h, raw, digest):
+            changed = C.parse(raw); changed['run_id'] = 'app8ed-different-0001'
+            with self.assertRaisesRegex(C.Rejected, '^INTERNAL_REQUEST_BINDING$'):
+                h.authorize(changed, digest)
+            self.assertEqual(state['private_reads'], 0); self.assertEqual(fake.events, [])
+
+    def test_equal_content_with_different_raw_digest_rejected(self):
+        with self.entrypoint() as (state, fake, h, raw, digest):
+            with self.assertRaisesRegex(C.Rejected, '^INTERNAL_REQUEST_BINDING$'):
+                h.authorize(C.parse(raw + b' '), C.sha(raw + b' '))
+            self.assertEqual(state['private_reads'], 0); self.assertEqual(fake.events, [])
+
+    def test_current_still_rejects_equal_foreign_object_after_binding(self):
+        with self.entrypoint() as (state, fake, h, raw, digest):
+            parsed = C.parse(raw); h.authorize(parsed, digest)
+            with self.assertRaisesRegex(C.Rejected, '^REQUEST_OBJECT_CHANGED$'):
+                h.current(C.parse(raw))
+            self.assertEqual(fake.events, [])
+
+    def test_successful_authorization_cannot_rebind_a_second_time(self):
+        with self.entrypoint() as (state, fake, h, raw, digest):
+            h.authorize(h.request, digest)
+            with self.assertRaisesRegex(C.Rejected, '^REQUEST_BINDING_ALREADY_AUTHORIZED$'):
+                h.authorize(h.request, digest)
+            self.assertEqual(fake.events, [])
+
+    def test_main_invalid_request_has_no_host_or_claim(self):
+        bad = fixture(); bad['budget']['start_bytes'] -= 1
+        with self.entrypoint(bad) as (state, fake, h, raw, digest):
+            with self.assertRaisesRegex(C.Rejected, '^EXACT_OWNER_BUDGET$'):
+                H.main(['execute-once', digest])
+            self.assertEqual(state['hosts'], []); self.assertEqual(fake.events, [])
+
+    def test_main_changed_request_bytes_rejected_before_host(self):
+        with self.entrypoint() as (state, fake, h, raw, digest):
+            state['raw'] = raw + b' '
+            with self.assertRaisesRegex(C.Rejected, '^REQUEST_DIGEST$'):
+                H.main(['execute-once', digest])
+            self.assertEqual(state['hosts'], []); self.assertEqual(fake.events, [])
+
+    def test_main_wrong_registry_digest_rejected_before_host(self):
+        with self.entrypoint() as (state, fake, h, raw, digest):
+            state['registry']['entries'][0]['request_sha256'] = 'f' * 64
+            with self.assertRaisesRegex(C.Rejected, '^NO_UNIQUE_COORDINATOR_AUTHORIZATION$'):
+                H.main(['execute-once', digest])
+            self.assertEqual(state['hosts'], []); self.assertEqual(fake.events, [])
+
+    def test_main_expired_authority_has_no_claim_or_dispatch(self):
+        with self.entrypoint() as (state, fake, h, raw, digest):
+            state['now'] = 200.
+            with self.assertRaisesRegex(ValueError, '^REGISTRY_EXPIRED_OR_WINDOW$'):
+                H.main(['execute-once', digest])
+            self.assertEqual(len(state['hosts']), 1)
+            self.assertEqual(fake.events, []); self.assertFalse(fake.claimed)
+
 if __name__=='__main__':unittest.main()

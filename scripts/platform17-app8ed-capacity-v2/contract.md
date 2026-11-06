@@ -7,7 +7,7 @@ Scope: source candidate for the existing Task17/08/09. This packet does not auth
 | Identity | Exact pin |
 |---|---|
 | Original tool source base | `8edca9d64b78f1eea0a6f402a6dd0c522bdcd4ea` |
-| R1 tool direct parent | `55bad9ff0b38e57c14cf0b660e32c5609a9745d6` |
+| R2 tool direct parent | `9a946f2b4523337927e45ca86ee4456eba31904b` |
 | Active App | `198e8a35dc120b554468074dd689793addb54385` / tree `54e792e02ad7b92137b9699b67d5dc346024f23e` |
 | App intermediate | `445fcdcccf72f2038ed7abe7c96336864058cfe2` |
 | Replacement App | `8edca9d64b78f1eea0a6f402a6dd0c522bdcd4ea` / tree `ad31eebe4463921df63bda6617aa2fb30f623bde` |
@@ -15,7 +15,7 @@ Scope: source candidate for the existing Task17/08/09. This packet does not auth
 | Installed Core | `ee883b62cf4a318af3450c506931a969623b8987` |
 | Original transport | `b696ff211daabd4be3989522c569f24ccccd0dce` |
 
-The tool commit/tree/seal are separate, externally pinned after review. App source never follows tool HEAD. Native observation requires the exact chain `198 -> 445fcdcc -> 8ed`, including the intermediate; `parent(8ed)==198` is intentionally not required. Neither an arbitrary descendant nor App97 is accepted. The R1 tool HEAD must be a direct child of the exact original tool55bad9ff; the original tool is itself a direct child of8ed. This preserves the delivered history without making tool HEAD the App pin. App and anchor checkouts must be independently clean and match the exact App tuples. The original consumer-admission ABI and original anchor transport preflight are reused; no guard is broadened to any HEAD/descendant.
+The tool commit/tree/seal are separate, externally pinned after review. App source never follows tool HEAD. Native observation requires the exact chain `198 -> 445fcdcc -> 8ed`, including the intermediate; `parent(8ed)==198` is intentionally not required. Neither an arbitrary descendant nor App97 is accepted. The R2 tool HEAD must be a direct child of the exact R1 tool9a946f2b; R1 is a direct child of55bad9ff, itself a direct child of8ed. This preserves the delivered history without making tool HEAD the App pin. App and anchor checkouts must be independently clean and match the exact App tuples. The original consumer-admission ABI and original anchor transport preflight are reused; no guard is broadened to any HEAD/descendant.
 
 ## Budget and fixed commands
 
@@ -49,6 +49,17 @@ also checked after the final post-start source/build observation and after
 retained-record persistence, before returning retained ACK. This closes the
 controlled counterexamples found in55bad9ff without changing App pins, budget,
 reserve, signal custody, first-error policy or the one-use authority contract.
+
+R2 closes the internal entrypoint composition defect: main and Controller.run
+independently parse the same request bytes, producing equal but distinct dicts.
+NativeHost.authorize checks the complete validated values and exact raw digest,
+validates the original request's current authority, then binds the Controller's
+object exactly once. Subsequent currentness checks retain strict object identity;
+changed values, changed raw digest, another equal object after binding and a
+second authorization are rejected. Tests run the real main/NativeHost/Controller
+composition with synthetic I/O, not just a permissive FakeHost authorization.
+This does not renew any consumed execution permit; a new pinned R2 attempt
+requires a separate Coordinator decision and fresh private run/request/entry.
 
 A fixed private request location is selected by SHA256; no arbitrary request path, SQL, shell, argv, env override or `--exec` is accepted. Claim directory creation is exclusive and durable. Once a valid request has been claimed, failure/UNKNOWN never resets it. Request schema/pins and the initial observations are checked before claim; rejected input causes no build/start/stop/signal/claim effect. Read-only source/process observations are distinguished from application mutation effects.
 
