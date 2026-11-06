@@ -10,6 +10,8 @@ on:
       - 'scripts/test-post-auth-compat-01.mjs'
       - 'scripts/test-owned-post-auth-boundaries-01.mjs'
       - 'scripts/test-app-service-profile-*.mjs'
+      - 'scripts/test-service-http-auth-*.mjs'
+      - 'docs/testing/SERVICE-HTTP-AUTH-CLASSIFICATION-01.md'
       - 'docs/testing/APP-SERVICE-PROFILE-COMPAT-01.md'
       - 'scripts/functional-dev-relay-port-recovery-v1/**'
       - 'scripts/test-context-denial-regression-02.mjs'
@@ -100,6 +102,8 @@ on:
       - 'scripts/test-post-auth-compat-01.mjs'
       - 'scripts/test-owned-post-auth-boundaries-01.mjs'
       - 'scripts/test-app-service-profile-*.mjs'
+      - 'scripts/test-service-http-auth-*.mjs'
+      - 'docs/testing/SERVICE-HTTP-AUTH-CLASSIFICATION-01.md'
       - 'docs/testing/APP-SERVICE-PROFILE-COMPAT-01.md'
       - 'scripts/functional-dev-relay-port-recovery-v1/**'
       - 'scripts/test-context-denial-regression-02.mjs'
@@ -215,6 +219,12 @@ jobs:
         run: |
           node scripts/test-app-service-profile-compat-01.mjs
           node scripts/test-app-service-profile-boundaries-01.mjs
+      - name: SERVICE bind-time authentication versus inactive runtime (controlled SDK)
+        run: |
+          node scripts/test-service-http-auth-classification-01.mjs
+          node scripts/test-service-http-auth-boundaries-01.mjs
+          node scripts/test-service-functional-request-runtime-binding-v1.mjs
+          node scripts/test-service-offering-request-flow-02.mjs
       - name: Preserve Core15 checkpoint identities at their reviewed source revision
         run: |
           checkpoint=29ed18541c602dae4e6db5c98a96201250af630b
