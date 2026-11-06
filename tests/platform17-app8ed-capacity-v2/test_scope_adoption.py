@@ -30,9 +30,9 @@ def prior_fixture():
     served={'source':C.OLD,'tree':C.OLD_TREE,'build':copy.deepcopy(build),
         'listener':{'pid':4242,'start_ticks':'100','cwd':C.OLD_ROOT,
                     'argv':['next-server (v16.4.1)'],'uid':os.getuid()}}
-    outer={'contract':'platform17.exact-built-start-continuation.v1',
-           'request':r,'expected_build':copy.deepcopy(build)}
-    result={'state':'ACK_EXACT_APP8ED_RETAINED','first_error':None,
+    r['contract']='platform17.service-scope-adoption.request.v1'
+    outer=r
+    result={'state':'ACK_EXACT_CONSUMER_RETAINED','first_error':None,
             'start_dispatch':'ACK','evidence':{'served':served,'new_build':copy.deepcopy(build)}}
     admission={'contract':'core17.exact-app-consumer-admission.v1','source_base':C.ANCHOR,
         'installed_Core_base':C.CORE,'origin':'http://localhost:3008',
@@ -55,22 +55,22 @@ class PureTests(unittest.TestCase):
         C.validate(r)
         self.assertEqual(P.encoded([outer,result,admission]),before)
         self.assertEqual(r['consumer']['sha'],C.BASE); self.assertEqual(record['source'],C.OLD)
-        self.assertEqual(r['old_app']['build'],outer['expected_build'])
-        self.assertEqual(r['transport'],outer['request']['transport'])
-        self.assertEqual(r['protected_files'],outer['request']['protected_files'])
+        self.assertEqual(r['old_app']['build'],result['evidence']['new_build'])
+        self.assertEqual(r['transport'],outer['transport'])
+        self.assertEqual(r['protected_files'],outer['protected_files'])
         self.assertEqual(new['transport'],admission['transport'])
         self.assertEqual(r['old_app']['record_sha256'],C.sha(P.encoded(record)))
     def reject(self,change):
         outer,result,admission=prior_fixture(); change(outer,result,admission)
         with self.assertRaises((C.Rejected,KeyError,ValueError)):
             self.derive(outer,result,admission)
-    def test_unaccepted_prior_tool(self): self.reject(lambda o,r,a:o['request']['tool'].update(sha='0'*40))
-    def test_different_prior_source(self): self.reject(lambda o,r,a:o['request']['consumer'].update(sha='0'*40))
+    def test_unaccepted_prior_tool(self): self.reject(lambda o,r,a:o['tool'].update(sha='0'*40))
+    def test_different_prior_source(self): self.reject(lambda o,r,a:o['consumer'].update(sha='0'*40))
     def test_unknown_prior_start(self): self.reject(lambda o,r,a:r.update(state='UNKNOWN_STOPPED_NO_RETRY'))
     def test_not_ack_prior_start(self): self.reject(lambda o,r,a:r.update(start_dispatch='DISPATCHED_MAY_EXIST'))
     def test_prior_error_not_erased(self): self.reject(lambda o,r,a:r.update(first_error={'code':'failure'}))
     def test_served_build_mismatch(self): self.reject(lambda o,r,a:r['evidence']['served']['build'].update(id='different'))
-    def test_accepted_build_hash_mismatch(self): self.reject(lambda o,r,a:o['expected_build']['files'].update({C.BUILD_FILES[0]:'0'*64}))
+    def test_accepted_build_hash_mismatch(self): self.reject(lambda o,r,a:r['evidence']['new_build']['files'].update({C.BUILD_FILES[0]:'0'*64}))
     def test_foreign_listener(self): self.reject(lambda o,r,a:r['evidence']['served']['listener'].update(cwd='/tmp/other'))
     def test_foreign_uid(self): self.reject(lambda o,r,a:r['evidence']['served']['listener'].update(uid=os.getuid()+1))
     def test_foreign_core(self): self.reject(lambda o,r,a:a.update(installed_Core_base='0'*40))
@@ -117,14 +117,14 @@ class PrivatePreparationTests(unittest.TestCase):
         outer,result,admission=prior_fixture(); tool=B.fixture()['tool']
         with tempfile.TemporaryDirectory(prefix='cladora-scope-prepare-') as folder:
             root=Path(folder); prior=root/'prior'; auth=root/'authority'; private=root/'consumer'
-            for d in (prior,prior/'requests',prior/'runs',prior/'runs'/outer['request']['run_id']):
+            for d in (prior,prior/'requests',prior/'runs',prior/'runs'/outer['run_id']):
                 d.mkdir(mode=0o700,exist_ok=True)
             def put(path,value): H.persist(path,value)
             digest=C.sha(P.encoded(outer))
             put(prior/'coordinator-accepted-executions.json',{'contract':'platform17.coordinator-execution-registry.v2',
-                'entries':[{'request_sha256':digest,'tool':P.PRIOR_TOOL,'run_id':outer['request']['run_id']}]})
+                'entries':[{'request_sha256':digest,'tool':P.PRIOR_TOOL,'run_id':outer['run_id']}]})
             put(prior/'requests'/(digest+'.json'),outer)
-            put(prior/'runs'/outer['request']['run_id']/'result.private.json',result)
+            put(prior/'runs'/outer['run_id']/'result.private.json',result)
             old_ad=prior/'admission.json'; put(old_ad,admission)
             responses={('status','--porcelain'):'',('rev-parse','HEAD^'):H.TOOL_PARENT,
                 ('rev-parse','HEAD'):tool['sha'],('rev-parse','HEAD^{tree}'):tool['tree']}
@@ -155,7 +155,7 @@ class PrivatePreparationTests(unittest.TestCase):
             self.assertFalse((auth/'registry.json').exists()); self.assertFalse((auth/'runs').exists())
             self.assertEqual(native,[])
             self.assertEqual((prior/'requests'/(digest+'.json')).read_bytes(),P.encoded(outer))
-            self.assertEqual((prior/'runs'/outer['request']['run_id']/'result.private.json').read_bytes(),P.encoded(result))
+            self.assertEqual((prior/'runs'/outer['run_id']/'result.private.json').read_bytes(),P.encoded(result))
 
 
 if __name__=='__main__': unittest.main()

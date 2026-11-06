@@ -1,4 +1,4 @@
-# Exact SERVICE scope-denial consumer adoption
+# Exact SERVICE pending-custody consumer adoption
 
 This version continues Task17/08/09 using the reviewed lifecycle engine,
 capacity watcher, owned Node observation and existing consumer-admission ABI.
@@ -9,12 +9,12 @@ immutable. The replacement App is a separate clean checkout, never tool HEAD.
 
 | Identity | Pin |
 |---|---|
-| Replacement App | `f2b3c01f1ffb49b202d5f5a8409137e4ec6643d2` |
-| Replacement tree | `bf01acfaeba53c009ad6f9f6eeb2dcabffee7a5a` |
-| Replacement direct parent | `3169f18d765d721debe39e00eae6ffe4fb1fbbd0` |
+| Replacement App | `aa5f5b8f1feeb6f81b340abd807456398fe1310d` |
+| Replacement tree | `7df8b81b18638b4d0051886b600f08babbf23d62` |
+| Replacement direct parent | `e5fe6eabd3a0d77128f0863b7a5ac9ce35535436` |
 | Tool direct parent | Replacement App above |
-| Active old App | `8edca9d64b78f1eea0a6f402a6dd0c522bdcd4ea` |
-| Active old tree | `ad31eebe4463921df63bda6617aa2fb30f623bde` |
+| Active old App | `f2b3c01f1ffb49b202d5f5a8409137e4ec6643d2` |
+| Active old tree | `bf01acfaeba53c009ad6f9f6eeb2dcabffee7a5a` |
 | App launcher SHA256 | `cb887091c9045fba6b9eeb5ad2502ca6206006aa220b123d4594de8526828a5d` |
 | Installed Core | `ee883b62cf4a318af3450c506931a969623b8987` |
 | Original transport | `b696ff211daabd4be3989522c569f24ccccd0dce` |
@@ -28,12 +28,12 @@ backend restart or product mutation is implemented by this controller.
 
 ## Preparation and authority
 
-The request ABI is `platform17.service-scope-adoption.request.v1`. NULL runtime
+The request ABI is `platform17.service-custody-adoption.request.v1`. NULL runtime
 values in the template are nonexecutable. Unknown fields, duplicate keys,
 arbitrary paths/commands/env and changed exact tuples are rejected.
 
-`prepare-next <app8ed-RUN_ID>` reads the old fixed private R3 registry, request,
-result and admission. It requires the exact R3 tool tuple, retained ACK, served
+`prepare-next <app8ed-RUN_ID>` reads the old fixed private scope-adoption registry, request,
+full-transition result and admission. It requires the exact previously accepted tool tuple, retained ACK, served
 source/build agreement, and the same active PID/start/cwd/argv/UID freshly
 observed through the kernel. It projects that evidence into a new operational
 observation, without rewriting the historical receipt or manufacturing a new
@@ -41,9 +41,9 @@ start ACK. The same actual transport/binding/Core/admission fields are copied,
 with only the exact reviewed consumer tuple rebound. The actual read-only
 source/build/relay/admission snapshot is then validated. New0600 private
 observation/admission/request files are written exclusively and read back.
-No registry, claim or child is created. The old R3 directory is unchanged.
+No registry, claim or child is created. The previous directory is unchanged.
 
-A new private registry directory separates this attempt from consumed R3
+A new private registry directory separates this attempt from consumed prior
 permissions. The trusted Coordinator/operator independently checks the final
 tool SHA/tree/seal and installs exactly one request/run/tool entry under the
 accepted owner decision. Registry ABI v2, current-clock expiry, maximum1200s
@@ -101,11 +101,14 @@ with controlled source/backend observations and zero process effects. Separate
 disposable Node/kernel/HTTP tests verify observation capabilities. These are
 not native adoption or A03 evidence.
 
-After the exact App is served, Task09 continues A03, logout and UNKNOWN/retry/
-reload on the same backend. Preserve the successful prior Request, refresh and
+After the exact App is served, Task09 continues the remaining UNKNOWN/retry/
+reload finding on the same backend. A03 and local logout previously passed;
+preserve their exact scoped evidence rather than relabeling it as a new run. Preserve the successful prior Request, refresh and
 restart evidence; adopting this source does not require repeating those writes
-or restarting the database. Historical unknowns remain unknown. A remaining503
-requires the bounded read-boundary diagnostic; infrastructure failures are not
+or restarting the database. Historical unknowns remain unknown. Recovery must use the actual new product sessionStorage journal, fresh owner
+route, explicit resume and retry; no harness-reseeded lost historical command,
+automatic resend or GET-as-settlement proof is acceptable. A remaining503
+requires its actual boundary diagnostic; infrastructure failures are not
 blanket-mapped to403. PID/build/trace/body/credential records remain private.
 
 The source seal covers12 explicit files and excludes itself. Final tool SHA/

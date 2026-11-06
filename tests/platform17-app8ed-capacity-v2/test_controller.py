@@ -24,7 +24,7 @@ H = module('capacity_test_host', ROOT / 'scripts/platform17-app8ed-capacity-v2/h
 
 def fixture():
     """SYNTHETIC ONLY. Hashes/PID/build/registry values are not real evidence."""
-    return {'contract':'platform17.service-scope-adoption.request.v1','run_id':'app8ed-synthetic-only-0001',
+    return {'contract':'platform17.service-custody-adoption.request.v1','run_id':'app8ed-synthetic-only-0001',
         'tool':{'sha':'1'*40,'tree':'2'*40,'seal_sha256':'3'*64},
         'consumer':{'root':C.APP_ROOT,'sha':C.BASE,'tree':C.NEW_TREE,'launcher_sha256':C.LAUNCHER},
         'old_app':{'root':C.OLD_ROOT,'sha':C.OLD,'tree':C.OLD_TREE,'launcher_sha256':C.LAUNCHER,'pid':4242,'start_ticks':'100','argv':['next-server (v16.4.1)'],'record_sha256':'4'*64,'build':{'id':'synthetic-old','files':{n:'5'*64 for n in C.BUILD_FILES},'served_manifest_sha256':'6'*64}},

@@ -17,10 +17,10 @@ import urllib.request
 
 HERE = Path(__file__).resolve().parent
 TOOL = HERE.parents[1]
-TOOL_PARENT = 'f2b3c01f1ffb49b202d5f5a8409137e4ec6643d2'
+TOOL_PARENT = 'aa5f5b8f1feeb6f81b340abd807456398fe1310d'
 APP_PORT = 3008
 OBSERVATION_HEADER = 'x-cladora-start-observation'
-AUTHORITY_ROOT = Path('/workspace/private/platform17-service-scope-adoption-01')
+AUTHORITY_ROOT = Path('/workspace/private/platform17-service-custody-adoption-01')
 REGISTRY = AUTHORITY_ROOT / 'coordinator-accepted-executions.json'
 C = None
 

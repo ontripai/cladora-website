@@ -1,5 +1,5 @@
 {
-  "contract": "platform17.service-scope-adoption.request.v1",
+  "contract": "platform17.service-custody-adoption.request.v1",
   "run_id": null,
   "tool": {
     "sha": null,
@@ -7,15 +7,15 @@
     "seal_sha256": null
   },
   "consumer": {
-    "root": "/workspace/work/platform17-consumer-f2b3c01f",
-    "sha": "f2b3c01f1ffb49b202d5f5a8409137e4ec6643d2",
-    "tree": "bf01acfaeba53c009ad6f9f6eeb2dcabffee7a5a",
+    "root": "/workspace/work/platform17-consumer-aa5f5b8f",
+    "sha": "aa5f5b8f1feeb6f81b340abd807456398fe1310d",
+    "tree": "7df8b81b18638b4d0051886b600f08babbf23d62",
     "launcher_sha256": "cb887091c9045fba6b9eeb5ad2502ca6206006aa220b123d4594de8526828a5d"
   },
   "old_app": {
-    "root": "/workspace/work/platform17-consumer-8edca9d6",
-    "sha": "8edca9d64b78f1eea0a6f402a6dd0c522bdcd4ea",
-    "tree": "ad31eebe4463921df63bda6617aa2fb30f623bde",
+    "root": "/workspace/work/platform17-consumer-f2b3c01f",
+    "sha": "f2b3c01f1ffb49b202d5f5a8409137e4ec6643d2",
+    "tree": "bf01acfaeba53c009ad6f9f6eeb2dcabffee7a5a",
     "launcher_sha256": "cb887091c9045fba6b9eeb5ad2502ca6206006aa220b123d4594de8526828a5d",
     "pid": null,
     "start_ticks": null,
@@ -33,7 +33,7 @@
     }
   },
   "admission": {
-    "file": "/workspace/private/platform-service-consumer-rehearsal-17/exact-consumer-f2b3c01f-01/consumer-admission.json",
+    "file": "/workspace/private/platform-service-consumer-rehearsal-17/exact-consumer-aa5f5b8f-01/consumer-admission.json",
     "sha256": null
   },
   "transport": {

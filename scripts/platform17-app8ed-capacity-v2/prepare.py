@@ -1,30 +1,30 @@
-"""Read the accepted active R3 delivery; prepare private data, never authority."""
+"""Read the accepted active full-transition delivery; prepare private data, never authority."""
 import copy
 import json
 import os
 import re
 from pathlib import Path
 
-PRIOR_ROOT = Path('/workspace/private/platform17-app8ed-capacity-controller-v2')
-PRIOR_ADMISSION = Path('/workspace/private/platform-service-consumer-rehearsal-17/exact-consumer-8edca9d6-01/consumer-admission.json')
-PRIOR_TOOL = {'sha': '3169f18d765d721debe39e00eae6ffe4fb1fbbd0',
-              'tree': '56f7332dec886b67dbd8cb870e3ea6c0add95cb9',
-              'seal_sha256': '39575ce20288c9e12d28d04f06c380d98fd73f11b91e45d3dc57e7e11a5bfd13'}
+PRIOR_ROOT = Path('/workspace/private/platform17-service-scope-adoption-01')
+PRIOR_ADMISSION = Path('/workspace/private/platform-service-consumer-rehearsal-17/exact-consumer-f2b3c01f-01/consumer-admission.json')
+PRIOR_TOOL = {'sha': 'e5fe6eabd3a0d77128f0863b7a5ac9ce35535436',
+              'tree': '41b43275f7bf63db0fca44b93a6f764ecd515ae8',
+              'seal_sha256': '0e17be1f02385f5413f95f35c913a9d0b440b0497141d8bcc7cd6c6edfd8bc22'}
 
 
 def derive(outer, result, admission, tool, run_id, C):
     """Pure projection. Prior source/transport/build must agree before any write."""
-    C.need(outer['contract'] == 'platform17.exact-built-start-continuation.v1', 'PREPARE_PRIOR_CONTRACT')
-    prior = outer['request']
+    C.need(outer['contract'] == 'platform17.service-scope-adoption.request.v1', 'PREPARE_PRIOR_CONTRACT')
+    prior = outer
     C.need(prior['tool'] == PRIOR_TOOL and prior['consumer'] == {
         'root': C.OLD_ROOT, 'sha': C.OLD, 'tree': C.OLD_TREE,
         'launcher_sha256': C.LAUNCHER}, 'PREPARE_EXACT_ACCEPTED_ACTIVE_SOURCE')
-    C.need(result['state'] == 'ACK_EXACT_APP8ED_RETAINED'
+    C.need(result['state'] == 'ACK_EXACT_CONSUMER_RETAINED'
            and result['first_error'] is None and result['start_dispatch'] == 'ACK',
            'PREPARE_PRIOR_RETAINED_ACK')
     served = result['evidence']['served']
     C.need(served['source'] == C.OLD and served['tree'] == C.OLD_TREE
-           and served['build'] == outer['expected_build'] == result['evidence']['new_build'],
+           and served['build'] == result['evidence']['new_build'],
            'PREPARE_PRIOR_SERVED_BUILD')
     listener = served['listener']
     C.need(listener['cwd'] == C.OLD_ROOT and listener['argv'] == ['next-server (v16.4.1)']
@@ -38,9 +38,9 @@ def derive(outer, result, admission, tool, run_id, C):
            'PREPARE_PRIOR_ADMISSION')
     record = {'source': C.OLD, 'tree': C.OLD_TREE, 'pid': listener['pid'],
               'start_ticks': listener['start_ticks'], 'build': copy.deepcopy(served['build']),
-              'provenance': 'accepted-R3-retained-evidence-with-fresh-kernel-recheck'}
+              'provenance': 'accepted-previous-retained-evidence-with-fresh-kernel-recheck'}
     new = copy.deepcopy(prior)
-    new.update(contract='platform17.service-scope-adoption.request.v1', run_id=run_id, tool=tool,
+    new.update(contract='platform17.service-custody-adoption.request.v1', run_id=run_id, tool=tool,
                consumer={'root': C.APP_ROOT, 'sha': C.BASE, 'tree': C.NEW_TREE,
                          'launcher_sha256': C.LAUNCHER},
                old_app={**prior['consumer'], 'pid': listener['pid'], 'start_ticks': listener['start_ticks'],
@@ -82,7 +82,7 @@ def prepare_private(H, run_id, C):
     entry = registry['entries'][0]; digest = entry['request_sha256']; C.digest(digest)
     raw = H.private_read(PRIOR_ROOT / 'requests' / (digest + '.json'))
     C.need(C.sha(raw) == digest, 'PREPARE_PRIOR_REQUEST_DIGEST')
-    outer = C.parse(raw); prior = outer['request']
+    outer = C.parse(raw); prior = outer
     C.need(entry['tool'] == prior['tool'] == PRIOR_TOOL
            and entry['run_id'] == prior['run_id'], 'PREPARE_PRIOR_ENTRY_BINDING')
     C.need(type(prior['run_id']) is str and re.fullmatch(r'app8ed-[a-z0-9-]{8,64}', prior['run_id']),

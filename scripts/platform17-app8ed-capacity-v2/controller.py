@@ -1,4 +1,4 @@
-"""Exact active App8ed -> reviewed scope-denial consumer controller. Importing this module performs no native action."""
+"""Exact active Appf2 -> reviewed pending-custody consumer controller. Importing this module performs no native action."""
 from __future__ import annotations
 import hashlib
 import json
@@ -6,11 +6,11 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-BASE = "f2b3c01f1ffb49b202d5f5a8409137e4ec6643d2"
-OLD = "8edca9d64b78f1eea0a6f402a6dd0c522bdcd4ea"
-MIDDLE = "3169f18d765d721debe39e00eae6ffe4fb1fbbd0"
-OLD_TREE = "ad31eebe4463921df63bda6617aa2fb30f623bde"
-NEW_TREE = "bf01acfaeba53c009ad6f9f6eeb2dcabffee7a5a"
+BASE = "aa5f5b8f1feeb6f81b340abd807456398fe1310d"
+OLD = "f2b3c01f1ffb49b202d5f5a8409137e4ec6643d2"
+MIDDLE = "e5fe6eabd3a0d77128f0863b7a5ac9ce35535436"
+OLD_TREE = "bf01acfaeba53c009ad6f9f6eeb2dcabffee7a5a"
+NEW_TREE = "7df8b81b18638b4d0051886b600f08babbf23d62"
 LAUNCHER = "cb887091c9045fba6b9eeb5ad2502ca6206006aa220b123d4594de8526828a5d"
 CORE = "ee883b62cf4a318af3450c506931a969623b8987"
 ANCHOR = "b696ff211daabd4be3989522c569f24ccccd0dce"
@@ -20,13 +20,13 @@ EARLY_STOP = RESERVE + 134217728
 URGENT_KILL = RESERVE + 67108864
 POLL = .05
 DEADLINE = 600
-APP_ROOT = "/workspace/work/platform17-consumer-f2b3c01f"
-OLD_ROOT = "/workspace/work/platform17-consumer-8edca9d6"
+APP_ROOT = "/workspace/work/platform17-consumer-aa5f5b8f"
+OLD_ROOT = "/workspace/work/platform17-consumer-f2b3c01f"
 ANCHOR_ROOT = "/workspace/work/platform17-integrated-app-b696ff21"
-PRIVATE = "/workspace/private/platform-service-consumer-rehearsal-17/exact-consumer-f2b3c01f-01"
+PRIVATE = "/workspace/private/platform-service-consumer-rehearsal-17/exact-consumer-aa5f5b8f-01"
 ADMISSION = PRIVATE + "/consumer-admission.json"
 RUNTIME = "/workspace/private/cladora-functional-dev-v1"
-OLD_RECORD = PRIVATE + "/active-app8ed.observation.private.json"
+OLD_RECORD = PRIVATE + "/active-appf2.observation.private.json"
 RELAY_RECORD = RUNTIME + "/relay-cors-v2/process.json"
 PROTECTED_FILES = (RUNTIME + "/descriptor.json", RUNTIME + "/core15/service-runtime-binding.json", RELAY_RECORD)
 BUILD_FILES = (".next/BUILD_ID", ".next/build-manifest.json", ".next/routes-manifest.json", ".next/server/app-paths-manifest.json")
@@ -63,7 +63,7 @@ def parse(raw):
 
 def validate(r):
     fields(r, ("contract", "run_id", "tool", "consumer", "old_app", "admission", "transport", "protected_files", "budget", "deadline_seconds"), "REQUEST_FIELDS")
-    need(r["contract"] == "platform17.service-scope-adoption.request.v1", "CONTRACT")
+    need(r["contract"] == "platform17.service-custody-adoption.request.v1", "CONTRACT")
     need(type(r["run_id"]) is str and re.fullmatch("app8ed-[a-z0-9-]{8,64}", r["run_id"]) is not None, "RUN_ID")
     fields(r["tool"], ("sha", "tree", "seal_sha256"), "TOOL_FIELDS")
     digest(r["tool"]["sha"], 40); digest(r["tool"]["tree"], 40); digest(r["tool"]["seal_sha256"])
@@ -72,7 +72,7 @@ def validate(r):
     need(r["consumer"] == {"root": APP_ROOT, "sha": BASE, "tree": NEW_TREE, "launcher_sha256": LAUNCHER}, "CONSUMER_PIN")
     old = r["old_app"]
     fields(old, ("root", "sha", "tree", "launcher_sha256", "pid", "start_ticks", "argv", "record_sha256", "build"), "OLD_FIELDS")
-    need((old["root"], old["sha"], old["tree"], old["launcher_sha256"]) == (OLD_ROOT, OLD, OLD_TREE, LAUNCHER), "OLD_ACTIVE_APP8ED_ONLY")
+    need((old["root"], old["sha"], old["tree"], old["launcher_sha256"]) == (OLD_ROOT, OLD, OLD_TREE, LAUNCHER), "OLD_ACTIVE_APPF2_ONLY")
     need(type(old["pid"]) is int and old["pid"] > 1, "OLD_PID")
     need(type(old["start_ticks"]) is str and re.fullmatch("[1-9][0-9]*", old["start_ticks"]) is not None, "OLD_TICKS")
     need(old["argv"] == ["next-server (v16.4.1)"], "OLD_ARGV")
