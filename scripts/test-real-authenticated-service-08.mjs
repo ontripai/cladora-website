@@ -1268,6 +1268,12 @@ try {
     await tick();
   });
 
+  const custodyDiscoveryDeadline = Date.now() + 3000;
+  while (!dom.window.document.querySelector('select[aria-label="Choose a workspace"]')) {
+    assert.ok(Date.now() < custodyDiscoveryDeadline, 'bounded authorized discovery/custody settlement');
+    await act(async () => { await new Promise(done => setTimeout(done, 5)); });
+  }
+
   check(dom.window.document.body.textContent.includes('Choose a workspace'),
     'COMPOSITION: Authorized context with exact 404 leaves SERVICE entry open');
 

@@ -10,7 +10,7 @@ import { serviceOfferingRevisionSchema } from '@/lib/customer/service-catalog-sc
 import { CustomerServiceManagement } from './CustomerServiceManagement';
 import { CustomerServiceRequests } from './CustomerServiceRequests';
 import { useServiceRequestCustody, type ServiceRequestCustody } from '@/lib/customer/use-service-request-custody';
-import { sameServiceRequestCustodyScope, type ServiceRequestCustodyScope } from '@/lib/customer/service-request-custody';
+import { sameServiceRequestCustodyScope, withServiceRequestCustodyScopes, type ServiceRequestCustodyScope } from '@/lib/customer/service-request-custody';
 import { CustomerServiceQuotes, serviceQuoteCopy } from './CustomerServiceQuotes';
 import { CustomerServiceQuotePublications, quotePublicationCopy } from './CustomerServiceQuotePublications';
 import { serviceManagementCopy } from '@/lib/customer/service-catalog-management-copy';
@@ -59,7 +59,7 @@ const offeringsSchema = z.strictObject({ offerings: z.array(z.strictObject({ off
 })) });
 type Item = z.infer<typeof offeringsSchema>['offerings'][number];
 type Target = z.infer<typeof targetsSchema>['workspaces'][number];
-type AssemblySelection = z.infer<typeof assemblyBootstrapSchema>['selections'][number];
+type AssemblySelection = z.infer<typeof assemblyBootstrapSchema>['selections'][number] & { custody_scope: ServiceRequestCustodyScope };
 
 export function CustomerServiceCatalog({ lang }: { lang: Language }) {
   const { active } = useCustomerContext();
@@ -89,7 +89,8 @@ function AssemblyWorkspaceChoice({ lang }: { lang: Language }) {
         });
         if (!response.ok) throw new Error(classifyLoad(response));
         const data = assemblyBootstrapSchema.parse(await response.json());
-        if (!controller.signal.aborted) setSelections(data.selections);
+        const scoped = await withServiceRequestCustodyScopes(data.selections);
+        if (!controller.signal.aborted) setSelections(scoped);
       } catch (reason) {
         if (!controller.signal.aborted) setError(reason instanceof Error && ['session', 'denied'].includes(reason.message)
           ? reason.message as LoadFailure : 'retry');
@@ -104,7 +105,7 @@ function AssemblyWorkspaceChoice({ lang }: { lang: Language }) {
   if (custody.status === 'blocked') return <Notice text={recoveryCopy[lang].blocked} />;
   if (!selections.length) return <Notice text={t.noTargets} />;
   const selected = selections.find(item => `${item.context_id}:${item.workspace_id}` === selectedKey);
-  const savedSelection = custody.record ? selections.find(item => sameServiceRequestCustodyScope(item, custody.record!.scope)) : null;
+  const savedSelection = custody.record ? selections.find(item => sameServiceRequestCustodyScope(item.custody_scope, custody.record!.scope)) : null;
   if (custody.record && !savedSelection) return <Notice text={recoveryCopy[lang].missing} />;
   const savedKey = savedSelection ? `${savedSelection.context_id}:${savedSelection.workspace_id}` : '';
   return <div className="space-y-5">{savedKey && selectedKey !== savedKey ? <button type="button" onClick={() => setSelectedKey(savedKey)} className="min-h-11 rounded-xl border bg-white px-4 py-2 font-semibold">{recoveryCopy[lang].resume}</button> : null}<label className="block rounded-2xl border bg-white p-4"><span className="mb-2 block text-sm font-semibold">{t.choose}</span>
@@ -115,7 +116,7 @@ function AssemblyWorkspaceChoice({ lang }: { lang: Language }) {
         const key = `${item.context_id}:${item.workspace_id}`;
         return <option key={`${key}:${item.membership_id}`} value={key}>{item.tenant_name} — {item.role_name} · {item.workspace_type} · {item.environment}</option>;
       })}
-    </select></label>{selected ? <Offerings key={`${selected.context_id}:${selected.workspace_id}:${custody.owner}`} contextId={selected.context_id} workspaceId={selected.workspace_id} lang={lang} custody={custody} custodyScope={{ context_id: selected.context_id, workspace_id: selected.workspace_id, membership_id: selected.membership_id, tenant_id: selected.tenant_id }} onCommandCustodyChange={setSelectionLocked} /> : null}</div>;
+    </select></label>{selected ? <Offerings key={`${selected.context_id}:${selected.workspace_id}:${custody.owner}`} contextId={selected.context_id} workspaceId={selected.workspace_id} lang={lang} custody={custody} custodyScope={selected.custody_scope} onCommandCustodyChange={setSelectionLocked} /> : null}</div>;
 }
 function WorkspaceChoice({ contextId, lang }: { contextId: string; lang: Language }) {
   const fetch = useDashboardFetch();

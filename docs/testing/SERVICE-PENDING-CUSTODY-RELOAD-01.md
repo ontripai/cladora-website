@@ -11,7 +11,9 @@ Only the explicitly selected owned SERVICE assembly uses this recovery path.
 Ordinary profiles retain their existing behavior. A bounded, versioned pair of
 sessionStorage records is saved and read back **before** the first POST. It
 holds the original endpoint/protocol/wire, opaque owner label, and the selected
-context/workspace/membership/tenant. WebCrypto SHA256 detects changed content;
+context/workspace and an opaque fingerprint of the current membership/tenant.
+Raw membership/tenant IDs remain internal discovery inputs, outside rendered
+values, child props and recovery storage. WebCrypto SHA256 detects changed content;
 it is an integrity check, not an authorization signature. The separate marker
 prevents a partial write or deletion of one record from becoming an empty slot.
 There is one unresolved command slot per tab, no expiry/purge/cancel or automatic

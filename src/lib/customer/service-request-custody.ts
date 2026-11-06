@@ -9,7 +9,7 @@ export const SERVICE_REQUEST_COMMAND_ENDPOINT = '/api/customer/v1/services/offer
 const hash = z.string().regex(/^[a-f0-9]{64}$/);
 export const serviceRequestCustodyOwnerSchema = z.strictObject({ contract: z.literal('service-request-custody-owner.v1'), owner: hash });
 export const serviceRequestCustodyScopeSchema = z.strictObject({
-  context_id: z.uuid(), workspace_id: z.uuid(), membership_id: z.uuid(), tenant_id: z.uuid(),
+  context_id: z.uuid(), workspace_id: z.uuid(), selection_key: hash,
 });
 export type ServiceRequestCustodyScope = z.infer<typeof serviceRequestCustodyScopeSchema>;
 const recordSchema = z.strictObject({
@@ -29,8 +29,9 @@ export type CustodyStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
 const blocked = (): ServiceRequestCustodySnapshot => ({ state: 'blocked', record: null });
 
 export function sameServiceRequestCustodyScope(left: ServiceRequestCustodyScope, right: ServiceRequestCustodyScope) {
-  return (['context_id', 'workspace_id', 'membership_id', 'tenant_id'] as const)
-    .every(key => left[key].toLowerCase() === right[key].toLowerCase());
+  return left.context_id.toLowerCase() === right.context_id.toLowerCase()
+    && left.workspace_id.toLowerCase() === right.workspace_id.toLowerCase()
+    && left.selection_key === right.selection_key;
 }
 function pair(storage: CustodyStorage) {
   return [storage.getItem(SERVICE_REQUEST_CUSTODY_KEY), storage.getItem(SERVICE_REQUEST_CUSTODY_MARKER)] as const;
@@ -39,11 +40,31 @@ function unchanged(storage: CustodyStorage, before: readonly (string | null)[]) 
   const after = pair(storage);
   if (after[0] !== before[0] || after[1] !== before[1]) throw new Error('SERVICE_CUSTODY_CHANGED');
 }
-async function checksum(value: Omit<ServiceRequestCustodyRecord, 'digest'>) {
-  const raw = new TextEncoder().encode(JSON.stringify(value));
+async function digest(value: string) {
+  const raw = new TextEncoder().encode(value);
   return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', raw)))
     .map(byte => byte.toString(16).padStart(2, '0')).join('');
 }
+async function checksum(value: Omit<ServiceRequestCustodyRecord, 'digest'>) {
+  return digest(JSON.stringify(value));
+}
+
+/** Keep raw membership/tenant identity inside discovery, outside child props/DOM. */
+export async function withServiceRequestCustodyScopes<T extends {
+  context_id: string; workspace_id: string; membership_id: string; tenant_id: string;
+}>(selections: T[]) {
+  return Promise.all(selections.map(async selection => {
+    const identity = z.strictObject({ context_id: z.uuid(), workspace_id: z.uuid(), membership_id: z.uuid(), tenant_id: z.uuid() }).parse({
+      context_id: selection.context_id, workspace_id: selection.workspace_id,
+      membership_id: selection.membership_id, tenant_id: selection.tenant_id,
+    });
+    const selection_key = await digest(JSON.stringify(['service-request-selection.v1',
+      identity.context_id.toLowerCase(), identity.workspace_id.toLowerCase(),
+      identity.membership_id.toLowerCase(), identity.tenant_id.toLowerCase()]));
+    return { ...selection, custody_scope: { context_id: identity.context_id, workspace_id: identity.workspace_id, selection_key } };
+  }));
+}
+
 function payload(record: ServiceRequestCustodyRecord) {
   // Explicit stable fields; do not hash/normalize a reconstructed command body.
   return { contract: record.contract, owner: record.owner, scope: record.scope,

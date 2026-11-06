@@ -67,7 +67,14 @@ globalThis.FormData = dom.window.FormData; globalThis.window = dom.window; globa
 const { createRoot } = await import('react-dom/client');
 const root = createRoot(document.getElementById('root'));
 let generation = 0; let cases = 0;
-const render = async (lang = 'en') => act(async () => root.render(React.createElement(CustomerServiceCatalog, { lang, key: ++generation })));
+async function render(lang = 'en') {
+  await act(async () => root.render(React.createElement(CustomerServiceCatalog, { lang, key: ++generation })));
+  const deadline = Date.now() + 3000;
+  while (!document.querySelector('select') && !/Services could not be loaded|No workspace can be selected|cannot be safely restored/.test(document.body.textContent)) {
+    assert.ok(Date.now() < deadline, 'bounded discovery and custody initialization');
+    await act(async () => { await new Promise(done => setTimeout(done, 5)); });
+  }
+}
 const choose = async scope => act(async () => {
   const select = document.querySelector('select');
   select.value = `${scope.context_id}:${scope.workspace_id}`;
