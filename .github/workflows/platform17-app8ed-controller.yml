@@ -25,6 +25,9 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24.19.0'
       - name: Parse source and inspect seal without activation
         run: |
           python -B - <<'PY'
@@ -32,10 +35,16 @@ jobs:
           from pathlib import Path
           for path in (Path('scripts/platform17-app8ed-capacity-v2/controller.py'),
                        Path('scripts/platform17-app8ed-capacity-v2/host.py'),
-                       Path('tests/platform17-app8ed-capacity-v2/test_controller.py')):
+                       Path('scripts/platform17-app8ed-capacity-v2/resume.py'),
+                       Path('tests/platform17-app8ed-capacity-v2/test_controller.py'),
+                       Path('tests/platform17-app8ed-capacity-v2/test_resume.py')):
               ast.parse(path.read_text(), filename=str(path))
           PY
           python -B scripts/platform17-app8ed-capacity-v2/host.py inspect-source
+          node --check scripts/platform17-app8ed-capacity-v2/listen-observer.mjs
+          node --check scripts/platform17-app8ed-capacity-v2/observation-probe.mjs
       - name: Offline controller and real-host boundary tests with native-effect traps
         run: python -B tests/platform17-app8ed-capacity-v2/test_controller.py -v
+      - name: Continuation contracts and disposable Node kernel HTTP observation (no product backend)
+        run: python -B tests/platform17-app8ed-capacity-v2/test_resume.py -v
       - run: git diff --check

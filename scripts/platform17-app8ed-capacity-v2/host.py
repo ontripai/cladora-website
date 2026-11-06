@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import re
+import secrets
 import signal
 import stat
 import subprocess
@@ -16,7 +17,9 @@ import urllib.request
 
 HERE = Path(__file__).resolve().parent
 TOOL = HERE.parents[1]
-TOOL_PARENT = '9a946f2b4523337927e45ca86ee4456eba31904b'
+TOOL_PARENT = 'a2adc012d488fbb91a787c79e19ee54081f1a722'
+APP_PORT = 3008
+OBSERVATION_HEADER = 'x-cladora-start-observation'
 AUTHORITY_ROOT = Path('/workspace/private/platform17-app8ed-capacity-controller-v2')
 REGISTRY = AUTHORITY_ROOT / 'coordinator-accepted-executions.json'
 C = None
@@ -31,6 +34,13 @@ def load_core():
         # Fixed reviewed source bytes only: no unsealed __pycache__ execution.
         exec(compile(path.read_bytes(), str(path), 'exec'), C.__dict__)
     return C
+
+def load_resume():
+    path = canonical(HERE / 'resume.py')
+    module = types.ModuleType('platform17_exact_built_resume')
+    module.__file__ = str(path)
+    exec(compile(path.read_bytes(), str(path), 'exec'), module.__dict__)
+    return module
 
 def hash_bytes(b): return hashlib.sha256(b).hexdigest()
 
@@ -112,6 +122,10 @@ def seal_identity(root=TOOL):
         'scripts/platform17-app8ed-capacity-v2/request.template.json',
         'scripts/platform17-app8ed-capacity-v2/registry.template.json',
         'tests/platform17-app8ed-capacity-v2/test_controller.py',
+        'scripts/platform17-app8ed-capacity-v2/listen-observer.mjs',
+        'scripts/platform17-app8ed-capacity-v2/observation-probe.mjs',
+        'scripts/platform17-app8ed-capacity-v2/resume.py',
+        'tests/platform17-app8ed-capacity-v2/test_resume.py',
     }
     if seal['contract'] != 'platform17.app8ed-controller.source-seal.v2' or {x['path'] for x in seal['files']} != expected or len(seal['files']) != len(expected):
         raise ValueError('SEAL_FILE_SET')
@@ -137,6 +151,7 @@ class NativeHost:
         self._authorized = False
         self.run = AUTHORITY_ROOT / 'runs' / request['run_id']; self.seq = 0
         self._build = self._start = None; self.old_stopped = False; self.protected = set()
+        self._probe = None; self.probe_cleanup = None; self.observation = None
         self.sample_fd = None; self.last_sample_write = -float('inf'); self.last_sample_sync = -float('inf')
 
     def git(self, root, *args):
@@ -268,6 +283,9 @@ class NativeHost:
         if kind == 'build': self._build = slot
         else: self._start = slot
         self.current(r)
+        env = self.environment(r)
+        if kind == 'start':
+            env, _ = self.prepare_observation(r, expected_build, 'app')
         with (self.run / (kind + '.stdout.private.log')).open('xb') as out, (self.run / (kind + '.stderr.private.log')).open('xb') as err:
             os.chmod(out.name, 0o600); os.chmod(err.name, 0o600)
             self.current(r)
@@ -279,9 +297,12 @@ class NativeHost:
                 C.check_snapshot(self.observe(r, old_stopped=True), r, old_stopped=True)
                 C.need(expected_build is not None and self.read_build(r) == expected_build, 'NEW_BUILD_CHANGED_AT_START_POINT')
                 C.need(self.port_free(), 'PORT_CHANGED_AT_START_POINT')
+                sample = self.sample()
+                C.need(sample['available_bytes'] > C.EARLY_STOP and sample['free_inodes'] > 0,
+                       'START_CAPACITY_CHANGED_AT_DISPATCH')
             self.current(r)
             slot['dispatch'] = 'CALLING_POPEN_MAY_CREATE_CHILD'
-            child = subprocess.Popen(list(argv), cwd=C.APP_ROOT, env=self.environment(r), stdout=out, stderr=err, stdin=subprocess.DEVNULL, start_new_session=True)
+            child = subprocess.Popen(list(argv), cwd=C.APP_ROOT, env=env, stdout=out, stderr=err, stdin=subprocess.DEVNULL, start_new_session=True)
         slot['child'] = child
         try:
             slot['pidfd'] = os.pidfd_open(child.pid)
@@ -327,6 +348,8 @@ class NativeHost:
                 if time.monotonic() >= deadline: raise C.Unknown('OWN_CHILD_STOP_ACK_UNKNOWN')
                 time.sleep(C.POLL)
         slot['child'].wait(timeout=2)
+        if slot['child'].stdin is not None and not slot['child'].stdin.closed:
+            slot['child'].stdin.close()
         if slot['pidfd'] is not None: os.close(slot['pidfd']); slot['pidfd'] = None
         return {'resource': resource, 'state': 'ACK', 'signals': signals, 'exit': slot['child'].returncode}
     def cleanup_build(self, slot): return self._cleanup(slot, 'new_build')
@@ -356,41 +379,141 @@ class NativeHost:
         for file in ('/proc/net/tcp', '/proc/net/tcp6'):
             for line in Path(file).read_text().splitlines()[1:]:
                 fields = line.split()
-                if fields[1].split(':')[-1] == '0BC0' and fields[3] == '0A': return False
+                if fields[1].split(':')[-1] == format(APP_PORT, '04X') and fields[3] == '0A': return False
         return True
+
+    def prepare_observation(self, r, build, mode):
+        directory = self.run / (mode + '-observation')
+        directory.mkdir(mode=0o700)
+        canonical(directory)
+        evidence = directory / 'listen.private.ndjson'
+        config = {'contract': 'platform17.listen-observation.v1', 'mode': mode,
+                  'nonce': secrets.token_hex(32), 'run_id': r['run_id'],
+                  'app_root': C.APP_ROOT, 'port': APP_PORT if mode == 'app' else 0,
+                  'evidence_file': str(evidence),
+                  'manifest_path': '/_next/static/' + build['id'] + '/_buildManifest.js'}
+        persist(directory / 'config.private.json', config)
+        bootstrap = directory / 'bootstrap.private.mjs'
+        raw = ('import {install} from ' + json.dumps((HERE / 'listen-observer.mjs').as_uri()) +
+               ';install(' + json.dumps(config) + ');\n').encode()
+        fd = os.open(bootstrap, os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW, 0o600)
+        try:
+            C.need(os.write(fd, raw) == len(raw), 'OBSERVER_BOOTSTRAP_SHORT_WRITE')
+            os.fsync(fd)
+        finally: os.close(fd)
+        C.need(private_read(bootstrap) == raw, 'OBSERVER_BOOTSTRAP_READBACK')
+        env = self.environment(r)
+        # Append to existing guard/proxy preloads; never replace NODE_OPTIONS.
+        env['NODE_OPTIONS'] = env.get('NODE_OPTIONS', '') + ' --import=' + str(bootstrap)
+        meta = {'config': config, 'bootstrap': bootstrap, 'bootstrap_sha256': hash_bytes(raw)}
+        if mode == 'app': self.observation = meta
+        self.record(mode + '-observation-setup', {'contract': config['contract'],
+                    'bootstrap_sha256': hash_bytes(raw), 'mode': mode})
+        return env, meta
+
+    def probe_observation(self, r, build):
+        env, meta = self.prepare_observation(r, build, 'probe')
+        slot = {'kind': 'probe', 'dispatch': 'NOT_DISPATCHED', 'child': None, 'born': None, 'pidfd': None}
+        self._probe = slot
+        first = None
+        try:
+            self.current(r)
+            with (self.run / 'probe.stdout.private.log').open('xb') as out, (self.run / 'probe.stderr.private.log').open('xb') as err:
+                os.chmod(out.name, 0o600); os.chmod(err.name, 0o600)
+                self.current(r)
+                slot['dispatch'] = 'CALLING_POPEN_MAY_CREATE_CHILD'
+                child = subprocess.Popen(['node', str(HERE / 'observation-probe.mjs'),
+                    str(meta['bootstrap'].parent / 'config.private.json')], cwd=C.APP_ROOT,
+                    env=env, stdout=out, stderr=err, stdin=subprocess.PIPE, start_new_session=True, bufsize=0)
+                slot['child'] = child
+                slot['pidfd'] = os.pidfd_open(child.pid); slot['born'] = proc_identity(child.pid)
+                self._safe(slot)
+                deadline = time.monotonic() + 15
+                while True:
+                    data = (self.run / 'probe.stdout.private.log').read_bytes()
+                    C.need(len(data) <= 4096, 'PROBE_OUTPUT_LIMIT')
+                    if data.endswith(b'\n'): break
+                    C.need(child.poll() is None and time.monotonic() < deadline, 'OBSERVATION_PROBE_FAILED')
+                    time.sleep(C.POLL)
+                C.need(self.listen_evidence(slot, meta) is not None, 'PROBE_PARENT_OBSERVATION_NOT_READY')
+                self.current(r)
+                C.need(child.stdin.write(b'K') == 1, 'PROBE_PARENT_ACK_SHORT_WRITE')
+                child.stdin.close()
+                code = child.wait(timeout=5)
+            C.need(code == 0 and not self._safe(slot), 'OBSERVATION_PROBE_FAILED')
+            result = json.loads(data)
+            C.need(result == {'contract': 'platform17.observation-probe.v1', 'state': 'PASS',
+                'observation': 'child-owned-listen-and-http-nonce', 'private_fd_scan': False},
+                'OBSERVATION_PROBE_NOT_ACK')
+            self.current(r)
+            self.record('observation-probe-ACK', result)
+        except BaseException as error:
+            first = error
+        finally:
+            try: self.probe_cleanup = self._cleanup(slot, 'observation_probe')
+            except BaseException as secondary:
+                self.probe_cleanup = {'resource': 'observation_probe', 'state': 'UNKNOWN',
+                                      'error': str(secondary), 'owner': 'Platform', 'followup_seconds': 600}
+                first = first or secondary
+        if self.probe_cleanup['state'] == 'UNKNOWN' and first is None:
+            first = C.Unknown('OBSERVATION_PROBE_CLEANUP_UNKNOWN')
+        if first is not None: raise first
+
+    def listen_evidence(self, slot, meta=None):
+        meta = meta if meta is not None else self.observation
+        C.need(meta is not None, 'NO_OWN_LISTEN_OBSERVATION')
+        config = meta['config']
+        C.need(hash_bytes(private_read(meta['bootstrap'])) == meta['bootstrap_sha256'], 'OBSERVER_BOOTSTRAP_DRIFT')
+        try: raw = private_read(config['evidence_file'])
+        except FileNotFoundError: return None  # not yet atomically published
+        C.need(len(raw) <= 65536, 'OBSERVER_EVIDENCE_LIMIT')
+        C.need(raw and raw.endswith(b'\n'), 'OBSERVER_EVIDENCE_INCOMPLETE')
+        lines = raw.splitlines()
+        C.need(len(lines) == 1, 'OBSERVER_LISTENER_AMBIGUOUS')
+        proof = C.parse(lines[0]); C.fields(proof, ('contract', 'mode', 'run_id', 'nonce',
+            'pid', 'start_ticks', 'pgrp', 'session', 'uid', 'cwd', 'address', 'port'), 'OBSERVER_FIELDS')
+        for k in ('contract', 'mode', 'run_id', 'nonce'):
+            C.need(proof[k] == config[k], 'OBSERVER_REQUEST_BINDING')
+        C.need((proof['port'] == config['port'] or (config['mode'] == 'probe' and config['port'] == 0 and
+               type(proof['port']) is int and 0 < proof['port'] < 65536)) and
+               proof['address'] == '127.0.0.1', 'OBSERVER_ADDRESS')
+        members = {m['pid']: m for m in self._safe(slot)}
+        C.need(type(proof['pid']) is int and proof['pid'] in members, 'OBSERVER_NOT_OWN_GROUP')
+        actual = process_full(proof['pid'])
+        for k in ('pid', 'start_ticks', 'pgrp', 'session', 'uid', 'cwd'):
+            C.need(actual[k] == proof[k], 'OBSERVER_PROCESS_DRIFT')
+        C.need(actual['cwd'] == C.APP_ROOT and actual['argv'] == ['next-server (v16.4.1)'] and
+               actual['uid'] == os.getuid() and actual['state'] != 'Z', 'START_LISTENER_IDENTITY')
+        return actual
 
     def start_ack(self, slot, r, build):
         deadline = time.monotonic() + 40
-        url = 'http://localhost:3008/_next/static/' + build['id'] + '/_buildManifest.js'
+        C.need(self.observation is not None, 'NO_OWN_LISTEN_OBSERVATION')
+        config = self.observation['config']
+        url = 'http://127.0.0.1:' + str(APP_PORT) + config['manifest_path']
         while True:
             self.current(r)
             C.need(slot['child'].poll() is None, 'OFFICIAL_START_EXITED')
-            members = self._safe(slot); inodes = set()
-            for file in ('/proc/net/tcp', '/proc/net/tcp6'):
-                for line in Path(file).read_text().splitlines()[1:]:
-                    f = line.split()
-                    if f[1].split(':')[-1] == '0BC0' and f[3] == '0A': inodes.add(f[9])
-            listeners = []
-            for member in members:
+            sample = self.sample()
+            C.need(sample['available_bytes'] > C.RESERVE and sample['free_inodes'] > 0, 'START_RESERVE_GUARD')
+            actual = self.listen_evidence(slot)
+            if actual:
                 try:
-                    for fd in (Path('/proc') / str(member['pid']) / 'fd').iterdir():
-                        try: link = os.readlink(fd)
-                        except FileNotFoundError: continue
-                        if link.startswith('socket:[') and link[8:-1] in inodes: listeners.append(member['pid']); break
-                except FileNotFoundError: continue
-                except PermissionError as error: raise C.Unknown('START_LISTENER_PID_OBSERVATION_DENIED') from error
-            if listeners:
-                C.need(len(listeners) == 1, 'START_LISTENER_AMBIGUOUS')
-                actual = process_full(listeners[0]); C.need(actual['cwd'] == C.APP_ROOT and actual['argv'] == ['next-server (v16.4.1)'] and actual['uid'] == os.getuid(), 'START_LISTENER_IDENTITY')
-                try:
-                    with urllib.request.urlopen(url, timeout=1) as response:
+                    request = urllib.request.Request(url, headers={OBSERVATION_HEADER: config['nonce']})
+                    with urllib.request.urlopen(request, timeout=1) as response:
                         data = response.read(1048577); status = response.status
-                except (OSError, TimeoutError): data = None; status = None
+                        nonce = response.headers.get(OBSERVATION_HEADER)
+                except (OSError, TimeoutError): data = None; status = None; nonce = None
                 if status == 200 and data is not None:
+                    C.need(nonce == config['nonce'], 'HTTP_LISTENER_PROOF_MISMATCH')
                     C.need(hash_bytes(data) == build['served_manifest_sha256'], 'SERVED_BUILD_HASH_MISMATCH')
                     self.current(r)
+                    sample = self.sample()
+                    C.need(sample['available_bytes'] > C.RESERVE and sample['free_inodes'] > 0, 'START_RESERVE_GUARD')
                     final = process_full(actual['pid']); C.need(stable_process_same(actual, final), 'LISTENER_CHANGED_AFTER_HTTP_AWAIT')
-                    return {'source': C.BASE, 'tree': C.NEW_TREE, 'build': build, 'listener': final, 'official_start': slot['born'], 'HTTP': 200, 'tool': r['tool']}
+                    return {'source': C.BASE, 'tree': C.NEW_TREE, 'build': build, 'listener': final,
+                        'official_start': slot['born'], 'HTTP': 200, 'tool': r['tool'],
+                        'observation': 'child-owned-listen-and-http-nonce.v1'}
             if time.monotonic() >= deadline: raise C.Unknown('START_ACK_TIMEOUT_MAY_EXIST_NO_RETRY')
             time.sleep(C.POLL)
 
@@ -408,7 +531,11 @@ def main(argv):
     global C
     if argv == ['inspect-source']:
         print(json.dumps({'contract': 'platform17.app8ed-capacity-controller.v2', 'seal_sha256': seal_identity(), 'runtime': 'NOT_RUN', 'activation': 'EXTERNAL_COORDINATOR_GATE_REQUIRED'})); return 0
-    if len(argv) != 2 or argv[0] != 'execute-once' or not re.fullmatch('[a-f0-9]{64}', argv[1]):
+    if len(argv) == 3 and argv[0] == 'prepare-resume' and re.fullmatch('[a-f0-9]{64}', argv[1]) and re.fullmatch(r'app8ed-[a-z0-9-]{8,64}', argv[2]):
+        seal_identity(); C = load_core()
+        print(json.dumps(load_resume().prepare_private(sys.modules[__name__], argv[1], argv[2], C)))
+        return 0
+    if len(argv) != 2 or argv[0] not in ('execute-once', 'resume-built-once') or not re.fullmatch('[a-f0-9]{64}', argv[1]):
         print('HOLD_FIXED_MODE_ONLY'); return 2
     # No request path, SQL, shell, argv/env override, registry edit or activation
     # is accepted. The fixed coordinator registry is out-of-band authority.
@@ -417,9 +544,12 @@ def main(argv):
     C.fields(registry, ('contract', 'entries'), 'REGISTRY_FIELDS')
     C.need(registry['contract'] == 'platform17.coordinator-execution-registry.v2' and type(registry['entries']) is list and len(registry['entries']) == 1, 'REGISTRY_ONE_EXACT_EXECUTION_REQUIRED')
     raw = private_read(AUTHORITY_ROOT / 'requests' / (digest + '.json')); C.need(hash_bytes(raw) == digest, 'REQUEST_DIGEST')
-    r = C.validate(C.parse(raw)); matching = [x for x in registry['entries'] if type(x) is dict and x.get('request_sha256') == digest]
+    resume = load_resume() if argv[0] == 'resume-built-once' else None
+    r = resume.validate(raw, C)[1] if resume else C.validate(C.parse(raw))
+    matching = [x for x in registry['entries'] if type(x) is dict and x.get('request_sha256') == digest]
     C.need(len(matching) == 1, 'NO_UNIQUE_COORDINATOR_AUTHORIZATION')
-    host = NativeHost(r, digest, registry_raw, matching[0]); result = C.Controller(host).run(raw)
+    host = NativeHost(r, digest, registry_raw, matching[0])
+    result = resume.run(host, raw, sys.modules[__name__], C) if resume else C.Controller(host).run(raw)
     print(json.dumps({'state': result.state, 'first_error_code': result.first_error, 'raw_receipt': 'PRIVATE', 'old_stop': result.old_stop, 'start_dispatch': result.start_dispatch}))
     return 0 if result.state == 'ACK_EXACT_APP8ED_RETAINED' else 1
 

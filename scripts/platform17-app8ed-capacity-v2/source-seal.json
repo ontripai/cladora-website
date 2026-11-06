@@ -9,13 +9,13 @@
     },
     {
       "path": "scripts/platform17-app8ed-capacity-v2/host.py",
-      "bytes": 27827,
-      "sha256": "bc6798b1ad0546da9f0ba2dea0f682f2291f6cb17c7e403a8b3ccb630eb5bb3c"
+      "bytes": 35580,
+      "sha256": "ba162523949a3c12d719960816e622bfaa3e4adfa85374b96a7fdcf2b1bcaf55"
     },
     {
       "path": "scripts/platform17-app8ed-capacity-v2/contract.md",
-      "bytes": 12000,
-      "sha256": "d704916cca865d1117e241c2eeebd5dbc5c5eec9a5566971c5a45ed0ffe9af8d"
+      "bytes": 16302,
+      "sha256": "e5829da3ee93a375bdce7f2b1b5f8d48d4becb272d6f3c3d08f1aa17bd6b43c2"
     },
     {
       "path": "scripts/platform17-app8ed-capacity-v2/request.template.json",
@@ -31,6 +31,26 @@
       "path": "tests/platform17-app8ed-capacity-v2/test_controller.py",
       "bytes": 33281,
       "sha256": "9927da7e4bc171d9c284fd420fff42f5eab3b7d230578175d7844c0225321ed2"
+    },
+    {
+      "path": "scripts/platform17-app8ed-capacity-v2/resume.py",
+      "bytes": 9390,
+      "sha256": "0b6833138d1f362d8d5a3372958970b948c675c4868a9318a19c8672ec600cac"
+    },
+    {
+      "path": "scripts/platform17-app8ed-capacity-v2/listen-observer.mjs",
+      "bytes": 3414,
+      "sha256": "9f187b6cef368a78d287348d07570e1b9a0686ac05d7bdebb802741157c56e3b"
+    },
+    {
+      "path": "scripts/platform17-app8ed-capacity-v2/observation-probe.mjs",
+      "bytes": 2647,
+      "sha256": "842bb82d94a0d274ec27a3e3063a462a2a9c357010f11b37899abbfa4992eeac"
+    },
+    {
+      "path": "tests/platform17-app8ed-capacity-v2/test_resume.py",
+      "bytes": 23960,
+      "sha256": "39e73fae307e2fedd784c45f80022dcc30c100b3df93a2ffe35bdb8e184af2fe"
     }
   ]
 }

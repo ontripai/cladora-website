@@ -7,7 +7,7 @@ Scope: source candidate for the existing Task17/08/09. This packet does not auth
 | Identity | Exact pin |
 |---|---|
 | Original tool source base | `8edca9d64b78f1eea0a6f402a6dd0c522bdcd4ea` |
-| R2 tool direct parent | `9a946f2b4523337927e45ca86ee4456eba31904b` |
+| R3 tool direct parent | `a2adc012d488fbb91a787c79e19ee54081f1a722` |
 | Active App | `198e8a35dc120b554468074dd689793addb54385` / tree `54e792e02ad7b92137b9699b67d5dc346024f23e` |
 | App intermediate | `445fcdcccf72f2038ed7abe7c96336864058cfe2` |
 | Replacement App | `8edca9d64b78f1eea0a6f402a6dd0c522bdcd4ea` / tree `ad31eebe4463921df63bda6617aa2fb30f623bde` |
@@ -15,7 +15,7 @@ Scope: source candidate for the existing Task17/08/09. This packet does not auth
 | Installed Core | `ee883b62cf4a318af3450c506931a969623b8987` |
 | Original transport | `b696ff211daabd4be3989522c569f24ccccd0dce` |
 
-The tool commit/tree/seal are separate, externally pinned after review. App source never follows tool HEAD. Native observation requires the exact chain `198 -> 445fcdcc -> 8ed`, including the intermediate; `parent(8ed)==198` is intentionally not required. Neither an arbitrary descendant nor App97 is accepted. The R2 tool HEAD must be a direct child of the exact R1 tool9a946f2b; R1 is a direct child of55bad9ff, itself a direct child of8ed. This preserves the delivered history without making tool HEAD the App pin. App and anchor checkouts must be independently clean and match the exact App tuples. The original consumer-admission ABI and original anchor transport preflight are reused; no guard is broadened to any HEAD/descendant.
+The tool commit/tree/seal are separate, externally pinned after review. App source never follows tool HEAD. Native observation requires the exact chain `198 -> 445fcdcc -> 8ed`, including the intermediate; `parent(8ed)==198` is intentionally not required. Neither an arbitrary descendant nor App97 is accepted. R3 is a direct child of exact R2a2adc012; the original tool/R1/R2 history remains intact. App and anchor checkouts must be independently clean and match the exact App tuples. The original consumer-admission ABI and original anchor transport preflight are reused; no guard is broadened to any HEAD/descendant.
 
 ## Budget and fixed commands
 
@@ -65,6 +65,71 @@ A fixed private request location is selected by SHA256; no arbitrary request pat
 
 ## Runtime sequence and first-error policy
 
+### R3 accepted start-only continuation
+
+The existing full-build algorithm is retained for regression. R3 continuation
+authorization grants only `resume-built-once`, never another full-build attempt.
+It reuses the exact accepted build of App8ed, whose ID and hashes are held in
+the private request/prior receipt and Coordinator execution decision. No actual
+runtime build ID is embedded in this public source. The outer request
+contract is `platform17.exact-built-start-continuation.v1`, with `request`
+(the validated exact private V2 fields, fresh tool/run), `prior`
+(`request_sha256`, `result_sha256`) and `expected_build` (id, four file hashes
+and served-manifest hash). There is no arbitrary port/path/argv/budget input.
+
+The prior request must be exact R2a2adc012 and its unchanged target/admission/
+transport fields must equal the new request. The prior result must show build
+exit0, old-stopACK, exactly the reported listener-observation denial and both
+cleanupACKs. Both saved R2 process records are read; their original PID/start/
+session/group/UID pins must be valid and their groups must now be empty.
+The old App must independently be ended and3008 free. The current build bytes
+must match both the accepted prior evidence and expected build. Permission
+failures, other prior outcomes, missing/changed evidence or surviving children
+do not admit continuation. Nothing cleans or replays the prior attempt.
+
+`prepare-resume <PRIOR_REQUEST_SHA256> <NEW_RUN_ID>` is an explicitly authorized
+preparation helper: it reads the private prior request/result, constructs the
+closed request, writes it exclusively0600 and returns its digest. It never
+writes registry/claim or starts any child. Observed tool HEAD is request data,
+not authority; the operator must first match the externally accepted exact
+tool tuple. Then the separate trusted operator installs the one new registry
+entry under the Coordinator decision, preserving consumed prior entries.
+
+After fresh authorization and one claim, the continuation reuses the official
+read-only adoption preflight. A disposable Node server on a random loopback
+port then verifies child self-observation, the unchanged application environment
+filter, parent PID/start/session/UID/cwd/argv observation, a private HTTP nonce
+and probe exit/cleanupACK. It holds until the parent acknowledges those checks;
+probe failure occurs before the one product start. Proxy/CA/guard preloads are
+preserved; the sealed observer is appended to NODE_OPTIONS, never substituted
+for an existing preload. No privilege change or alternate foreign-fd read is used.
+
+Only after another exact prior/source/admission/build/port/currentness check
+does the same official start argv run once. There is no build or old-stop call
+in the continuation. Since no build work remains, the original2GiB build floor
+is not reapplied to this start-only unit: it requires more than the existing
+reserve-plus128MiB early-stop margin before dispatch, and protects512MiB during
+startup observation. The full-build2GiB floor and all original budget fields
+remain unchanged; neither threshold is a peak-resource guarantee.
+
+The sealed Node observer publishes one immutable private listen record by atomic
+rename after writing/fsync. PID/start/session/group/UID/cwd come from that live
+process; the parent independently checks its owned group and process identity.
+It also requires the same private nonce in the response from the existing static
+build-manifest URL, exact build bytes, and process identity again after HTTP.
+HTTP200 alone, a copied/stale/foreign PID record, an absent nonce or inaccessible
+required metadata cannot produce ACK. No scan of another process's fd directory
+is performed. Ordinary application responses/handlers are untouched; the nonce
+header applies only to this private startup challenge on the static manifest.
+
+One-use authority/currentness and bounded new-child cleanup retain first-error
+semantics. Probe cleanup and reused build/previous old-stop are explicitly
+labelled, never claimed as a new build or stop. After retained ACK, existing
+Task09 browser work can continue on the same backend without rebuilding,
+restarting the backend/relay or replaying successful positive/restart scenarios.
+Node/kernel and existing-Next static tests remain component evidence; actual
+Platform App8ed/browser/native acceptance is a separate open gate.
+
 1. Validate all input fields, budget, static pins and out-of-band authority. Check tool source seal/tree, exact App/anchor sources, original admission, Core-protected files, old PID/start/cwd/argv/build, relay and protected-file hashes. Confirm capacity and inode availability.
 2. Acquire a one-use claim. Run the unchanged official consumer adoption preflight. Recheck currentness, identities and capacity **after** preflight and immediately before the one build.
 3. Recheck capacity immediately at the Popen boundary; include spawn/PID-metadata wait in the build deadline. Launch one build in its own session/group. Store the Popen handle/custody slot before persisting PID metadata. Monitor shared filesystem capacity and deadline; any error stops progress. Group membership/start/UID/session and protected App/relay groups are checked before signals. App198 and Backend are retained throughout build.
@@ -81,7 +146,7 @@ Cleanup reports ACK, SKIPPED or UNKNOWN truthfully. First operational error rema
 
 The fixed controller module is compiled from the sealed source bytes; cached Python bytecode is not a load path.
 
-`source-seal.json` contains the six explicit source/contract/template/test files with bytes/SHA256; it excludes itself. Its own SHA256 and the final tool commit/tree are recorded in the external delivery manifest. The Git tree covers the seal. The delivery manifest/bundle hashes are external, so there is no self-hash cycle.
+`source-seal.json` contains the ten explicit source/contract/template/test files with bytes/SHA256, including resume/observer/probe support; it excludes itself. Its own SHA256 and the final tool commit/tree are recorded in the external delivery manifest. The Git tree covers the seal. The delivery manifest/bundle hashes are external, so there is no self-hash cycle.
 
 Offline tests exercise the controller and pure native-host guards with a synthetic host. Real Popen, signals, pidfd-open, network and private-file reads are trapped and must have zero attempted calls. Synthetic PASS is not a native monitor/start proof. Host implementations are supplied for review; actual platform PIDFD, socket, permission, filesystem behavior and process cleanup remain native gates. The real accepted request/registry, entrypoint invocation and eventual owner permission are not bundled.
 
