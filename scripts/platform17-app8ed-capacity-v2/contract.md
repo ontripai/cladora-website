@@ -7,7 +7,7 @@ Scope: source candidate for the existing Task17/08/09. This packet does not auth
 | Identity | Exact pin |
 |---|---|
 | Original tool source base | `8edca9d64b78f1eea0a6f402a6dd0c522bdcd4ea` |
-| R3 tool direct parent | `a2adc012d488fbb91a787c79e19ee54081f1a722` |
+| R3 final tool direct parent | `e8c9188cf487724c0dcccdbf20f509a23ece5fff` |
 | Active App | `198e8a35dc120b554468074dd689793addb54385` / tree `54e792e02ad7b92137b9699b67d5dc346024f23e` |
 | App intermediate | `445fcdcccf72f2038ed7abe7c96336864058cfe2` |
 | Replacement App | `8edca9d64b78f1eea0a6f402a6dd0c522bdcd4ea` / tree `ad31eebe4463921df63bda6617aa2fb30f623bde` |
@@ -15,7 +15,7 @@ Scope: source candidate for the existing Task17/08/09. This packet does not auth
 | Installed Core | `ee883b62cf4a318af3450c506931a969623b8987` |
 | Original transport | `b696ff211daabd4be3989522c569f24ccccd0dce` |
 
-The tool commit/tree/seal are separate, externally pinned after review. App source never follows tool HEAD. Native observation requires the exact chain `198 -> 445fcdcc -> 8ed`, including the intermediate; `parent(8ed)==198` is intentionally not required. Neither an arbitrary descendant nor App97 is accepted. R3 is a direct child of exact R2a2adc012; the original tool/R1/R2 history remains intact. App and anchor checkouts must be independently clean and match the exact App tuples. The original consumer-admission ABI and original anchor transport preflight are reused; no guard is broadened to any HEAD/descendant.
+The tool commit/tree/seal are separate, externally pinned after review. App source never follows tool HEAD. Native observation requires the exact chain `198 -> 445fcdcc -> 8ed`, including the intermediate; `parent(8ed)==198` is intentionally not required. Neither an arbitrary descendant nor App97 is accepted. The initial R3e8c9188c is a direct child of exact R2a2adc012. The final R3 adds only portable fixture capacity observation and the corresponding exact tool parent/seal; its direct parent is e8c9188c. All prior history remains intact. App and anchor checkouts must be independently clean and match the exact App tuples. The original consumer-admission ABI and original anchor transport preflight are reused; no guard is broadened to any HEAD/descendant.
 
 ## Budget and fixed commands
 

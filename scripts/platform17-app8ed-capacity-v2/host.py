@@ -17,7 +17,7 @@ import urllib.request
 
 HERE = Path(__file__).resolve().parent
 TOOL = HERE.parents[1]
-TOOL_PARENT = 'a2adc012d488fbb91a787c79e19ee54081f1a722'
+TOOL_PARENT = 'e8c9188cf487724c0dcccdbf20f509a23ece5fff'
 APP_PORT = 3008
 OBSERVATION_HEADER = 'x-cladora-start-observation'
 AUTHORITY_ROOT = Path('/workspace/private/platform17-app8ed-capacity-controller-v2')

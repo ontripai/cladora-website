@@ -269,6 +269,12 @@ class KernelObservationTests(unittest.TestCase):
             with mock.patch.object(C,'APP_ROOT',str(app)), mock.patch.object(H,'APP_PORT',port), mock.patch.object(H,'C',C):
                 r = B.fixture(); h = H.NativeHost(r,'a'*64,b'synthetic-only',{})
                 h.run = run; h.current = lambda request:None
+                # Observe the actual disposable fixture filesystem on any runner;
+                # the production host remains pinned to /workspace.
+                def capacity():
+                    sample=os.statvfs(app)
+                    return {'available_bytes':sample.f_bavail*sample.f_frsize,'free_inodes':sample.f_favail}
+                h.sample=capacity
                 fake = B.FakeHost(r); fake.old_ended = True; h.old_stopped = True
                 h.observe = fake.observe; h.read_build = fake.read_build
                 try:
