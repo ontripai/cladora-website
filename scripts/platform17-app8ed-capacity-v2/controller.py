@@ -196,7 +196,9 @@ class Controller:
             h.current(r)
             check_snapshot(h.observe(r, old_stopped=True), r, old_stopped=True)
             need(h.read_build(r) == facts["new_build"], "NEW_BUILD_DRIFT_AFTER_ACK")
+            h.current(r)
             h.record("app-retained", facts["served"])
+            h.current(r)
             result = Outcome("ACK_EXACT_APP8ED_RETAINED", None, [], old_stop, "ACK", facts)
         except BaseException as error:
             first = {"type": type(error).__name__, "message": str(error)}

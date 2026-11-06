@@ -6,7 +6,8 @@ Scope: source candidate for the existing Task17/08/09. This packet does not auth
 
 | Identity | Exact pin |
 |---|---|
-| Tool source base/direct parent | `8edca9d64b78f1eea0a6f402a6dd0c522bdcd4ea` |
+| Original tool source base | `8edca9d64b78f1eea0a6f402a6dd0c522bdcd4ea` |
+| R1 tool direct parent | `55bad9ff0b38e57c14cf0b660e32c5609a9745d6` |
 | Active App | `198e8a35dc120b554468074dd689793addb54385` / tree `54e792e02ad7b92137b9699b67d5dc346024f23e` |
 | App intermediate | `445fcdcccf72f2038ed7abe7c96336864058cfe2` |
 | Replacement App | `8edca9d64b78f1eea0a6f402a6dd0c522bdcd4ea` / tree `ad31eebe4463921df63bda6617aa2fb30f623bde` |
@@ -14,7 +15,7 @@ Scope: source candidate for the existing Task17/08/09. This packet does not auth
 | Installed Core | `ee883b62cf4a318af3450c506931a969623b8987` |
 | Original transport | `b696ff211daabd4be3989522c569f24ccccd0dce` |
 
-The tool commit/tree/seal are separate, externally pinned after review. App source never follows tool HEAD. Native observation requires the exact chain `198 -> 445fcdcc -> 8ed`, including the intermediate; `parent(8ed)==198` is intentionally not required. Neither an arbitrary descendant nor App97 is accepted. Tool HEAD must be a direct child of the source base. App and anchor checkouts must be independently clean and match the exact App tuples. The original consumer-admission ABI and original anchor transport preflight are reused; no guard is broadened to any HEAD/descendant.
+The tool commit/tree/seal are separate, externally pinned after review. App source never follows tool HEAD. Native observation requires the exact chain `198 -> 445fcdcc -> 8ed`, including the intermediate; `parent(8ed)==198` is intentionally not required. Neither an arbitrary descendant nor App97 is accepted. The R1 tool HEAD must be a direct child of the exact original tool55bad9ff; the original tool is itself a direct child of8ed. This preserves the delivered history without making tool HEAD the App pin. App and anchor checkouts must be independently clean and match the exact App tuples. The original consumer-admission ABI and original anchor transport preflight are reused; no guard is broadened to any HEAD/descendant.
 
 ## Budget and fixed commands
 
@@ -40,6 +41,14 @@ Future execution requires an independently accepted exact tool commit/tree/seal,
 The private files/directories must be owned by the executing Seat, 0600/0700, canonical, single-link regular files without symlink/alias. Unknown runtime bindings in the supplied template are NULL and fail validation; no actual admission, PID, credential, target snapshot or decision is fabricated. Tests use explicit synthetic values in memory and never create this private registry.
 
 Currentness and byte identity are rechecked after waits and immediately before build, old-App signal and new start. Equality at expiry rejects. Revocation/expiry halts normal progress; it does not authorize replacement permits or retries. Cleanup of the already owned new child is a separate bounded duty and may continue after authority expiry, without permitting another unit/start.
+
+R1 reads the source seal and request first, then re-reads authority bytes and
+samples the current clock last. Expiry or revocation during a blocking seal
+read cannot pass the actual Popen or old-App signal boundary. Currentness is
+also checked after the final post-start source/build observation and after
+retained-record persistence, before returning retained ACK. This closes the
+controlled counterexamples found in55bad9ff without changing App pins, budget,
+reserve, signal custody, first-error policy or the one-use authority contract.
 
 A fixed private request location is selected by SHA256; no arbitrary request path, SQL, shell, argv, env override or `--exec` is accepted. Claim directory creation is exclusive and durable. Once a valid request has been claimed, failure/UNKNOWN never resets it. Request schema/pins and the initial observations are checked before claim; rejected input causes no build/start/stop/signal/claim effect. Read-only source/process observations are distinguished from application mutation effects.
 

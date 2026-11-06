@@ -1,0 +1,41 @@
+name: Platform App8ed Controller
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/platform17-app8ed-capacity-v2/**'
+      - 'tests/platform17-app8ed-capacity-v2/**'
+      - '.github/workflows/platform17-app8ed-controller.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/platform17-app8ed-capacity-v2/**'
+      - 'tests/platform17-app8ed-capacity-v2/**'
+      - '.github/workflows/platform17-app8ed-controller.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  offline-controller:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Parse source and inspect seal without activation
+        run: |
+          python -B - <<'PY'
+          import ast
+          from pathlib import Path
+          for path in (Path('scripts/platform17-app8ed-capacity-v2/controller.py'),
+                       Path('scripts/platform17-app8ed-capacity-v2/host.py'),
+                       Path('tests/platform17-app8ed-capacity-v2/test_controller.py')):
+              ast.parse(path.read_text(), filename=str(path))
+          PY
+          python -B scripts/platform17-app8ed-capacity-v2/host.py inspect-source
+      - name: Offline controller and real-host boundary tests with native-effect traps
+        run: python -B tests/platform17-app8ed-capacity-v2/test_controller.py -v
+      - run: git diff --check

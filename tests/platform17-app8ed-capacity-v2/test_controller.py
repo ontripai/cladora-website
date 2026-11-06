@@ -267,4 +267,114 @@ class Tests(unittest.TestCase):
     def test_sources_are_only_fixed_commands(self):
         self.assertEqual(C.BUILD_ARGV,('node','scripts/run-core-service-app-assembly-17.mjs','build'));self.assertEqual(C.START_ARGV[-1],'start')
 
+class NativeCurrentnessTests(unittest.TestCase):
+    """Exercise real native-host gates; process/syscall boundaries stay synthetic."""
+    setUp = Tests.setUp
+    tearDown = Tests.tearDown
+
+    def native_boundary(self, boundary, fault):
+        r = fixture(); raw = encode(r); digest = C.sha(raw)
+        entry = {'request_sha256': digest, 'tool': r['tool'], 'run_id': r['run_id'],
+                 'issued_at_epoch': 100, 'expires_at_epoch': 200, 'single_use': True,
+                 'owner_decision_sha256': 'a' * 64}
+        registry = json.dumps({'contract': 'platform17.coordinator-execution-registry.v2',
+                               'entries': [entry]}).encode()
+        state = {'now': 100., 'seal_calls': 0, 'revoked': False, 'stopped': False}
+        effects = []
+        h = H.NativeHost(r, digest, registry, entry)
+        h.record = lambda *a: None
+        h.sample = lambda: {'available_bytes': C.START, 'free_inodes': 100}
+        h.observe = lambda *a, **k: FakeHost(r).observe(r)
+        h._safe = lambda slot: []
+        trigger = 3 if boundary == 'build' else 2
+
+        def seal(*a):
+            state['seal_calls'] += 1
+            if state['seal_calls'] == trigger:
+                if fault == 'expiry': state['now'] = 200.
+                if fault == 'revocation': state['revoked'] = True
+            return r['tool']['seal_sha256']
+
+        def private(path):
+            if Path(path) == H.REGISTRY: return b'revoked' if state['revoked'] else registry
+            if Path(path) == H.AUTHORITY_ROOT / 'requests' / (digest + '.json'): return raw
+            raise AssertionError('UNPLANNED_PRIVATE_READ')
+
+        def process(pid):
+            return {'pid': pid, 'start_ticks': '100', 'cwd': C.OLD_ROOT,
+                    'argv': r['old_app']['argv'], 'state': 'S', 'uid': H.os.getuid()}
+
+        def proc(pid):
+            return {'pid': pid, 'start_ticks': '100', 'pgrp': pid, 'session': pid,
+                    'uid': H.os.getuid(), 'state': 'Z' if state['stopped'] else 'S'}
+
+        def popen(*a, **k):
+            effects.append(('build', state['now'], state['revoked']))
+            return types.SimpleNamespace(pid=9876)
+
+        def send(*a, **k):
+            effects.append(('old-stop', state['now'], state['revoked']))
+            state['stopped'] = True
+
+        with tempfile.TemporaryDirectory(prefix='controller-synthetic-currentness-') as folder:
+            h.run = Path(folder)
+            with mock.patch.object(H, 'C', C), mock.patch.object(H, 'seal_identity', seal), \
+                 mock.patch.object(H, 'private_read', private), \
+                 mock.patch.object(H.time, 'time', lambda: state['now']), \
+                 mock.patch.object(H, 'process_full', process), \
+                 mock.patch.object(H, 'proc_identity', proc), \
+                 mock.patch.object(H.subprocess, 'Popen', popen), \
+                 mock.patch.object(H.os, 'pidfd_open', lambda pid: 777), \
+                 mock.patch.object(H.os, 'close', lambda fd: None), \
+                 mock.patch.object(H.signal, 'pidfd_send_signal', send):
+                operation = (lambda: h.spawn_build(r)) if boundary == 'build' else (lambda: h.stop_old(r))
+                if fault is None:
+                    operation()
+                    self.assertEqual(len(effects), 1)
+                    self.assertEqual(effects[0], (boundary, 100., False))
+                else:
+                    with self.assertRaises(ValueError) as rejected: operation()
+                    self.assertEqual(str(rejected.exception), 'REGISTRY_EXPIRED_OR_WINDOW'
+                                     if fault == 'expiry' else 'COORDINATOR_REGISTRY_CHANGED_OR_REVOKED')
+                    self.assertEqual(effects, [], 'expired/revoked authority crossed the actual dispatch boundary')
+
+    def test_actual_build_gate_accepts_unchanged_authority(self): self.native_boundary('build', None)
+    def test_actual_build_gate_rejects_expiry_during_seal_read(self): self.native_boundary('build', 'expiry')
+    def test_actual_build_gate_rejects_revocation_during_seal_read(self): self.native_boundary('build', 'revocation')
+    def test_actual_stop_gate_accepts_unchanged_authority(self): self.native_boundary('old-stop', None)
+    def test_actual_stop_gate_rejects_expiry_during_seal_read(self): self.native_boundary('old-stop', 'expiry')
+    def test_actual_stop_gate_rejects_revocation_during_seal_read(self): self.native_boundary('old-stop', 'revocation')
+
+    def retention_boundary(self, fault):
+        h = FakeHost(); original_observe = h.observe; original_read = h.read_build; original_record = h.record
+        counts = {'observed_stopped': 0, 'build_reads': 0}
+
+        def observe(*a, **k):
+            result = original_observe(*a, **k)
+            if k.get('old_stopped'):
+                counts['observed_stopped'] += 1
+                if fault == 'observe' and counts['observed_stopped'] == 2: h.wall_now = 1000
+            return result
+
+        def read(*a, **k):
+            result = original_read(*a, **k); counts['build_reads'] += 1
+            if fault == 'build-read' and counts['build_reads'] == 4: h.wall_now = 1000
+            return result
+
+        def record(name, value):
+            original_record(name, value)
+            if fault == 'retained-record' and name == 'app-retained': h.wall_now = 1000
+
+        h.observe = observe; h.read_build = read; h.record = record
+        result = C.Controller(h).run(encode(fixture()))
+        self.assertNotEqual(result.state, 'ACK_EXACT_APP8ED_RETAINED')
+        self.assertEqual(result.first_error['message'], 'AUTHORITY_EXPIRED_OR_REVOKED')
+        self.assertFalse(h.new['live'])
+        self.assertEqual(h.events.count('start'), 1)
+        self.assertEqual(h.events.count('stop-old'), 1)
+
+    def test_no_retained_ACK_after_final_observation_expiry(self): self.retention_boundary('observe')
+    def test_no_retained_ACK_after_final_build_read_expiry(self): self.retention_boundary('build-read')
+    def test_no_retained_ACK_after_receipt_wait_expiry(self): self.retention_boundary('retained-record')
+
 if __name__=='__main__':unittest.main()

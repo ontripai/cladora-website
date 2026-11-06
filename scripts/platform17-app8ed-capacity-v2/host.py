@@ -16,6 +16,7 @@ import urllib.request
 
 HERE = Path(__file__).resolve().parent
 TOOL = HERE.parents[1]
+TOOL_PARENT = '55bad9ff0b38e57c14cf0b660e32c5609a9745d6'
 AUTHORITY_ROOT = Path('/workspace/private/platform17-app8ed-capacity-controller-v2')
 REGISTRY = AUTHORITY_ROOT / 'coordinator-accepted-executions.json'
 C = None
@@ -151,10 +152,12 @@ class NativeHost:
 
     def current(self, r):
         C.need(r is self.request, 'REQUEST_OBJECT_CHANGED')
-        C.need(private_read(REGISTRY) == self.registry_raw, 'COORDINATOR_REGISTRY_CHANGED_OR_REVOKED')
-        C.need(hash_bytes(private_read(AUTHORITY_ROOT / 'requests' / (self.digest + '.json'))) == self.digest, 'REQUEST_DRIFT')
-        validate_registry_entry(self.entry, r, self.digest, time.time())
+        # File reads can wait. Inspect source/request first, then re-read the
+        # authority bytes and sample its clock last, immediately before return.
         C.need(seal_identity() == r['tool']['seal_sha256'], 'TOOL_SEAL_CHANGED')
+        C.need(hash_bytes(private_read(AUTHORITY_ROOT / 'requests' / (self.digest + '.json'))) == self.digest, 'REQUEST_DRIFT')
+        C.need(private_read(REGISTRY) == self.registry_raw, 'COORDINATOR_REGISTRY_CHANGED_OR_REVOKED')
+        validate_registry_entry(self.entry, r, self.digest, time.time())
 
     def _source(self, root):
         canonical(Path(root))
@@ -175,7 +178,7 @@ class NativeHost:
         C.need(anchor == {k: r['transport'][k] for k in ('root', 'sha', 'tree', 'launcher_sha256')}, 'ANCHOR_SOURCE_DRIFT')
         tool_sha = self.git(TOOL, 'rev-parse', 'HEAD').decode().strip(); tool_tree = self.git(TOOL, 'rev-parse', 'HEAD^{tree}').decode().strip()
         C.need(not self.git(TOOL, 'status', '--porcelain').strip(), 'TOOL_NOT_CLEAN')
-        C.need(self.git(TOOL, 'rev-parse', 'HEAD^').decode().strip() == C.BASE, 'TOOL_DIRECT_BASE')
+        C.need(self.git(TOOL, 'rev-parse', 'HEAD^').decode().strip() == TOOL_PARENT, 'TOOL_EXACT_REVIEWED_PARENT')
         tool = {'sha': tool_sha, 'tree': tool_tree, 'seal_sha256': seal_identity()}
         lineage = [self.git(C.APP_ROOT, 'rev-parse', 'HEAD^^').decode().strip(), self.git(C.APP_ROOT, 'rev-parse', 'HEAD^').decode().strip(), consumer['sha']]
         self.git(C.APP_ROOT, 'merge-base', '--is-ancestor', C.OLD, C.BASE)
