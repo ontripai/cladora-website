@@ -7,7 +7,8 @@ controls, native successes, historical gaps and consumed claims were NOT rerun.
 
 Pinned inputs:
 
-- source prerequisite: `58e7fc112c78fe219d85fab364dbf2fcb486b8c6`;
+- source predecessor: `618f93786762223e536aff842daad72a52e44d38`
+  (original packet prerequisite `58e7fc112c78fe219d85fab364dbf2fcb486b8c6`);
 - active App **reported**, not re-observed here:
   `fd7bc8799ce8aba970bb74e2a9035d4ee41e5119`, parent
   `79e2db9c42c61a217069f8e7412cc17179d720b3`, tree
@@ -74,6 +75,14 @@ or published. Installed private runtime binding and exact v3 installer binding
 are selected explicitly; v2 paths/generation, fallback or path search are rejected.
 The request contains a pinned random-ID plan, case allowlist and exact effect
 budget; this allowlist authorizes test operations only, never business authority.
+
+Coordinator review added two pre-dispatch gates. A selected query is never sent
+after its journal is known to have failed; rollback may still be attempted but
+missing evidence is not promoted to an ACK. Before any business POST on the
+instrumented lane, the baseline must include a matched current-App scoped read
+with an actual same-PID ROLLBACK/I in the probe journal. HTTP200 and a loaded
+preload alone do not prove interception of Next's actual driver. Six new
+controlled regressions cover these boundaries; the suite now has54 groups.
 
 ## Cases, source oracle, settlement and recovery
 

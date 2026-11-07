@@ -9,6 +9,22 @@ export const key=(f,k=f.key)=>'core-tx.v1:'+f.workspace+':'+k;
 const pause=()=>new Promise(r=>setTimeout(r,20)); // scheduling only, never an authority/expiry clock
 export async function snapshot(c,f,keys=[f.key]){return one(await c.query(SQL.scoped,[f.tenant,f.workspace,keys.map(k=>key(f,k))]));}
 export function sameCounts(a,b,delta=0){for(const k of ['requests','c03','audit','outbox'])assert.equal(b[k],a[k]+delta,k);}
+/** A loaded preload and HTTP200 are insufficient: observe a real, settled
+ * current-App scope before permitting any command on the instrumented lane. */
+export function requireCurrentAppRead(r,name,f,observation){
+ const {ready,traces,journal}=observation;
+ assert.equal(ready.App,r.app_sha);assert.equal(ready.build,r.build_id);
+ assert.ok(Number.isSafeInteger(ready.node_pid)&&ready.node_pid>0,'CURRENT_APP_NODE_PID_REQUIRED');
+ assert.ok(journal.complete_lines>0&&journal.snapshot_bytes>0&&/^[a-f0-9]{64}$/.test(journal.sha256),'CURRENT_APP_JOURNAL_REQUIRED');
+ const scope={actor:r.actor_A,context:f.context,workspace:f.workspace,tenant:f.tenant,membership:f.membership};
+ const matching=traces.filter(t=>t.node_pid===ready.node_pid&&Object.entries(scope).every(([k,v])=>t.scope?.[k]===v));
+ assert.ok(matching.length>0,'CURRENT_APP_PROBE_NOT_OBSERVED_BEFORE_BUSINESS_DISPATCH');
+ assert.ok(matching.every(t=>!t.ledger&&!t.fault_fired),'BUSINESS_ALREADY_OBSERVED_BEFORE_PROBE_READINESS');
+ const reads=matching.filter(t=>t.queries.includes('begin isolation level serializable')&&t.queries.includes('select app_private.lock_core_request_session_v1()'));
+ assert.ok(reads.some(t=>{try{terminal(t,'ROLLBACK');return true;}catch{return false;}}),'CURRENT_APP_SETTLED_SCOPE_READ_REQUIRED');
+ return Object.freeze({contract:'core17.current-App-read-ready.v3',case:name,node_pid:ready.node_pid,
+  backend_pids:reads.map(t=>t.pid),journal_sha256:journal.sha256});
+}
 export async function receipt(c,f,k,command,actor){
  const row=one(await c.query(SQL.receipt,[f.tenant,key(f,k)])),r=row.response_ref;
  assert.ok(r&&typeof r==='object');assert.equal(r.workspace_id,f.workspace);assert.equal(r.idempotency_key,k);assert.match(row.request_hash,/^[a-f0-9]{64}$/);assert.equal(row.actor_id,actor??command?.actor_id,'RECEIPT_ACTOR_BINDING_REQUIRED');assert.equal(r.actor_id,row.actor_id);

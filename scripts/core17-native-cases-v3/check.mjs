@@ -15,7 +15,7 @@ function validate(x){
  for(const p of x.product_sources)assert.equal(p.sha256,hash(execFileSync('git',['show',APP+':'+p.path],{maxBuffer:10*1024*1024})));
  const owned=x.operator_sources.filter(p=>!p.unchanged_dependency).map(p=>p.path.split('/').at(-1)).sort();assert.deepEqual(owned,readdirSync(dir).filter(n=>n!=='manifest.json').sort());
  assert.equal(new Set(x.product_sources.map(p=>p.path)).size,x.product_sources.length);for(const p of x.product_sources)assert.equal(p.unchanged,true);
- assert.deepEqual(x.limits,executionLimits(CASES));assert.equal(x.checks.new_controlled,48);
+ assert.deepEqual(x.limits,executionLimits(CASES));assert.equal(x.checks.new_controlled,54);
  const cases=JSON.parse(readFileSync(dir+'/case-contracts.json'));assert.deepEqual(cases.cases.map(v=>v.id),CASES);assert.equal(cases.runtime_execution,'NOT_RUN_NOT_PASS');
  for(const v of Object.values(x.scope))assert.equal(v,false);
  for(const name of ['fixture.mjs','queries.mjs','cases.mjs'])assert.doesNotMatch(readFileSync(dir+'/'+name,'utf8'),/\b(?:GRANT|REVOKE)\s+(?:INSERT|SELECT|UPDATE|DELETE)|ALTER\s+DEFAULT\s+PRIVILEGES|CREATE\s+TRIGGER/i);

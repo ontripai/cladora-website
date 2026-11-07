@@ -9,7 +9,7 @@ import {APP,INSTALLED,validateRequest,digest,matchSelection} from './contract.mj
 import {SQL} from './queries.mjs';
 import {seedFixture,seedOffering} from './fixture.mjs';
 import {traceClient,terminal,transaction,normalizeEvidence,operatorFailure} from './wire.mjs';
-import {runCase,input,snapshot,key} from './cases.mjs';
+import {runCase,input,snapshot,key,requireCurrentAppRead} from './cases.mjs';
 import {createCore15NativeLoader} from '../lib/core15-native-ts-loader.mjs';
 import {readOwnedInstallerFileV1,loadInstallerCredentialBindingV1,installerTargetV1} from '../lib/core-installer-credential-binding-v1.mjs';
 import {coreServiceAssemblyChildEnvironmentV1} from '../lib/core-service-assembly-environment-v1.mjs';
@@ -110,10 +110,12 @@ export async function executeCases(request,{root,recovery=false}={}){
     readAgreement:fixture=>runtime().withRequestScope({context_id:fixture.context,workspace_id:fixture.workspace,offering_id:fixture.offering},(_scope,ports)=>ports.resolveProviderAgreement({contract_version:'provider-agreement-verification.v1',context_id:fixture.context,workspace_id:fixture.workspace,provider_agreement_id:fixture.agreement,provider_agreement_version:1,requested_service_scope:['service.request.create'],permission_code:'services.orders.request'})),
     readRequests:async fixture=>{const q=new URLSearchParams({context_id:fixture.context,workspace_id:fixture.workspace});const response=await fetch('http://localhost:3008/api/customer/v1/services/requests?'+q,{headers:{cookie:session.cookie},redirect:'error',signal:AbortSignal.timeout(15000)});assert.equal(response.status,200);return{value:readSchema.parse(await response.json())};},
     preflight:async fixture=>{const u=new URL('http://localhost:3008/api/customer/v1/services/offering-request-flow');for(const[k,v]of Object.entries(input(fixture)))u.searchParams.set(k,v);const response=await fetch(u,{headers:{cookie:session.cookie},redirect:'error',signal:AbortSignal.timeout(15000)});refresh();return{status:response.status,value:await response.json()};},
-    submit:async value=>{assert.notEqual(name,'B-populated','NO_BUSINESS_POST_IN_A09_FIXTURE');assert.ok(proof.actual_business_POSTs<r.limits.business_POSTs,'BUSINESS_POST_BUDGET_EXHAUSTED');proof.actual_business_POSTs++;const wire=JSON.stringify(value);stage.last_wire_sha256=digest(wire);save();const response=await fetch('http://localhost:3008/api/customer/v1/services/offering-request-flow',{method:'POST',headers:{cookie:session.cookie,origin:'http://localhost:3008','content-type':'application/json'},body:wire,redirect:'error',signal:AbortSignal.timeout(30000)});const result={status:response.status,value:await response.json()};refresh();return result;},
+    submit:async value=>{assert.notEqual(name,'B-populated','NO_BUSINESS_POST_IN_A09_FIXTURE');if(requiresProbe){assert.equal(stage.probe_readiness?.contract,'core17.current-App-read-ready.v3','CURRENT_APP_PROBE_READINESS_REQUIRED');assert.equal(stage.probe_readiness.case,name,'CURRENT_CASE_PROBE_READINESS_REQUIRED');}assert.ok(proof.actual_business_POSTs<r.limits.business_POSTs,'BUSINESS_POST_BUDGET_EXHAUSTED');proof.actual_business_POSTs++;const wire=JSON.stringify(value);stage.last_wire_sha256=digest(wire);save();const response=await fetch('http://localhost:3008/api/customer/v1/services/offering-request-flow',{method:'POST',headers:{cookie:session.cookie,origin:'http://localhost:3008','content-type':'application/json'},body:wire,redirect:'error',signal:AbortSignal.timeout(30000)});const result={status:response.status,value:await response.json()};refresh();return result;},
    };
    // Valid baseline required for every case, including private failure/Core503.
-   const positive=await x.preflight(f);assert.equal(positive.status,200,'BASELINE_INVALID_NO_FAULT_DISPATCH');stage.baseline='REAL_SERVICE_PREFLIGHT_READY';save();
+   const positive=await x.preflight(f);assert.equal(positive.status,200,'BASELINE_INVALID_NO_FAULT_DISPATCH');
+   if(requiresProbe)stage.probe_readiness=requireCurrentAppRead(r,name,f,loadCurrentProcessJournal(r,name));
+   stage.baseline='REAL_SERVICE_PREFLIGHT_READY';save();
    stage.result=await runCase(name,x,f);refresh();stage.host_observations=observations;stage.host_statuses=results.map(v=>v.status);
    for(const t of rt.filter(t=>t.queries.includes('begin isolation level serializable'))){if(name==='precommit-disconnect'&&t.fault_kind==='precommit-disconnect'){assert.equal(stage.result.terminal.database_transaction_id,t.database_transaction_id);continue;}try{terminal(t,'COMMIT');}catch{terminal(t,'ROLLBACK');}}
    stage.state=stage.result.state;await pool.end();runtimePools.splice(runtimePools.indexOf(pool),1);save();

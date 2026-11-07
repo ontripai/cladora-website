@@ -1,6 +1,6 @@
 {
   "contract": "core17.coordinator206.native-case-source.v3",
-  "source_parent": "58e7fc112c78fe219d85fab364dbf2fcb486b8c6",
+  "source_parent": "618f93786762223e536aff842daad72a52e44d38",
   "FullSHA": "CONTAINING_COMMIT",
   "App": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119",
   "App_tree": "6a660dc056e73dc547d9fd6b12fc0d83eca66ea2",
@@ -22,9 +22,9 @@
   "operator_sources": [
     {
       "path": "scripts/core17-native-cases-v3/README.md",
-      "bytes": 16135,
-      "sha256": "32bddab12263b0731da53c948f6bed69b1989d8a48c21d19a3dc75f58f63c0f3",
-      "git_blob": "9593d5f4136474dfecd72af22d4526a72cb18398"
+      "bytes": 16751,
+      "sha256": "243ed604c6afdfee0a088626cba173d692c806434f7c722813b387b3cb5e88d4",
+      "git_blob": "0a2fd7b4fd11612b5f414179d5b2c8fd446b8568"
     },
     {
       "path": "scripts/core17-native-cases-v3/case-contracts.json",
@@ -34,15 +34,15 @@
     },
     {
       "path": "scripts/core17-native-cases-v3/cases.mjs",
-      "bytes": 14263,
-      "sha256": "7d048b4bfc5c9a5c17f2cf38c9b9822460bff136fa0ee1e821c6eb949acb5d18",
-      "git_blob": "fa45221e264c7b0ed8767930a2703f68c860181f"
+      "bytes": 15727,
+      "sha256": "d4b8b79e3bca9b53e402d58ae3fc7ac8115cef579f10d4c0fd454955d1d651b7",
+      "git_blob": "ba4db4f599c1a27e7d92422ce7c9303568dcdf8f"
     },
     {
       "path": "scripts/core17-native-cases-v3/check.mjs",
       "bytes": 3116,
-      "sha256": "d613f1c0f0ec307c3a867607b6952f4f4c711280ecad966c4296ea1e7631dc52",
-      "git_blob": "7a033eb5a49262596b0efe4377154c6daf1dd0da"
+      "sha256": "ffbc59fbf06e0bcc5ed14a6efb02a7cc24633e5c9af12558dac192b9296fbd62",
+      "git_blob": "ce3568c296cce5abe1b80aef2a387c5a13dd0e5e"
     },
     {
       "path": "scripts/core17-native-cases-v3/cli.mjs",
@@ -53,14 +53,14 @@
     {
       "path": "scripts/core17-native-cases-v3/contract.mjs",
       "bytes": 8051,
-      "sha256": "ff7301cc06017eeddb25dc6fe83d8b27f0afa2211d4e74e7f8271197f91daa1e",
-      "git_blob": "4796752eafa9d92ecc5fc54965ffe9b712346a86"
+      "sha256": "192b41d7444f124efe17e93cefdb5e321d5060436504eef916f23482f303a6a3",
+      "git_blob": "2055fe84362643e989d4a0a98b35c7a0ac7806f9"
     },
     {
       "path": "scripts/core17-native-cases-v3/current-process-hook.mjs",
-      "bytes": 9944,
-      "sha256": "50e433f2ca0552c54746f221a8c6c7d2a9a205211b85a25876678cc0d24544d2",
-      "git_blob": "586ad85e87df0e78d94fda3f008224dd8f5f5ae9"
+      "bytes": 10229,
+      "sha256": "c6f26ffa3ec751b478bb478b4a0005eefab6180f7e176ff4a4e8fb8c5db91671",
+      "git_blob": "e13f40df5fe1f2e6796dd0dd3033278d70d19b5e"
     },
     {
       "path": "scripts/core17-native-cases-v3/fixture.mjs",
@@ -76,9 +76,9 @@
     },
     {
       "path": "scripts/core17-native-cases-v3/operator.mjs",
-      "bytes": 19116,
-      "sha256": "1371e30e357cdff2312da80a24e6886da990c394a96f768ef593ae32ec059fe9",
-      "git_blob": "acb1651196288db6a51eef1b0f4cd97c05ea4f99"
+      "bytes": 19476,
+      "sha256": "f1efc0fffbaa9d67ee6773b400dc77dda3f5785a2318d87e411fffff76e4332f",
+      "git_blob": "1764ce773cf76eb7d47fd2a24ef3c97f14a09470"
     },
     {
       "path": "scripts/core17-native-cases-v3/queries.mjs",
@@ -89,8 +89,8 @@
     {
       "path": "scripts/core17-native-cases-v3/seal.mjs",
       "bytes": 3639,
-      "sha256": "b57777b9161925946b12168ec9e97cbee0c71cb5cb01456deb33840c832eca84",
-      "git_blob": "c0639078895b787fbec12032c37e8aa35c17eaac"
+      "sha256": "82041ec05a789c5a8a50192cc2c658ff14d3b7094121ac2fe6425a43235b2b46",
+      "git_blob": "176cb43d8fdd0affedf9f5ebea6c9d07a5a3147b"
     },
     {
       "path": "scripts/core17-native-cases-v3/source-closure.mjs",
@@ -100,9 +100,9 @@
     },
     {
       "path": "scripts/core17-native-cases-v3/test.mjs",
-      "bytes": 23862,
-      "sha256": "f1a438134ec556464d8d45cb1656897536f20f3d0f4d6efc0ab3e3e2d88d5070",
-      "git_blob": "791183ea93dfd4e9528d60f3a793d60b3739fffd"
+      "bytes": 27854,
+      "sha256": "fcfaa6e62d63b8c3334bc370bc5339b00267299cb48e318b721ef6a5a680b925",
+      "git_blob": "5482778116a61eeee8124d89ff01502f31d6a174"
     },
     {
       "path": "scripts/core17-native-cases-v3/wire.mjs",
@@ -635,7 +635,7 @@
     "new_Requests": 7
   },
   "checks": {
-    "new_controlled": 48,
+    "new_controlled": 54,
     "CLI_dry_run": "PASS_NO_TARGET_NO_CREDENTIALS_NO_SQL",
     "lint": "PASS_LIMITED",
     "syntax": "PASS",

@@ -48,7 +48,11 @@ export function install(expected){
      if(found&&state.physical&&!state.scope){state.scope=found;emit({case:found.case,backend_pid:client.processID,type:'admitted',history:state.history,scope:{actor:cfg.actor,context:found.context,workspace:found.workspace,tenant:found.tenant,membership:found.membership}});}
     }
     if(state.scope&&q!=='rollback'&&fs.existsSync(path.join(cfg.output,'halt-'+state.scope.case+'.json'))){const stop=JSON.parse(privateRead(path.join(cfg.output,'halt-'+state.scope.case+'.json')));assert.equal(stop.case,state.scope.case);assert.equal(stop.request_sha256,cfg.request_sha256);const e=Error('CORE17_GROUP_ABORT_PREWRITE');e.code='CORE17_GROUP_ABORT_PREWRITE';throw e;}
+    // A known journal failure must stop selected work BEFORE raw dispatch.
+    // Rollback may still reach PG; its lost evidence is never a claimed ACK.
+    if(state.scope&&ioError&&q!=='rollback')throw ioError;
     event({type:'query',sql:q,...(q==='select pg_advisory_xact_lock(hashtextextended($1,0))'?{label:values[0]}:{})});
+    if(state.scope&&ioError&&q!=='rollback')throw ioError;
     try{
      const result=await query(text,values);
      if(q.startsWith('select pg_backend_pid() as backend_pid,current_user::text as principal')){
@@ -78,7 +82,7 @@ export function install(expected){
        const e=Error('CORE17_CONTROLLED_ACK_FAULT');e.code='CORE17_CONTROLLED_ACK_FAULT';throw e;
       }
      }
-     if(ioError)throw ioError;return result;
+     if(state.scope&&ioError)throw ioError;return result;
     }finally{event({type:'query-finished'});}
    };
    return client;
