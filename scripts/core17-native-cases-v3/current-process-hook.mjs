@@ -21,8 +21,8 @@ export function install(expected){
  assert.equal(cfg.contract,'core17.current-process-pg-probe.v3');assert.equal(cfg.App,'fd7bc8799ce8aba970bb74e2a9035d4ee41e5119');assert.equal(cfg.installed,'ee883b62cf4a318af3450c506931a969623b8987');
  assert.match(cfg.request_sha256,/^[a-f0-9]{64}$/);assert.equal(cfg.target.host,'127.0.0.1');assert.equal(cfg.target.port,55422);assert.equal(cfg.target.database_name,'postgres');assert.ok(Array.isArray(cfg.scopes)&&cfg.scopes.length>0&&cfg.scopes.length<=10);
  for(const s of cfg.scopes){assert.ok(['observe','precommit','precommit-disconnect','post-commit-ack'].includes(s.fault));assert.ok(s.keys.length>=1&&s.keys.length<=2&&s.keys.every(k=>typeof k==='string'&&k.startsWith('core-tx.v1:'+s.workspace+':')));}
- assert.equal(fs.realpathSync(process.cwd()),cfg.app_root);assert.equal(cp.execFileSync('git',['rev-parse','HEAD'],{cwd:cfg.app_root,encoding:'utf8'}).trim(),cfg.App);
- assert.equal(cp.execFileSync('git',['rev-parse','HEAD^{tree}'],{cwd:cfg.app_root,encoding:'utf8'}).trim(),'6a660dc056e73dc547d9fd6b12fc0d83eca66ea2');cp.execFileSync('git',['diff','--quiet','HEAD','--'],{cwd:cfg.app_root});
+ assert.equal(fs.realpathSync(process.cwd()),cfg.app_root);assert.equal(cp.execFileSync('git',['rev-parse','HEAD'],{cwd:cfg.app_root,encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim(),cfg.App);
+ assert.equal(cp.execFileSync('git',['rev-parse','HEAD^{tree}'],{cwd:cfg.app_root,encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim(),'6a660dc056e73dc547d9fd6b12fc0d83eca66ea2');cp.execFileSync('git',['diff','--quiet','HEAD','--'],{cwd:cfg.app_root,stdio:['ignore','pipe','pipe']});
  assert.equal(fs.readFileSync(path.join(cfg.app_root,'.next/BUILD_ID'),'utf8').trim(),'AupRkr1rvWViv-w3ffC4f');assert.equal(hash(fs.readFileSync(sourcePath)),expected.hook_sha256);
  const req=createRequire(path.join(cfg.app_root,'package.json'));
  assert.equal(req('next/package.json').version,'16.4.1');assert.equal(req('zod/package.json').version,'4.6.6');assert.equal(req('pg/package.json').version,cfg.pg_version);

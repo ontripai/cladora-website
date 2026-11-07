@@ -7,8 +7,9 @@ controls, native successes, historical gaps and consumed claims were NOT rerun.
 
 Pinned inputs:
 
-- source predecessor: `618f93786762223e536aff842daad72a52e44d38`
-  (original packet prerequisite `58e7fc112c78fe219d85fab364dbf2fcb486b8c6`);
+- source predecessor: `2d19e0669e10fdddf2b8ee2d1309d6e4d3b2f084`
+  (reviewed original packet `618f93786762223e536aff842daad72a52e44d38`,
+  original packet prerequisite `58e7fc112c78fe219d85fab364dbf2fcb486b8c6`);
 - active App **reported**, not re-observed here:
   `fd7bc8799ce8aba970bb74e2a9035d4ee41e5119`, parent
   `79e2db9c42c61a217069f8e7412cc17179d720b3`, tree
@@ -83,6 +84,9 @@ instrumented lane, the baseline must include a matched current-App scoped read
 with an actual same-PID ROLLBACK/I in the probe journal. HTTP200 and a loaded
 preload alone do not prove interception of Next's actual driver. Six new
 controlled regressions cover these boundaries; the suite now has54 groups.
+Read-only Git identity checks explicitly ignore stdin while retaining stdout,
+stderr and inherited guards; they do not create an unused synchronous stdin
+pipe in a constrained preload or source-check host.
 
 ## Cases, source oracle, settlement and recovery
 

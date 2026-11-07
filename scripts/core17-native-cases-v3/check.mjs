@@ -12,7 +12,7 @@ function validate(x){
  for(const p of [...x.operator_sources,...x.product_sources]){const b=readFileSync(p.path);assert.equal(b.length,p.bytes);assert.equal(hash(b),p.sha256,p.path);}
  assert.deepEqual(x.operator_sources.filter(p=>p.unchanged_dependency).map(p=>p.path).sort(),['scripts/lib/core15-native-ts-loader.mjs','scripts/lib/core-installer-credential-binding-v1.mjs','scripts/lib/core-service-assembly-environment-v1.mjs'].sort());
  assert.deepEqual(x.product_sources.map(p=>p.path).sort(),productSourceClosure(process.cwd()));
- for(const p of x.product_sources)assert.equal(p.sha256,hash(execFileSync('git',['show',APP+':'+p.path],{maxBuffer:10*1024*1024})));
+ for(const p of x.product_sources)assert.equal(p.sha256,hash(execFileSync('git',['show',APP+':'+p.path],{maxBuffer:10*1024*1024,stdio:['ignore','pipe','pipe']})));
  const owned=x.operator_sources.filter(p=>!p.unchanged_dependency).map(p=>p.path.split('/').at(-1)).sort();assert.deepEqual(owned,readdirSync(dir).filter(n=>n!=='manifest.json').sort());
  assert.equal(new Set(x.product_sources.map(p=>p.path)).size,x.product_sources.length);for(const p of x.product_sources)assert.equal(p.unchanged,true);
  assert.deepEqual(x.limits,executionLimits(CASES));assert.equal(x.checks.new_controlled,54);

@@ -17,10 +17,10 @@ const one=r=>{assert.equal(r.rowCount,1);return r.rows[0];};
 const safeCode=e=>typeof e?.code==='string'&&/^[A-Z0-9_]{2,80}$/.test(e.code)?e.code:'LOCAL_FAILURE';
 export function sourceGate(root,r){
  const env=coreServiceAssemblyChildEnvironmentV1(process.env,'start');
- const git=(at,...args)=>execFileSync('git',args,{cwd:at,env,encoding:'utf8',stdio:'pipe',timeout:10000,maxBuffer:2097152}).trim();
- assert.equal(git(root,'rev-parse','HEAD'),r.operator_sha,'EXACT_OPERATOR_SHA_REQUIRED');execFileSync('git',['diff','--quiet','HEAD','--'],{cwd:root,env,stdio:'pipe'});
+ const git=(at,...args)=>execFileSync('git',args,{cwd:at,env,encoding:'utf8',stdio:['ignore','pipe','pipe'],timeout:10000,maxBuffer:2097152}).trim();
+ assert.equal(git(root,'rev-parse','HEAD'),r.operator_sha,'EXACT_OPERATOR_SHA_REQUIRED');execFileSync('git',['diff','--quiet','HEAD','--'],{cwd:root,env,stdio:['ignore','pipe','pipe']});
  assert.equal(git(r.app_root,'rev-parse','HEAD^{tree}'),r.app_tree,'EXACT_FD7_TREE');assert.equal(readFileSync(join(r.app_root,'.next/BUILD_ID'),'utf8').trim(),r.build_id,'EXACT_REPORTED_BUILD_REQUIRED');
- assert.equal(git(r.app_root,'rev-parse','HEAD'),APP,'FD7_APP_MUST_STAY_FIXED');execFileSync('git',['diff','--quiet','HEAD','--'],{cwd:r.app_root,env,stdio:'pipe'});
+ assert.equal(git(r.app_root,'rev-parse','HEAD'),APP,'FD7_APP_MUST_STAY_FIXED');execFileSync('git',['diff','--quiet','HEAD','--'],{cwd:r.app_root,env,stdio:['ignore','pipe','pipe']});
  assert.equal(git(root,'ls-files','--others','--exclude-standard'),'','UNREVIEWED_OPERATOR_SOURCE');assert.equal(git(r.app_root,'ls-files','--others','--exclude-standard'),'','UNREVIEWED_APP_SOURCE');
  const seal=JSON.parse(readFileSync(join(root,'scripts/core17-native-cases-v3/manifest.json')));
  for(const p of [...seal.operator_sources,...seal.product_sources])assert.equal(digest(readFileSync(join(root,p.path))),p.sha256,'CASE_SOURCE_PIN '+p.path);

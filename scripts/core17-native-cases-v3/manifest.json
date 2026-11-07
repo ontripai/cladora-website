@@ -1,6 +1,6 @@
 {
   "contract": "core17.coordinator206.native-case-source.v3",
-  "source_parent": "618f93786762223e536aff842daad72a52e44d38",
+  "source_parent": "2d19e0669e10fdddf2b8ee2d1309d6e4d3b2f084",
   "FullSHA": "CONTAINING_COMMIT",
   "App": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119",
   "App_tree": "6a660dc056e73dc547d9fd6b12fc0d83eca66ea2",
@@ -22,9 +22,9 @@
   "operator_sources": [
     {
       "path": "scripts/core17-native-cases-v3/README.md",
-      "bytes": 16751,
-      "sha256": "243ed604c6afdfee0a088626cba173d692c806434f7c722813b387b3cb5e88d4",
-      "git_blob": "0a2fd7b4fd11612b5f414179d5b2c8fd446b8568"
+      "bytes": 17028,
+      "sha256": "a1c21d3e19270a7079c6531ab67d04c4eb60b48adf5297f2bad57473ad1d55e3",
+      "git_blob": "9f72b2abdccd45655ae07eedfbd90daaf917802c"
     },
     {
       "path": "scripts/core17-native-cases-v3/case-contracts.json",
@@ -40,9 +40,9 @@
     },
     {
       "path": "scripts/core17-native-cases-v3/check.mjs",
-      "bytes": 3116,
-      "sha256": "ffbc59fbf06e0bcc5ed14a6efb02a7cc24633e5c9af12558dac192b9296fbd62",
-      "git_blob": "ce3568c296cce5abe1b80aef2a387c5a13dd0e5e"
+      "bytes": 3147,
+      "sha256": "7731287952bfe24abd9ed3a0a4e0e8bf75f2f286c1ec0fb59d392975c4f61006",
+      "git_blob": "2e0181d4d93de278ef2f5b193e498e528a1b8d8d"
     },
     {
       "path": "scripts/core17-native-cases-v3/cli.mjs",
@@ -53,14 +53,14 @@
     {
       "path": "scripts/core17-native-cases-v3/contract.mjs",
       "bytes": 8051,
-      "sha256": "192b41d7444f124efe17e93cefdb5e321d5060436504eef916f23482f303a6a3",
-      "git_blob": "2055fe84362643e989d4a0a98b35c7a0ac7806f9"
+      "sha256": "353304e2c2701ee5bbb832a18b3cff6b0faa9d74409ab6a7dbffcc3daed5a94d",
+      "git_blob": "8c73243d30c7df40223fee39496d41dec7bc37de"
     },
     {
       "path": "scripts/core17-native-cases-v3/current-process-hook.mjs",
-      "bytes": 10229,
-      "sha256": "c6f26ffa3ec751b478bb478b4a0005eefab6180f7e176ff4a4e8fb8c5db91671",
-      "git_blob": "e13f40df5fe1f2e6796dd0dd3033278d70d19b5e"
+      "bytes": 10322,
+      "sha256": "2db0b61f3433f070cdf0550dfb9aa37224e3c0c7ac32e34a522eabc921d9c55b",
+      "git_blob": "ab66430fa9df1e937f04e5c0248147245e628b5e"
     },
     {
       "path": "scripts/core17-native-cases-v3/fixture.mjs",
@@ -76,9 +76,9 @@
     },
     {
       "path": "scripts/core17-native-cases-v3/operator.mjs",
-      "bytes": 19476,
-      "sha256": "f1efc0fffbaa9d67ee6773b400dc77dda3f5785a2318d87e411fffff76e4332f",
-      "git_blob": "1764ce773cf76eb7d47fd2a24ef3c97f14a09470"
+      "bytes": 19530,
+      "sha256": "162c6534383f1db92b0f4715f49d56d5d4766b6c253e656e0232a66f5b357525",
+      "git_blob": "14adcd1f7163e141aef1b8044a70a2844ec92b87"
     },
     {
       "path": "scripts/core17-native-cases-v3/queries.mjs",
@@ -88,9 +88,9 @@
     },
     {
       "path": "scripts/core17-native-cases-v3/seal.mjs",
-      "bytes": 3639,
-      "sha256": "82041ec05a789c5a8a50192cc2c658ff14d3b7094121ac2fe6425a43235b2b46",
-      "git_blob": "176cb43d8fdd0affedf9f5ebea6c9d07a5a3147b"
+      "bytes": 3701,
+      "sha256": "a8d679b170c9ceb8d180afcf82561b9f11fbf0d9756ee514b91d0d29943b22b7",
+      "git_blob": "831646cd519851984defb92bdb6081276d51e8fd"
     },
     {
       "path": "scripts/core17-native-cases-v3/source-closure.mjs",
