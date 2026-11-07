@@ -19,15 +19,20 @@ let projectionResult = { data: projection, error: null };
 let calls = [];
 function load(file) {
   if (cache.has(file.href)) return cache.get(file.href);
+  if (file.pathname.endsWith('.json')) {
+    const value = JSON.parse(readFileSync(file, 'utf8'));
+    cache.set(file.href, value); return value;
+  }
   const filename = fileURLToPath(file);
   const mod = new Module(filename);
-  mod.require = name => name === '@/lib/supabase/server' ? { createClient: async () => ({
+  // Retain the real Core bridge while resolving Next's server-only build marker.
+  mod.require = name => name === 'server-only' ? {} : name === '@/lib/supabase/server' ? { createClient: async () => ({
     auth: { getClaims: async () => auth }, schema: name => { assert.equal(name, 'customer_api'); return { rpc: async (name, args) => {
       calls.push({ name, args });
       return name === 'get_product_capability_decision_v1' ? projectionResult : result;
     } }; },
   }) } : name.startsWith('@/') ? load(new URL(`../src/${name.slice(2)}.ts`, import.meta.url))
-    : name.startsWith('.') ? load(new URL(`${name}.ts`, file)) : require(name);
+    : name.startsWith('.') ? load(new URL(/\.(?:json|[cm]?[jt]sx?)$/.test(name) ? name : `${name}.ts`, file)) : require(name);
   mod._compile(ts.transpileModule(readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText, filename);
   cache.set(file.href, mod.exports); return mod.exports;
 }
@@ -120,4 +125,23 @@ for (const body of ['broken', { ...definitionEdit, actor_id: id }, { ...definiti
 }
 await check('definition edit rejects cross origin and non JSON', async () => { assert.equal((await editDefinition(definitionEdit, { origin: 'https://evil.test' })).status, 403); assert.equal((await editDefinition(definitionEdit, { 'content-type': 'text/plain' })).status, 400); assert.deepEqual(calls, []); });
 await check('anonymous definition edit never reaches RPC', async () => { auth = { data: null, error: null }; assert.equal((await editDefinition()).status, 401); assert.deepEqual(calls, []); });
+await check('owned Core catalogue without an official binding never falls back to legacy RPC', async () => {
+  const profile = process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE;
+  const binding = process.env.CLADORA_CORE15_SERVICE_BINDING_FILE;
+  try {
+    process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE = 'core-service-real-app-assembly.v1';
+    process.env.CLADORA_CORE15_SERVICE_BINDING_FILE = '';
+    const response = await get('context_id=20000000-0000-4000-8000-000000000002&workspace_id=30000000-0000-4000-8000-000000000003');
+    assert.equal(response.status, 503);
+    assert.deepEqual(await response.json(), { error: { code: 'CORE_SERVICE_ASSEMBLY_NOT_READY' } });
+    assert.equal(response.headers.get('cache-control'), 'no-store, private');
+    assert.equal(response.headers.get('vary'), 'Cookie');
+    assert.deepEqual(calls, []);
+  } finally {
+    if (profile === undefined) delete process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE;
+    else process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE = profile;
+    if (binding === undefined) delete process.env.CLADORA_CORE15_SERVICE_BINDING_FILE;
+    else process.env.CLADORA_CORE15_SERVICE_BINDING_FILE = binding;
+  }
+});
 console.log(`${cases} SERVICE catalogue route cases passed`);

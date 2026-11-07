@@ -1,0 +1,18 @@
+{
+  "format": "platform17-source-seal.v1",
+  "files": {
+    "scripts/service-consumer-rehearsal-17/consumer.mjs": "0b21a85e3b0a1dc9ef9e796000936d60caeba00e183d01c6126818f10ec6c564",
+    "scripts/service-consumer-rehearsal-17/infra-probe.mjs": "b232a38481118c21aa690c1d640881c838d92b91cdc89062db05fc39d85d93bc",
+    "scripts/service-consumer-rehearsal-17/lane.py": "81f35757510de10b6d68eb9869f3e03109f9ef39e11c814774c8b379eaf408ad",
+    "scripts/service-consumer-rehearsal-17/materialize.mjs": "e43ef01239677d874194d2fa0e6a465c67c9cc8e3e736396587c44d7e0c9ca41",
+    "scripts/service-consumer-rehearsal-17/profile.json": "d1992d2a203ed8d4746875faafeb8e7c7882e5b3ee24df033ec64e9607283c69",
+    "scripts/service-consumer-rehearsal-17/test_lane.py": "3ce1a446d8171379ba68a073311084612f2073d0f7d9ba21c96fb16fb831ab9a",
+    "scripts/service-consumer-rehearsal-17/api-continuation.mjs": "e7ea69a52e4d591605c089fd8ee55b92c867e63619d0b20d6b3ef597b9212e54",
+    "scripts/service-consumer-rehearsal-17/continuation.py": "adb6d04d127873744e7a17bfdedaac8eba310b943fd49616b39ca7b714837d46",
+    "scripts/service-consumer-rehearsal-17/test_api_continuation.mjs": "ceb3f90b3997fd384a4e7da94d7aeec88120c4c0cfe31268d65ddde55c9a7d1b",
+    "scripts/service-consumer-rehearsal-17/test_continuation.py": "e844f2cd4893ec433ebd812380750068af8bfcf011c4b9500e730e5a2224634c",
+    "scripts/service-consumer-rehearsal-17/post-install-backup.py": "458d05045186d6e70014cff5d8bc46a07f838ac59a90f0defc1bf5a267086c1f",
+    "scripts/service-consumer-rehearsal-17/README.md": "5f85ba7dcb2a33a2e5ccd6a86bc695e50c1d4539c007682d5c8fc889adffa7d8"
+  },
+  "sha256": "1a9e15c18df7b8702641aa5de84d12fad2990b547f343aa11398b7123a5fe54b"
+}

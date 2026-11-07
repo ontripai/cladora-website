@@ -1,0 +1,110 @@
+{
+  "contract": "core17.native-case-contracts.v3",
+  "cases": [
+    {
+      "id": "stale",
+      "source_ready": true,
+      "executes_by_default": false,
+      "applicability": "applicable to dedicated synthetic fixture",
+      "target": "same owned v3 backend; App FD7 unchanged",
+      "settlement": "same-PID CommandComplete + ReadyForQuery I; uncertain => UNKNOWN_STOP",
+      "recovery": "read-only exact run IDs/keys; no blind resend or global restore",
+      "expected": "see operator and README"
+    },
+    {
+      "id": "revoke",
+      "source_ready": true,
+      "executes_by_default": false,
+      "applicability": "applicable to dedicated synthetic fixture",
+      "target": "same owned v3 backend; App FD7 unchanged",
+      "settlement": "same-PID CommandComplete + ReadyForQuery I; uncertain => UNKNOWN_STOP",
+      "recovery": "read-only exact run IDs/keys; no blind resend or global restore",
+      "expected": "see operator and README"
+    },
+    {
+      "id": "expiry-wait",
+      "source_ready": true,
+      "executes_by_default": false,
+      "applicability": "applicable to dedicated synthetic fixture",
+      "target": "same owned v3 backend; App FD7 unchanged",
+      "settlement": "same-PID CommandComplete + ReadyForQuery I; uncertain => UNKNOWN_STOP",
+      "recovery": "read-only exact run IDs/keys; no blind resend or global restore",
+      "expected": "see operator and README"
+    },
+    {
+      "id": "current-authority-wait",
+      "source_ready": true,
+      "executes_by_default": false,
+      "applicability": "applicable to dedicated synthetic fixture",
+      "target": "same owned v3 backend; App FD7 unchanged",
+      "settlement": "same-PID CommandComplete + ReadyForQuery I; uncertain => UNKNOWN_STOP",
+      "recovery": "read-only exact run IDs/keys; no blind resend or global restore",
+      "expected": "see operator and README"
+    },
+    {
+      "id": "same-key",
+      "source_ready": true,
+      "executes_by_default": false,
+      "applicability": "applicable to dedicated synthetic fixture",
+      "target": "same owned v3 backend; App FD7 unchanged",
+      "settlement": "same-PID CommandComplete + ReadyForQuery I; uncertain => UNKNOWN_STOP",
+      "recovery": "read-only exact run IDs/keys; no blind resend or global restore",
+      "expected": "real blocking graph; one canonical effect; valid rollback/replay or explicit recovery required"
+    },
+    {
+      "id": "different-key",
+      "source_ready": true,
+      "executes_by_default": false,
+      "applicability": "two independent Requests for a non-reservation Offering; NO exclusive-capacity conflict oracle",
+      "target": "same owned v3 backend; App FD7 unchanged",
+      "settlement": "same-PID CommandComplete + ReadyForQuery I; uncertain => UNKNOWN_STOP",
+      "recovery": "read-only exact run IDs/keys; no blind resend or global restore",
+      "expected": "see operator and README"
+    },
+    {
+      "id": "precommit-atomicity",
+      "source_ready": true,
+      "executes_by_default": false,
+      "applicability": "applicable to dedicated synthetic fixture",
+      "target": "same owned v3 backend; App FD7 unchanged",
+      "settlement": "same-PID CommandComplete + ReadyForQuery I; uncertain => UNKNOWN_STOP",
+      "recovery": "read-only exact run IDs/keys; no blind resend or global restore",
+      "expected": "real22012 before COMMIT; denied + ROLLBACK; zero scoped four-family delta"
+    },
+    {
+      "id": "precommit-disconnect",
+      "source_ready": true,
+      "executes_by_default": false,
+      "applicability": "applicable to dedicated synthetic fixture",
+      "target": "same owned v3 backend; App FD7 unchanged",
+      "settlement": "same-PID CommandComplete + ReadyForQuery I; uncertain => UNKNOWN_STOP",
+      "recovery": "read-only exact run IDs/keys; no blind resend or global restore",
+      "expected": "see operator and README"
+    },
+    {
+      "id": "core503",
+      "source_ready": true,
+      "executes_by_default": false,
+      "applicability": "applicable to dedicated synthetic fixture",
+      "target": "same owned v3 backend; App FD7 unchanged",
+      "settlement": "same-PID CommandComplete + ReadyForQuery I; uncertain => UNKNOWN_STOP",
+      "recovery": "read-only exact run IDs/keys; no blind resend or global restore",
+      "expected": "actual current-App COMMIT/I then controlled driver ACK fault; SERVICE503/READBACK_REQUIRED and one canonical effect, no fabricated response"
+    },
+    {
+      "id": "B-populated",
+      "source_ready": true,
+      "executes_by_default": false,
+      "applicability": "same-actor authorized B tuple from actual assembly bootstrap; Offering/S01 only, NO Request/command/receipt seed; draft without dispatch",
+      "target": "same owned v3 backend; App FD7 unchanged",
+      "settlement": "same-PID CommandComplete + ReadyForQuery I; uncertain => UNKNOWN_STOP",
+      "recovery": "read-only exact run IDs/keys; no blind resend or global restore",
+      "expected": "see operator and README"
+    }
+  ],
+  "max_limits": {
+    "business_POSTs": 14,
+    "new_Requests": 7
+  },
+  "runtime_execution": "NOT_RUN_NOT_PASS"
+}

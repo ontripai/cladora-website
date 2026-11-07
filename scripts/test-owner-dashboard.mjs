@@ -5,7 +5,7 @@ import {fileURLToPath} from 'node:url';
 import ts from 'typescript';
 import React from 'react';
 const require=createRequire(import.meta.url);
-function load(path,mocks={}){const filename=fileURLToPath(new URL(`../${path}`,import.meta.url));const m=new Module(filename);m.require=id=>Object.hasOwn(mocks,id)?mocks[id]:require(id);m._compile(ts.transpileModule(readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText,filename);return m.exports;}
+function load(path,mocks={}){const filename=fileURLToPath(new URL(`../${path}`,import.meta.url));const m=new Module(filename);m.require=id=>Object.hasOwn(mocks,id)?mocks[id]:id.startsWith('@/')?load(`src/${id.slice(2)}.ts`,mocks):require(id);m._compile(ts.transpileModule(readFileSync(filename,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,esModuleInterop:true}}).outputText,filename);return m.exports;}
 const {ownerOverview}=load('src/lib/owner-portfolio/overview.ts');
 const {claimedUnitContextId}=load('src/lib/auth/unit-invitation-context.ts');
 assert.equal(claimedUnitContextId({membership_id:'owner',unit_id:'A-01'},[

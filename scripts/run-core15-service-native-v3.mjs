@@ -5,12 +5,12 @@ import {execFileSync} from 'node:child_process';
 import {createHash,randomBytes,randomUUID} from 'node:crypto';
 import pg from 'pg';
 import {resolve} from 'node:path';
+import {issueInstallerCredentialBindingV1,loadInstallerCredentialBindingV1,installerTargetV1} from './lib/core-installer-credential-binding-v1.mjs';
 import {deriveOrdinaryInstallerV3} from './lib/core15-ordinary-installer-profile-v3.mjs';
 const root=new URL('../',import.meta.url),privateRoot='/workspace/private/cladora-functional-dev-v1',platform='/workspace/work/platform12-core15-input-794f5a1';
 const sha=b=>createHash('sha256').update(b).digest('hex');
-const unit=process.argv[2],correctedBinding=false;assert.equal(process.argv[3],'--accepted-source');assert.equal(process.argv.length,5);const accepted=resolve(process.argv[4]);assert.ok(['prerequisites','foundation','assets','maintenance-procurement','building-provisioning'].includes(unit));
-execFileSync('python3',['-I','-B','-c',`import importlib.util,subprocess;from pathlib import Path
-p=Path('${platform}');assert subprocess.check_output(['git','rev-parse','HEAD'],cwd=p,text=True).strip()=='794f5a12c3928ae0a3585ab679a3cbe60aab49a3';s=importlib.util.spec_from_file_location('p12',p/'scripts/functional-dev-stack-v1/stack.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m);m.state();m.cid('pg');m.gateway_process()`],{stdio:'pipe'});
+const unit=process.argv[2],correctedBinding=false;assert.equal(process.argv[3],'--accepted-source');assert.equal(process.argv.length,unit==='prerequisites'?5:7);const accepted=resolve(process.argv[4]);assert.ok(['prerequisites','foundation','assets','maintenance-procurement','building-provisioning'].includes(unit));
+if(unit!=='prerequisites')assert.ok(['v3','historical-v2'].includes(process.argv[5]),'explicit installer generation required');
 const readPrivate=p=>{const s=statSync(p);assert.equal(s.mode&0o077,0);assert.equal(s.isFile(),true);return JSON.parse(readFileSync(p));};
 const secret=readPrivate(privateRoot+'/secrets.json'),descriptor=readPrivate(privateRoot+'/descriptor.json');
 const session=readPrivate(privateRoot+'/core15/session-bootstrap-receipt.json');assert.equal(session.state,'COMMIT_TAG_AND_INDEPENDENT_CATALOG_OBSERVED');
@@ -32,11 +32,13 @@ if(unit==='prerequisites'){
 }else{
  const index=m.units.findIndex(x=>x.unit===unit);assert.ok(index>=0);
  const previous=index===0?'prerequisites':m.units[index-1].unit;
- const predecessor=previous==='prerequisites'?(existsSync(dir+'/prerequisites-committed.json')?dir+'/prerequisites-committed.json':privateRoot+'/core15/service-native-v2/prerequisites.json'):dir+'/'+previous+'-committed.json';
+ const predecessor=previous==='prerequisites'?(process.argv[5]==='v3'?dir+'/prerequisites-committed.json':privateRoot+'/core15/service-native-v2/prerequisites.json'):dir+'/'+previous+'-committed.json';
  assert.equal(readPrivate(predecessor).state,'COMMIT_ACK_RFQ_I_AND_POSTSTATE_OBSERVED');
  source=readFileSync(resolve(accepted,m.units[index].path),'utf8');const derived=deriveOrdinaryInstallerV3(source,unit);payload=derived.payload;metadata=derived.metadata;
- assert.equal(sha(payload),m.units[index].payload_sha256);credential=readPrivate(existsSync(dir+'/installer-secret.json')?dir+'/installer-secret.json':privateRoot+'/core15/service-native-v2/installer-secret.json').password;
+ assert.equal(sha(payload),m.units[index].payload_sha256);credential=loadInstallerCredentialBindingV1({privateRoot,generation:process.argv[5],bindingPath:process.argv[6],expectedTarget:{backend_id:'core15-dev:'+descriptor.instance,database_oid:Number(session.database_oid),database_name:'postgres',host:'127.0.0.1',port:55422,principal:'cladora_core_installer'}}).password;
 }
+execFileSync('python3',['-I','-B','-c',`import importlib.util,subprocess;from pathlib import Path
+p=Path('${platform}');assert subprocess.check_output(['git','rev-parse','HEAD'],cwd=p,text=True).strip()=='794f5a12c3928ae0a3585ab679a3cbe60aab49a3';s=importlib.util.spec_from_file_location('p12',p/'scripts/functional-dev-stack-v1/stack.py');m=importlib.util.module_from_spec(s);s.loader.exec_module(m);m.state();m.cid('pg');m.gateway_process()`],{stdio:'pipe'});
 const client=new pg.Client({host:'127.0.0.1',port:55422,database:'postgres',user:role,password:credential,connectionTimeoutMillis:5000,query_timeout:90000,application_name:'cladora-core15-native-install.v2'});
 const tags=[],ready=[];let sent=false,commit=false;
 client.connection.on('commandComplete',x=>tags.push(x.text));client.connection.on('readyForQuery',x=>ready.push(x.status));
@@ -72,6 +74,7 @@ try{
  try{await observer.connect();const q=await observer.query("select exists(select 1 from pg_roles where rolname='cladora_core_installer' and not rolsuper and not rolbypassrls) ordinary_installer,exists(select 1 from pg_extension where extname='btree_gist' and extversion='1.7') extension_ok,to_regnamespace('app_private') is not null app_schema");assert.equal(q.rows[0].ordinary_installer,true);assert.equal(q.rows[0].extension_ok,true);assert.equal(q.rows[0].app_schema,unit!=='prerequisites');receipt.poststate=q.rows[0];}finally{await observer.end();}
  receipt.state='COMMIT_ACK_RFQ_I_AND_POSTSTATE_OBSERVED';receipt.settlement='COMMIT';receipt.command_complete_commit=true;receipt.readyforquery='I';save();
  writeFileSync(dir+'/'+unit+'-committed.json',JSON.stringify(receipt,null,2)+'\n',{mode:0o600});
+ if(unit==='prerequisites')receipt.credential_binding=issueInstallerCredentialBindingV1({privateRoot,generation:'v3',target:{backend_id:'core15-dev:'+descriptor.instance,database_oid:before.oid,database_name:'postgres',host:'127.0.0.1',port:55422,principal:'cladora_core_installer'}});
  console.log(JSON.stringify({unit,state:receipt.state,source_sha256:metadata.source_sha256,payload_sha256:sha(payload),readyforquery:'I',runtime_ready:false}));
 }catch(e){
  receipt.state=sent?'FAILED_OR_UNKNOWN_STOP':'PRE_SEND_STOP';receipt.commit_observed=commit;receipt.error_code=typeof e.code==='string'?e.code:'LOCAL_OR_TRANSPORT';

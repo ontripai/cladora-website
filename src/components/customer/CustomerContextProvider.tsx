@@ -198,6 +198,30 @@ export function CustomerContextProvider({ children }: { children: React.ReactNod
           setError('forbidden');
           return;
         }
+        if (response.status === 404) {
+          const isAssembly = typeof process !== 'undefined' &&
+            process.env.NEXT_PUBLIC_CLADORA_OWNED_SERVICE_ASSEMBLY === 'v1';
+          if (isAssembly) {
+            try {
+              const body = (await response.json()) as { error?: { code?: string } };
+              if (seq !== dashboardSeq.current || cancelled || activeIdRef.current !== targetContextId) {
+                return;
+              }
+              if (body?.error?.code === 'DASHBOARD_NOT_IN_ASSEMBLY_PROFILE') {
+                setDashboard(null);
+                return;
+              }
+            } catch {
+              // Not valid json; fall through to standard error
+            }
+          }
+          if (seq !== dashboardSeq.current || cancelled || activeIdRef.current !== targetContextId) {
+            return;
+          }
+          setDashboard(null);
+          setError('dashboard');
+          return;
+        }
         if (!response.ok) throw new Error('dashboard');
         const body = (await response.json()) as CustomerDashboardData;
         if (seq !== dashboardSeq.current || cancelled || activeIdRef.current !== targetContextId) {

@@ -1,0 +1,13 @@
+{
+  "contract": "platform17.integrated-app-adoption.v1",
+  "installed_Core_base": "ee883b62cf4a318af3450c506931a969623b8987",
+  "Platform_predecessor": "cf2edb1f361b6c78747b79dd7c5345b558b0a598",
+  "app_source": "5aa951bfbe8b1254b81212aa248f51a13179f890",
+  "app_tree": "9332b0ce424439a67b2c47e50bf61895383d8fda",
+  "app_parent": "26e8b1eb0e753f8ec4a6a42d66180a12c8d49907",
+  "app_origin": "http://localhost:3008",
+  "versions": {"next": "16.4.1", "zod": "4.6.6", "typescript": "5.9.3"},
+  "official_launcher": "scripts/run-core-service-app-assembly-17.mjs",
+  "effects": ["restore same pinned host relay only if its PID is absent and both loopback ports are free; preserve old record", "build exact app source", "stop exact owned old app process or truthfully skip when already absent", "start same built exact app source"],
+  "excluded": ["SQL install", "ACL change", "database restart", "Storage R2", "parallel backend", "staging", "Production", "browser Request command"]
+}

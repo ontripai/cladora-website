@@ -1,0 +1,59 @@
+name: Core17 native case source
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/core17-native-cases-v3/**'
+      - 'scripts/lib/core15-native-ts-loader.mjs'
+      - 'scripts/lib/core-installer-credential-binding-v1.mjs'
+      - 'scripts/lib/core-service-assembly-environment-v1.mjs'
+      - '.github/workflows/core17-native-case-source.yml'
+      - 'package.json'
+      - 'package-lock.json'
+  push:
+    branches: [main, codex/core-service-real-app-assembly-17]
+    paths:
+      - 'scripts/core17-native-cases-v3/**'
+      - 'scripts/lib/core15-native-ts-loader.mjs'
+      - 'scripts/lib/core-installer-credential-binding-v1.mjs'
+      - 'scripts/lib/core-service-assembly-environment-v1.mjs'
+      - '.github/workflows/core17-native-case-source.yml'
+      - 'package.json'
+      - 'package-lock.json'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: core17-case-source-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - name: Exact source seals and negative manifest checks
+        run: node scripts/core17-native-cases-v3/check.mjs
+      - name: Controlled operator and probe tests; no target activation
+        run: node scripts/core17-native-cases-v3/test.mjs
+      - name: Synthetic request dry-run; no credentials, SQL or Auth
+        run: |
+          node scripts/core17-native-cases-v3/cli.mjs example-request > "$RUNNER_TEMP/core17.synthetic.request.json"
+          node scripts/core17-native-cases-v3/cli.mjs dry-run "$RUNNER_TEMP/core17.synthetic.request.json"
+      - name: Changed script lint and whitespace
+        run: |
+          npx eslint scripts/core17-native-cases-v3/*.mjs
+          git diff --check HEAD^ HEAD

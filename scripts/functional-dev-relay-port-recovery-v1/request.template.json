@@ -1,0 +1,11 @@
+{
+  "contract": "platform17.relay-port-recovery-request.v1",
+  "run_id": null,
+  "issued_at_unix": null,
+  "expires_at_unix": null,
+  "controller": {"commit": null, "tree": null, "seal_file_sha256": null},
+  "app_root": null,
+  "activation_binding_sha256": null,
+  "prior": {"claim_sha256": null, "result_sha256": null, "gateway_record_sha256": null},
+  "backend": null
+}

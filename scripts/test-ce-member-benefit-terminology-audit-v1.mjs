@@ -168,6 +168,36 @@ const benefitPresentationFiles = [
   ...servicePresentationFiles,
 ];
 function publicPresentationSource(file, source = read(file)) {
+  if (file === 'src/components/customer/CustomerServiceCatalog.tsx') {
+    const ast = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+    const internalBindings = [];
+    const visit = node => {
+      if (ts.isPropertyAssignment(node) && node.name.getText(ast) === 'membership_id'
+        && node.initializer.getText(ast) === 'uuidSchema') {
+        let declaration = node.parent;
+        while (declaration && !ts.isVariableDeclaration(declaration)) declaration = declaration.parent;
+        if (declaration?.name.getText(ast) === 'assemblyBootstrapSchema') {
+          internalBindings.push([node.name.getStart(ast), node.name.getEnd()]);
+        }
+      }
+      if (ts.isPropertyAccessExpression(node) && node.getText(ast) === 'item.membership_id') {
+        let attribute = node.parent;
+        while (attribute && !ts.isJsxAttribute(attribute) && !ts.isJsxElement(attribute)) attribute = attribute.parent;
+        if (attribute && ts.isJsxAttribute(attribute) && attribute.name.getText(ast) === 'key'
+          && ts.isJsxOpeningElement(attribute.parent?.parent)
+          && attribute.parent.parent.tagName.getText(ast) === 'option') {
+          internalBindings.push([node.getStart(ast), node.getEnd()]);
+        }
+      }
+      ts.forEachChild(node, visit);
+    };
+    visit(ast);
+    // The bootstrap validator and React option key are internal identity inputs.
+    // Rendered text, DOM attributes, values and other component props stay audited.
+    return internalBindings.sort((a, b) => b[0] - a[0]).reduce(
+      (text, [start, end]) => text.slice(0, start) + 'internal_scope_binding' + text.slice(end), source,
+    );
+  }
   if (![
     'src/components/customer/CustomerCommunityBasePage.tsx',
     'src/components/customer/CustomerEventInterestPage.tsx',
@@ -199,6 +229,26 @@ function publicPresentationSource(file, source = read(file)) {
   );
 }
 const benefitPresentation = [...new Set(benefitPresentationFiles)].map(file => publicPresentationSource(file)).join('\n');
+
+const catalogFile = 'src/components/customer/CustomerServiceCatalog.tsx';
+for (const source of [
+  'const assemblyBootstrapSchema = z.strictObject({ membership_id: uuidSchema });',
+  'const view = <option key={item.membership_id}>Workspace</option>;',
+]) {
+  check(!publicPresentationSource(catalogFile, source).includes('membership_id'),
+    'canonical schema and React key must not be mistaken for public benefit copy');
+}
+for (const source of [
+  'const view = <option>{item.membership_id}</option>;',
+  'const view = <option data-private={item.membership_id}>Workspace</option>;',
+  'const view = <option value={item.membership_id}>Workspace</option>;',
+  'const view = <OtherComponent key={item.membership_id} />;',
+  'const otherSchema = z.strictObject({ membership_id: uuidSchema });',
+  'const assemblyBootstrapSchema = z.strictObject({ membership_id: z.string() });',
+]) {
+  check(publicPresentationSource(catalogFile, source).includes('membership_id'),
+    'Catalog identity exception must not hide text, DOM values, unrelated props or a different schema');
+}
 
 for (const source of [
   'const view = <span>{active.membership_id}</span>;',

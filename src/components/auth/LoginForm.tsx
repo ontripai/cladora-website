@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/client';
 import { isSupabaseConfigured } from '@/lib/supabase/env';
 import { TurnstileWidget } from '@/components/auth/TurnstileWidget';
 import { CladoraBrand } from '@/components/brand/CladoraBrand';
-import { resolvePostAuthRoute } from '@/lib/auth/post-auth-route';
+import { resolvePostAuthRoute, getCustomerServicesRoute, isServiceAssemblyProfile } from '@/lib/auth/post-auth-route';
 import { loginErrorMessage } from '@/lib/auth/login-error';
 
 interface LoginFormProps {
@@ -122,7 +122,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ lang, reason, captchaRequi
             ? `${destination}${destination.includes('?') ? '&' : '?'}next=cases`
             : `/${lang}/cases`;
         }
-        if (accountRequested && !destination.includes('/mfa')) destination = `/${lang}/account`;
+        if (accountRequested && !destination.includes('/mfa')) {
+          destination = typeof isServiceAssemblyProfile === 'function' && isServiceAssemblyProfile()
+            ? (typeof getCustomerServicesRoute === 'function' ? getCustomerServicesRoute(lang) : `/${lang}/app/services`)
+            : `/${lang}/account`;
+        }
         if (invitationRequested) {
           destination = destination.includes('/mfa')
             ? `${destination}${destination.includes('?') ? '&' : '?'}next=invitation-continuation`
@@ -134,7 +138,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({ lang, reason, captchaRequi
             : `/${lang}/owner-portfolio`;
         }
       } catch {
-        await supabase.auth.signOut();
+        try {
+          await supabase.auth.signOut({ scope: 'local' });
+        } catch {
+          // Scoped local cleanup error is suppressed to preserve explicit user feedback
+        }
         setError(
           lang === 'ro'
             ? 'Starea de securitate a contului nu a putut fi verificată.'

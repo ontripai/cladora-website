@@ -5,7 +5,14 @@ import {execFileSync} from 'node:child_process';
 import {randomUUID,createHash} from 'node:crypto';
 import {createClient} from '@supabase/supabase-js';
 import pg from 'pg';
+import {pathToFileURL} from 'node:url';
+import {loadInstallerCredentialBindingV1} from './lib/core-installer-credential-binding-v1.mjs';
+export async function prepareCore15ServiceSyntheticFixtureV1(selection){
 const root='/workspace/private/cladora-functional-dev-v1';
+// The old entry is explicitly historical. New generation is never inferred.
+assert.ok(selection&&typeof selection==='object'&&!Array.isArray(selection));
+assert.equal(Object.keys(selection).sort().join('|'),selection.legacy===true?'legacy':'bindingPath|expectedTarget|generation','explicit fixture credential profile required');
+const secret=selection.legacy===true?JSON.parse(readFileSync(root+'/core15/service-native-v2/installer-secret.json')):loadInstallerCredentialBindingV1({privateRoot:root,generation:selection.generation,bindingPath:selection.bindingPath,expectedTarget:selection.expectedTarget});
 execFileSync('python3',['-I','-B','-c',"import importlib.util;from pathlib import Path;p=Path('/workspace/work/platform12-core15-input-794f5a1/scripts/functional-dev-stack-v1/stack.py');s=importlib.util.spec_from_file_location('p12',p);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);m.state();m.cid('pg');m.gateway_process()"],{stdio:'pipe'});
 const read=p=>JSON.parse(readFileSync(root+'/'+p));
 assert.equal(read('core15/service-domain-v1/subject-validity-committed.json').state,'COMMIT_AND_RFQ_I');
@@ -15,7 +22,7 @@ const identities=[];
 for(const item of mfa.users){const auth=createClient('http://127.0.0.1:55421',s.anon_key,{auth:{persistSession:false,autoRefreshToken:false}}),u=await auth.auth.getUser(item.access_token),c=await auth.auth.getClaims(item.access_token);assert.equal(u.error,null);assert.equal(c.error,null);assert.equal(c.data.claims.aal,'aal2');assert.equal(u.data.user.id,item.actor_id);identities.push(c.data.claims);}
 const id=()=>randomUUID();const record={contract:'core15-owned-service-fixture.v1',state:'DISPATCHED_NO_RETRY',run:id(),scope:'synthetic administrative genesis only; NOT G2/publication execution proof',actors:mfa.users.map(x=>x.actor_id),tenants:[id(),id()],workspaces:[id(),id()],roles:[id(),id(),id()],members:[id(),id(),id()],contexts:[id(),id(),id()],workspace_roles:[id(),id(),id()],beneficiaries:[id(),id()],provider:id(),agreement:id(),offering:id(),revision:id(),definition:id()};
 const save=()=>writeFileSync(recordPath,JSON.stringify(record,null,2)+'\n',{mode:0o600});save();
-const secret=read('core15/service-native-v2/installer-secret.json');const c=new pg.Client({host:'127.0.0.1',port:55422,database:'postgres',user:'cladora_core_installer',password:secret.password,connectionTimeoutMillis:5000,query_timeout:30000});const tags=[],ready=[];c.connection.on('commandComplete',m=>tags.push(m.text));c.connection.on('readyForQuery',m=>ready.push(m.status));
+const c=new pg.Client({host:'127.0.0.1',port:55422,database:'postgres',user:'cladora_core_installer',password:secret.password,connectionTimeoutMillis:5000,query_timeout:30000});const tags=[],ready=[];c.connection.on('commandComplete',m=>tags.push(m.text));c.connection.on('readyForQuery',m=>ready.push(m.status));
 try{
  await c.connect();const pre=await c.query("select current_user::text actor,(select count(*)::int from platform.customer_workspaces) workspaces,(select count(*)::int from service_catalog.requests) requests,(select rolsuper or rolbypassrls from pg_roles where rolname=current_user) privileged");assert.deepEqual(pre.rows,[{actor:'cladora_core_installer',workspaces:0,requests:0,privileged:false}]);
  await c.query('begin');await c.query("set local lock_timeout='5s'");await c.query("set local statement_timeout='20s'");
@@ -55,3 +62,6 @@ try{
  await c.query('rollback');assert.equal(guard.rows[0].allowed,true);assert.equal(other.rows[0].allowed,false);record.canonical_fixture_predicates={own_context:true,foreign_workspace:false};save();
  console.log(JSON.stringify({state:record.state,canonical_fixture_predicates:record.canonical_fixture_predicates,private_receipt_sha256:createHash('sha256').update(readFileSync(recordPath)).digest('hex'),Request_C03_receipts_seeded:0,G2_onboarding_or_publication_proof:false}));
 }catch(e){record.previous_state=record.state;record.state='FAILED_OR_UNKNOWN_STOP';record.error_code=e.code??'LOCAL_ASSERTION';record.error_message=e.message?.slice(0,300);try{const r=await c.query('rollback');record.rollback=r.command;}catch{record.rollback='UNKNOWN';}save();console.error(JSON.stringify({state:record.state,error_code:record.error_code,private_diagnostic:true}));process.exitCode=1;}finally{await c.end();}
+
+}
+if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){assert.equal(process.argv.length,2,'new profiles use the versioned fixture consumer');await prepareCore15ServiceSyntheticFixtureV1({legacy:true});}

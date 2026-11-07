@@ -1,0 +1,9 @@
+{
+  "contract": "platform17.relay-cors-transition-binding.v2",
+  "run_id": null,
+  "Core_install_base": "ee883b62cf4a318af3450c506931a969623b8987",
+  "origin": "http://localhost:3008",
+  "relay_seal_sha256": null,
+  "backend": null,
+  "app": {"root": null, "sha": null, "tree": null, "launcher_sha256": null}
+}

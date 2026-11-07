@@ -4,11 +4,14 @@ import {readFileSync,writeFileSync,existsSync,mkdirSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import pg from 'pg';
+import {loadInstallerCredentialBindingV1,installerTargetV1,readOwnedInstallerFileV1} from './lib/core-installer-credential-binding-v1.mjs';
 import {deriveDomainUnitV1} from './prepare-core15-service-domain-v1.mjs';
 const sha=x=>createHash('sha256').update(x).digest('hex'),root=new URL('../',import.meta.url),p='/workspace/private/cladora-functional-dev-v1';
 const manifest=JSON.parse(readFileSync(new URL('supabase/install/core-functional-runtime-v1/service-native-v3/domain-manifest.json',root)));
-const afterPrerequisite=process.argv[3]==='--after-prerequisite',afterConfig=process.argv[3]==='--after-exact-config',afterSyntax=process.argv[3]==='--after-guard-syntax';assert.equal(process.argv.length,afterPrerequisite||afterConfig||afterSyntax?4:3);const unit=manifest.units.find(x=>x.id===process.argv[2]);assert.ok(unit);
-execFileSync('python3',['-I','-B','-c',"import importlib.util;from pathlib import Path;p=Path('/workspace/work/platform12-core15-input-794f5a1/scripts/functional-dev-stack-v1/stack.py');s=importlib.util.spec_from_file_location('p12',p);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);m.state();m.cid('pg');m.gateway_process()"],{stdio:'pipe'});
+const unit=manifest.units.find(x=>x.id===process.argv[2]);assert.ok(unit);
+const custodian=['session-authority-delegation','owner-execute-bindings'].includes(unit.id);
+const correction=custodian?undefined:process.argv[5],afterPrerequisite=correction==='--after-prerequisite',afterConfig=correction==='--after-exact-config',afterSyntax=correction==='--after-guard-syntax';assert.equal(process.argv.length,custodian?3:(correction?6:5));
+if(correction)assert.ok(['--after-prerequisite','--after-exact-config','--after-guard-syntax'].includes(correction),'unknown correction flag');
 const read=x=>JSON.parse(readFileSync(x));
 assert.equal(read(p+'/core15/service-native-v3/foundation-committed.json').state,'COMMIT_ACK_RFQ_I_AND_POSTSTATE_OBSERVED');
 const dir=p+'/core15/service-domain-v1';if(!existsSync(dir))mkdirSync(dir,{mode:0o700});
@@ -18,9 +21,9 @@ if(afterSyntax){assert.equal(unit.id,'canonical-sqlstate');const old=read(dir+'/
 const receiptPath=dir+'/'+unit.id+(afterPrerequisite?'-after-prerequisite':afterConfig?'-after-exact-config':afterSyntax?'-after-guard-syntax':'')+'.json';assert.equal(existsSync(receiptPath),false,'STOP existing dispatch receipt');
 const i=manifest.units.indexOf(unit);if(i>0){const previous=dir+'/'+manifest.units[i-1].id;assert.equal(read(existsSync(previous+'-committed.json')?previous+'-committed.json':previous+'.json').state,'COMMIT_AND_RFQ_I');}
 const source=readFileSync(new URL(unit.path,root),'utf8');assert.equal(sha(source),unit.source_sha256);const payload=deriveDomainUnitV1(source,unit.id);assert.equal(sha(payload),unit.payload_sha256);
-const custodian=['session-authority-delegation','owner-execute-bindings'].includes(unit.id);
-const secret=custodian?{password:read(p+'/secrets.json').database_password}:read(existsSync(p+'/core15/service-native-v3/installer-secret.json')?p+'/core15/service-native-v3/installer-secret.json':p+'/core15/service-native-v2/installer-secret.json');
+const secret=custodian?{password:read(p+'/secrets.json').database_password}:loadInstallerCredentialBindingV1({privateRoot:p,generation:process.argv[3],bindingPath:process.argv[4],expectedTarget:{backend_id:JSON.parse(readOwnedInstallerFileV1(p+'/core15/session-bootstrap-receipt.json',p)).backend_id,database_oid:Number(JSON.parse(readOwnedInstallerFileV1(p+'/core15/session-bootstrap-receipt.json',p)).database_oid),database_name:'postgres',host:'127.0.0.1',port:55422,principal:'cladora_core_installer'}});
 const actor=custodian?'postgres':'cladora_core_installer';
+execFileSync('python3',['-I','-B','-c',"import importlib.util;from pathlib import Path;p=Path('/workspace/work/platform12-core15-input-794f5a1/scripts/functional-dev-stack-v1/stack.py');s=importlib.util.spec_from_file_location('p12',p);m=importlib.util.module_from_spec(s);s.loader.exec_module(m);m.state();m.cid('pg');m.gateway_process()"],{stdio:'pipe'});
 const c=new pg.Client({host:'127.0.0.1',port:55422,database:'postgres',user:actor,password:secret.password,connectionTimeoutMillis:5000,query_timeout:45000});
 const tags=[],ready=[];c.connection.on('commandComplete',x=>tags.push(x.text));c.connection.on('readyForQuery',x=>ready.push(x.status));
 let sent=false;const r={contract:'core15-domain-native-observation.v1',unit:unit.id,source_sha256:unit.source_sha256,payload_sha256:sha(payload),state:'PRE_SEND',settlement:'NOT_SENT'};

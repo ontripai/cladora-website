@@ -1,0 +1,61 @@
+{
+  "contract": "platform17.service-custody-adoption.request.v1",
+  "run_id": null,
+  "tool": {
+    "sha": null,
+    "tree": null,
+    "seal_sha256": null
+  },
+  "consumer": {
+    "root": "/workspace/work/platform17-consumer-fd7bc879",
+    "sha": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119",
+    "tree": "6a660dc056e73dc547d9fd6b12fc0d83eca66ea2",
+    "launcher_sha256": "cb887091c9045fba6b9eeb5ad2502ca6206006aa220b123d4594de8526828a5d"
+  },
+  "old_app": {
+    "root": "/workspace/work/platform17-consumer-f2b3c01f",
+    "sha": "f2b3c01f1ffb49b202d5f5a8409137e4ec6643d2",
+    "tree": "bf01acfaeba53c009ad6f9f6eeb2dcabffee7a5a",
+    "launcher_sha256": "cb887091c9045fba6b9eeb5ad2502ca6206006aa220b123d4594de8526828a5d",
+    "pid": null,
+    "start_ticks": null,
+    "argv": null,
+    "record_sha256": null,
+    "build": {
+      "id": null,
+      "files": {
+        ".next/BUILD_ID": null,
+        ".next/build-manifest.json": null,
+        ".next/routes-manifest.json": null,
+        ".next/server/app-paths-manifest.json": null
+      },
+      "served_manifest_sha256": null
+    }
+  },
+  "admission": {
+    "file": "/workspace/private/platform-service-consumer-rehearsal-17/exact-consumer-fd7bc879-01/consumer-admission.json",
+    "sha256": null
+  },
+  "transport": {
+    "root": "/workspace/work/platform17-integrated-app-b696ff21",
+    "sha": "b696ff211daabd4be3989522c569f24ccccd0dce",
+    "tree": "534ec94f21699a65686bade5539517dfd818ec1e",
+    "launcher_sha256": "5a25abd1847b7ff928fb310b14f9aadbfcda554eb1c29d1a146e66e6cb944092",
+    "abi": "platform17.relay-cors-preflight.v2",
+    "relay_seal_sha256": "c3cb3af536866aac88513c402a3a4484f48103583592a9e86e9e3926112aaf02",
+    "binding_sha256": null
+  },
+  "protected_files": {
+    "/workspace/private/cladora-functional-dev-v1/descriptor.json": null,
+    "/workspace/private/cladora-functional-dev-v1/core15/service-runtime-binding.json": null,
+    "/workspace/private/cladora-functional-dev-v1/relay-cors-v2/process.json": null
+  },
+  "budget": {
+    "start_bytes": 2147483648,
+    "reserve_bytes": 536870912,
+    "estimated_build_bytes": 1073741824,
+    "margin_bytes": 536870912,
+    "peak_bound": false
+  },
+  "deadline_seconds": 600
+}

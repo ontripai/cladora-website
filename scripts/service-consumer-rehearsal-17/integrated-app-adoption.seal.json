@@ -1,0 +1,9 @@
+{
+  "contract": "platform17.integrated-app-adoption-source-seal.v1",
+  "files": {
+    "scripts/service-consumer-rehearsal-17/adopt-integrated-app.py": "e723589e226b527973cf3847644762e02760d16e3a2e579228bd1abffc99e42b",
+    "scripts/service-consumer-rehearsal-17/integrated-app-adoption.json": "2770ad3e7d9fb4766562008e507c70189d84548396bb1c9abb8a4a17e9b0da85",
+    "scripts/service-consumer-rehearsal-17/test_integrated_app_adoption.py": "0b716923bb16ada9ac1f6173977804cc824e2c0ee3523ef8374aecb219aad715"
+  },
+  "sha256": "aa38eafcf25389ebfabdb76b446b9cf9b06215d965991ceccb9ad832e6c88af7"
+}
