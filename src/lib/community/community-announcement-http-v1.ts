@@ -28,7 +28,7 @@ export function createAnnouncementHandlersV1(runtime:Ce010RuntimeV1){
   const b=await runtime.resolve?.(request,scope);if(!b||b.contract!=='ce010-request-binding.v1'||b.request!==request||b.actor_id!==session.actor_id||b.session_id!==session.session_id||!b.request_pool)throw Object.assign(Error(),{code:'55000'});
   return {session,pool:b.request_pool};
  }
- async function probe(binding:Awaited<ReturnType<typeof bind>>,scope:z.infer<typeof scopeSchema>,read:boolean){
+ async function probe(binding:Awaited<ReturnType<typeof bind>>,scope:z.infer<typeof scopeSchema>,read:boolean,request?:Request){
   const c=await binding.pool.connect();let settled=false;
   const args=[scope.context_id,scope.workspace_id,binding.session.actor_id,binding.session.session_id,String(binding.session.expires_at)];
   try{await c.query('begin isolation level serializable');
@@ -38,6 +38,9 @@ export function createAnnouncementHandlersV1(runtime:Ce010RuntimeV1){
    const data=read?communityReadResponseSchema.parse((await c.query(CE010_NATIVE_READ_SQL,[scope.context_id,scope.workspace_id])).rows[0]?.projection):null;
    if(data&&(data.workspace_id.toLowerCase()!==scope.workspace_id.toLowerCase()||data.communities.some(x=>x.workspace_id.toLowerCase()!==scope.workspace_id.toLowerCase())
     ||data.announcements.some(x=>!data.communities.some(p=>p.id.toLowerCase()===x.community_id.toLowerCase()))))throw Object.assign(Error(),{code:'55000'});
+   // All issuer/source verification waits precede the last canonical read guard.
+   // Keep that guard in the admitted scope; do not add SDK waits after rollback.
+   if(read&&(!request||!await fresh(request,binding.session)))throw Object.assign(Error(),{code:'AUTH401'});
    const last=await c.query(CE010_NATIVE_AUTH_SQL,args);if(last.rowCount!==1||last.rows[0].actor_bound!==true)throw Object.assign(Error(),{code:'42501'});const b=authority.parse(last.rows[0]);
    if(a.tenant_id!==b.tenant_id||a.membership_id!==b.membership_id||a.revision!==b.revision||a.can_publish!==b.can_publish||(read?!b.can_read:!b.can_publish))throw Object.assign(Error(),{code:'42501'});
    const ack=await c.query('rollback');if(ack.command!=='ROLLBACK')throw Object.assign(Error(),{code:'55000'});settled=true;return {data,revision:b.revision};
@@ -47,8 +50,8 @@ export function createAnnouncementHandlersV1(runtime:Ce010RuntimeV1){
  async function fresh(request:Request,s:Awaited<ReturnType<typeof bind>>['session']){const now=await authenticateSession(request);return !request.signal.aborted&&now?.actor_id===s.actor_id&&now?.session_id===s.session_id&&now?.assurance_level==='aal2';}
  return {
   async GET(request:Request){try{const url=new URL(request.url);if(Array.from(url.searchParams.keys()).some(k=>url.searchParams.getAll(k).length!==1))return fail(400,'INVALID_REQUEST');
-   const scope=scopeSchema.parse(Object.fromEntries(url.searchParams)),b=await bind(request,scope),p=await probe(b,scope,true);
-   if(!await fresh(request,b.session))return fail(401,'UNAUTHORIZED');const response=json(200,p.data);response.headers.set('X-Cladora-Community-Read','core-announcement-v1');return response;
+   const scope=scopeSchema.parse(Object.fromEntries(url.searchParams)),b=await bind(request,scope),p=await probe(b,scope,true,request);
+   const response=json(200,p.data);response.headers.set('X-Cladora-Community-Read','core-announcement-v1');return response;
   }catch(e){return error(e);}},
   async POST(request:NextRequest){if(!hasTrustedMutationOrigin(request))return fail(403,'BAD_ORIGIN');if(!isApplicationJson(request.headers.get('content-type')))return fail(415,'UNSUPPORTED_MEDIA_TYPE');
    const body=await parseJsonWithLimit<unknown>(request,64*1024);if(body.errorResponse){for(const[k,v]of Object.entries(headers))body.errorResponse.headers.set(k,v);return body.errorResponse;}

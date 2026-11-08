@@ -44,7 +44,7 @@ function projection(f){const communities=[{id:id(50),workspace_id:ids.workspace,
  const announcements=[...f.announcements.values()].filter(a=>f.canPublish||(a.status==='published'&&f.memberAudience&&(a.audience.kind!=='members'||a.audience.membership_ids.includes(ids.member)))).map(a=>({id:a.id,community_id:a.community_id,title:a.body.slice(0,120),body:a.body,status:a.status,version:a.version,can_publish:f.canPublish&&a.status==='draft',can_cancel:f.canPublish&&a.status==='published',can_report:false}));
  return {workspace_id:ids.workspace,communities,announcements,reports:[],limit:100};}
 function setup(){const f=fixture();let auth=true;
- SDK({schema(){throw Error('LEGACY_FALLBACK_FORBIDDEN');},auth:{getUser:async()=>({data:{user:{id:ids.actor}},error:auth?null:Error('denied')}),getSession:async()=>({data:{session:{user:{id:ids.actor},expires_at:4070908800}},error:null}),getClaims:async()=>({data:{claims:{sub:ids.actor,session_id:id(99),exp:4070908800,role:'authenticated',aal:'aal2'}},error:null}),mfa:{getAuthenticatorAssuranceLevel:async()=>({data:{currentLevel:'aal2'},error:null})}}});
+ SDK({schema(){throw Error('LEGACY_FALLBACK_FORBIDDEN');},auth:{getUser:async()=>{f.sdkCalls=(f.sdkCalls??0)+1;f.trace.push({q:'SDK_VERIFY',call:f.sdkCalls});await f.sdkWait?.(f.sdkCalls);return {data:{user:{id:f.sdkActor??ids.actor}},error:auth?null:Error('denied')};},getSession:async()=>({data:{session:{user:{id:f.sdkActor??ids.actor},expires_at:f.sdkExpiry??4070908800}},error:null}),getClaims:async()=>({data:{claims:{sub:f.sdkActor??ids.actor,session_id:f.sdkSid??id(99),exp:f.sdkExpiry??4070908800,role:'authenticated',aal:'aal2'}},error:null}),mfa:{getAuthenticatorAssuranceLevel:async()=>({data:{currentLevel:'aal2'},error:null})}}});
  runtime({resolve:async(request)=>({contract:'ce010-request-binding.v1',request,actor_id:ids.actor,session_id:id(99),request_pool:f.pool})});
  const posts=[];let lost=false;
  const fetch=async(url,init={})=>{const request=new NextRequest('http://ce.test'+url,{...init,headers:{origin:'http://ce.test',...init.headers}});if(init.method==='POST'){posts.push(init.body);const r=await route.POST(request);if(lost&&JSON.parse(init.body).op==='execute_announcement'){lost=false;throw Error('controlled lost reply');}return r;}return route.GET(request);};
@@ -127,5 +127,27 @@ await check('mounted native UNKNOWN retains original draft across locale/Context
   h.f.canRead=true;await act(async()=>{document.querySelector('button').click();await new Promise(r=>setTimeout(r,35));});assert.ok(document.querySelector('[data-community-replay]'));
   await act(async()=>{document.querySelector('[data-community-replay]').click();await new Promise(r=>setTimeout(r,40));});assert.equal(h.posts[2],wire);assert.equal(h.posts.length,3);assert.equal(h.f.commits,1);assert.equal(document.querySelector('form textarea').value,'');
  }finally{await ui.close();}
+});
+await check('QFW-CE010-01 revoke during final SDK wait withholds the former read projection',async()=>{
+ const h=setup();h.f.sdkWait=async call=>{if(call===2)h.f.canRead=false;};
+ const r=await h.fetch(`/api/customer/v1/community/base?context_id=${ids.context}&workspace_id=${ids.workspace}`);
+ assert.equal(r.status,403,'read revoked during final SDK verification must not disclose the earlier projection');assert.equal((await r.json()).communities,undefined);assert.equal(h.f.sdkCalls,2);assert.equal(h.f.commits,0);assert.deepEqual(h.f.writes,[]);
+});
+await check('QFW matching SDK precedes final canonical guard and rollback; bounded no-store read',async()=>{
+ const h=setup(),r=await h.fetch(`/api/customer/v1/community/base?context_id=${ids.context}&workspace_id=${ids.workspace}`);assert.equal(r.status,200);assert.equal((await r.json()).communities[0].name,'Existing community');
+ const trace=h.f.trace,lastSdk=trace.findLastIndex(x=>x.q==='SDK_VERIFY'),lastGuard=trace.findLastIndex(x=>x.text===http.CE010_NATIVE_AUTH_SQL),rollback=trace.findLastIndex(x=>x.q==='rollback');
+ assert.equal(h.f.sdkCalls,2);assert.ok(lastSdk<lastGuard&&lastGuard<rollback);assert.equal(trace.slice(lastGuard+1).some(x=>x.q==='SDK_VERIFY'),false);
+ assert.match(r.headers.get('cache-control'),/no-store, private/);assert.equal(r.headers.get('vary'),'Cookie');assert.equal(r.headers.get('x-cladora-community-read'),'core-announcement-v1');assert.deepEqual(h.f.writes,[]);
+});
+await check('QFW actor SID expiry and failed final SDK verification withhold without fallback',async()=>{
+ for(const mode of ['actor','sid','expiry','error']){const h=setup();h.f.sdkWait=async call=>{if(call!==2)return;if(mode==='actor')h.f.sdkActor=id(87);if(mode==='sid')h.f.sdkSid=id(88);if(mode==='expiry')h.f.sdkExpiry=1;if(mode==='error')throw Error('private SDK failure must not be disclosed');};
+  const r=await h.fetch(`/api/customer/v1/community/base?context_id=${ids.context}&workspace_id=${ids.workspace}`);assert.equal(r.status,mode==='error'?503:401);const b=await r.json();assert.equal(b.communities,undefined);assert.doesNotMatch(JSON.stringify(b),/private SDK|Existing community/);assert.equal(h.f.sdkCalls,2);assert.equal(h.f.commits,0);assert.deepEqual(h.f.writes,[]);
+ }
+});
+await check('QFW revoke and restored GET cannot settle earlier UNKNOWN or replace its exact wire',async()=>{
+ const h=setup(),s=h.holder();h.lose();assert.equal(await s.send(h.command()),false);const original=s.getState().pending,posts=h.posts.length,writes=structuredClone(h.f.writes);assert.equal(s.getState().phase,'unknown');
+ h.f.sdkCalls=0;h.f.sdkWait=async call=>{if(call===2)h.f.canRead=false;};const url=`/api/customer/v1/community/base?context_id=${ids.context}&workspace_id=${ids.workspace}`;
+ assert.equal((await h.fetch(url)).status,403);assert.equal(s.getState().phase,'unknown');assert.equal(s.getState().pending,original);
+ h.f.sdkWait=undefined;h.f.canRead=true;assert.equal((await h.fetch(url)).status,200);assert.equal(s.getState().phase,'unknown');assert.equal(s.getState().pending,original);assert.equal(h.posts.length,posts);assert.deepEqual(h.f.writes,writes);assert.equal(h.f.commits,1);
 });
 console.log(JSON.stringify({task:'CE010-COMMUNITY-ANNOUNCEMENT-01',groups:n,proof:'ACTUAL_ROUTE_PROVIDER_CORE_WITH_CONTROLLED_TRANSPORT',native:'NOT_RUN_NOT_PASS'}));

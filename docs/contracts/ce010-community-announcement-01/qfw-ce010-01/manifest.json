@@ -1,0 +1,133 @@
+{
+  "task": "CE010-COMMUNITY-ANNOUNCEMENT-01",
+  "finding": "QFW-CE010-01",
+  "worker": "CLADORA-CE-WORKER-01",
+  "base_parent": "cd6e84ffe8a11ce6f8e6a1ff365d1f358aeaf2f0",
+  "branch": "codex/ce010-community-announcement-01",
+  "qa_reference": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-6718763075",
+  "inventory": [
+    {
+      "path": "src/lib/community/community-announcement-http-v1.ts",
+      "before": {
+        "bytes": 7875,
+        "sha256": "07a83c324b897a671aa93d4e161275e2650ef2a5dad9c2f8749bcbefc528e2a2",
+        "git_blob": "2541c7a2f8670d8336d717514c30ec2d761971c6"
+      },
+      "after": {
+        "bytes": 8106,
+        "sha256": "d3b50b33dd0189a53a584cd494d64ff883b7c089e339c50bbb8d76a9279a5765",
+        "git_blob": "8450708b8a9d352c766b891c8cebe7687eb0adfb"
+      }
+    },
+    {
+      "path": "scripts/test-ce010-announcement-c03.mjs",
+      "before": {
+        "bytes": 21965,
+        "sha256": "166787adf2a6ecc5fb86814aa09761fe790119d2e21de5493051501f146f6ab0",
+        "git_blob": "eca1b6d5721262bf0afbf0d18097aabd501474df"
+      },
+      "after": {
+        "bytes": 25325,
+        "sha256": "cb58dd68718ccc6ac18d06f3a0374553062413f14249c18478fbb27b0be2fdc5",
+        "git_blob": "461d548f9a4413c5828b4ca111e1f6d16afbaf7e"
+      }
+    },
+    {
+      "path": "docs/contracts/ce010-community-announcement-01/qfw-ce010-01/README.md",
+      "before": null,
+      "after": {
+        "bytes": 4097,
+        "sha256": "82ece021dceb1b1ca7694ffba323492c5f3f631b8bc06739c13c9ded416cc4c9",
+        "git_blob": "b9892a7370d41d0c0f7267d64b8dae9003753c6a"
+      }
+    }
+  ],
+  "manifest_self_excluded": true,
+  "protected_byte_identical": [
+    "src/lib/community/community-announcement-provider-v1.ts",
+    "src/lib/community/community-announcement-protocol-v1.ts",
+    "src/lib/community/community-announcement-runtime-v1.ts",
+    "src/lib/community/community-command-session.ts",
+    "src/lib/community/community-base-schema.ts",
+    "src/lib/community/community-base-client.ts",
+    "src/lib/community/experience-guide-lifecycle-http-v1.ts",
+    "src/lib/app/guide-platform-provider-v1.ts",
+    "docs/contracts/ce010-community-announcement-01/manifest.json",
+    "package.json",
+    "package-lock.json"
+  ],
+  "POST_verifier_SQL_constants_byte_identical": true,
+  "checks": [
+    {
+      "name": "ce010-qfw-before.txt",
+      "result": "EXPECTED_BEFORE_FAILURE_200_VS_403",
+      "local_evidence_not_transferred": {
+        "bytes": 696,
+        "sha256": "de974f83aa33ac7da1f30e1af03ac127bb020b210a67fb414ffaa363f071ef17",
+        "git_blob": "b9be3074e818c7551ae872fd02678db12b502be2"
+      }
+    },
+    {
+      "name": "ce010-qfw-after.txt",
+      "result": "PASS",
+      "local_evidence_not_transferred": {
+        "bytes": 231,
+        "sha256": "57684066529bfa5effab2dbf656546abbc18ceea339f51682f28ae73c66594e1",
+        "git_blob": "e90f76ebd3c4cc15afbfeb5b5e74673709e5ba11"
+      }
+    },
+    {
+      "name": "ce010-qfw-control-0.txt",
+      "result": "PASS",
+      "local_evidence_not_transferred": {
+        "bytes": 236,
+        "sha256": "569e7646b32fd4fea2274c8ba94691b3b853dfb372f2ac35b56903f509f3bee0",
+        "git_blob": "826d67590654a8bebb4ef7f443cf5ebaac9f9f50"
+      }
+    },
+    {
+      "name": "ce010-qfw-control-1.txt",
+      "result": "PASS",
+      "local_evidence_not_transferred": {
+        "bytes": 233,
+        "sha256": "5453660686dfc0e7ab7076a0cba2e816cf8e7d654301896846deaef100d6d83b",
+        "git_blob": "a887ca226f589e73c504651bc3e79e8156fb9f75"
+      }
+    },
+    {
+      "name": "ce010-qfw-control-2.txt",
+      "result": "PASS",
+      "local_evidence_not_transferred": {
+        "bytes": 236,
+        "sha256": "2c34614a19c0cf8740396400ffb5276a485d947312e4b6bbaab674d188d85dc3",
+        "git_blob": "41e526293823bddd694a02f9021f32f7b1df3217"
+      }
+    },
+    {
+      "name": "ce010-qfw-tsc.txt",
+      "result": "PASS",
+      "local_evidence_not_transferred": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      }
+    },
+    {
+      "name": "ce010-qfw-lint.txt",
+      "result": "PASS",
+      "local_evidence_not_transferred": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      }
+    }
+  ],
+  "new_targeted_groups": 4,
+  "prior14_groups": "NOT_RERUN",
+  "native": "NOT_RUN_NOT_PASS",
+  "provider_binding": null,
+  "Guide_checkpoint": "c84f13ffeb97a8365385243c7712216d47a04c4e_UNCHANGED",
+  "status": "SCOPED_SOURCE_CORRECTION_AWAITING_INDEPENDENT_QA",
+  "remaining": "actual Core/Platform admitted currentness/installation and native evidence; no continuous authority guarantee after delivery",
+  "automation": "نیازمند بررسی"
+}
