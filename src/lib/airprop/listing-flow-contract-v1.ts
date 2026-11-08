@@ -70,21 +70,39 @@ export function matchesListingReceipt(value: unknown, request: ListingCommand) {
     && r.receipt.status === (c.action === 'withdraw_listing' ? 'withdrawn' : 'published');
 }
 
-const journalSchema = z.strictObject({ recovery_version: z.literal(1), state: z.enum(['uncertain', 'blocked']),
+export const LISTING_COMMAND_ENDPOINT = '/api/customer/v2/airprop/listings';
+export const LISTING_ACTOR_HEADER = 'x-cladora-listing-actor';
+export const listingRecoveryOwnerSchema = listingScopeSchema.extend({ actor_id: id, membership_id: id });
+export type ListingRecoveryOwner = z.infer<typeof listingRecoveryOwnerSchema>;
+const legacyJournalSchema = z.strictObject({ recovery_version: z.literal(1), state: z.enum(['uncertain', 'blocked']),
   wire: z.string().min(1).max(16384) });
-/** Local recovery evidence only. Preserve original wire/key/tuple; never authorize or auto-POST. */
-export function readListingRecovery(raw: string | null, scope: ListingScope):
-  { state: 'empty' | 'invalid'; wire: null } | { state: 'uncertain' | 'blocked'; wire: string } {
+const journalSchema = z.strictObject({ recovery_version: z.literal(2), state: z.enum(['uncertain', 'blocked']),
+  owner: listingRecoveryOwnerSchema, endpoint: z.literal(LISTING_COMMAND_ENDPOINT), method: z.literal('POST'),
+  wire: z.string().min(1).max(16384) });
+export function sameListingRecoveryOwner(a: ListingRecoveryOwner | null, b: ListingRecoveryOwner | null) {
+  return !!a && !!b && (Object.keys(a) as (keyof ListingRecoveryOwner)[]).every(key => sameId(a[key], b[key]));
+}
+/** Same existing journal; ownership/custody is local recovery evidence, NEVER command authority.
+ * Legacy records have no actor witness: retain them, do not auto-upgrade or expose their wire. */
+export function readListingRecovery(raw: string | null, scope: ListingScope, owner: ListingRecoveryOwner | null = null):
+  { state: 'empty' | 'invalid' | 'unverified'; wire: null } | { state: 'uncertain' | 'blocked'; wire: string } {
   if (raw === null) return { state: 'empty', wire: null };
   try {
-    const stored = journalSchema.parse(JSON.parse(raw)), request = listingCommandSchema.parse(JSON.parse(stored.wire));
-    if (!sameId(request.command.context_id, scope.context_id) || !sameId(request.command.workspace_id, scope.workspace_id)) throw Error();
-    return stored;
+    const value: unknown = JSON.parse(raw);
+    if (legacyJournalSchema.safeParse(value).success) return { state: 'unverified', wire: null };
+    const stored = journalSchema.parse(value), request = listingCommandSchema.parse(JSON.parse(stored.wire));
+    if (!sameId(request.command.context_id, scope.context_id) || !sameId(request.command.workspace_id, scope.workspace_id)
+      || !sameId(stored.owner.context_id, scope.context_id) || !sameId(stored.owner.workspace_id, scope.workspace_id)) throw Error();
+    if (!owner) return { state: 'unverified', wire: null };
+    if (!sameListingRecoveryOwner(stored.owner, listingRecoveryOwnerSchema.parse(owner))) throw Error();
+    return { state: stored.state, wire: stored.wire };
   } catch { return { state: 'invalid', wire: null }; }
 }
-export function writeListingRecovery(wire: string, state: 'uncertain' | 'blocked') {
-  listingCommandSchema.parse(JSON.parse(wire));
-  return JSON.stringify(journalSchema.parse({ recovery_version: 1, state, wire }));
+export function writeListingRecovery(wire: string, state: 'uncertain' | 'blocked', owner: ListingRecoveryOwner) {
+  const request = listingCommandSchema.parse(JSON.parse(wire));
+  if (!sameId(request.command.context_id, owner.context_id) || !sameId(request.command.workspace_id, owner.workspace_id)) throw Error('LISTING_RECOVERY_SCOPE');
+  return JSON.stringify(journalSchema.parse({ recovery_version: 2, state, wire, owner,
+    endpoint: LISTING_COMMAND_ENDPOINT, method: 'POST' }));
 }
 
 /** Affordance only; POST must recheck canonical authority in its transaction.

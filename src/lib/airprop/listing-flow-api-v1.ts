@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { listingCommandSchema, listingReadResponseSchema, listingScopeSchema, matchesListingReceipt, listingActions, unavailableListingActions, type ListingCommand } from './listing-flow-contract-v1';
+import { LISTING_ACTOR_HEADER, listingCommandSchema, listingReadResponseSchema, listingScopeSchema, matchesListingReceipt, listingActions, unavailableListingActions, type ListingCommand } from './listing-flow-contract-v1';
 import { readListingFlow, type ListingSourceRead } from './listing-flow-read-v1';
 import { diligenceFailure, diligenceHeaders } from './diligence-route-response';
 import { hasTrustedMutationOrigin } from '../security/same-origin';
@@ -36,7 +36,7 @@ export function createListingFlowApi(composition: {
         const canEdit = listings.some(row => listingActions.some(action => row.actions[action] === 'allowed'));
         const value = listingReadResponseSchema.parse({ version: 2, ...scope.data, listings,
           can_edit: canEdit, connection: connected ? 'command_bridge' : 'read_only' });
-        return NextResponse.json(value, { headers: diligenceHeaders });
+        return NextResponse.json(value, { headers: { ...diligenceHeaders, [LISTING_ACTOR_HEADER]: session.actor_id } });
       } catch { return diligenceFailure('LISTING_READ_UNAVAILABLE', 403); }
     },
     async POST(request: NextRequest) {

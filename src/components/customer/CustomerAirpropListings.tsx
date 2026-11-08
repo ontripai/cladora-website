@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useCustomerContext } from './CustomerContextProvider';
 import { listingCommandSchema, listingReadResponseSchema, matchesListingReceipt, readListingRecovery,
+  LISTING_COMMAND_ENDPOINT, LISTING_ACTOR_HEADER, listingRecoveryOwnerSchema, sameListingRecoveryOwner, type ListingRecoveryOwner,
   listingActionAvailable, sameId, sameSelection, writeListingRecovery, type ListingCommand, type ListingReadResponse, type ListingView } from '@/lib/airprop/listing-flow-contract-v1';
 
 const copy = {
@@ -11,7 +12,7 @@ const copy = {
 };
 type Props = { lang: 'ro' | 'en' | 'fa'; contextId: string; workspaceId: string; membershipId: string;
   registerDraftGuard: (dirty: boolean, discard: () => void) => () => void };
-const endpoint = '/api/customer/v2/airprop/listings';
+const endpoint = LISTING_COMMAND_ENDPOINT;
 const localTime = (iso: string | null) => iso === null ? '' : new Date(Date.parse(iso) - new Date(iso).getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 type Recovery = ReturnType<typeof readListingRecovery>;
 
@@ -19,9 +20,14 @@ export function CustomerAirpropListings(props: Props) {
   return <ListingEditor key={`${props.membershipId}:${props.contextId}:${props.workspaceId}`} {...props} />;
 }
 function ListingEditor({ lang, contextId, workspaceId, membershipId, registerDraftGuard }: Props) {
-  const t = copy[lang], { registerUnsavedGuard } = useCustomerContext();
+  const t = copy[lang], { registerUnsavedGuard, active, loading, error } = useCustomerContext();
   const scope = { context_id: contextId, workspace_id: workspaceId };
   const storageKey = `cladora.airprop-listing.v1:${membershipId}:${contextId}:${workspaceId}`;
+  const [actorId, setActorId] = useState<string | null>(null);
+  const identityLive = !!active && !loading && !error && sameId(active.context_id, contextId) && sameId(active.membership_id, membershipId);
+  const recoveryOwner = identityLive && actorId ? listingRecoveryOwnerSchema.parse({ ...scope, actor_id: actorId, membership_id: membershipId }) : null;
+  const identity = useRef<ListingRecoveryOwner | null>(null), custody = useRef<string | null>(null);
+  useLayoutEffect(() => { identity.current = recoveryOwner; });
   const [view, setView] = useState<ListingReadResponse | null>(null), [selected, setSelected] = useState<ListingView | null>(null);
   const [from, setFrom] = useState(''), [until, setUntil] = useState(''), [reason, setReason] = useState('');
   const [recovery, setRecovery] = useState<Recovery>({ state: 'empty', wire: null });
@@ -46,9 +52,11 @@ function ListingEditor({ lang, contextId, workspaceId, membershipId, registerDra
       const response = await fetch(`${endpoint}?${new URLSearchParams({ context_id: contextId, workspace_id: workspaceId })}`, { cache: 'no-store' });
       const body: unknown = await response.json();
       if (!live()) return;
-      if (!response.ok) { setView(null); setSelected(null); setMessage(response.status === 503 ? 'notReady' : 'unavailable'); return; }
+      if (!response.ok) { setActorId(null); setView(null); setSelected(null); setMessage(response.status === 503 ? 'notReady' : 'unavailable'); return; }
       const result = listingReadResponseSchema.safeParse(body);
       if (!result.success || !sameId(result.data.context_id, contextId) || !sameId(result.data.workspace_id, workspaceId)) throw Error();
+      const owner = listingRecoveryOwnerSchema.safeParse({ context_id: contextId, workspace_id: workspaceId, membership_id: membershipId, actor_id: response.headers.get(LISTING_ACTOR_HEADER) });
+      setActorId(owner.success ? owner.data.actor_id : null);
       setView(result.data);
       setSelected(old => {
         const row = result.data.listings.find(x => old && sameId(x.selection.listing_id, old.selection.listing_id));
@@ -57,43 +65,55 @@ function ListingEditor({ lang, contextId, workspaceId, membershipId, registerDra
         setFrom(localTime(row.available_from)); setUntil(localTime(row.available_until));
         return row;
       });
-    } catch { if (live()) { setView(null); setSelected(null); setMessage('unavailable'); } }
-  }, [contextId, workspaceId]);
+    } catch { if (live()) { setActorId(null); setView(null); setSelected(null); setMessage('unavailable'); } }
+  }, [contextId, workspaceId, membershipId]);
+  // Read and hydration are independent. A slow/denied GET never clears UNKNOWN.
   useEffect(() => {
-    let current = true;
-    void Promise.resolve().then(async () => {
-      if (!current) return;
-      await refresh();
-      if (!current) return;
-      try { setRecovery(readListingRecovery(sessionStorage.getItem(storageKey), { context_id: contextId, workspace_id: workspaceId })); }
-      catch { setRecovery({ state: 'invalid', wire: null }); }
+    let live = true;
+    void Promise.resolve().then(() => { if (live) void refresh(); });
+    return () => { live = false; };
+  }, [refresh]);
+  useEffect(() => {
+    let live = true;
+    void Promise.resolve().then(() => {
+      if (!live) return;
+      try {
+        const raw = sessionStorage.getItem(storageKey);
+        const recovered = readListingRecovery(raw, { context_id: contextId, workspace_id: workspaceId }, identity.current);
+        custody.current = raw;
+        setRecovery(previous => raw === null && previous.state !== 'empty' ? { state: 'invalid', wire: null } : recovered);
+      } catch { setRecovery({ state: 'invalid', wire: null }); }
       setReady(true);
     });
-    return () => { current = false; };
-  }, [storageKey, contextId, workspaceId, refresh]);
+    return () => { live = false; };
+  }, [storageKey, contextId, workspaceId, actorId, identityLive]);
   const row = view?.listings.find(x => selected && sameId(x.selection.listing_id, selected.selection.listing_id));
   const stale = !!selected && (!row || !sameSelection(row.selection, selected.selection));
   const pending = recovery.state !== 'empty';
   let retryAvailable = false;
-  if (recovery.state === 'uncertain') {
+  if (recovery.state === 'uncertain' && recoveryOwner) {
     try { retryAvailable = listingActionAvailable(view, listingCommandSchema.parse(JSON.parse(recovery.wire)), true); } catch { /* fail closed */ }
   }
   const store = (wire: string, state: 'uncertain' | 'blocked') => {
-    const previous = readListingRecovery(sessionStorage.getItem(storageKey), scope);
-    if (previous.state === 'invalid' || (previous.wire !== null && previous.wire !== wire)) throw Error();
-    const encoded = writeListingRecovery(wire, state); sessionStorage.setItem(storageKey, encoded);
+    const raw = sessionStorage.getItem(storageKey), owner = identity.current;
+    if (!owner || raw !== custody.current) throw Error();
+    const previous = readListingRecovery(raw, scope, owner);
+    if (previous.state === 'invalid' || previous.state === 'unverified' || previous.state === 'blocked'
+      || (previous.wire !== null && previous.wire !== wire) || (previous.state === 'empty' && recovery.state !== 'empty')) throw Error();
+    const encoded = writeListingRecovery(wire, state, owner); sessionStorage.setItem(storageKey, encoded);
     if (sessionStorage.getItem(storageKey) !== encoded) throw Error();
-    setRecovery({ state, wire });
+    custody.current = encoded; setRecovery({ state, wire });
   };
   async function send(wire: string) {
     const current = owner.current;
-    if (!current.live || current.writing || !ready) return;
+    const dispatchOwner = identity.current;
+    if (!current.live || current.writing || !ready || !dispatchOwner) return;
     let request: ListingCommand;
     try {
       request = listingCommandSchema.parse(JSON.parse(wire));
       if (!listingActionAvailable(view, request, recovery.state === 'uncertain' && recovery.wire === wire)) return;
-      const stored = readListingRecovery(sessionStorage.getItem(storageKey), scope);
-      if (stored.state === 'blocked' || stored.state === 'invalid') throw Error();
+      const stored = readListingRecovery(sessionStorage.getItem(storageKey), scope, dispatchOwner);
+      if (stored.state === 'blocked' || stored.state === 'invalid' || stored.state === 'unverified') throw Error();
       store(wire, 'uncertain');
     }
     catch { setRecovery({ state: 'invalid', wire: null }); setMessage('storage'); return; }
@@ -101,11 +121,13 @@ function ListingEditor({ lang, contextId, workspaceId, membershipId, registerDra
     try {
       const response = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: wire });
       const body = await response.json();
-      if (!current.live) return;
+      if (!current.live || !sameListingRecoveryOwner(identity.current, dispatchOwner)) return;
       if (response.ok && matchesListingReceipt(body, request)) {
-        const stored = readListingRecovery(sessionStorage.getItem(storageKey), scope);
-        if (stored.state !== 'uncertain' || stored.wire !== wire) throw Error();
-        sessionStorage.removeItem(storageKey); setRecovery({ state: 'empty', wire: null });
+        const stored = readListingRecovery(sessionStorage.getItem(storageKey), scope, dispatchOwner);
+        if (stored.state !== 'uncertain' || stored.wire !== wire || sessionStorage.getItem(storageKey) !== custody.current) throw Error();
+        sessionStorage.removeItem(storageKey);
+        if (sessionStorage.getItem(storageKey) !== null) throw Error();
+        custody.current = null; setRecovery({ state: 'empty', wire: null });
         discard(); setMessage('saved'); setView(null); void refresh();
       } else if (response.status === 409 && body?.error?.code !== 'READBACK_REQUIRED') {
         try { store(wire, 'blocked'); setMessage('conflict'); }
@@ -114,11 +136,11 @@ function ListingEditor({ lang, contextId, workspaceId, membershipId, registerDra
         setMessage('unknown');
         if (response.status === 401 || response.status === 403) { current.read++; setView(null); setSelected(null); setMessage('unavailable'); }
       }
-    } catch { if (current.live) setMessage('unknown'); }
+    } catch { if (current.live && sameListingRecoveryOwner(identity.current, dispatchOwner)) setMessage('unknown'); }
     finally { current.writing = false; if (current.live) setBusy(false); }
   }
   function command(action: 'edit_listing' | 'withdraw_listing' | 'republish_listing') {
-    if (!selected || stale || pending || busy || owner.current.writing || row?.actions[action] !== 'allowed') return;
+    if (!identity.current || !selected || stale || pending || busy || owner.current.writing || row?.actions[action] !== 'allowed') return;
     try {
       const value = { version: 1 as const, ...scope, action, listing_id: selected.selection.listing_id,
         expected_version: selected.selection.listing_version, idempotency_key: `listing-${crypto.randomUUID()}`, reason,
@@ -134,7 +156,8 @@ function ListingEditor({ lang, contextId, workspaceId, membershipId, registerDra
     <button type="button" onClick={() => void refresh()} disabled={busy}>{t.refresh}</button>
     {message && <p role="status">{t[message]}</p>}
     {recovery.state === 'blocked' && <p role="alert">{t.conflict}</p>}
-    {recovery.state === 'invalid' && <p role="alert">{t.storage}</p>}
+    {(recovery.state === 'invalid' || recovery.state === 'unverified') && <p role="alert">{t.storage}</p>}
+    {recovery.state === 'unverified' && <p role="status">{t.unknown}</p>}
     {recovery.state === 'uncertain' && <div><p>{t.unknown}</p><button type="button" disabled={!ready || busy || !retryAvailable} onClick={() => void send(recovery.wire)}>{t.retry}</button></div>}
     {!ready ? <p>{t.loading}</p> : view && <>
       {!view.can_edit && <p>{t.readOnly}</p>}
@@ -149,7 +172,7 @@ function ListingEditor({ lang, contextId, workspaceId, membershipId, registerDra
         <label>{t.end}<input aria-label={t.end} type="datetime-local" value={until} onChange={e => setUntil(e.target.value)} disabled={pending || busy} /></label>
         <label>{t.reason}<input aria-label={t.reason} value={reason} onChange={e => setReason(e.target.value)} disabled={pending || busy} maxLength={500} /></label>
         {(['edit_listing', 'withdraw_listing', 'republish_listing'] as const).filter(action => action === 'republish_listing' ? selected.status === 'withdrawn' : selected.status === 'published').map(action =>
-          <div key={action}><button type="button" disabled={!ready || row?.actions[action] !== 'allowed' || stale || pending || busy} onClick={() => command(action)}>{t[action]}</button>
+          <div key={action}><button type="button" disabled={!ready || !recoveryOwner || row?.actions[action] !== 'allowed' || stale || pending || busy} onClick={() => command(action)}>{t[action]}</button>
             {row?.actions[action] !== 'allowed' && <p>{t[row?.actions[action] === 'denied' ? 'denied' : 'unavailableAction']}</p>}</div>)}
         {!pending && <button type="button" onClick={discard} disabled={busy}>{t.discard}</button>}
       </div>}
