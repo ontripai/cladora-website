@@ -15,6 +15,7 @@ import {createCorePostgresTransactionHostV1,CORE_SERVER_REPLAY_EXPIRY_SQL_V1,cor
 import {CORE_S01_SQL} from './service-s01/provider-agreement-reader-v1';
 import {createCoreFunctionalProducersV1} from './functional-producers-v1';
 import type {CoreS01ServiceOfferingBindingV1} from './service-s01/offering-disclosure-policy-v1';
+import {coreDomainCommandIdentitySelectionV1Schema,coreDomainCommandIdentityV1Schema} from './domain-command-identity-v1';
 export const CORE_FUNCTIONAL_COMMAND_RUNTIME_V1='core-functional-command-runtime.v1' as const;
 const uuid=z.string().uuid();
 const role=z.string().regex(/^[a-z_][a-z0-9_]{0,62}$/);
@@ -96,7 +97,7 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
   if(claims.sub.toLowerCase()!==verifiedActor.toLowerCase())fail('ACTOR_BINDING_MISMATCH');
   return claims;
  }
- function makeConnect(command:Pick<CoreTransactionCommandV1,'context_id'|'workspace_id'|'permission_code'|'module_code'|'authority_version'>|null,claims:z.infer<typeof claimsSchema>,state:{authorized:boolean}){
+ function makeConnect(command:Pick<CoreTransactionCommandV1,'context_id'|'workspace_id'|'permission_code'|'module_code'|'authority_version'>|null,claims:z.infer<typeof claimsSchema>,state:{authorized:boolean;binding?:{workspace_id:string;tenant_id:string;membership_id:string}}){
   const connect=async()=>{
    state.authorized=false;assertPoolSelectors();const client=await options.pool.connect();
    const raw=client.query.bind(client);let leaseError:unknown,leaseFailed=false;
@@ -127,6 +128,7 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
        const resolved=await raw(CORE_FUNCTIONAL_RUNTIME_SQL.resolve,[command.context_id,command.workspace_id]);
        const binding=z.strictObject({workspace_id:uuid,tenant_id:uuid,membership_id:uuid}).parse(resolved.rows[0]);
        if(resolved.rowCount!==1||binding.workspace_id!==command.workspace_id)fail('SCOPE_DENIED');
+       state.binding=Object.freeze({...binding});
        await raw(CORE_FUNCTIONAL_RUNTIME_SQL.identity,[JSON.stringify({...claims,active_context_id:command.context_id,active_tenant_id:binding.tenant_id,active_membership_id:binding.membership_id,active_workspace_id:binding.workspace_id}),claims.sub,command.context_id,command.workspace_id]);
        return begin;
       }
@@ -259,8 +261,42 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
    if(error!==null&&typeof error==='object')readFailures.set(error,Object.freeze({settlement:settled?'rolled_back':'unknown',cleanup:'destroy_requested',rollback_error}));throw error;
   }finally{try{client.release(true);}catch(error){if(!first)throw error;}}
  };
+ /** Closed command-preparation identity read. No domain/provider callback,
+  * command reservation, reusable scope, receipt, or mutation is exposed. */
+ const resolveCommandIdentity=async(value:unknown)=>{
+  const selected=coreDomainCommandIdentitySelectionV1Schema.parse(value),claims=await authenticate();
+  const state:{authorized:boolean;binding?:{workspace_id:string;tenant_id:string;membership_id:string}}={authorized:false},command={...selected,authority_version:1};
+  const client=await makeConnect(command,claims,state)();let settled=false,first:unknown,failed=false;
+  try{
+   await client.query('begin isolation level serializable');
+   const epoch=await client.query('select revision::text from app_private.canonical_authority_revision_v1 where singleton for share');
+   if(epoch.rowCount!==1)fail('READ_SCOPE_DENIED');
+   command.authority_version=z.coerce.number().int().positive().safe().parse(epoch.rows[0]?.revision);
+   const args=[command.context_id,command.workspace_id,command.permission_code,command.module_code,command.authority_version];
+   await client.query(CORE_FUNCTIONAL_RUNTIME_SQL.checkpoint,args);state.authorized=true;
+   const resolved=await client.query(CORE_FUNCTIONAL_RUNTIME_SQL.resolve,[selected.context_id,selected.workspace_id]);
+   const binding=z.strictObject({workspace_id:uuid,tenant_id:uuid,membership_id:uuid}).parse(resolved.rows[0]);
+   if(resolved.rowCount!==1||binding.workspace_id!==selected.workspace_id||!state.binding
+    ||binding.tenant_id!==state.binding.tenant_id||binding.membership_id!==state.binding.membership_id)fail('SCOPE_DENIED');
+   const clockSQL=`select pg_backend_pid() as backend_pid,to_char(clock_timestamp() at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') as at`;
+   const observed=await client.query(clockSQL);
+   if(observed.rowCount!==1||observed.rows[0]?.backend_pid!==leasePids.get(client))fail('READ_CLOCK_UNAVAILABLE');
+   const evaluated_at=z.iso.datetime({offset:true}).parse(observed.rows[0].at);
+   // Fresh canonical session/authority check after all source and clock waits.
+   await client.query(CORE_FUNCTIONAL_RUNTIME_SQL.checkpoint,args);
+   const ack=await client.query('rollback');if(ack.command!=='ROLLBACK')fail('READ_ROLLBACK_UNKNOWN');settled=true;state.authorized=false;
+   const completed=await client.query(clockSQL);
+   if(completed.rowCount!==1||completed.rows[0]?.backend_pid!==leasePids.get(client))fail('READ_CLOCK_UNAVAILABLE');
+   return Object.freeze(coreDomainCommandIdentityV1Schema.parse({contract_version:'core-domain-command-identity.v1',
+    ...selected,...binding,actor_id:claims.sub,authority_version:command.authority_version,evaluated_at,
+    completed_at:completed.rows[0].at,action_authorization:'not_evaluated',reusable_as_authority:false}));
+  }catch(error){failed=true;first=error;let rollback_error:unknown;if(!settled)try{const ack=await client.query('rollback');settled=ack.command==='ROLLBACK';}catch(cleanup){rollback_error=cleanup;}
+   if(error!==null&&typeof error==='object')readFailures.set(error,Object.freeze({settlement:settled?'rolled_back':'unknown',cleanup:'destroy_requested',rollback_error}));throw error;
+  }finally{try{client.release(true);}catch(cleanup){if(!failed)throw cleanup;
+   if(first!==null&&typeof first==='object'){const prior=readFailures.get(first);readFailures.set(first,Object.freeze({settlement:prior?.settlement??'unknown',cleanup:'destroy_requested',rollback_error:prior?.rollback_error,cleanup_error:cleanup}));}}}
+ };
  const host=Object.freeze({contract_version:'core-transaction-host.v1' as const,execute}) as CoreTransactionHostV1;
- return Object.freeze({host,readers:producers.readers,withRequestScope,readServiceApp,async verifyServerSession(){await authenticate();},contract:CORE_FUNCTIONAL_COMMAND_RUNTIME_V1});
+ return Object.freeze({host,readers:producers.readers,withRequestScope,readServiceApp,resolveCommandIdentity,async verifyServerSession(){await authenticate();},contract:CORE_FUNCTIONAL_COMMAND_RUNTIME_V1});
 }
 /** No query runner is exported. Row type import preserves the real pg ABI. */
 export type CoreFunctionalRuntimeRowV1=QueryResultRow;

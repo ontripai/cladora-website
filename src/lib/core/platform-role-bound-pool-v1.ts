@@ -157,7 +157,12 @@ function createFixedRoleBoundPoolV1<Contract extends string>(
           throw new Error('core_platform_text_query_required');
         }
         const normalized = text.trim().toLowerCase();
-        const isBegin = /^begin(?:\s+isolation\s+level\s+(?:serializable|repeatable\s+read|read\s+committed|read\s+uncommitted))?$/.test(normalized);
+        const isBegin = /^begin(?:\s+isolation\s+level\s+(?:serializable|repeatable\s+read|read\s+committed|read\s+uncommitted))?$/.test(normalized)
+          // The official CE probe is a write-free read transaction. Admit its
+          // exact spelling without admitting arbitrary BEGIN options or changing
+          // the independent SERVICE profile's transaction-control contract.
+          || (profile.contract_version === corePlatformRoleBoundPoolContractV1
+            && normalized === 'begin isolation level serializable read only');
         if (normalized.startsWith('begin') && !isBegin) {
           poisoned = true;
           throw new Error('core_platform_transaction_control_denied');
