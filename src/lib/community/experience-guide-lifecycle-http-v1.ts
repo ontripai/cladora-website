@@ -4,6 +4,8 @@ import { createHash } from 'node:crypto';
 import type { Pool, PoolClient } from 'pg';
 import { z } from 'zod';
 
+import {ce012CommandSchema} from './experience-guide-schema';
+import {recheckCe012CurrentAuthorityV1} from './experience-guide-create-writer-v1';
 import { resolveAuthority } from '../core/current-authority-postgres-provider-v1';
 import {
   createCorePostgresTransactionHostV1,
@@ -36,9 +38,10 @@ export const experienceGuideLifecycleHttpRequestV1Schema = z.strictObject({
   workspace_id: uuid,
   guide_id: uuid,
   expected_version: safeVersion,
-  operation: z.enum(['publish', 'unpublish']),
+  operation: z.enum(['publish', 'unpublish', 'cancel']),
   idempotency_key: idempotencyKey,
-});
+  reason: z.string().trim().min(5).max(500).optional(),
+}).superRefine((value,ctx)=>{if(value.operation==='cancel'&&!value.reason)ctx.addIssue({code:'custom',path:['reason'],message:'Cancellation reason required'});if(value.operation!=='cancel'&&value.reason!==undefined)ctx.addIssue({code:'custom',path:['reason'],message:'Reason belongs to cancellation only'});});
 
 export type ExperienceGuideLifecycleHttpRequestV1 = z.infer<
   typeof experienceGuideLifecycleHttpRequestV1Schema
@@ -49,6 +52,9 @@ const verifiedSessionSchema = z.strictObject({
   actor_id: uuid,
   assurance_level: z.enum(['aal1', 'aal2']),
   expires_at: z.number().int().positive().safe(),
+  // Additive verified carrier. Legacy modeled consumers remain non-native; the
+  // actual SSR authenticator below always supplies the issuer-verified SID.
+  session_id: uuid.optional(),
 });
 
 export type ExperienceGuideLifecycleVerifiedSessionV1 = z.infer<typeof verifiedSessionSchema>;
@@ -106,15 +112,21 @@ export async function authenticateExperienceGuideLifecycleServerSessionV1(
   const supabase = await createClient();
   const [{ data: userData, error: userError },
     { data: sessionData, error: sessionError },
-    { data: assurance, error: assuranceError }] = await Promise.all([
+    { data: assurance, error: assuranceError },
+    { data: verified, error: claimsError }] = await Promise.all([
     supabase.auth.getUser(),
     supabase.auth.getSession(),
     supabase.auth.mfa.getAuthenticatorAssuranceLevel(),
+    supabase.auth.getClaims(),
   ]);
   const expiresAt = sessionData.session?.expires_at;
   const currentLevel = assurance?.currentLevel;
-  if (userError || sessionError || assuranceError || !userData.user || !sessionData.session
+  const claims = z.object({ sub: uuid, session_id: uuid, exp: z.number().int().positive().safe(),
+    role: z.literal('authenticated'), aal: z.enum(['aal1', 'aal2']) }).safeParse(verified?.claims);
+  if (userError || sessionError || assuranceError || claimsError || !claims.success || !userData.user || !sessionData.session
     || sessionData.session.user.id !== userData.user.id
+    || claims.data.sub !== userData.user.id.toLowerCase()
+    || claims.data.exp !== expiresAt || claims.data.aal !== currentLevel
     || !Number.isSafeInteger(expiresAt) || expiresAt! <= Math.floor(Date.now() / 1000)
     || (currentLevel !== 'aal1' && currentLevel !== 'aal2')) return null;
   return verifiedSessionSchema.parse({
@@ -122,6 +134,7 @@ export async function authenticateExperienceGuideLifecycleServerSessionV1(
     actor_id: userData.user.id,
     assurance_level: currentLevel,
     expires_at: expiresAt,
+    session_id: claims.data.session_id,
   });
 }
 
@@ -159,7 +172,8 @@ async function scrubConnectionIdentity(client: PoolClient) {
 }
 
 function claimsFor(session: ExperienceGuideLifecycleVerifiedSessionV1) {
-  return JSON.stringify({ sub: session.actor_id, role: 'authenticated', aal: session.assurance_level });
+  return JSON.stringify({ sub: session.actor_id, role: 'authenticated', aal: session.assurance_level,
+    ...(session.session_id ? { session_id: session.session_id, exp: session.expires_at } : {}) });
 }
 
 /**
@@ -243,6 +257,7 @@ export function buildExperienceGuideLifecycleCoreCommandV1(
   }>,
 ): CoreTransactionCommandV2 {
   const request = experienceGuideLifecycleHttpRequestV1Schema.parse(requestValue);
+  if(request.operation==='cancel')ce012CommandSchema.parse({type:'cancel_guide',command_id:stableUuid('command',request,trusted.actor_id),idempotency_key:request.idempotency_key,context_id:request.context_id,workspace_id:request.workspace_id,guide_id:request.guide_id,expected_version:request.expected_version,reason:request.reason});
   const actorId = uuid.parse(trusted.actor_id);
   const authorityVersion = safeVersion.parse(trusted.authority_version);
   if (request.expected_version >= Number.MAX_SAFE_INTEGER) {
@@ -251,10 +266,10 @@ export function buildExperienceGuideLifecycleCoreCommandV1(
   const candidates = z.array(uuid).max(32).parse(trusted.provider_source_ids);
   const referenceIds = Array.from(new Set(candidates.filter(value => value !== request.guide_id))).sort();
   const providerSourceIds = [request.guide_id, ...referenceIds];
-  if (request.operation === 'unpublish' && providerSourceIds.length !== 1) {
+  if (request.operation !== 'publish' && providerSourceIds.length !== 1) {
     throw new Error('ce_guide_unpublish_must_be_target_free');
   }
-  const purpose = `experience.guide.${request.operation}`;
+  const purpose = request.operation==='cancel'?'experience.guide.command':`experience.guide.${request.operation}`;
   return {
     contract_version: 'core-transaction-command.v2',
     transaction_id: stableUuid('transaction', request, actorId),
@@ -286,13 +301,35 @@ export function buildExperienceGuideLifecycleCoreCommandV1(
 
 /** Direct composition only; every durable effect still belongs to Core. */
 export function createExperienceGuideLifecycleCoreProvidersV1(): CoreTransactionProvidersV2 {
+  const staged=new WeakMap<Parameters<CoreTransactionProvidersV2['mutate']>[0],{
+    command:string;authority:Parameters<CoreTransactionProvidersV2['validateProviders']>[2]}>();
   return {
     provider_code: experienceGuideLifecycleProviderCodeV1,
     replay_policy: experienceGuideLifecycleReplayPolicyV1,
     resolveAuthority,
-    validateProviders: validateExperienceGuideLifecycleV1,
-    validateReplay: validateExperienceGuideLifecycleReplayV1,
-    mutate: mutateExperienceGuideLifecycleV1,
+    async validateProviders(scope,command,authority){
+      const evidence=await validateExperienceGuideLifecycleV1(scope,command,authority);
+      if(evidence.decision==='accepted'){
+        const fresh=await recheckCe012CurrentAuthorityV1(scope,command,authority);
+        staged.set(scope,{command:JSON.stringify(command),authority:fresh});
+        return {...evidence,evaluated_at:Date.parse(fresh.evaluated_at)>Date.parse(evidence.evaluated_at)?fresh.evaluated_at:evidence.evaluated_at};
+      }
+      return evidence;
+    },
+    async validateReplay(scope,command,authority,receipt){
+      const decision=await validateExperienceGuideLifecycleReplayV1(scope,command,authority,receipt);
+      if(decision.decision!=='accepted')return decision;
+      const fresh=await recheckCe012CurrentAuthorityV1(scope,command,authority);
+      return {...decision,evaluated_at:Date.parse(fresh.evaluated_at)>Date.parse(decision.evaluated_at)?fresh.evaluated_at:decision.evaluated_at};
+    },
+    async mutate(scope,command){
+      const plan=staged.get(scope);staged.delete(scope);
+      if(!plan||plan.command!==JSON.stringify(command))throw new Error('ce_guide_lifecycle_binding_lost');
+      const fresh=await recheckCe012CurrentAuthorityV1(scope,command,plan.authority);
+      const effect=await mutateExperienceGuideLifecycleV1(scope,command);
+      await recheckCe012CurrentAuthorityV1(scope,command,fresh);
+      return effect;
+    },
   };
 }
 
@@ -321,7 +358,7 @@ export function experienceGuideLifecycleHttpResponseV1(
   return bounded(403, 'GUIDE_LIFECYCLE_DENIED');
 }
 
-async function readSourceLockCandidate(
+export async function readExperienceGuideSourceLockCandidateV1(
   pool: ExperienceGuideLifecycleRoleBoundPoolV1,
   session: ExperienceGuideLifecycleVerifiedSessionV1,
   request: ExperienceGuideLifecycleHttpRequestV1,
@@ -436,7 +473,7 @@ export async function handleExperienceGuideLifecycleHttpV1(
 
   let candidate: SourceLockCandidate | null;
   try {
-    candidate = await readSourceLockCandidate(roleBoundPool, session, parsedBody.data);
+    candidate = await readExperienceGuideSourceLockCandidateV1(roleBoundPool, session, parsedBody.data);
   } catch {
     return bounded(503, 'GUIDE_RUNTIME_UNAVAILABLE');
   }

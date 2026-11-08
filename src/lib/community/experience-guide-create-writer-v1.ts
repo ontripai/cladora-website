@@ -88,3 +88,6 @@ export function createCe012CreateWriterProviderV1(value:unknown):CoreTransaction
    read_only:true,decision:'accepted',denial_reason:null};
  }};
 }
+
+/** Shared CE checkpoint; the canonical Core resolver remains the sole evaluator. */
+export {checkpoint as recheckCe012CurrentAuthorityV1};

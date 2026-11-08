@@ -27,13 +27,15 @@ type LifecycleAuthority = Parameters<ValidateLifecycle>[2];
 type DenialReason = Extract<CoreTransactionProviderEvidenceV1,
   { decision: 'denied' }>['denial_reason'];
 
-type LifecycleAction = 'publish' | 'unpublish';
+type LifecycleAction = 'publish' | 'unpublish' | 'cancel';
 
 const actionFor = (command: CoreTransactionCommandV2): LifecycleAction | null => {
   if (command.evaluation_purpose === 'experience.guide.publish'
     && command.subject_reference.relation === 'publish') return 'publish';
   if (command.evaluation_purpose === 'experience.guide.unpublish'
     && command.subject_reference.relation === 'unpublish') return 'unpublish';
+  if (command.evaluation_purpose === 'experience.guide.command'
+    && command.subject_reference.relation === 'cancel') return 'cancel';
   return null;
 };
 const expectedVersionFor = (command: CoreTransactionCommandV2): number | null => {
@@ -353,7 +355,7 @@ export async function validateExperienceGuideLifecycleReplayV1(
     if (!Number.isSafeInteger(Number(row.content_version)) || Number(row.content_version) < 1) {
       return replayDecision(scope, command, authority, receipt, now, 'PROVIDER_UNAVAILABLE');
     }
-    const resultingState = actionFor(command) === 'publish' ? 'published' : 'draft';
+    const resultingState = actionFor(command) === 'publish' ? 'published' : actionFor(command) === 'cancel' ? 'cancelled' : 'draft';
     if (Number(row.version) !== command.aggregate_version || row.status !== resultingState) {
       return replayDecision(scope, command, authority, receipt, now, 'REPLAY_STATE_CHANGED');
     }
@@ -426,7 +428,8 @@ export const validateExperienceGuideLifecycleV1: ValidateLifecycle = async (
     }
     const action = actionFor(command)!;
     if ((action === 'publish' && row.status !== 'draft')
-      || (action === 'unpublish' && row.status !== 'published')) {
+      || (action === 'unpublish' && row.status !== 'published')
+      || (action === 'cancel' && !['draft','published'].includes(row.status))) {
       return deny(scope, command, authority, 'SUBJECT_DENIED');
     }
     if (!Number.isSafeInteger(Number(row.content_version)) || Number(row.content_version) < 1) {
@@ -466,6 +469,14 @@ export const mutateExperienceGuideLifecycleV1: CoreTransactionProvidersV2['mutat
   const expectedVersion = expectedVersionFor(command)!;
   const expectedState = action === 'publish' ? 'draft' : 'published';
   const resultingState = action === 'publish' ? 'published' : 'draft';
+  if (action === 'cancel') {
+    const updated = await scope.query<{id:string}>(`update experience.guides set status='cancelled',version=$4
+      where id=$1 and workspace_id=$2 and tenant_id=$3 and version=$4-1
+        and status in ('draft','published') returning id::text`,
+      [command.aggregate_id,command.workspace_id,scope.tenant_id,command.aggregate_version]);
+    if(updated.rowCount!==1)throw Object.assign(new Error('ce_guide_lifecycle_version_conflict'),{code:'40001'});
+    return {mutation_id:updated.rows[0].id};
+  }
   const updated = await scope.query<{ id: string }>(`update experience.guides
     set status=$5,version=$4
     where id=$1 and workspace_id=$2 and tenant_id=$3

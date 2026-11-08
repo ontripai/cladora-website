@@ -11,6 +11,7 @@ import {buildCe012NewSaveCommandV1,createCe012SaveWriterExecutorV1,ce012SaveCore
 import {ce012GuideSaveCommandV1Schema} from './experience-guide-command-contract';
 import {ce012CommandSchema} from './experience-guide-schema';
 import {ce012CreateCommandV1Schema,ce012CreateExecutionV1Schema,ce012CreateCoreMatchesV1,createCe012CreateWriterProviderV1,fingerprintCe012CreateV1} from './experience-guide-create-writer-v1';
+import {experienceGuideLifecycleHttpRequestV1Schema,readExperienceGuideSourceLockCandidateV1,buildExperienceGuideLifecycleCoreCommandV1,createExperienceGuideLifecycleCoreProvidersV1} from './experience-guide-lifecycle-http-v1';
 import {guideReadResponseSchema} from './experience-guide-client';
 import {hasTrustedMutationOrigin} from '../security/same-origin';
 import {parseJsonWithLimit,isApplicationJson} from '../security/request-body';
@@ -78,7 +79,7 @@ export function createCe012FunctionalHandlersV1(deps:Ce012FunctionalDependencies
    if(Array.from(url.searchParams.keys()).some(k=>url.searchParams.getAll(k).length!==1))return fail(400,'INVALID_REQUEST');
    const s=await session(request);if(!s)return fail(401,'UNAUTHORIZED');const p=await probe(s,q,true);
    const fresh=await session(request);if(!fresh||fresh.actor_id!==s.actor_id)return fail(401,'UNAUTHORIZED');
-   const response=json(200,{contract:'ce012-functional-guide.v1',projection:p.data,can_create:p.can_manage,reference_editing:false});
+   const response=json(200,{contract:'ce012-functional-guide.v1',projection:p.data,can_create:p.can_manage,can_manage:p.can_manage,reference_editing:false});
    response.headers.set('X-Cladora-Guide-Read','functional-v1');return response;
   }catch(e){return e instanceof z.ZodError?fail(400,'INVALID_REQUEST'):error(e);}},
   async POST(request:NextRequest){if(!hasTrustedMutationOrigin(request))return fail(403,'BAD_ORIGIN');
@@ -87,6 +88,30 @@ export function createCe012FunctionalHandlersV1(deps:Ce012FunctionalDependencies
    try{const body=parsed.data as {op?:unknown};const s=await session(request);if(!s)return fail(401,'UNAUTHORIZED');
     if(body?.op==='create'){const envelope=z.strictObject({op:z.literal('create'),command:ce012CommandSchema}).parse(body);
      if(envelope.command.type!=='create_guide')return fail(400,'INVALID_REQUEST');return fail(503,'CE_GUIDE_CREATE_CORE15_NOT_READY');}
+    if(body?.op==='prepare_lifecycle'){
+     const q=z.strictObject({op:z.literal('prepare_lifecycle'),request:experienceGuideLifecycleHttpRequestV1Schema}).parse(body);
+     await probe(s,q.request,false);
+     if(!deps.role_bound_pool)return fail(503,'CE_GUIDE_CONNECTION_NOT_READY');
+     const candidate=await readExperienceGuideSourceLockCandidateV1(deps.role_bound_pool,s,q.request);
+     if(!candidate)return fail(403,'CE_GUIDE_ACCESS_DENIED');
+     const command=buildExperienceGuideLifecycleCoreCommandV1(q.request,{actor_id:s.actor_id,...candidate});
+     return json(200,{contract:'ce012-prepared-lifecycle.v1',request:q.request,core_command:command});
+    }
+    if(body?.op==='execute_lifecycle'){
+     const q=z.strictObject({op:z.literal('execute_lifecycle'),request:experienceGuideLifecycleHttpRequestV1Schema,core_command:coreTransactionCommandV2Schema}).parse(body),c=q.core_command;
+     if(c.actor_id!==s.actor_id)return fail(403,'CE_GUIDE_ACCESS_DENIED');
+     const expected=buildExperienceGuideLifecycleCoreCommandV1(q.request,{actor_id:s.actor_id,authority_version:c.authority_version,provider_source_ids:c.provider_source_ids});
+     if(JSON.stringify(coreTransactionCommandV2Schema.parse(expected))!==JSON.stringify(c))return fail(400,'INVALID_REQUEST');
+     if(!deps.role_bound_pool)return fail(503,'CE_GUIDE_CONNECTION_NOT_READY');
+     const pool=createExperienceGuideLifecycleRequestPoolV1(deps.role_bound_pool,s,q.request);
+     const result=await createCorePostgresTransactionHostV1(pool,{replay_expiry:'database_after_lock.v1'}).execute(c,createExperienceGuideLifecycleCoreProvidersV1());
+     if(result.status==='unknown_commit')return json(202,{outcome:'unknown'});
+     if(result.status==='denied')return fail(result.code==='AUTHORITY_DENIED'?403:409,'CE_GUIDE_LIFECYCLE_DENIED');
+     const fresh=await session(request);if(!fresh||fresh.actor_id!==s.actor_id)return json(202,{outcome:'unknown'});
+     return json(200,{outcome:result.status,command_id:c.command_id,guide_id:c.aggregate_id,operation:q.request.operation,
+      previous_version:q.request.expected_version,guide_version:result.receipt.aggregate_version,receipt_id:result.receipt.receipt_id,
+      idempotency_key:c.idempotency_key,payload_fingerprint:c.input_fingerprint});
+    }
     if(body?.op==='prepare_create'){
      const q=z.strictObject({op:z.literal('prepare_create'),command:ce012CreateCommandV1Schema}).parse(body),g=q.command;
      if(g.guide_id===g.steps[0].id)return fail(400,'INVALID_REQUEST');
@@ -105,7 +130,7 @@ export function createCe012FunctionalHandlersV1(deps:Ce012FunctionalDependencies
      if(c.actor_id!==s.actor_id)return fail(403,'CE_GUIDE_ACCESS_DENIED');
      if(!deps.role_bound_pool)return fail(503,'CE_GUIDE_CONNECTION_NOT_READY');
      const pool=createExperienceGuideLifecycleRequestPoolV1(deps.role_bound_pool,s,g);
-     const result=await createCorePostgresTransactionHostV1(pool).execute(c,createCe012CreateWriterProviderV1(g));
+     const result=await createCorePostgresTransactionHostV1(pool,{replay_expiry:'database_after_lock.v1'}).execute(c,createCe012CreateWriterProviderV1(g));
      if(result.status==='unknown_commit')return json(202,{outcome:'unknown'});
      if(result.status==='denied')return fail(result.code==='AUTHORITY_DENIED'?403:409,'CE_GUIDE_CREATE_DENIED');
      const fresh=await session(request);if(!fresh||fresh.actor_id!==s.actor_id)return json(202,{outcome:'unknown'});
@@ -131,7 +156,7 @@ export function createCe012FunctionalHandlersV1(deps:Ce012FunctionalDependencies
     // Client-carried Core JSON is never authority: actual verified session,
     // request-bound role lease and the canonical host/evaluator own the decision.
     const pool=createExperienceGuideLifecycleRequestPoolV1(deps.role_bound_pool,s,{context_id:g.context_id,workspace_id:g.workspace_id});
-    const result=await createCe012SaveWriterExecutorV1(createCorePostgresTransactionHostV1(pool),c).execute(g);
+    const result=await createCe012SaveWriterExecutorV1(createCorePostgresTransactionHostV1(pool,{replay_expiry:'database_after_lock.v1'}),c).execute(g);
     if(result.result_code!=='OK'||!result.receipt)return fail(result.result_code==='AUTHORITY_DENIED'?403:409,'CE_GUIDE_SAVE_DENIED');
     const fresh=await session(request);if(!fresh||fresh.actor_id!==s.actor_id)return json(202,{outcome:'unknown'});
     return json(200,{outcome:'saved',receipt:result.receipt,replayed:result.replayed});
