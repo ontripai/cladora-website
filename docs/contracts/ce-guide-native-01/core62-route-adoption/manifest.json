@@ -3,7 +3,7 @@
   "stage": "CORE62_REQUEST_LOCAL_ROUTE_ADOPTION",
   "worker": "CLADORA-CE-WORKER-01",
   "branch": "codex/ce-guide-native-01",
-  "actual_parent": "e625bb2678fb4624860ceb18c2413c28a02cc8ad",
+  "actual_parent": "004eeac9aafd3d7cf7cc7b5e4fa29171776308fb",
   "inputs": {
     "CE": "6259b70268a851113c8f981e2d346da5428e343f",
     "Core": "62f3c4ea3280821d3df69cd5d0cfbd10fbf6cb6d",
@@ -16,9 +16,9 @@
   "source": [
     {
       "path": "docs/contracts/ce-guide-native-01/core62-route-adoption/README.md",
-      "bytes": 9643,
-      "sha256": "171b6b4ff8eb3ca492c8067b10484a52c1920e72376c4bf73ccdbb91f13cb625",
-      "git_blob": "605138a7855a8c37fd37632b8ff50b14b1056b72"
+      "bytes": 9955,
+      "sha256": "05a85e4f49de53d4e5515b703b56681c121bc720f30f5f294cadd3c83f3e38a6",
+      "git_blob": "6ce0e37c6fc526332f4de030e31e398c97539a2a"
     },
     {
       "path": "scripts/test-ce-guide-routes-r2.mjs",
@@ -130,7 +130,7 @@
     }
   ],
   "manifest_self": "excluded; final Git tree/external SHA binds bytes",
-  "inventory_seal": "55f34bb21c7f3453794e4e75ef63a25e19eff9549e6df1e15c7c58408452e045",
+  "inventory_seal": "be8ab3a5fe036e1690b66620c38b11d17bc06e39b9f871c1ebbf3d0e7c7b338a",
   "entrypoints": {
     "private_platform_app_slot": "src/lib/app/guide-platform-provider-v1.ts:GUIDE_PLATFORM_PROVIDER_V1",
     "slot_contract": "guide-platform-provider.v1:resolve(originalRequest)->Promise<Omit<CoreGuideRequestBindingOptionsV1,request>|null>",
@@ -273,5 +273,17 @@
     "url": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-6316739482"
   },
   "automation": "نیازمند بررسی; source identity checks only; human/private admission and retry remain explicit",
-  "status": "TESTED_SOURCE_FOR_PLATFORM_NATIVE_TASK_OPEN"
+  "status": "TESTED_SOURCE_FOR_PLATFORM_NATIVE_TASK_OPEN",
+  "source_commit": "1fe5e8b15ffcb6208eff5e5483af24887dc661a7",
+  "source_parent": "e625bb2678fb4624860ceb18c2413c28a02cc8ad",
+  "main_merge": {
+    "sha": "004eeac9aafd3d7cf7cc7b5e4fa29171776308fb",
+    "parents": [
+      "1fe5e8b15ffcb6208eff5e5483af24887dc661a7",
+      "6cecfa15b00f445be68817e756d766fb0e6fe026"
+    ],
+    "tree": "d18888ef91c5398982c51316c54945895971c0b4",
+    "tested_source_tree_preserved": true,
+    "tree_equality_is_not_ancestry": true
+  }
 }

@@ -8,7 +8,11 @@ Inputs: CE6259b70268a851113c8f981e2d346da5428e343f and official Core
 on the existing codex/ce-guide-native-01 branch; neither history nor Parent was
 rewritten. Integration merge:e625bb2678fb4624860ceb18c2413c28a02cc8ad, parents
 CE6259 and Core62. Approved main6cecfa15b00f445be68817e756d766fb0e6fe026 is
-an ancestor via Core and has the same whole tree as the original published Base.
+integrated by ordinary main merge004eeac9aafd3d7cf7cc7b5e4fa29171776308fb,
+parents1fe5e8b15ffcb6208eff5e5483af24887dc661a7 and main6cec. That merge preserved
+the entire tested source tree d18888ef91c5398982c51316c54945895971c0b4. Main
+has the same whole tree as the original published Base; tree equality was not
+assumed to imply ancestry. No source test was repeated for this metadata merge.
 Core source/role adapter is unchanged from62; no cherry-pick of a partial factory.
 
 ## Exact Platform -> App integration point
