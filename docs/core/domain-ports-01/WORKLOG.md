@@ -43,3 +43,81 @@ Additional Core-owned R1 edit, identified before editing:
 Coupling uses read-only Git overlays of CE6259; owner files remain untouched.
 - scripts/test-core-guide-ce-r1-coupling.mjs (new exact-CE Git-overlay coupling;
   reuses CE's transport setup only, never runs its accepted journey cases).
+
+## R2 preparation — installer closure + independent Offering read
+
+Parent:62f3c4ea3280821d3df69cd5d0cfbd10fbf6cb6d. Exact private Platform
+observation package is not delivered. Its precise reported identities remain in
+the local Guide preparation manifest; no private report is published. The reported
+observation-tool commit is not fetchable from origin.
+
+Counts are not object identities. No target DDL/owner/ACL decision uses that summary.
+Canonical Guide store, child guard, role safety and immutable save/deferred-C03
+source closure have been read; shared helpers are not reassigned or rewritten.
+
+SERVICE official R1 bundle9fb8098069ae81e2521dc51571e3493447a56a9a was read back:
+9484bytes/SHA256a39308257c719bd626823b4e783530ae3cacbd2e9b14e8011ce9a7608c8bd0b5.
+Imported objects only; checkout/WIP unchanged. Consumer93025127da3de7f151347cf2377f10907847f1ed.
+
+Before independent Offering edits:
+- src/lib/core/functional-command-runtime-v1.ts: exact definitions-read admission
+- src/lib/core/service-offering-read-binding-v1.ts: new independent optional method
+- scripts/test-core-offering-read-binding-v1.mjs: new targeted producer tests
+- docs/core/domain-ports-01/offering-read-r2/{README.md,manifest.json}
+No mutation/Quote/Listing method is fabricated; those remain independent work.
+
+Before Guide installer/adoption edits (target-unbound preparation only):
+- scripts/prepare-core-guide-save-adoption-v1.mjs
+- scripts/test-core-guide-save-adoption-v1.mjs
+- supabase/install/guide-no-document-v1/20-save-relation.sql
+- supabase/install/guide-no-document-v1/save-preflight.sql
+- supabase/install/guide-no-document-v1/save-verify.sql
+- supabase/install/guide-no-document-v1/manifest.json
+- supabase/install/guide-no-document-v1/recovery.md
+The canonical guarded proposal remains byte-identical. This is one executable
+adoption unit, not a claim that the complete target-specific Guide installer is
+ready. Preflight requires the preceding Guide/schema/role units; those may not be
+invented or reconciled with live target until the private observation is available.
+
+## Listing read-selector increment (same card; independent of Guide)
+
+Official AIRPROP64399b44d6504ef6ae10bb704ee7e22adbefecb3 fetched, contract read.
+Before editing:
+- src/lib/core/airprop-read-selector-queries-v1.ts (closed scoped SQL/parameters)
+- src/lib/core/airprop-read-host-v1.ts (opaque live-read checkpoint + exact query admission)
+- src/lib/core/current-unit-property-read-selector-v1.ts (additive read selector)
+- scripts/test-core-airprop-read-selector-v1.mjs (new actual-host coupling)
+- docs/core/domain-ports-01/listing-read-r2/{README.md,manifest.json}
+Accepted command selector remains byte-identical. No command/receipt for GET,
+permission alias, invented Party/relationship/spec version, schema change or
+AIRPROP owner source modification. Full canonical companion remains gated by
+actual Party/relationship/version source; the read selector is independently usable.
+Additional Listing Core-owned paths before editing:
+- src/lib/core/domain-command-identity-v1.ts (add exact Listing manage/module pair)
+- src/lib/core/listing-command-binding-v1.ts (request-local AAL2/C03 binding)
+- scripts/test-core-listing-command-binding-v1.mjs (new profile/host/replay checks)
+No AIRPROP provider code, publication logic or selection-binding storage is created.
+Read-host currentness addition, before edit: reuse existing canonical
+app_private.lock_core_request_session_v1() after trusted claims and before epoch,
+not a parallel session implementation. Native helper/role compatibility is an
+explicit Platform gate. Update only the old read-host fixture's transport response
+for that new exact prerequisite; its security assertions remain unchanged.
+- scripts/test-core-airprop-read-host-minimum-08.mjs (affected fixture only)
+- docs/core/domain-ports-01/STATUS-R2.md (one safe combined checkpoint, before edit)
+Guide preparation stays local WIP, not falsely delivered as the next full installer.
+Independent Offering/Listing source can be reviewed/consumed without that installer.
+
+## Exact successor adoption (before additional edits)
+AIRPROP dc3fcceaf1439e7bf91fb257d449b2b4e1ace4b0 and SERVICE
+cf3d1e3349298c4cc4cf8f6f771c78179cc2bc52 imported from the authorized bundle.
+Additional Core-owned paths:
+- src/lib/core/service-quote-command-binding-v1.ts
+- scripts/test-core-domain-successor-coupling-r2.mjs
+- docs/core/domain-ports-01/successor-coupling-r2/{README.md,manifest.json}
+Extend the exact identity profile union for services.quotes.manage/services_orders.
+Listing port accepts the existing canonical V1 or V2 host ABI; no rewriting.
+Consumer sources are loaded directly from pinned Git objects, never copied/edited.
+No approved authoring S01 source or Listing relationship revision is invented.
+- scripts/verify-core-domain-port-pins-r2.mjs (before edit: offline identity validator)
+Final source increment excludes the unfinished Guide installation draft. Local
+Guide files remain in the original worktree. Runtime/activation remain NULL.

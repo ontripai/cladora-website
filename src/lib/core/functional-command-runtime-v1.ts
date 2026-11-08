@@ -231,10 +231,10 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
  /** Closed app reads use the same authenticated lease and canonical SQL gate.
   * No caller query/callback, command lock, reservation or synthetic receipt.
   */
- const readServiceApp=async(kind:'selections'|'catalog'|'requests',input?:{context_id:string;workspace_id:string})=>{
-  if(!['selections','catalog','requests'].includes(kind)||(kind==='selections'&&input!==undefined))return fail('READ_KIND_NOT_ADMITTED');
+ const readServiceApp=async(kind:'selections'|'catalog'|'requests'|'definitions',input?:{context_id:string;workspace_id:string})=>{
+  if(!['selections','catalog','requests','definitions'].includes(kind)||(kind==='selections'&&input!==undefined))return fail('READ_KIND_NOT_ADMITTED');
   const selected=kind==='selections'?null:z.strictObject({context_id:uuid,workspace_id:uuid}).parse(input);
-  const permission=kind==='catalog'?'services.catalog.read':'services.orders.read',moduleCode=kind==='catalog'?'services_catalog':'services_orders';
+  const permission=kind==='definitions'?'services.catalog.manage':kind==='catalog'?'services.catalog.read':'services.orders.read',moduleCode=kind==='catalog'||kind==='definitions'?'services_catalog':'services_orders';
   const claims=await authenticate(),state={authorized:false};
   const command=selected?{...selected,permission_code:permission,module_code:moduleCode,authority_version:1}:null;
   const client=await makeConnect(command,claims,state)();let settled=false,first:unknown;
@@ -245,7 +245,8 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
     if(epoch.rowCount!==1)fail('READ_SCOPE_DENIED');command.authority_version=z.coerce.number().int().positive().safe().parse(epoch.rows[0].revision);
     await client.query(CORE_FUNCTIONAL_RUNTIME_SQL.checkpoint,[command.context_id,command.workspace_id,permission,moduleCode,command.authority_version]);state.authorized=true;
    }
-   const sql=kind==='selections'?'select app_private.list_core_service_selections_v1() as value'
+   const sql=kind==='definitions'?'select customer_api.list_service_definitions_v1($1::uuid,$2::uuid) as value'
+    :kind==='selections'?'select app_private.list_core_service_selections_v1() as value'
     :kind==='catalog'?'select customer_api.list_service_catalog_v1($1::uuid,$2::uuid) as value'
      :'select customer_api.read_service_requests_v1($1::uuid,$2::uuid) as value';
    const r=await client.query(sql,selected?[selected.context_id,selected.workspace_id]:[]);if(r.rowCount!==1)fail('READ_SOURCE_INVARIANT');
