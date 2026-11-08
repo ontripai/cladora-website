@@ -4,6 +4,8 @@ import { currentAuthorityTransactionDecisionReceiptV1Schema } from '../core/curr
 import type { CoreTransactionScopeV1 } from '../core/postgres-transaction-host-v1';
 import { listingScopeSchema, sameId, sameSelection, type ListingScope } from './listing-flow-contract-v1';
 import { readListingFlow, type ListingSourceRead } from './listing-flow-read-v1';
+import type { readListingSelectedBindingV1 } from './listing-selected-binding-v1';
+export type ListingSelectedBindingReaderV1 = typeof readListingSelectedBindingV1;
 
 export const LISTING_NATIVE_READ_SOURCE = 'airprop.market_listings.read.v1' as const;
 const uuid = z.string().uuid();
@@ -88,6 +90,8 @@ export interface ListingCanonicalProducerV1 {
     /** Earliest REAL expiry across scope/authority/resource/relationship inputs, not a minted TTL/lease.
      * Producer unavailable if it cannot establish this bound. No null/infinite fallback. */
     current_until: string;
+    /** Optional REAL canonical per-action evidence, never inferred from read. */
+    action_projections?: unknown;
   }>;
 }
 async function databaseTime(sql: CoreTransactionScopeV1) {
@@ -106,7 +110,8 @@ async function selector(sql: CoreTransactionScopeV1, server: ServerScope, row: R
   const decision = await selectCurrentUnitPropertyV1(sql, authority, request);
   if (decision.decision !== 'accepted') throw new ListingNativeReadUnavailable('SELECTOR_DENIED');
 }
-export function createListingNativeReadV1(host: ListingNativeReadHostV1 | null, producer: ListingCanonicalProducerV1 | null): ListingSourceRead {
+export function createListingNativeReadV1(host: ListingNativeReadHostV1 | null, producer: ListingCanonicalProducerV1 | null,
+  selectedBindingRead: ListingSelectedBindingReaderV1 | null = null): ListingSourceRead {
   return async (actorId, requested) => {
     if (!host) throw new ListingNativeReadUnavailable('HOST_NOT_READY');
     if (!producer) throw new ListingNativeReadUnavailable('CANONICAL_PRODUCER_NOT_READY');
@@ -116,11 +121,30 @@ export function createListingNativeReadV1(host: ListingNativeReadHostV1 | null, 
       if (!sameId(actorId, server.actor_id) || !sameId(request.context_id, server.context_id)
         || !sameId(request.workspace_id, server.workspace_id)) throw new ListingNativeReadUnavailable('SCOPE_DENIED');
       const rows = await queryListingNativePageV1(sql, server), output = [];
+      const bindingFor = async (row: Row) => {
+        // A missing adoption/admission disables this connection only. Do not probe
+        // an uninstalled table and then catch a PostgreSQL aborted transaction.
+        if (!selectedBindingRead) return { state: 'unavailable' };
+        try {
+          const binding = await selectedBindingRead(sql, server.context_id, row.listing_id, row.listing_version);
+          return binding === null ? { state: 'legacy' } : { state: 'record', value: {
+            context_id: binding.context_id, workspace_id: binding.workspace_id, tenant_id: binding.tenant_id,
+            selection: binding.selection, spec_version: binding.spec_version,
+          } };
+        } catch (error) {
+          // Invalid returned metadata is a row-local custody failure, not denial
+          // of the independent read. SQL errors (including40001) always propagate.
+          if (error instanceof z.ZodError || (error instanceof Error
+            && ['LISTING_BINDING_INVALID', 'LISTING_BINDING_SCOPE'].includes(error.message))) return { state: 'invalid' };
+          throw error;
+        }
+      };
       for (const row of rows) {
         await selector(sql, server, row, producer);
         const at = await databaseTime(sql);
         const evidence = await producer.readCanonical(sql, server, row, at);
-        const raw = { ...row, ...request, core: evidence.core };
+        const raw = { ...row, ...request, core: evidence.core, action_projections: evidence.action_projections,
+          selected_binding: await bindingFor(row) };
         // Never construct canonical labels, versions, relationships or permission receipts.
         const mapped = (await readListingFlow(async () => [raw], actorId, request))[0];
         output.push({ raw, mapped });
@@ -141,11 +165,13 @@ export function createListingNativeReadV1(host: ListingNativeReadHostV1 | null, 
         const expires = timestamp.safeParse(evidence.current_until);
         if (!expires.success) throw new ListingNativeReadUnavailable('CURRENTNESS_UNPROVEN');
         expiries.push(instant(expires.data));
-        const raw = { ...row, ...request, core: evidence.core };
+        const raw = { ...row, ...request, core: evidence.core, action_projections: evidence.action_projections,
+          selected_binding: await bindingFor(row) };
         const mapped = (await readListingFlow(async () => [raw], actorId, request))[0];
         if (!sameSelection(output[i].mapped.selection, mapped.selection)
           || output[i].mapped.source_name !== mapped.source_name) throw new ListingNativeReadUnavailable('SOURCE_DRIFT');
-        // No action producer is installed by this slice. Read never promotes manage permission.
+        // Only actual optional per-action evidence crosses the existing mapper.
+        // This slice installs no producer; stored binding/read never grants manage.
         final.push(raw);
       }
       // Non-locking clock sample after ALL producer waits: equality to expiry is denied.

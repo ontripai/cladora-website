@@ -20,8 +20,11 @@ export const listingActionAuthoritySchema = z.strictObject({
   republish_listing: z.enum(['allowed', 'denied', 'unavailable']),
 });
 export const unavailableListingActions = () => ({ edit_listing: 'unavailable', withdraw_listing: 'unavailable', republish_listing: 'unavailable' } as const);
+export const listingBindingStateSchema = z.enum(['bound', 'legacy', 'stale', 'invalid', 'unavailable']);
 export const listingViewSchema = z.strictObject({
   selection: listingSelectionSchema, source_name: label,
+  // Missing old-server metadata never upgrades an action to safe command custody.
+  binding_state: listingBindingStateSchema.default('unavailable'),
   actions: listingActionAuthoritySchema.default(unavailableListingActions),
   status: z.enum(['published', 'withdrawn', 'reserved']),
   available_from: z.string().datetime({ offset: true }),
@@ -111,6 +114,6 @@ export function listingActionAvailable(view: ListingReadResponse | null, request
   if (!view || view.connection !== 'command_bridge'
     || !sameId(view.context_id, request.command.context_id) || !sameId(view.workspace_id, request.command.workspace_id)) return false;
   const row = view.listings.find(item => sameId(item.selection.listing_id, request.selection.listing_id));
-  return !!row && row.actions[request.command.action] === 'allowed'
+  return !!row && row.binding_state === 'bound' && row.actions[request.command.action] === 'allowed'
     && sameSelection(retry ? { ...row.selection, listing_version: request.selection.listing_version } : row.selection, request.selection);
 }

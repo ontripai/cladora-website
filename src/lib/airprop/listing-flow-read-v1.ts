@@ -17,7 +17,10 @@ const sourceRow = z.strictObject({
   available_from: z.string(), available_until: z.string().nullable(),
   core: z.strictObject({ request: z.unknown(), companion: z.unknown(), authority: z.unknown() }),
   action_projections: z.unknown().optional(),
+  selected_binding: z.unknown().optional(),
 });
+const bindingRecord = listingScopeSchema.extend({ tenant_id: z.string(), selection: listingSelectionSchema,
+  spec_version: z.number().int().positive().safe() });
 /** Consume the actual accepted Core mapper; no ownership/representation evaluator is duplicated. */
 export async function readListingFlow(read: ListingSourceRead, actorId: string, input: ListingScope) {
   const scope = listingScopeSchema.parse(input);
@@ -43,6 +46,21 @@ export async function readListingFlow(read: ListingSourceRead, actorId: string, 
       source_name: mapped.resource.display_name, status: row.status,
       available_from: row.available_from, available_until: row.available_until,
     });
+    // Domain custody is independent of current read permission and manage authority.
+    // Only the server-supplied actual stored reference is compared; no inference
+    // from current Party/version, boolean allow, bridge presence or native row.
+    const binding = row.selected_binding as { state?: unknown; value?: unknown } | null | undefined;
+    if (binding?.state === 'legacy') result.binding_state = 'legacy';
+    else if (binding?.state === 'invalid') result.binding_state = 'invalid';
+    else if (binding?.state === 'record') {
+      const record = bindingRecord.safeParse(binding.value);
+      if (!record.success || !sameId(record.data.tenant_id, row.tenant_id)
+        || !sameId(record.data.context_id, scope.context_id) || !sameId(record.data.workspace_id, scope.workspace_id)
+        || !sameId(record.data.selection.listing_id, row.listing_id)) result.binding_state = 'invalid';
+      else result.binding_state = sameSelection(record.data.selection, result.selection)
+        && record.data.spec_version === result.selection.resource_version ? 'bound' : 'stale';
+    } else if (binding != null && binding.state !== 'unavailable') result.binding_state = 'invalid';
+    if (result.binding_state !== 'bound') return result;
     // Optional server-produced current projection. DW02 read disclosure alone grants nothing.
     // Reuse the accepted Core mapper; never evaluate roles or permissions in AIRPROP.
     const projections = actionProjectionsSchema.safeParse(row.action_projections ?? []);

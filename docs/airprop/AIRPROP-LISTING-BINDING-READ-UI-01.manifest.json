@@ -1,0 +1,111 @@
+{
+  "task": "AIRPROP-LISTING-NATIVE-01",
+  "slice": "binding-read-api-ui.v1",
+  "parent": "dc3fcceaf1439e7bf91fb257d449b2b4e1ace4b0",
+  "main_base": "6cecfa15b00f445be68817e756d766fb0e6fe026",
+  "head": "CONTAINING_COMMIT",
+  "status": "READ_API_UI_BINDING_GAP_CLOSED_IN_CONTROLLED_SOURCE_NATIVE_OPEN",
+  "inventory": [
+    {
+      "path": "src/lib/airprop/listing-flow-contract-v1.ts",
+      "bytes": 8445,
+      "sha256": "be0386e631d580d7aec91429be0d2ecb036c801b90dd1aba989b8959db084e24",
+      "git_blob": "7210f4f7b3ad8e3c745a42e1511af9ad67563ab9"
+    },
+    {
+      "path": "src/lib/airprop/listing-flow-read-v1.ts",
+      "bytes": 7895,
+      "sha256": "283633cb9292041665f6c590ca14e4819119c9db4d75dc1e660c692a362ac263",
+      "git_blob": "14081e4742472f7684e140453c310c62ca034e0d"
+    },
+    {
+      "path": "src/lib/airprop/listing-native-read-v1.ts",
+      "bytes": 13239,
+      "sha256": "a42611c156f333207565d3df6036cc05292ec784fb4352df83409d71695dc933",
+      "git_blob": "1d95b6608f5faf1abaf61fa4746ddb815a852df3"
+    },
+    {
+      "path": "src/lib/airprop/listing-runtime-binding-v1.ts",
+      "bytes": 3686,
+      "sha256": "4b8163667a9ef891b6375cb17c2e16321521c95154c4b0c5d453d8a4a81b03b0",
+      "git_blob": "96dff8e0e47f6c8c9711da75b56333e71de2eaa5"
+    },
+    {
+      "path": "src/components/customer/CustomerAirpropListings.tsx",
+      "bytes": 24030,
+      "sha256": "9087e0ace8520f554f8978f3f043694f72d23524e6d3274568172ff3388c80f5",
+      "git_blob": "a26ddee70051a82346bd7609a40e95b5a697439b"
+    },
+    {
+      "path": "scripts/lib/airprop-listing-flow-test-fixture.mjs",
+      "bytes": 9276,
+      "sha256": "bf640f9a97cdba9de687e82ddf27ee3592fdd142724a28ad5653a6db6c3bd9b9",
+      "git_blob": "ddbefaec89517a77fd7914af669e700697bde6df"
+    },
+    {
+      "path": "scripts/test-airprop-listing-binding-read-ui-v1.mjs",
+      "bytes": 14449,
+      "sha256": "9cf36973f46b105d675e098bef3fb4bdcab16c39da4b652a3a0a4fb0fe0335ac",
+      "git_blob": "cb235f9adc86e02d25fd4c2f440b216cebb13798"
+    },
+    {
+      "path": "docs/airprop/AIRPROP-LISTING-BINDING-READ-UI-01.md",
+      "bytes": 6197,
+      "sha256": "3bf1f05add33d85b1470052e468d4249597c44def261a535f23339b5971e90a3",
+      "git_blob": "9edeaef690569066685ff19aade4dc999c6adcd3"
+    },
+    {
+      "path": "docs/airprop/AIRPROP-LISTING-NATIVE-01-core-port-request.json",
+      "bytes": 12980,
+      "sha256": "ff2fe68f3971662e019fdf958c93610ab7e983e4b65a0e303bb00ff478854468",
+      "git_blob": "0afd854cae7ac79d032a06dca2acda54abda0ba5"
+    }
+  ],
+  "unchanged_prior_delivery": [
+    {
+      "path": "src/lib/airprop/listing-selected-binding-v1.ts",
+      "bytes": 11202,
+      "sha256": "d10f1dcbfb0b4169a1e00465f7125c7534c4a75216e965e6189ac03b4f29d665",
+      "git_blob": "377d5f7ada6bf1b5be6497135a972811c4d3ac87"
+    },
+    {
+      "path": "supabase/proposals/airprop_listing_selected_bindings_v1.sql",
+      "bytes": 8891,
+      "sha256": "124fc20a2dfb63d7da13290a1e1aaefc49655287d0e490c82d3dda85ab1640c1",
+      "git_blob": "59adc65cf4a0f181a113212f8e9a29d54cbae97b"
+    }
+  ],
+  "tests": {
+    "successor_unique_groups": 29,
+    "predecessor_counterexample": 1,
+    "execution": "TARGETED_SOURCE6_NATIVE_ADAPTER6_MOUNTED17_RUNS_NOT_ALL_NATIVE",
+    "tsc": "PASS",
+    "scoped_eslint": "PASS_ZERO_WARNINGS",
+    "syntax": "PASS",
+    "diff": "PASS",
+    "toolchain": {
+      "next": "16.3.8",
+      "zod": "4.4.3",
+      "typescript": "5.9.3"
+    },
+    "exact_target": "NOT_RUN_NOT_PASS",
+    "native_pg_auth_rls_acl": "NOT_RUN_NOT_PASS",
+    "chromium": "BLOCKED_TOOL_EXISTING_SETSOCKOPT_EPERM"
+  },
+  "pending": {
+    "core": "Listing-specific selector/canonical/action/currentness producer and exact binding-query SQL admission; actual C03 aggregate/source/fingerprint/replay agreement not delivered",
+    "platform": "Independent adoption/limited role/RLS/ACL/current SQL admission and one real browser/native target execution",
+    "qa": "Independent product evidence acceptance"
+  },
+  "safety": {
+    "sql_executed": false,
+    "storage_rewritten": false,
+    "historical_backfill": false,
+    "core_shared_guide_changed": false,
+    "new_ledger": false,
+    "new_endpoint": false,
+    "wire_key_changed": false,
+    "activation": false
+  },
+  "automation": "نیازمند بررسی"
+}

@@ -1,7 +1,7 @@
 import 'server-only';
 import type { Pool } from 'pg';
 import { createCoreAirpropReadHostV1 } from '../core/airprop-read-host-v1';
-import { createListingNativeReadV1, type ListingCanonicalProducerV1 } from './listing-native-read-v1';
+import { createListingNativeReadV1, type ListingCanonicalProducerV1, type ListingSelectedBindingReaderV1 } from './listing-native-read-v1';
 import { listingScopeSchema, sameId } from './listing-flow-contract-v1';
 import type { ListingControlBridge, ListingRuntimeResolver } from './listing-flow-api-v1';
 
@@ -16,6 +16,9 @@ export type ListingFunctionalDependenciesV1 = Readonly<{
   principal: Readonly<{ executor: string; runtime: string }>;
   canonical: ListingCanonicalProducerV1;
   control: ListingControlBridge | null;
+  /** Actual domain reader only after Platform storage/RLS/SQL admission. Omitted
+   * means unavailable actions, not a probe, assumed installation or new backend. */
+  selectedBindingRead?: ListingSelectedBindingReaderV1 | null;
 }>;
 
 /** Compose real existing native read implementation and Core host. This does not
@@ -32,7 +35,7 @@ export function createListingRequestRuntimeResolverV1(
     const dependencies = await resolveDependencies(identity, Object.freeze({ ...scope }));
     if (!dependencies) return null;
     const host = createCoreAirpropReadHostV1({ pool: dependencies.pool, principal: dependencies.principal });
-    const read = createListingNativeReadV1(host, dependencies.canonical);
+    const read = createListingNativeReadV1(host, dependencies.canonical, dependencies.selectedBindingRead ?? null);
     const control = dependencies.control;
     return {
       read: async (actorId, selected) => {

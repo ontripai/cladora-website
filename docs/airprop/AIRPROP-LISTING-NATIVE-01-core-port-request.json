@@ -89,7 +89,23 @@
         "admission": "EXISTING_SOURCE_HASH_MATCH_NOT_INSTALLED_PROOF"
       }
     ],
-    "additional_query_hashes": "UNOBSERVED_UNTIL_CORE_READ_SELECTOR_SOURCE_AND_CANONICAL_SQL_ARE_DELIVERED_AND_REVIEWED; old command-selector SQL admission is not permission to fabricate its command receipt"
+    "additional_query_hashes": "UNOBSERVED_UNTIL_CORE_READ_SELECTOR_SOURCE_AND_CANONICAL_SQL_ARE_DELIVERED_AND_REVIEWED; old command-selector SQL admission is not permission to fabricate its command receipt",
+    "selected_binding_read": {
+      "file": "src/lib/airprop/listing-selected-binding-v1.ts",
+      "symbol": "LISTING_SELECTED_BINDING_READ_SQL",
+      "sha256": "d1a0aed128a3619d3e7db9166e46707e5b9362f0b33ef0c052017c1e182abb82",
+      "parameters": [
+        "server tenant_id",
+        "server workspace_id",
+        "server context_id",
+        "explicit listing_id",
+        "exact listing_version"
+      ],
+      "status": "REQUESTED_CORE_ADMISSION_NOT_GRANTED_NOT_INSTALLED",
+      "consumer": "ListingFunctionalDependenciesV1.selectedBindingRead -> createListingNativeReadV1 -> readListingFlow -> actual Listing GET -> CustomerAirpropListings",
+      "not_configured": "No binding SQL probe; independently authorized read stays available with actions unavailable",
+      "configured_sql_failure": "Propagate SQL40001/PG error; never present an aborted transaction as a successful read"
+    }
   },
   "canonical_evidence": {
     "existing_files": [
@@ -157,7 +173,8 @@
       "status": "SOURCE_IMPLEMENTED_NOT_INSTALLED_NOT_NATIVE_VERIFIED",
       "documentation": "docs/airprop/AIRPROP-LISTING-SELECTED-BINDING-01.md",
       "receipt": "Deferred candidate assertion joins actual existing platform.idempotency_keys.response_ref/audit.events/platform.outbox_events in the SAME physical transaction; no receipt is minted. Source only; actual SQL/role/replay adoption requires review."
-    }
+    },
+    "replay_remaining": "Core provider_current_state_required / validateReplay exists. Listing-specific canonical revalidation/admitted same-scope locks and aggregate/source/fingerprint agreement are NOT_DELIVERED. This child preserves original wire/key/UNKNOWN, and the UI checks bound current custody independently; it does not fabricate an accepted replay decision or treat GET as receipt."
   },
   "platform": {
     "owner": "Platform",
