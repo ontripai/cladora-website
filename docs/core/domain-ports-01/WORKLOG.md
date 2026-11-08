@@ -217,3 +217,16 @@ for the exact eight presence/metadata pins. No observation is executed here.
 Upstream invitation wrapper was found to lock the invitation before its core call;
 that entry must participate too. Optional absent domains stay explicitly absent,
 not historical objects recreated by this delta.
+
+## Guide unit05 effective Auth scope decision (before edits)
+Parent97d7a81e. Received private Platform definition witness11:7112bytes,
+SHA256bc5b4e4a189c95b0051e21d9ae62d311b00daff747b88647e99e293a46922946.
+Both function definitions independently match their exact bytes/SHA256. Raw private
+file is not copied into repository/public report. No Auth function/value is read.
+New decision/proposal-only paths:
+- scripts/prepare-core-guide-auth-alias-proposal-v1.mjs
+- scripts/test-core-guide-auth-scope-v1.mjs
+- docs/core/domain-ports-01/unit05-auth-scope-11/{README.md,manifest.json,successor-proposal.patch}
+Actual shared pool/CE/installer/Auth SQL/ACL/owner/config stay unchanged. A candidate
+patch is tested only in memory using controlled physical-Pool/GUC models; it is
+not applied to product/source or target. No prior successful suite is rerun.

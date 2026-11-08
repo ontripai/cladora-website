@@ -1,0 +1,181 @@
+{
+  "contract": "core-guide-unit05-auth-scope.decision.v1",
+  "FullSHA": "CONTAINING_COMMIT",
+  "Parent": "97d7a81ea40db5f158fea10ed9ff9e679ca60949",
+  "branch": "codex/core-domain-ports-01",
+  "decision": "EXTRA_INVOKER_GUC_ACCESSOR_DOCUMENTED_NO_AUTH_SQL_OR_ACL_SUCCESSOR",
+  "Guide_port": "ALIAS_NEUTRALIZATION_PROPOSED_NOT_APPLIED",
+  "runtime": null,
+  "activation": null,
+  "private_evidence": {
+    "name": "PLATFORM-CORE-UNIT05-AUTH-DEFINITIONS-11.json",
+    "bytes": 7112,
+    "sha256": "bc5b4e4a189c95b0051e21d9ae62d311b00daff747b88647e99e293a46922946",
+    "whole_file_and_definitions": "EXACT_HASH_MATCH",
+    "contents_republished": false
+  },
+  "functions": [
+    {
+      "signature": "auth.email()",
+      "bytes": 280,
+      "sha256": "6964175d0bad9d5ea355d2e8c4ad9a99147348b817213e85fcb0d4122a72b621",
+      "precedence": [
+        "request.jwt.claim.email",
+        "request.jwt.claims->>email"
+      ],
+      "security": "INVOKER",
+      "config": null
+    },
+    {
+      "signature": "auth.jwt()",
+      "bytes": 265,
+      "sha256": "7ce3ad8fb99f7ad5f5cd869fbd5479a6325e9444da472c26394cfa66c83b2d11",
+      "precedence": [
+        "request.jwt.claim",
+        "request.jwt.claims"
+      ],
+      "security": "INVOKER",
+      "config": null
+    }
+  ],
+  "equivalence": "NOT_ABSOLUTE_ONLY_UNDER_ALIAS_NEUTRALIZATION_AND_VALID_PLURAL_CARRIER",
+  "inventory": [
+    {
+      "path": "docs/core/domain-ports-01/WORKLOG.md",
+      "before": {
+        "bytes": 14310,
+        "sha256": "7aa412a12a4c5959c9fe4b9d096732b1adf5c4935a13aa990dcbe6074dbab061",
+        "git_blob": "68cc379751e988f8e9c04757ec5f2c65003a1919"
+      },
+      "after": {
+        "bytes": 15161,
+        "sha256": "aea04bb1d8f6b5d22f9023c68344d303f035a7dc93fb1c3a9a99688ab5a49f8b",
+        "git_blob": "104da5c9d0241578017a10235182c2e364480de6"
+      }
+    },
+    {
+      "path": "scripts/prepare-core-guide-auth-alias-proposal-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 3549,
+        "sha256": "1c2c15ceeeef4602a73e3743703b2ee1ed806abcbc8fbe8c8c5ff1091ba605d3",
+        "git_blob": "24c1c6bc4f337a123f6b1b15db90517437972968"
+      }
+    },
+    {
+      "path": "scripts/test-core-guide-auth-scope-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 8367,
+        "sha256": "fe585b3bb39d22f39ceff014a5614b5cf4088bc2e1693746a8099d7834e19028",
+        "git_blob": "b00e3263ecb85a24dc2ea4ddb5af1aaad207ecf3"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/unit05-auth-scope-11/README.md",
+      "before": null,
+      "after": {
+        "bytes": 8749,
+        "sha256": "078d3eb931ba44059ccc960dbbca3f1c1156ae163eb8ebcfb92679d646f85d9a",
+        "git_blob": "0aadfad2aba7f1268ee26f63e5c5883bcc6e5f3a"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/unit05-auth-scope-11/successor-proposal.patch",
+      "before": null,
+      "after": {
+        "bytes": 1912,
+        "sha256": "2b225cd54c752f16ece562338b7ade9b91246b65f5f16c24dde77e8a6f295a48",
+        "git_blob": "5f49b86f1103b602fcecece0a3933f08ba364e72"
+      }
+    }
+  ],
+  "protected": [
+    {
+      "path": "supabase/install/guide-no-document-v1/05-owner-delegations.sql",
+      "bytes": 3509,
+      "sha256": "b3718be17f30122773ce4a5f4b84056c3a4ccc9f10180cb14d6013ec93e6effe",
+      "git_blob": "f47799a236cfc083ec553d770a26b105d29acd49"
+    },
+    {
+      "path": "supabase/install/guide-no-document-v1/00-fixed-roles.sql",
+      "bytes": 2248,
+      "sha256": "b235e566631ccb52b6a20d8ea2fdaa7c9d6e45de1e4652768c9b24ece3f1815d",
+      "git_blob": "90d0f19784fbb327685ce7c997226fda0c6d1273"
+    },
+    {
+      "path": "supabase/install/guide-no-document-v1/10-guide-core.sql",
+      "bytes": 34136,
+      "sha256": "6812a04f54ab9bde5b1661a40bb78740c43147588e2d00c9af1e28ddee0e85b9",
+      "git_blob": "97803fd30dfa5257db790b421b42c54293c8a8c3"
+    },
+    {
+      "path": "supabase/install/guide-no-document-v1/20-save-relation.sql",
+      "bytes": 16598,
+      "sha256": "9eb6fc9454d47fdacebd8b5a077a3fec9bc20e62f4a7c2873c18dfe99fe33e4a",
+      "git_blob": "dd4c5ac945d513078604127e8d23091c6feb6865"
+    },
+    {
+      "path": "src/lib/core/platform-role-bound-pool-v1.ts",
+      "bytes": 10318,
+      "sha256": "3abeca26ee87ad647ed7af74eaababff9d2308ccc52b1543a2569e29d51ab128",
+      "git_blob": "278e7cde60876a7046b700794644bad33ca22da8"
+    },
+    {
+      "path": "src/lib/core/guide-request-binding-v1.ts",
+      "bytes": 8700,
+      "sha256": "1c0fd98df4b9bc45ebd9fb499db34e54cf9585819a733ac939fbfaa77971a2f9",
+      "git_blob": "e850728f49d2deb6ea209101ac48e3c307fef4bf"
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "bytes": 62680,
+      "sha256": "9436c082f8ce8a054d8300f55bd49ac4b6120240cf06fa6ca94190b5c6c1858a",
+      "git_blob": "9e1a0229b9676368dc1d49015cf95be13fac9908"
+    },
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "git_blob": "e67df2d947608f546dab42dba88b5bdc418cbffb"
+    }
+  ],
+  "actual_CE_carrier": {
+    "FullSHA": "6259b70268a851113c8f981e2d346da5428e343f",
+    "path": "src/lib/community/experience-guide-lifecycle-http-v1.ts",
+    "bytes": 22363,
+    "sha256": "94d5583349e77a5dcc549b7234739f66d8e20dc2735d2bd86e1d8a89fbbb6e3f",
+    "git_blob": "1941995c4987a90ac3899277edfba4bdeecb5700"
+  },
+  "candidate": {
+    "file": "src/lib/core/platform-role-bound-pool-v1.ts",
+    "preimage_sha256": "3abeca26ee87ad647ed7af74eaababff9d2308ccc52b1543a2569e29d51ab128",
+    "postimage_sha256": "9f120327f1f427a1e4ffc40b6c37707ab4feaa5f7a2e3bd948cc94a5e481bb54",
+    "Guide_only": true,
+    "applied": false,
+    "Auth_ACL_owner_or_product_SQL_changed": false
+  },
+  "checks": {
+    "new_controls": 10,
+    "scope": "EXACT_PRIVATE_METADATA_AND_CONTROLLED_PHYSICAL_POOL_GUC_MODEL",
+    "proposal_apply_reverse": "EXACT_PASS_PRODUCT_UNCHANGED",
+    "syntax": "PASS",
+    "lint": "PASS",
+    "typecheck": "NO_PRODUCT_TS_CHANGE_NOT_RERUN",
+    "unrelated_suites": "NOT_RERUN",
+    "Auth_invocations": 0,
+    "real_claims_values": 0,
+    "target_calls": 0,
+    "native": "NOT_RUN_NOT_PASS"
+  },
+  "remaining": [
+    "review/adopt exact Guide-port successor or independently prove alias-neutralized actual configuration; RESET ALL is not sufficient evidence",
+    "normal private target/source/profile admission and native proof remain separate",
+    "PUBLIC callable accessor remains reachable; no-callability policy would require separate owner decision, not provider ACL changes"
+  ],
+  "automation": "نیازمند بررسی",
+  "seal": {
+    "algorithm": "sha256_canonical_json_excluding_seal",
+    "digest": "d1f37a89d70f3e0998abefd4eab4a6e7b1b29c0f80f061f093f2845ee65a1409"
+  }
+}
