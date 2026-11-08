@@ -1,0 +1,283 @@
+{
+  "contract": "core-guide-request-binding.r1.source-manifest.v1",
+  "FullSHA": "CONTAINING_COMMIT",
+  "parent": "4d15a37797fc9f0d5ef49565606e400e94f88d27",
+  "base": "bfadc5042cb00841dd605862a2a72ddc0dbafb87",
+  "main_reference": "6cecfa15b00f445be68817e756d766fb0e6fe026",
+  "main_tree": "ff8a0aeda835cc9e9dcc2a19cae74ab73ce1d5b1",
+  "main_base_tree_equal": true,
+  "CE": {
+    "FullSHA": "6259b70268a851113c8f981e2d346da5428e343f",
+    "Parent": "bfadc5042cb00841dd605862a2a72ddc0dbafb87",
+    "Tree": "a62426be5e8e67181378a6fc1bfea23699c80215",
+    "source": "FETCHED_FROM_PUBLISHED_BRANCH",
+    "pins": [
+      {
+        "path": "docs/contracts/ce-guide-native-01/README.md",
+        "bytes": 13178,
+        "sha256": "55b5bce47a68b4218a0365dff53195384cb16a55d20580427b2520908dd7f374",
+        "git_blob": "fcb33f0e4eb02015868a68bca78c0268a99dde96"
+      },
+      {
+        "path": "docs/contracts/ce-guide-native-01/manifest.json",
+        "bytes": 11984,
+        "sha256": "05e4ddf9a7f61b3b045ed703b48b7dabfe8c960ff7b9b0c20f926c94838fb99d",
+        "git_blob": "e396bdbf70d6f43d2394871daa09a6ebb6f28c48"
+      },
+      {
+        "path": "scripts/test-ce-guide-native-journey.mjs",
+        "bytes": 12554,
+        "sha256": "b37bab0ea9aeb832c73e0ac6a9e0bc036b62bf5277320af7290c9abbdd96c4b7",
+        "git_blob": "beaaa551e8a78df712c283a315661ece69cc0e60"
+      },
+      {
+        "path": "scripts/test-ce-guide-native-session-carrier.mjs",
+        "bytes": 7392,
+        "sha256": "d5f701d0be846dc3f7d7a6c5033456577fc972b8fa1a102bfeeb77021ac09f20",
+        "git_blob": "8295d236c48c3e484946bc5db6d1c8dcbc6b7c3b"
+      },
+      {
+        "path": "src/components/customer/CustomerExperienceGuideActions.tsx",
+        "bytes": 4270,
+        "sha256": "fee2fff1fe8489c4ff71f446486cecbe42cfc7bb0099741680835eebe452e769",
+        "git_blob": "98182a8b57d41b11dbc0ae28ec0e69d1b8c1e45d"
+      },
+      {
+        "path": "src/components/customer/CustomerExperienceGuidePage.tsx",
+        "bytes": 11871,
+        "sha256": "4a15877ee1199e18a0394a92d016c5e37ea5fdb2e43b630146ad341411fc64c8",
+        "git_blob": "ac9b3437e2c14515a3e6dccca69543a27e45334c"
+      },
+      {
+        "path": "src/lib/community/experience-guide-actions-client.ts",
+        "bytes": 5001,
+        "sha256": "8b5f0587e3a61af4092afe2a9bd4232126029a49ceb1876e5d55bc0058d29980",
+        "git_blob": "ba0b59378b1a59d818173ba83dc47a468ac2d353"
+      },
+      {
+        "path": "src/lib/community/experience-guide-create-writer-v1.ts",
+        "bytes": 9471,
+        "sha256": "75711664a2dcef9ab5ec123861678f09f7c7f96fdf2e36a5cee4380603bb792c",
+        "git_blob": "839950405f531ff5c7a3eafc50908a7413d4d80e"
+      },
+      {
+        "path": "src/lib/community/experience-guide-functional-http-v1.ts",
+        "bytes": 16808,
+        "sha256": "b2d2214d16a6439b77d042560be09b6a534b8779ad15ef3508b76c5fefa664a4",
+        "git_blob": "bcd24b96221941ccbc2cc4270d5a928f5be9c57f"
+      },
+      {
+        "path": "src/lib/community/experience-guide-lifecycle-http-v1.ts",
+        "bytes": 22363,
+        "sha256": "94d5583349e77a5dcc549b7234739f66d8e20dc2735d2bd86e1d8a89fbbb6e3f",
+        "git_blob": "1941995c4987a90ac3899277edfba4bdeecb5700"
+      },
+      {
+        "path": "src/lib/community/experience-guide-lifecycle-provider-v1.ts",
+        "bytes": 21944,
+        "sha256": "4971b7e235088c524e5e5a3242fe8606fe8723dabe0802d23fb561a9ffe66d0c",
+        "git_blob": "1d610a4cc3a7b341b2ebf3a646341dec184feab4"
+      }
+    ]
+  },
+  "inventory": [
+    {
+      "path": "src/lib/core/guide-request-binding-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 8700,
+        "sha256": "1c0fd98df4b9bc45ebd9fb499db34e54cf9585819a733ac939fbfaa77971a2f9",
+        "git_blob": "e850728f49d2deb6ea209101ac48e3c307fef4bf"
+      }
+    },
+    {
+      "path": "src/lib/core/platform-role-bound-pool-v1.ts",
+      "before": {
+        "bytes": 9923,
+        "sha256": "d31f3b31a1302686d8022627475b2e14057cd36fff219a8b4441ff052798fc79",
+        "git_blob": "1128064d1f9ba0a09446bfbb651516e41c88a141"
+      },
+      "after": {
+        "bytes": 10318,
+        "sha256": "3abeca26ee87ad647ed7af74eaababff9d2308ccc52b1543a2569e29d51ab128",
+        "git_blob": "278e7cde60876a7046b700794644bad33ca22da8"
+      }
+    },
+    {
+      "path": "scripts/test-core-guide-request-binding-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 13698,
+        "sha256": "354255e7204375afdd27b2f59a7c5f3618261f0ee3951897cd4f9e009c84c43d",
+        "git_blob": "78808654d5f975e4b54f28c00aeabc8a96d9e1f5"
+      }
+    },
+    {
+      "path": "scripts/test-core-guide-ce-r1-coupling.mjs",
+      "before": null,
+      "after": {
+        "bytes": 9831,
+        "sha256": "bb92b5292853aeeccd46c9578f8c1c8dd749097defed46b3ae3d761f11920e62",
+        "git_blob": "e32ffde97db3312e59b9ab42a75cc185c97d6564"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/guide-r1/README.md",
+      "before": null,
+      "after": {
+        "bytes": 10212,
+        "sha256": "0f3010352155fc17c41fef759050436302c98c49d594d1038f5fc677adfbf476",
+        "git_blob": "2a2bbd0264cc63b2481691858b22bed5e5d5e4d8"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/WORKLOG.md",
+      "before": {
+        "bytes": 1033,
+        "sha256": "af41524fb81894170cbf67881799e2253892d5bb473c7b8840e5c9218a554383",
+        "git_blob": "4c346ad26cc957e855dd85188c4476d4fcf82bd7"
+      },
+      "after": {
+        "bytes": 2731,
+        "sha256": "467289fc498c7d646ace9d6a9a9c56e6fee324215d1a3aa242141b9665b1878d",
+        "git_blob": "2634a60db865d6c33f3f663d4403f8cd7e00de7e"
+      }
+    }
+  ],
+  "dependencies": [
+    {
+      "path": "src/lib/core/functional-command-runtime-v1.ts",
+      "source": "4d15a37797fc9f0d5ef49565606e400e94f88d27",
+      "bytes": 28103,
+      "sha256": "e83e1351af12f5f1f88af94f2b317fc9509a888bb9d1ba975167fc9ecb705e41",
+      "git_blob": "7a7f3a6272c31df30b61835d5a8a3eeacc621139",
+      "unchanged": true,
+      "installer_permission": false
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "source": "4d15a37797fc9f0d5ef49565606e400e94f88d27",
+      "bytes": 62680,
+      "sha256": "9436c082f8ce8a054d8300f55bd49ac4b6120240cf06fa6ca94190b5c6c1858a",
+      "git_blob": "9e1a0229b9676368dc1d49015cf95be13fac9908",
+      "unchanged": true,
+      "installer_permission": false
+    },
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "source": "4d15a37797fc9f0d5ef49565606e400e94f88d27",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "git_blob": "e67df2d947608f546dab42dba88b5bdc418cbffb",
+      "unchanged": true,
+      "installer_permission": false
+    },
+    {
+      "path": "src/lib/community/experience-guide-save-writer-v1.ts",
+      "source": "4d15a37797fc9f0d5ef49565606e400e94f88d27",
+      "bytes": 27586,
+      "sha256": "49de9fc3ca5a867eb1c4b22692afd635d04cec4f17aa87106da33dd88552a7ed",
+      "git_blob": "15c210dd2882c70121bd4f13b00dabacf7cbde25",
+      "unchanged": true,
+      "installer_permission": false
+    },
+    {
+      "path": "supabase/migrations/20261014082947_experience_guide_storage_lifecycle_v1.sql",
+      "source": "4d15a37797fc9f0d5ef49565606e400e94f88d27",
+      "bytes": 7351,
+      "sha256": "5d951a6938d8737041c6c7272f2dc40d1abe289d005afc85a7c871330116a0e5",
+      "git_blob": "a6bcab0675617ea1e327de87200723a6bde7bb61",
+      "unchanged": true,
+      "installer_permission": false
+    },
+    {
+      "path": "supabase/migrations/20261014132000_experience_guide_child_publish_lock_v1.sql",
+      "source": "4d15a37797fc9f0d5ef49565606e400e94f88d27",
+      "bytes": 2212,
+      "sha256": "3ffa7e694eec72d6cf7e1bb5e813e21cb65ce6e4519ac4025931dbfdfe820ab6",
+      "git_blob": "82d00f9ff596640fb675d0ac3758063b1eabe4e1",
+      "unchanged": true,
+      "installer_permission": false
+    },
+    {
+      "path": "supabase/migrations/20261015100000_core_platform_role_bound_pool_v1.sql",
+      "source": "4d15a37797fc9f0d5ef49565606e400e94f88d27",
+      "bytes": 42427,
+      "sha256": "ff944f72f3a5396c57afeeaec0406ec480f859d00ef8736b00c64f14d905e641",
+      "git_blob": "ffe0ae4cdec9219cff123bd73523cf4b8d683568",
+      "unchanged": true,
+      "installer_permission": false
+    },
+    {
+      "path": "supabase/proposals/ce012_save_writer_relation_v1.sql",
+      "source": "4d15a37797fc9f0d5ef49565606e400e94f88d27",
+      "bytes": 10405,
+      "sha256": "b5edb0d313d28d9cea3e6e188ad98f97002f93de914bf18f8ba9dcb2e0d12909",
+      "git_blob": "d81bfccb996736c45690c4f861f7222d5baf329b",
+      "unchanged": true,
+      "installer_permission": false
+    },
+    {
+      "path": "scripts/test-ce-guide-create14.mjs",
+      "source": "4d15a37797fc9f0d5ef49565606e400e94f88d27",
+      "bytes": 20566,
+      "sha256": "6608714273994d1565c1c250bbb49944daa66528a9c7bd9fc1bc1a6dcec221f1",
+      "git_blob": "46b5769af7649398f6fbd829efd6dc66c9095b44",
+      "unchanged": true,
+      "installer_permission": false
+    }
+  ],
+  "ABI": {
+    "contract": "core-guide-request-binding.v1",
+    "factory": "createCoreGuideRequestHandlersV1",
+    "dependencies_factory": "createCoreGuideRequestBindingV1",
+    "permission": "experience.guide.manage",
+    "read_permission": "experience.guide.read",
+    "module": "experience_guides",
+    "purpose": "experience.guide.command",
+    "runtime": "cladora_ce_guide_runtime",
+    "executor": "cladora_ce_guide_executor",
+    "host": "existing Core C03 via actual CE handler, database_after_lock.v1",
+    "activation": null
+  },
+  "checks": {
+    "binding_groups": 16,
+    "actual_Core_CE_C03_coupling_groups": 4,
+    "ES5_Core_typecheck": "PASS",
+    "ES5_composite_CE6259_typecheck": "PASS",
+    "limited_lint": "PASS",
+    "syntax": "PASS",
+    "diff": "PASS",
+    "accepted_CE_Request_suites": "NOT_REPEATED"
+  },
+  "native": "NOT_RUN_NOT_PASS",
+  "target_calls": 0,
+  "installer_executed": false,
+  "remaining_gates": [
+    {
+      "owner": "Platform",
+      "gate": "actual owned target/profile/limited role graph/helpers and schema effective ACL/RLS/session/QA capacity"
+    },
+    {
+      "owner": "Platform/Core",
+      "gate": "accepted additive adoption payload for guide_save_receipts_v1/deferred relation; review-only55000 file is not installer"
+    },
+    {
+      "owner": "CE/Coordinator",
+      "gate": "explicit request-local route/read cutover consumption on reviewed integrated source"
+    },
+    {
+      "owner": "Platform/CE/QA",
+      "gate": "native create/edit/publish/cancel/readback/restart/concurrency/revoke/expiry/UNKNOWN acceptance"
+    }
+  ],
+  "automation": "نیازمند بررسی",
+  "fixture_setup_only": {
+    "source": "ae8107ad170139b650e884863f83ccb0db63edf2",
+    "path": "scripts/test-core-ce012-writer-joint-review-09.mjs",
+    "bytes": 18956,
+    "sha256": "a4283de7b0c7f6e9503520898aeedb81af730222f6502755e5d5c2a47bd4aedc",
+    "git_blob": "7983d3f890800cbdf79dd3cfd19afcfa4f635db2",
+    "previous_tests_executed": false
+  }
+}
