@@ -8,7 +8,7 @@ const input = () => ({ contract: 'airprop-listing-publication.v1', selection: {
 }, command: { version: 1, ...scope, action: 'publish_listing', opportunity_id: id(30), property_id: id(8), unit_id: id(9),
   kind: 'resale', available_from: '2026-11-08T10:00:31.123456+02:00', available_until: null, idempotency_key: 'listing-publication-original-01' } });
 let checks = 0;
-const only = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1] : ''; 
+const only = process.argv.includes('--only') ? process.argv[process.argv.indexOf('--only') + 1] : '';
 const check = (name, fn) => { if (only && !name.includes(only)) return; fn(); console.log('PASS', ++checks, name); };
 check('existing native publish call, full selected source and original wire/timestamp/key', () => {
   const body = input(), wire = JSON.stringify(body, null, 2), plan = prepareListingPublicationV1(wire, scope);
