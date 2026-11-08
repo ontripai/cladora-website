@@ -239,3 +239,28 @@ scripts/test-core-guide-discovery-consumption-v1.mjs,
 docs/core/domain-ports-01/guide-alias-adoption-12/{README.md,manifest.json,discovery-admission.json}.
 Private auth-definition witness/old proposal and accepted source/evidence retained.
 No CE/App/Platform owner file, installer SQL/ACL/Auth/config/target is edited.
+
+## SERVICE R10 target/façade closure (before edits)
+Parentef27911a; private Platform13 report/metadata verified, private SERVICE R10
+bundle imported as objects only.45 postimages/7 members/sole prerequisite checked.
+Core-owned source paths only:
+- scripts/prepare-core-service-quote-target-v1.mjs
+- scripts/test-core-service-quote-target-v1.mjs
+- supabase/install/service-quote-platform-dev-v1/{preflight.sql,01-bootstrap-delegation.sql,02-quote-dependencies.sql,03-facades.sql,04-c03-access.sql,05-settle.sql,verify.sql,recovery.md}
+- docs/core/domain-ports-01/service-quote-target-14/{README.md,facade-contract.json,manifest.json}
+No SERVICE owner file, active profile, Auth/provider ACL/default privileges,
+customer_api exposure, runtime resolver or target is edited. Source composition
+uses exact canonical R10 as private pinned INPUT, not an embedded republication.
+All bootstrap/install/temporary CREATE+membership settlement is ONE transaction;
+actual lifecycle custodian -> fixed ordinary installer -> fixed owner -> custodian.
+No SQL/parser/PG/Auth/native calls or test fixtures on a real backend.
+
+SERVICE target14 completion: 21 new offline source groups PASS; JS syntax and
+limited lint PASS. No TS/product runtime source changed; no unrelated successful
+suite rerun. Exact Request beneficiary membership and effect-query dependencies
+were checked against actual private SERVICE R10 source. Full 4-function canonical
+headers/bodies/delimiters remain identical; new fixed façades delegate only.
+Bootstrap/owner transfer/revoke are a single transaction, with postcondition
+checks for existing Auth ACL/defaults/owners and temporary privileges. No SQL
+parser/PG/Auth/target execution. Native/installer proof NOT_RUN_NOT_PASS;
+SERVICE-owned fixed schema literal adoption remains a distinct open dependency.

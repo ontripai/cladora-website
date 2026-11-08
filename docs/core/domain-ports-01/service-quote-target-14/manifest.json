@@ -1,0 +1,302 @@
+{
+  "contract": "core-service-quote-target-packet.v1",
+  "status": "SOURCE_PACKET_PREPARED",
+  "parent": "ef27911abce11d1a9e39607ed4d5c894d7b282d7",
+  "branch": "codex/core-domain-ports-01",
+  "target_changed": false,
+  "runtime_binding": null,
+  "default_execute": false,
+  "private_inputs": {
+    "platform_report": {
+      "filename": "PLATFORM-SERVICE-R10-TARGET-PREFLIGHT-13.md",
+      "bytes": 8287,
+      "sha256": "2615cc0a32e3519693d72a68b24ba8e3bb9905d7e70ef29c6341a21a82e7c00e"
+    },
+    "metadata": {
+      "bytes": 258412,
+      "sha256": "caff5462b90eff833cb0994dc0cfbd3b3dad9667780c96e20ec5b0113557d0fe"
+    },
+    "service_bundle": {
+      "bytes": 89949,
+      "sha256": "9e367f82f2336acbc82e210a1cba23e39b03fe812ac82b8935dcb83beabb54c3",
+      "sole_prerequisite": "6cecfa15b00f445be68817e756d766fb0e6fe026",
+      "FullSHA": "bd6b9033cc6ca8a4f882cc6efa209a9c8b584f63",
+      "parent": "ebf5ad8654788e1c21dd8f465e0cc88195055ca3",
+      "tree": "b820fbad6431fb18819f3a03874e2ed914779917",
+      "bundle_members_verified": 7,
+      "source_postimages_verified": 45
+    },
+    "canonical_SQL": {
+      "path": "supabase/proposals/service-quote-canonical-store-v1/install.sql",
+      "bytes": 25046,
+      "sha256": "ea791090aaa99e5461f81d1fab510e1c33f749016875a490b0d0d2f66aab12de"
+    }
+  },
+  "canonical_function_definitions": [
+    {
+      "name": "app_private.service_quote_reservation_immutable_v1",
+      "sha256": "2879cd5245df8ef740b92c6fd07f69a11e3ddab2c33b76e8c64ab488f86052ba",
+      "entire_definition_byte_identical": true
+    },
+    {
+      "name": "app_private.service_quote_store_scope_v1",
+      "sha256": "ca48365534616f078ae2009d40e4a01a559bf3f7a8c8156a8e8fdbd5d6dd79cf",
+      "entire_definition_byte_identical": true
+    },
+    {
+      "name": "customer_api.reserve_service_quote_command_v1",
+      "sha256": "da0b2a2afd1039ec94ed48d44d782d36b6a094d4ff8d32e8a57b5046e7e1d570",
+      "entire_definition_byte_identical": true
+    },
+    {
+      "name": "customer_api.read_service_quote_history_v1",
+      "sha256": "bc03076d356becd9f30dec3dba8174b0d0d0655e2a481e2b881408c1cda014cc",
+      "entire_definition_byte_identical": true
+    }
+  ],
+  "migrationPins": [
+    {
+      "path": "supabase/migrations/20261005063120_20261005061344_service_quote_draft_runtime_v1.sql",
+      "bytes": 12017,
+      "sha256": "2989af703afa040f7780945978261d7be6e07f82c41ef3b79bddfbb747c5531d",
+      "git_blob": "ade805dfa421b53127250fdaf215da8b1293ae9f"
+    },
+    {
+      "path": "supabase/migrations/20261022071629_service_quote_request_version_binding_v2.sql",
+      "bytes": 14964,
+      "sha256": "472f74027b5ccd250432cb1ff16879461f74633808a386498883cfc28dd3d324",
+      "git_blob": "dfa469ad3629b2c830e9ea9341ff6d5969ff004c"
+    }
+  ],
+  "composition_order": [
+    "BEGIN + deadlines",
+    "preflight.sql",
+    "01-bootstrap-delegation.sql",
+    "02-quote-dependencies.sql",
+    "exact private R10 canonical body with only delegation/exposure/cleanup changes",
+    "03-facades.sql",
+    "04-c03-access.sql",
+    "05-settle.sql",
+    "verify.sql + generated canonical/facade body pins",
+    "COMMIT"
+  ],
+  "transformations": [
+    "remove authenticated EXECUTE on two new customer_api functions; façade EXECUTE only",
+    "move owner schema/helper delegation to real custodian",
+    "remove installer cleanup of membership granted by another grantor; actual custodian cleanup in same transaction",
+    "strengthen runtime reservation read policy with canonical current scope; add request_version column read",
+    "no canonical four-function body/header/delimiter modification"
+  ],
+  "output_images": {
+    "install": {
+      "filename": "CORE-SERVICE-QUOTE-TARGET-14.final.install.sql",
+      "bytes": 58346,
+      "sha256": "cb2dd1a014ce4c89f9d5f33a35ed80da1f23f4e601ef4562a800b472ca9a6321",
+      "git_blob": "848000cad55e58e1a8e47050ccf82900f95858a4",
+      "private": true,
+      "executed": false
+    },
+    "preflight": {
+      "filename": "CORE-SERVICE-QUOTE-TARGET-14.final.preflight.sql",
+      "bytes": 6833,
+      "sha256": "85b7eafacaa3cb3c2df89cd5d8a0cca134ce8984b6afb456d4e4a700b568a676",
+      "git_blob": "c34e9297c729553474f8d801baefa4440c7a7899",
+      "private": true,
+      "executed": false
+    },
+    "verify": {
+      "filename": "CORE-SERVICE-QUOTE-TARGET-14.final.verify.sql",
+      "bytes": 8418,
+      "sha256": "647891e735a72bc7f3dee1c32da0163ef27033356214453f367340358d754e72",
+      "git_blob": "77cd9365d7643f653910fadd4789b50e46cd3739",
+      "private": true,
+      "executed": false
+    }
+  },
+  "inventory": [
+    {
+      "path": "docs/core/domain-ports-01/WORKLOG.md",
+      "before": {
+        "bytes": 15768,
+        "sha256": "c40de204b2d84e09b19cc96d742fcbb6a06ce20f2da0d9938067fe08f5624a0e",
+        "git_blob": "031b9ed38b5c1b350da3091df179246decccfa63"
+      },
+      "after": {
+        "bytes": 17586,
+        "sha256": "68871b152c3581485582db1eeecb5b1c0ce18395a3d8b417007bf8d95a8ce786",
+        "git_blob": "cdaf81f71ab0471d1ebaea67775266048e7366c4"
+      }
+    },
+    {
+      "path": "scripts/prepare-core-service-quote-target-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 8958,
+        "sha256": "fda6e6beea8f81cb9e44732304e2462a07a5d5fb4e26dd3b3dbef0a2e6e2b845",
+        "git_blob": "4c6f6bce72742cd0647de00dc70c59f29ef69c71"
+      }
+    },
+    {
+      "path": "scripts/test-core-service-quote-target-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 8836,
+        "sha256": "c4fc49e5426376bd6157d7ddc8c3ce2a3be1afce845a8486a6264cf88fe981b2",
+        "git_blob": "0c5dc09ff8544baa8a0c2cfd11f77df4b4059e16"
+      }
+    },
+    {
+      "path": "supabase/install/service-quote-platform-dev-v1/preflight.sql",
+      "before": null,
+      "after": {
+        "bytes": 6707,
+        "sha256": "b3cf9d7d2eb5e5eb38d05936d8e6361fc57a548e70c53dcc0e2b19e1433c529d",
+        "git_blob": "86173781339fdf500be4f6fb2124c6f732eeb1c9"
+      }
+    },
+    {
+      "path": "supabase/install/service-quote-platform-dev-v1/01-bootstrap-delegation.sql",
+      "before": null,
+      "after": {
+        "bytes": 2849,
+        "sha256": "52c4d60ff92b363792cc04d8329ca1eca8f0f6d87e90b1933280768e492adf52",
+        "git_blob": "bf77fbc672d58aec920405217219f89f8d3789ac"
+      }
+    },
+    {
+      "path": "supabase/install/service-quote-platform-dev-v1/02-quote-dependencies.sql",
+      "before": null,
+      "after": {
+        "bytes": 3376,
+        "sha256": "8ec95df8a1c0c9985589bbc0d85ee6698765e6dbc3e7a3395ca50d0d940e38ed",
+        "git_blob": "c91d5f8fcca2741ee446d151f1019294727a1304"
+      }
+    },
+    {
+      "path": "supabase/install/service-quote-platform-dev-v1/03-facades.sql",
+      "before": null,
+      "after": {
+        "bytes": 1162,
+        "sha256": "2258e687de2153d526f1cdfff3b78db3b3c0a5b018860f474767219ea9d1bc98",
+        "git_blob": "f132949a2b4aed39051db171aada9c5b7291cf06"
+      }
+    },
+    {
+      "path": "supabase/install/service-quote-platform-dev-v1/04-c03-access.sql",
+      "before": null,
+      "after": {
+        "bytes": 6082,
+        "sha256": "415d1c1c3009be9957b3613b0dd6026d03cb4ebd8329ee86a4a758670ceeb5ec",
+        "git_blob": "85b1e2a4f507f78315dc233ecb3ab972772971f8"
+      }
+    },
+    {
+      "path": "supabase/install/service-quote-platform-dev-v1/05-settle.sql",
+      "before": null,
+      "after": {
+        "bytes": 5540,
+        "sha256": "2cb93ad2b1a862b786ab26e981c39a6e95a49527e0597dee49c009dee24ecdab",
+        "git_blob": "39137ba936d1cd533773bdf2aa7ac95a1cc55010"
+      }
+    },
+    {
+      "path": "supabase/install/service-quote-platform-dev-v1/verify.sql",
+      "before": null,
+      "after": {
+        "bytes": 6070,
+        "sha256": "d2d34e39b5a3d8919d08d6ebf6c9ebf206f49a88ba0bfafa1d18d4da1664aa91",
+        "git_blob": "60dd48ea372e87decbfd7c82707ff9847c3a2f6e"
+      }
+    },
+    {
+      "path": "supabase/install/service-quote-platform-dev-v1/recovery.md",
+      "before": null,
+      "after": {
+        "bytes": 5414,
+        "sha256": "2eee354373e7e598e3a1c67223804163311b8175bf2ee905f9777111e2fb154e",
+        "git_blob": "2da3650d004076de89caec6e7736c83c21110ab0"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/service-quote-target-14/README.md",
+      "before": null,
+      "after": {
+        "bytes": 5647,
+        "sha256": "3077769ba1104bcc45154f855d84f8616386b0cd997ead2b439fc68417b78db7",
+        "git_blob": "51519a4fee073da6a9bf667527b765ebc8f51678"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/service-quote-target-14/facade-contract.json",
+      "before": null,
+      "after": {
+        "bytes": 2435,
+        "sha256": "82f5ed7d6ecc0d33efa0c52c52ed303ab103860809c77f692910194e3243c822",
+        "git_blob": "8c9c0e4a9495bd72512fda1a6c21eea7ab10905a"
+      }
+    }
+  ],
+  "manifest_self_excluded": true,
+  "admission_inputs": [
+    {
+      "name": "target connection identity/database OID/core_runtime marker",
+      "owner": "Platform",
+      "use": "private executor admission + install_binding",
+      "secret_value_required_in_report": false
+    },
+    {
+      "name": "actual lifecycle custodian capability and ordinary installer identity",
+      "owner": "Platform",
+      "use": "preflight/delegation/owner transfer; no promotion"
+    },
+    {
+      "name": "expected packet bytes/hash, execution receipt/backend correlation",
+      "owner": "Platform/Coordinator",
+      "use": "before-send transport + UNKNOWN reconciliation"
+    },
+    {
+      "name": "six canonical helper definition hashes/owners/ACL hashes",
+      "owner": "Platform/Core",
+      "use": "install_binding.helpers/helper_owners/helper_acl_sha256; missing/mismatch STOP"
+    },
+    {
+      "name": "maintenance window/backup reference/no competing DDL",
+      "owner": "Platform/Coordinator",
+      "use": "execution admission/recovery"
+    },
+    {
+      "name": "SERVICE fixed platform_dev transport adoption",
+      "owner": "SERVICE",
+      "use": "existing canonical SDK adapter; no consumer schema parameter"
+    }
+  ],
+  "tests": {
+    "new_source_groups": 21,
+    "result": "PASS",
+    "javascript_syntax": "PASS",
+    "limited_eslint": "PASS",
+    "diff_check": "PASS",
+    "full_typecheck": "NOT_RUN_NO_TS_OR_CONFIG_CHANGE",
+    "SQL_parser": "NOT_RUN",
+    "SQL_compile": "NOT_RUN",
+    "native_PG_Auth_RLS_C03": "NOT_RUN_NOT_PASS",
+    "target_execution": "NOT_RUN",
+    "existing_unrelated_suites": "NOT_RERUN"
+  },
+  "gates": [
+    "source review and target/custodian re-admission",
+    "SERVICE fixed transport adoption and affected coupling",
+    "separate Platform execution authorization",
+    "native owner/grantor/ACL/RLS/currentness/concurrency/atomicity/settlement/restart proof"
+  ],
+  "automation": {
+    "classification": "نیازمند بررسی",
+    "input": "pinned canonical source + fixed fragments",
+    "automated": "offline compose/identities/source-invariant rejection",
+    "human": "Platform target/principal admission; Coordinator execution acceptance",
+    "conditions": "exact private source and approved control-plane target; no mismatches",
+    "exceptions": "UNKNOWN or missing authority -> Platform/Coordinator",
+    "dependency": "canonical R10 + actual target metadata",
+    "value": "reviewable deterministic fixed façade installation; no quantitative estimate"
+  }
+}
