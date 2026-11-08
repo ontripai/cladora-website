@@ -46,13 +46,13 @@ export default async function AppLayout(
   if (isAssembly) {
     // Selected native assembly: official Auth API only; MFA remains mandatory.
     if (!hasVerifiedFactor) {
-      redirect(`/${lang}/mfa/setup?reason=customer_required`);
+      redirect(`/${lang}/mfa/setup?reason=customer_required${guideNativeSelected?'&next=app%2Fexperience%2Fguides':''}`);
     }
 
     const { data: assurance, error: assuranceError } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
     if (assuranceError) redirect(`/${lang}/login?reason=security`);
     if (assurance.currentLevel !== 'aal2') {
-      redirect(`/${lang}/mfa`);
+      redirect(`/${lang}/mfa${guideNativeSelected?'?next=app%2Fexperience%2Fguides':''}`);
     }
 
     return <CustomerAppShell lang={lang} guideNativeSelected={isGuideNativeEntrySelectedV1()}>{children}</CustomerAppShell>;
@@ -64,7 +64,7 @@ export default async function AppLayout(
     .rpc('my_mfa_requirement_v1');
   if (requirementError) redirect(`/${lang}/login?reason=security`);
   if (mfaRequired && !hasVerifiedFactor) {
-    redirect(`/${lang}/mfa/setup?reason=customer_required`);
+    redirect(`/${lang}/mfa/setup?reason=customer_required${guideNativeSelected?'&next=app%2Fexperience%2Fguides':''}`);
   }
 
   if (!mfaRequired && !hasVerifiedFactor) {

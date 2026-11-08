@@ -3,7 +3,7 @@
   "stage": "CORE62_REQUEST_LOCAL_ROUTE_ADOPTION",
   "worker": "CLADORA-CE-WORKER-01",
   "branch": "codex/ce-guide-native-01",
-  "actual_parent": "004eeac9aafd3d7cf7cc7b5e4fa29171776308fb",
+  "actual_parent": "7f0de1da2ba70bacf550f552c17919cbabd300d3",
   "inputs": {
     "CE": "6259b70268a851113c8f981e2d346da5428e343f",
     "Core": "62f3c4ea3280821d3df69cd5d0cfbd10fbf6cb6d",
@@ -16,15 +16,15 @@
   "source": [
     {
       "path": "docs/contracts/ce-guide-native-01/core62-route-adoption/README.md",
-      "bytes": 9955,
-      "sha256": "05a85e4f49de53d4e5515b703b56681c121bc720f30f5f294cadd3c83f3e38a6",
-      "git_blob": "6ce0e37c6fc526332f4de030e31e398c97539a2a"
+      "bytes": 10228,
+      "sha256": "5951b158db551b6320b8a024035a50e156e172736bd59e5bbe9253b6c63ecc1c",
+      "git_blob": "9c0a2e1ba89b4a9582c0eeecaaffeae718860a44"
     },
     {
       "path": "scripts/test-ce-guide-routes-r2.mjs",
-      "bytes": 16892,
-      "sha256": "69a3fdd9a4d6fd703abc331acce010c843302ebdcb3ae75c9260eeceb3d5af73",
-      "git_blob": "c388159a9eab3b40eb12dac06c5e8a77366f1868"
+      "bytes": 18437,
+      "sha256": "d9eb9da546ec69a6141bdb280f14c153342af07463ad6e2b872c3e77a95410e2",
+      "git_blob": "f5f346195124ffcfe7e3d9f80c3fc88049024778"
     },
     {
       "path": "src/app/api/customer/v1/experience/guides/discovery/route.ts",
@@ -70,9 +70,9 @@
     },
     {
       "path": "src/app/[lang]/app/layout.tsx",
-      "bytes": 2951,
-      "sha256": "c31b56524b4026fe85ba701982becda670bbca6ada67c659d38ceb08ee441350",
-      "git_blob": "bf215aa450871100fcf8f70dbe5ab1137495d6d9"
+      "bytes": 3128,
+      "sha256": "d69d65f62eeb4bcd62c438ddba8f49b5cea57cb0706ae15e3fc5927dcb1de6f1",
+      "git_blob": "6ce8fa5005ad2a0e0b7883be9ee845c85dc27aa8"
     },
     {
       "path": "src/app/[lang]/login/page.tsx",
@@ -130,7 +130,7 @@
     }
   ],
   "manifest_self": "excluded; final Git tree/external SHA binds bytes",
-  "inventory_seal": "be8ab3a5fe036e1690b66620c38b11d17bc06e39b9f871c1ebbf3d0e7c7b338a",
+  "inventory_seal": "0bbd15020ede3c6757aa258eff028e12b7dd69461a45d8d8d0178817684156fa",
   "entrypoints": {
     "private_platform_app_slot": "src/lib/app/guide-platform-provider-v1.ts:GUIDE_PLATFORM_PROVIDER_V1",
     "slot_contract": "guide-platform-provider.v1:resolve(originalRequest)->Promise<Omit<CoreGuideRequestBindingOptionsV1,request>|null>",
@@ -170,7 +170,7 @@
     "history": "normal merge, no reset/rebase/force; historical branch preserved"
   },
   "tests": {
-    "distinct_new_groups": 10,
+    "distinct_new_groups": 11,
     "result": "PASS_CONTROLLED_ROUTE_AND_COMPONENT_SOURCE",
     "actual": "Next route exports/Core factory/CE authenticator/providers/host and mounted native entry; MFA pages/App layout/shell",
     "modeled": "App provider, SDK, physical PG transport; not signed/native Auth",
@@ -260,6 +260,21 @@
       "bytes": 0,
       "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
       "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "r2-cold-mfa-final.txt": {
+      "path": "/workspace/work/ce-guide-native-01-evidence/r2-cold-mfa-final.txt",
+      "bytes": 305,
+      "sha256": "b30e2109eefae266993ec977916f5ff8258dd4b383ae939168fb50e96b38dfb5"
+    },
+    "r2-final-tsc.txt": {
+      "path": "/workspace/work/ce-guide-native-01-evidence/r2-final-tsc.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "r2-final-mfa-lint.txt": {
+      "path": "/workspace/work/ce-guide-native-01-evidence/r2-final-mfa-lint.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
   },
   "remaining_gates": [
@@ -274,7 +289,6 @@
   },
   "automation": "نیازمند بررسی; source identity checks only; human/private admission and retry remain explicit",
   "status": "TESTED_SOURCE_FOR_PLATFORM_NATIVE_TASK_OPEN",
-  "source_commit": "1fe5e8b15ffcb6208eff5e5483af24887dc661a7",
   "source_parent": "e625bb2678fb4624860ceb18c2413c28a02cc8ad",
   "main_merge": {
     "sha": "004eeac9aafd3d7cf7cc7b5e4fa29171776308fb",
@@ -285,5 +299,7 @@
     "tree": "d18888ef91c5398982c51316c54945895971c0b4",
     "tested_source_tree_preserved": true,
     "tree_equality_is_not_ancestry": true
-  }
+  },
+  "base_source_commit": "1fe5e8b15ffcb6208eff5e5483af24887dc661a7",
+  "mfa_continuation_followup": "selected native Guide App mode retains Guide next across cold MFA; inactive slot keeps baseline SERVICE routing"
 }

@@ -95,7 +95,9 @@ a command allow and GET never resolves UNKNOWN. No new Context authority engine.
 Explicit Guide login next is allowlisted exactly; hostile external next remains
 rejected. Login -> MFA setup/challenge -> Guide uses official Auth/MFA APIs only,
 not SERVICE or Platform-permission RPC. Actual MFA pages preserve that Guide next.
-Existing default SERVICE next/routing remains unchanged. This is navigation intent,
+The selected native Guide App mode also retains Guide intent across its own
+cold MFA redirect. With the Guide slot absent, existing SERVICE next/routing
+remains unchanged. This is navigation intent,
 not authority; all protected Guide requests recheck the actual current session.
 
 ## Source and shared-file impact
@@ -116,7 +118,7 @@ composed source. No accepted Core16/4 groups or previous CE suites execute.
 Only the App provider boundary, SDK and physical PG transport are MODELED; actual
 Next route exports, Core factory, CE auth/providers/host and React consumers run.
 
-Ten distinct targeted groups pass across scoped invocations:
+Eleven distinct targeted groups pass across scoped invocations:
 
 1. Actual draft POST + current GET invoke factory per original Request; a fake
    request field in provider options cannot replace it; canonical create/read.
@@ -138,6 +140,9 @@ Exact existing Next16.4.1/Zod4.6.6/TS5.9.3/Node24.19.0. Full unchanged ES5 typec
 scoped lint, syntax/diff and inventory checks are recorded in manifest. Initial
 harness loader/setup defects were corrected and only affected groups rerun; these
 failed attempts are not hidden native successes. No dependencies installed.
+
+11. Native Guide App cold MFA continuation retains Guide next in all3locales;
+    inactive Guide retains the baseline SERVICE default. No permission RPC.
 
 ## Native handoff stays OPEN
 

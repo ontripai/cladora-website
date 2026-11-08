@@ -78,4 +78,12 @@ await check('read-only Guide permission allows discovery/read but never creates 
  const response=await x.h.fetch(`/api/customer/v1/experience/guides?context_id=${ids.context}&workspace_id=${ids.workspace}`);assert.equal(response.status,200);const projection=await response.json();assert.equal(projection.can_manage,false);assert.equal(projection.can_create,false);
  const s=client.createCe012GuideCreatorV1({fetch:x.h.fetch,context_id:ids.context,workspace_id:ids.workspace,owner:()=>owner,denied:()=>{}});await assert.rejects(s.create(input));assert.equal(x.h.f.commits,0);assert.deepEqual(x.h.f.writes,[]);
 });
+await check('native Guide cold MFA continuation retains Guide intent; inactive Guide preserves SERVICE default',async()=>{const x=platform(),Layout=load('src/app/[lang]/app/layout.tsx').default;x.SDK.auth.mfa.listFactors=async()=>({data:{totp:[{status:'verified'}]},error:null});x.SDK.auth.mfa.getAuthenticatorAssuranceLevel=async()=>({data:{currentLevel:'aal1',nextLevel:'aal2'},error:null});
+ for(const lang of ['fa','en','ro'])await assert.rejects(Layout({params:Promise.resolve({lang}),children:null}),e=>typeof e.digest==='string'&&e.digest.includes(`/${lang}/mfa?next=app%2Fexperience%2Fguides`));
+ x.SDK.auth.mfa.listFactors=async()=>({data:{totp:[]},error:null});for(const lang of ['fa','en','ro'])await assert.rejects(Layout({params:Promise.resolve({lang}),children:null}),e=>typeof e.digest==='string'&&e.digest.includes(`/${lang}/mfa/setup?reason=customer_required&next=app%2Fexperience%2Fguides`));
+ x.SDK.auth.mfa.listFactors=async()=>({data:{totp:[{status:'verified'}]},error:null});
+ setProvider(null);const saved=process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE;process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE='core-service-real-app-assembly.v1';
+ try{await assert.rejects(Layout({params:Promise.resolve({lang:'en'}),children:null}),e=>typeof e.digest==='string'&&e.digest.includes('/en/mfa;')&&!e.digest.includes('experience/guides'));}finally{if(saved===undefined)delete process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE;else process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE=saved;}
+ assert.equal(x.observed.length,0);
+});
 console.log(JSON.stringify({task:'CE-GUIDE-NATIVE-01/CORE62-ROUTE-ADOPTION',groups:n,result:'PASS_CONTROLLED_ROUTE_COMPOSITION',native_platform_app_auth_pg_browser:'NOT_RUN_NOT_PASS',prior_core_ce_suites:'NOT_RERUN'}));
