@@ -187,3 +187,15 @@ no SERVICE file, public resolver, reservation store or authority provider change
 Add corresponding actual-factory coupling and fail-closed identity controls to
 scripts/test-core-authoring-agreement-r3.mjs. Missing durable preparation stays
 explicit; a controlled reservation in a test is not a native producer.
+
+## Independent Listing revision continuation (before edits)
+After separate Guide and S01 commits, the actual ownership source still has no
+stored revision; PF01 literal1 cannot support optimistic selected-binding checks.
+New Core-owned paths only:
+- supabase/proposals/core-listing-ownership-revision-v1.sql
+- scripts/test-core-listing-ownership-revision-v1.mjs
+- docs/core/domain-ports-01/listing-revision-r3/{README.md,manifest.json}
+Do not expose a canonical companion before writer/disclosure/source adoption.
+Proposal stays guarded55000/ROLLBACK; no target SQL or new grant/role is executed.
+Historical ownerships/party/member mappings, current evaluator, selectors and
+owner AIRPROP source remain byte-identical. No historical version backfill.
