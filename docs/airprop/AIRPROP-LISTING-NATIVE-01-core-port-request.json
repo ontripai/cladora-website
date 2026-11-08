@@ -7,9 +7,16 @@
   "core_offering_only_source_excluded_as_listing_authority": "4d15a37797fc9f0d5ef49565606e400e94f88d27",
   "existing_consumer": {
     "file": "src/lib/airprop/listing-native-read-v1.ts",
-    "symbols": ["createListingNativeReadV1", "ListingCanonicalProducerV1", "queryListingNativePageV1"],
+    "symbols": [
+      "createListingNativeReadV1",
+      "ListingCanonicalProducerV1",
+      "queryListingNativePageV1"
+    ],
     "scope": "CoreTransactionScopeV1 plus Core server actor/tenant/Context/Workspace; no browser ownership/allow input",
-    "current_producer_methods": ["bindSelector(scope,serverScope,ListingRow)->{request,authority}", "readCanonical(scope,serverScope,ListingRow,notBefore)->{core:{request,companion,authority},current_until}"],
+    "current_producer_methods": [
+      "bindSelector(scope,serverScope,ListingRow)->{request,authority}",
+      "readCanonical(scope,serverScope,ListingRow,notBefore)->{core:{request,companion,authority},current_until}"
+    ],
     "current_problem": "bindSelector expects a genuine command-only selector receipt. A read ID is not command authority. Consumer will be adapted to the real Core read ABI; no fake command receipt."
   },
   "read_selector": {
@@ -20,33 +27,103 @@
     "proposed_additive_symbol": "selectCurrentUnitPropertyForReadV1",
     "symbol_status": "REQUESTED_NOT_DELIVERED",
     "input": {
-      "trusted": ["same LIVE read scope", "opaque host-issued current observation", "actor/tenant/Context/Workspace/authority epoch/physical backend and transaction binding"],
-      "target": ["explicit property_id", "explicit unit_id", "expected resource/spec version when reconciling an existing selection", "exact selected party/relationship/version when reconciling"],
-      "not_allowed": ["client allow or role", "JSON-reconstituted observation", "first-Unit", "Property-as-Unit", "read UUID as command_id"]
+      "trusted": [
+        "same LIVE read scope",
+        "opaque host-issued current observation",
+        "actor/tenant/Context/Workspace/authority epoch/physical backend and transaction binding"
+      ],
+      "target": [
+        "explicit property_id",
+        "explicit unit_id",
+        "expected resource/spec version when reconciling an existing selection",
+        "exact selected party/relationship/version when reconciling"
+      ],
+      "not_allowed": [
+        "client allow or role",
+        "JSON-reconstituted observation",
+        "first-Unit",
+        "Property-as-Unit",
+        "read UUID as command_id"
+      ]
     },
-    "output": ["bounded accepted/withheld/stale decision", "exact current Unit->Property and resource/spec version", "current official resource/party/relationship reference and identity/version", "actual DB observation/checkpoint and real expiry bounds", "not reusable command authority"],
+    "output": [
+      "bounded accepted/withheld/stale decision",
+      "exact current Unit->Property and resource/spec version",
+      "current official resource/party/relationship reference and identity/version",
+      "actual DB observation/checkpoint and real expiry bounds",
+      "not reusable command authority"
+    ],
     "semantics": "Reuse existing canonical predicates/SHARE locks; preserve command selector unchanged. Cross-tenant/Workspace, wrong Unit/Property, revoked/expired relationship and version drift fail closed; same40001 propagates."
   },
   "read_host_and_admission": {
     "owner": "Core",
     "file": "src/lib/core/airprop-read-host-v1.ts",
-    "symbols": ["createCoreAirpropReadHostV1", "CoreAirpropReadHostV1.withScope", "CORE_READ_HOST_SQL"],
+    "symbols": [
+      "createCoreAirpropReadHostV1",
+      "CoreAirpropReadHostV1.withScope",
+      "CORE_READ_HOST_SQL"
+    ],
     "existing_return": "withScope(actorId,{context_id,workspace_id},callback)->{value,completed_at}",
     "current_admission": "Only exact owner Listing page and clock hashes; selector/canonical SQL is NOT admitted",
     "request": "Add only reviewed exact selector/canonical query texts and typed scoped parameters; no arbitrary SELECT capability, GUC or transaction control",
-    "required_queries": ["existing Unit->Property selector's canonical revision/scope/mandate/Unit/building/property closure", "reviewed canonical Unit/spec/party/relationship/label source and bounded discovery", "existing C01/current-session evaluator/expiry checkpoints after waits"],
+    "required_queries": [
+      "existing Unit->Property selector's canonical revision/scope/mandate/Unit/building/property closure",
+      "reviewed canonical Unit/spec/party/relationship/label source and bounded discovery",
+      "existing C01/current-session evaluator/expiry checkpoints after waits"
+    ],
     "clock": "Keep genuine same-backend completion after settlement. Statement-start time must not be relabelled as post-wait clock; no minted TTL or lease.",
-    "producer_owner": "AIRPROP composes the canonical evidence on the Core-admitted scope. Core owns evaluator/identity/currentness and exact source/admission contract."
+    "producer_owner": "AIRPROP composes the canonical evidence on the Core-admitted scope. Core owns evaluator/identity/currentness and exact source/admission contract.",
+    "current_exact_queries": [
+      {
+        "file": "src/lib/airprop/listing-native-read-v1.ts",
+        "symbol": "LISTING_NATIVE_PAGE_SQL",
+        "sha256": "ab4992773d4e4638a52f218b97252bcc509b92c56a0c667a43d680b9750387d2",
+        "parameters": "tenant_id,workspace_id,after_listing_id|null,limit1..100",
+        "admission": "EXISTING_SOURCE_HASH_MATCH_NOT_INSTALLED_PROOF"
+      },
+      {
+        "file": "src/lib/airprop/listing-native-read-v1.ts",
+        "symbol": "databaseTime / fixed clock SELECT",
+        "sha256": "d589c6582430f861e3bba1205ebcb81765a2f089f4cc4ef3187d47d191d0ef30",
+        "parameters": "none",
+        "admission": "EXISTING_SOURCE_HASH_MATCH_NOT_INSTALLED_PROOF"
+      }
+    ],
+    "additional_query_hashes": "UNOBSERVED_UNTIL_CORE_READ_SELECTOR_SOURCE_AND_CANONICAL_SQL_ARE_DELIVERED_AND_REVIEWED; old command-selector SQL admission is not permission to fabricate its command receipt"
   },
   "canonical_evidence": {
-    "existing_files": ["src/lib/core/resource-contracts-v1.ts", "src/lib/core/resource-authority-contract-v1.ts", "src/lib/core/owner-portfolio-projection-v1.ts", "src/lib/core/airprop-companion-mapping-v1.ts"],
+    "existing_files": [
+      "src/lib/core/resource-contracts-v1.ts",
+      "src/lib/core/resource-authority-contract-v1.ts",
+      "src/lib/core/owner-portfolio-projection-v1.ts",
+      "src/lib/core/airprop-companion-mapping-v1.ts"
+    ],
     "existing_mapper": "mapAirpropCoreCompanionV1",
     "required_mapper_input": "{request:CoreResourceAuthorityRequestV1,companion:ownerPortfolioCanonicalResourceV1,authority:WorkspaceNativeAuthorityDecisionV2}",
-    "required_real_data": ["explicit Unit/property/tenant/Workspace", "actual canonical resource/spec version", "authorized safe full label", "official selected party/kind", "official ownership/management/representation relationship id/version/status/validity", "real current authority evaluation at compatible observation time"],
-    "existing_sql": ["customer_api.resolve_canonical_resource_reference_v1(uuid,uuid,text,uuid,integer,text,text)", "customer_api.list_my_owner_portfolio_projections_v1(jsonb)"],
+    "required_real_data": [
+      "explicit Unit/property/tenant/Workspace",
+      "actual canonical resource/spec version",
+      "authorized safe full label",
+      "official selected party/kind",
+      "official ownership/management/representation relationship id/version/status/validity",
+      "real current authority evaluation at compatible observation time"
+    ],
+    "existing_sql": [
+      "customer_api.resolve_canonical_resource_reference_v1(uuid,uuid,text,uuid,integer,text,text)",
+      "customer_api.list_my_owner_portfolio_projections_v1(jsonb)"
+    ],
     "existing_sql_limits": "Unit resolver supports only core.units.identity.read/core.unit_identity.history; PF01 has a bounded owner-link projection, not universal Listing management/representation. Do not silently relabel its permission/purpose/time/version or use first Party.",
-    "read_profile": {"permission":"airprop.asset.read","module":"airprop_commercial","purpose":"airprop.portfolio.read"},
-    "actions_profile": {"permission":"airprop.opportunity.manage","module":"airprop_commercial","purpose":"airprop.b2","aal":"aal2"},
+    "read_profile": {
+      "permission": "airprop.asset.read",
+      "module": "airprop_commercial",
+      "purpose": "airprop.portfolio.read"
+    },
+    "actions_profile": {
+      "permission": "airprop.opportunity.manage",
+      "module": "airprop_commercial",
+      "purpose": "airprop.b2",
+      "aal": "aal2"
+    },
     "action_projection": "Explicit current per-row/action projection; read/not_evaluated/bridge availability is not manage authority",
     "discovery_separate_increment": "For create, return bounded CURRENT authorized named resource/Party options with cursor/order/limit<=100 and exact relation versions. Read-selector delivery can advance existing Listing read independently of discovery."
   },
@@ -55,23 +132,51 @@
     "existing_symbol": "createCoreFunctionalCommandRuntimeV1(...).host.execute",
     "existing_gate": "Fixed server Auth/current session, scoped pool/target and same C03 execute/replay host. Current withRequestScope/identity consumer is SERVICE-specific; no Offering permission alias for Listing.",
     "requested_listing_identity": "Request-local actor/tenant/membership/Context/Workspace/current authority revision on the exact Listing read/manage profile, reusable_as_authority=false; real execution reauthorizes after waits",
-    "required_command_binding": ["original command_id/transaction_id/key/body/fingerprint", "current actor/Context/Workspace", "explicit Unit/property/resource version", "selected Party/relationship/version", "exact Opportunity property binding for publish", "Listing id/expected version for lifecycle"],
+    "required_command_binding": [
+      "original command_id/transaction_id/key/body/fingerprint",
+      "current actor/Context/Workspace",
+      "explicit Unit/property/resource version",
+      "selected Party/relationship/version",
+      "exact Opportunity property binding for publish",
+      "Listing id/expected version for lifecycle"
+    ],
     "unknown": "Preserve original prepared command; do not resolve identity again to mint replacement IDs/epoch/key after UNKNOWN. Use existing C03 persisted command/receipt/replay with fresh reauthorization.",
     "domain_publication_adapter": "src/lib/airprop/listing-publication-v1.ts:prepareListingPublicationV1",
     "publication_adapter_status": "Pure owned native call preparation, NOT Core authority/producer or active API; original control wire unchanged",
-    "native_functions": ["customer_api.publish_airprop_listing_v1(uuid,uuid,uuid,uuid,uuid,text,timestamptz,timestamptz,text)", "customer_api.control_airprop_listing_v1(uuid,uuid,uuid,text,integer,timestamptz,timestamptz,text,text)"],
+    "native_functions": [
+      "customer_api.publish_airprop_listing_v1(uuid,uuid,uuid,uuid,uuid,text,timestamptz,timestamptz,text)",
+      "customer_api.control_airprop_listing_v1(uuid,uuid,uuid,text,integer,timestamptz,timestamptz,text,text)"
+    ],
     "existing_domain_gap": "market_listings stores explicit Unit/property/Opportunity but not selected Party/relationship/spec snapshot. AIRPROP must persist exact selected reference binding in the SAME C03 transaction; no inferred legacy Party/backfill and no parallel ownership registry.",
     "opportunity_note": "Existing Opportunity schema has no revision column; do not invent version1 or substitute a hash for a missing revision. Lock/recheck its existing id/tenant/Workspace/property binding.",
     "receipt": "Actual Core receipt and validated native domain result with same Listing id; GET/high version or local journal is not a commit receipt."
   },
   "platform": {
     "owner": "Platform",
-    "required": ["exact owned development backend/profile/FullSHA and capacity/case-budget readiness", "limited AIRPROP effective role/role graph with no BYPASSRLS/superuser/service_role", "exact schema/RPC/row-lock/ACL/RLS admission for canonical source and existing Listing writers", "persistent volume and restart/readback recipe", "permitted controlled Chromium path for setsockopt EPERM without sandbox bypass"],
+    "required": [
+      "exact owned development backend/profile/FullSHA and capacity/case-budget readiness",
+      "limited AIRPROP effective role/role graph with no BYPASSRLS/superuser/service_role",
+      "exact schema/RPC/row-lock/ACL/RLS admission for canonical source and existing Listing writers",
+      "persistent volume and restart/readback recipe",
+      "permitted controlled Chromium path for setsockopt EPERM without sandbox bypass"
+    ],
     "execution": "Coordinate shared runtime with Platform; do not infer its credentials/leases or reuse SERVICE target admission as AIRPROP admission",
     "production": "Excluded; no real customer/payment/message or new paid infrastructure"
   },
-  "delivery_order": ["read-compatible explicit Unit selector/evidence/admission", "bounded authorized source/Party discovery and exact C03 command identity", "AIRPROP source-binding/publish/lifecycle consumer and same-id durable readback", "Platform-run affected native matrix and independent Procedure acceptance"],
-  "acceptance": ["UI->API->DB publish/edit/withdraw/republish same Listing", "readback after reload and process restart", "foreign Workspace/Party and stale version denial", "revoke/expiry after waits", "concurrent exact-key retry/UNKNOWN without duplicate effect", "FA/EN/RO/RTL and pending custody"],
+  "delivery_order": [
+    "read-compatible explicit Unit selector/evidence/admission",
+    "bounded authorized source/Party discovery and exact C03 command identity",
+    "AIRPROP source-binding/publish/lifecycle consumer and same-id durable readback",
+    "Platform-run affected native matrix and independent Procedure acceptance"
+  ],
+  "acceptance": [
+    "UI->API->DB publish/edit/withdraw/republish same Listing",
+    "readback after reload and process restart",
+    "foreign Workspace/Party and stale version denial",
+    "revoke/expiry after waits",
+    "concurrent exact-key retry/UNKNOWN without duplicate effect",
+    "FA/EN/RO/RTL and pending custody"
+  ],
   "historical_request_acceptance": "PRESERVED_NOT_RERUN_UNLESS_AFFECTED",
   "automation": "نیازمند بررسی"
 }
