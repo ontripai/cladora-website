@@ -5,6 +5,9 @@ import { listingScopeSchema, listingViewSchema, listingSelectionSchema, listingA
 /** Server-only output from a canonical DW02/C01 read in its authorized scope.
  * No runtime implementation is claimed by this port. Never supply browser JSON here. */
 export type ListingSourceRead = (actorId: string, scope: ListingScope) => Promise<unknown>;
+export class ListingSourceReadUnavailable extends Error {
+  constructor(readonly reason: string) { super(reason); this.name = 'ListingSourceReadUnavailable'; }
+}
 const actionProjectionsSchema = z.array(z.strictObject({
     actor_id: z.string(), context_id: z.string(), workspace_id: z.string(), selection: listingSelectionSchema,
     action: z.enum(listingActions),

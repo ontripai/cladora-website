@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { LISTING_ACTOR_HEADER, listingCommandSchema, listingReadResponseSchema, listingScopeSchema, matchesListingReceipt, listingActions, unavailableListingActions, type ListingCommand } from './listing-flow-contract-v1';
-import { readListingFlow, type ListingSourceRead } from './listing-flow-read-v1';
+import { readListingFlow, ListingSourceReadUnavailable, type ListingSourceRead } from './listing-flow-read-v1';
 import { diligenceFailure, diligenceHeaders } from './diligence-route-response';
 import { hasTrustedMutationOrigin } from '../security/same-origin';
 import { isApplicationJson, parseJsonWithLimit } from '../security/request-body';
@@ -12,9 +12,9 @@ import type { AirpropB2Session } from './artifact-b2-api';
  * Replay must preserve original key/body and recheck current authority/resource/party.
  * No production bridge is provided or enabled by this source slice. */
 export type ListingControlBridge = (actorId: string, request: ListingCommand) => Promise<
-  { status: 'receipt'; value: unknown } | { status: 'denied' | 'conflict' | 'not_ready' | 'unknown_commit' }>;
+  { status: 'receipt'; value: unknown } | { status: 'denied' | 'unauthorized' | 'conflict' | 'not_ready' | 'unknown_commit' }>;
 export type ListingRuntimePorts = { read: ListingSourceRead | null; control: ListingControlBridge | null };
-export type ListingRuntimeResolver = (session: AirpropB2Session, scope: { context_id: string; workspace_id: string }) => Promise<ListingRuntimePorts | null>;
+export type ListingRuntimeResolver = (session: AirpropB2Session, scope: { context_id: string; workspace_id: string }, request: Request) => Promise<ListingRuntimePorts | null>;
 export function createListingFlowApi(composition: {
   session(): Promise<AirpropB2Session | null>;
   read: ListingSourceRead | null;
@@ -28,7 +28,7 @@ export function createListingFlowApi(composition: {
       try {
         const session = await composition.session();
         if (!session) return diligenceFailure('UNAUTHORIZED', 401);
-        const runtime = composition.resolveRuntime ? await composition.resolveRuntime(session, scope.data) : composition;
+        const runtime = composition.resolveRuntime ? await composition.resolveRuntime(session, scope.data, request) : composition;
         if (!runtime?.read) return diligenceFailure('LISTING_SOURCE_NOT_READY', 503);
         const listings = await readListingFlow(runtime.read, session.actor_id, scope.data);
         const connected = runtime.control !== null && session.aal === 'aal2';
@@ -37,7 +37,10 @@ export function createListingFlowApi(composition: {
         const value = listingReadResponseSchema.parse({ version: 2, ...scope.data, listings,
           can_edit: canEdit, connection: connected ? 'command_bridge' : 'read_only' });
         return NextResponse.json(value, { headers: { ...diligenceHeaders, [LISTING_ACTOR_HEADER]: session.actor_id } });
-      } catch { return diligenceFailure('LISTING_READ_UNAVAILABLE', 403); }
+      } catch (error) {
+        if (error instanceof ListingSourceReadUnavailable && ['HOST_NOT_READY', 'CANONICAL_PRODUCER_NOT_READY'].includes(error.reason)) return diligenceFailure('LISTING_SOURCE_NOT_READY', 503);
+        return diligenceFailure('LISTING_READ_UNAVAILABLE', 403);
+      }
     },
     async POST(request: NextRequest) {
       if (!hasTrustedMutationOrigin(request)) return diligenceFailure('BAD_ORIGIN', 403);
@@ -53,14 +56,15 @@ export function createListingFlowApi(composition: {
         const session = await composition.session();
         if (!session) return diligenceFailure('UNAUTHORIZED', 401);
         if (session.aal !== 'aal2') return diligenceFailure('MFA_REQUIRED', 403);
-        const runtime = composition.resolveRuntime ? await composition.resolveRuntime(session, { context_id: parsed.data.command.context_id, workspace_id: parsed.data.command.workspace_id }) : composition;
+        const runtime = composition.resolveRuntime ? await composition.resolveRuntime(session, { context_id: parsed.data.command.context_id, workspace_id: parsed.data.command.workspace_id }, request) : composition;
         if (!runtime?.control) return diligenceFailure('LISTING_COMMAND_NOT_READY', 503);
         const result = await runtime.control(session.actor_id, parsed.data);
         if (result.status === 'receipt') {
           if (!matchesListingReceipt(result.value, parsed.data)) return diligenceFailure('LISTING_RESULT_UNKNOWN', 502);
           return NextResponse.json(result.value, { status: 200, headers: diligenceHeaders });
         }
-        const [status, code] = result.status === 'denied' ? [403, 'LISTING_ACCESS_DENIED']
+        const [status, code] = result.status === 'unauthorized' ? [401, 'UNAUTHORIZED']
+          : result.status === 'denied' ? [403, 'LISTING_ACCESS_DENIED']
           : result.status === 'conflict' ? [409, 'LISTING_CONFLICT']
           : result.status === 'unknown_commit' ? [409, 'READBACK_REQUIRED'] : [503, 'LISTING_COMMAND_NOT_READY'];
         return diligenceFailure(String(code), Number(status));

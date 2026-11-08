@@ -6,9 +6,10 @@ import { resolve } from 'node:path';
 import ts from 'typescript';
 import React, { act } from 'react';
 import { JSDOM } from 'jsdom';
-import { fixture, sourceRow, id, scope, loader, actionProjection } from './lib/airprop-listing-flow-test-fixture.mjs';
+import { fixture, id, scope, loader } from './lib/airprop-listing-flow-test-fixture.mjs';
+import { createAirpropR2ReadFixture } from './lib/airprop-r2-test-fixture.mjs';
 const require = createRequire(import.meta.url), { NextRequest } = require('next/server');
-const load = loader({ 'server-only': {} }), { readListingFlow } = load('src/lib/airprop/listing-flow-read-v1.ts');
+const load = loader({ 'server-only': {} });
 let groups = 0;
 const check = async (name, run) => { await run(); console.log('PASS', ++groups, name); };
 const get = () => new NextRequest('https://cladora.test/api/customer/v2/airprop/listings?' + new URLSearchParams(scope));
@@ -48,43 +49,26 @@ if (!only || only === 'source') {
   });
 }
 if (!only || only === 'native') {
-  // Reuse the accepted SQL fixture SETUP ONLY. None of its earlier test cases run.
-  const text = readFileSync(new URL('./test-airprop-listing-native-read-04.mjs', import.meta.url), 'utf8');
-  const fixtureSource = text.slice(text.indexOf('function setup() {'), text.indexOf('\nlet count = 0;'));
-  assert.ok(fixtureSource.startsWith('function setup() {') && fixtureSource.trimEnd().endsWith('}'));
-  const native = load('src/lib/airprop/listing-native-read-v1.ts');
-  const binding = load('src/lib/airprop/listing-selected-binding-v1.ts');
-  const setup = new Function('sourceRow', 'id', 'scope', 'native', 'authorityPort', 'assert', 'time',
-    fixtureSource + '\nreturn setup;')(sourceRow, id, scope, native,
-    load('src/lib/core/current-authority-transaction-port-v1.ts'), assert, '2026-11-02T09:00:00.000000Z');
-  function nativeFixture(mode = 'bound') {
-    const f = setup(), row = sourceRow(), value = row.selected_binding.value;
-    const stored = { ...value, actor_id: id(3), spec_id: id(55), command_id: id(71), transaction_id: id(70),
-      command_key: 'original-command-01', wire_sha256: 'a'.repeat(64) };
-    if (mode === 'stale') stored.selection.resource_version = stored.spec_version = 3;
-    let reads = 0;
-    const originalQuery = f.sql.query;
-    f.sql.query = async (sql, values) => {
-      if (sql !== binding.LISTING_SELECTED_BINDING_READ_SQL) return originalQuery(sql, values);
-      f.calls.push({ text: sql, values }); reads++;
-      if (mode === 'serialization') throw Object.assign(Error('synthetic serialization'), { code: '40001' });
-      if (mode === 'legacy') return { rowCount: 0, rows: [] };
-      return { rowCount: 1, rows: [{ value: mode === 'invalid' ? { corrupt: true } : structuredClone(stored) }] };
-    };
-    const selection = value.selection;
-    f.producer.readCanonical = async () => ({ core: row.core, current_until: '2026-11-03T09:00:00Z',
-      action_projections: ['edit_listing', 'withdraw_listing', 'republish_listing'].map(a => actionProjection(row, id(3), selection, a)) });
-    return { ...f, reads: () => reads, read: () => native.createListingNativeReadV1(f.host, f.producer,
-      mode === 'unavailable' ? null : binding.readListingSelectedBindingV1)(id(3), scope) };
-  }
-  for (const state of ['bound', 'legacy', 'stale', 'invalid', 'unavailable']) await check('native-read/provider composition carries actual domain-reader result: ' + state, async () => {
-    const f = nativeFixture(state), rows = await readListingFlow(f.read, id(3), scope);
-    assert.equal(rows[0].binding_state, state); assert.equal(rows[0].actions.edit_listing, state === 'bound' ? 'allowed' : 'unavailable');
-    assert.equal(f.reads(), state === 'unavailable' ? 0 : 2);
-    assert.ok(f.calls.every(c => /^select\b/i.test(c.text.trim())));
+  // Core R2 intentionally rejects the old model's fabricated read scope. Use
+  // the actual host/selector now; no historical positive is relabelled as R2.
+  await check('R2 missing storage adoption keeps genuine authorized read available with no table probe', async () => {
+    const f = createAirpropR2ReadFixture();
+    const rows = await f.native.createListingNativeReadV1(f.host, f.producer)(id(3), scope);
+    const mapped = await f.load('src/lib/airprop/listing-flow-read-v1.ts').readListingFlow(async () => rows, id(3), scope);
+    assert.equal(mapped[0].binding_state, 'unavailable'); assert.equal(mapped[0].actions.edit_listing, 'unavailable');
+    assert.equal(f.x.calls.some(q => q.text.includes('listing_selected_bindings_v1')), false);
   });
-  await check('configured storage SQL40001 is propagated, never caught as a readable successful transaction', async () => {
-    const f = nativeFixture('serialization'); await assert.rejects(f.read(), e => e.code === '40001'); assert.equal(f.state.hostReturns, false);
+  await check('R2 configured binding storage cannot bypass closed Core SQL admission', async () => {
+    const f = createAirpropR2ReadFixture(), reader = f.load('src/lib/airprop/listing-selected-binding-v1.ts').readListingSelectedBindingV1;
+    await assert.rejects(f.native.createListingNativeReadV1(f.host, f.producer, reader)(id(3), scope), e => e.code === 'READ_QUERY_NOT_ADMITTED');
+    assert.equal(f.x.calls.some(q => q.text.includes('listing_selected_bindings_v1')), false);
+    assert.equal(f.x.calls.some(q => q.text === 'commit'), false);
+  });
+  await check('R2 read selector refuses copied/model scope instead of accepting fabricated command evidence', async () => {
+    const f = createAirpropR2ReadFixture(); let actual;
+    await f.host.withScope(id(3), scope, async s => { actual = s; return null; });
+    const select = f.load('src/lib/core/current-unit-property-read-selector-v1.ts').selectCurrentUnitPropertyForReadV1;
+    await assert.rejects(select({ ...actual }, { property_id: id(8), unit_id: id(9) }));
   });
 }
 

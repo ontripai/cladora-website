@@ -53,7 +53,17 @@
       "actual DB observation/checkpoint and real expiry bounds",
       "not reusable command authority"
     ],
-    "semantics": "Reuse existing canonical predicates/SHARE locks; preserve command selector unchanged. Cross-tenant/Workspace, wrong Unit/Property, revoked/expired relationship and version drift fail closed; same40001 propagates."
+    "semantics": "Reuse existing canonical predicates/SHARE locks; preserve command selector unchanged. Cross-tenant/Workspace, wrong Unit/Property, revoked/expired relationship and version drift fail closed; same40001 propagates.",
+    "core_r2": {
+      "source": "365d47b59d0cd0b5f7bb13604f1497c2104ed6e7",
+      "status": "OFFICIAL_READ_SELECTOR_CONSUMED",
+      "file": "src/lib/core/current-unit-property-read-selector-v1.ts",
+      "symbol": "selectCurrentUnitPropertyForReadV1",
+      "consumer": "src/lib/airprop/listing-native-read-v1.ts:selector",
+      "get_command_receipt": false,
+      "remaining": "Full canonical Party/relationship producer, source-family versioning and complete current_until are NOT_READY; selector ancestry/spec/scope_and_binding_until is not full companion evidence",
+      "supersedes": "Pre-R2 missing read-selector and bindSelector(command receipt) notes above"
+    }
   },
   "read_host_and_admission": {
     "owner": "Core",
@@ -174,7 +184,17 @@
       "documentation": "docs/airprop/AIRPROP-LISTING-SELECTED-BINDING-01.md",
       "receipt": "Deferred candidate assertion joins actual existing platform.idempotency_keys.response_ref/audit.events/platform.outbox_events in the SAME physical transaction; no receipt is minted. Source only; actual SQL/role/replay adoption requires review."
     },
-    "replay_remaining": "Core provider_current_state_required / validateReplay exists. Listing-specific canonical revalidation/admitted same-scope locks and aggregate/source/fingerprint agreement are NOT_DELIVERED. This child preserves original wire/key/UNKNOWN, and the UI checks bound current custody independently; it does not fabricate an accepted replay decision or treat GET as receipt."
+    "replay_remaining": "Core provider_current_state_required / validateReplay exists. Listing-specific canonical revalidation/admitted same-scope locks and aggregate/source/fingerprint agreement are NOT_DELIVERED. This child preserves original wire/key/UNKNOWN, and the UI checks bound current custody independently; it does not fabricate an accepted replay decision or treat GET as receipt.",
+    "core_r2": {
+      "source": "365d47b59d0cd0b5f7bb13604f1497c2104ed6e7",
+      "status": "OFFICIAL_COMMAND_BINDING_CONSUMED_CANONICAL_PROVIDER_NOT_READY",
+      "file": "src/lib/core/listing-command-binding-v1.ts",
+      "symbol": "createCoreListingCommandBindingV1",
+      "consumer": "src/lib/airprop/listing-runtime-binding-v1.ts:createListingRequestRuntimeResolverV1",
+      "request": "Exact original Request forwarded by actual Listing GET/POST API; command bind is POST-only",
+      "execution": "Only original prepared V1 command/providers, provider_current_state_required and exact original wire/key/fingerprint; no automatic resolveIdentity on retry",
+      "remaining": "Trusted canonical/prepared-control producer + source replay validation and aggregate/source/fingerprint agreement; no fake positive provider or new ledger"
+    }
   },
   "platform": {
     "owner": "Platform",
