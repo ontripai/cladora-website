@@ -12,7 +12,7 @@ import type { AirpropB2Session } from './artifact-b2-api';
  * Replay must preserve original key/body and recheck current authority/resource/party.
  * No production bridge is provided or enabled by this source slice. */
 export type ListingControlBridge = (actorId: string, request: ListingCommand) => Promise<
-  { status: 'receipt'; value: unknown } | { status: 'denied' | 'unauthorized' | 'conflict' | 'not_ready' | 'unknown_commit' }>;
+  { status: 'receipt'; value: unknown } | { status: 'denied' | 'unauthorized' | 'mfa_required' | 'conflict' | 'not_ready' | 'unknown_commit' }>;
 export type ListingRuntimePorts = { read: ListingSourceRead | null; control: ListingControlBridge | null };
 export type ListingRuntimeResolver = (session: AirpropB2Session, scope: { context_id: string; workspace_id: string }, request: Request) => Promise<ListingRuntimePorts | null>;
 type FailureCategory = 'auth' | 'denied' | 'unavailable';
@@ -109,6 +109,7 @@ export function createListingFlowApi(composition: {
           return NextResponse.json(result.value, { status: 200, headers: diligenceHeaders });
         }
         const [status, code] = result.status === 'unauthorized' ? [401, 'UNAUTHORIZED']
+          : result.status === 'mfa_required' ? [403, 'MFA_REQUIRED']
           : result.status === 'denied' ? [403, 'LISTING_ACCESS_DENIED']
           : result.status === 'conflict' ? [409, 'LISTING_CONFLICT']
           : result.status === 'unknown_commit' ? [409, 'READBACK_REQUIRED'] : [503, 'LISTING_COMMAND_NOT_READY'];

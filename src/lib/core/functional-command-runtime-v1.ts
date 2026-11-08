@@ -26,7 +26,8 @@ export const coreFunctionalDevelopmentTargetV1Schema=z.strictObject({
  database_oid:z.number().int().positive().safe(),runtime_role:role,auth_origin:z.string().url(),
 });
 export type CoreFunctionalDevelopmentTargetV1=z.infer<typeof coreFunctionalDevelopmentTargetV1Schema>;
-const claimsSchema=z.object({sub:uuid,session_id:uuid,aal:z.literal('aal2'),role:z.literal('authenticated'),exp:z.number().int().positive().safe()});
+const claimsSchema=z.object({sub:uuid,session_id:uuid,aal:z.enum(['aal1','aal2']),role:z.literal('authenticated'),exp:z.number().int().positive().safe()});
+type VerifiedAal2Claims=z.infer<typeof claimsSchema>&{aal:'aal2'};
 const commandSchema=z.union([coreTransactionCommandV1Schema,coreTransactionCommandV2Schema]);
 export class CoreFunctionalRuntimeUnavailableV1 extends Error {constructor(readonly code:string){super(code);this.name='CoreFunctionalRuntimeUnavailableV1';}}
 const leasePids=new WeakMap<PoolClient,number>();
@@ -92,12 +93,17 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
    :createClient(),10000);
   const [user,claimed]=await bounded(Promise.all([auth.auth.getUser(),auth.auth.getClaims()]),10000);
   const verifiedActor=user.data.user?.id;
-  if(user.error||claimed.error||!verifiedActor)return fail('AUTHENTICATION_REQUIRED');
-  const claims=claimsSchema.parse(claimed.data?.claims);
-  if(claims.sub.toLowerCase()!==verifiedActor.toLowerCase())fail('ACTOR_BINDING_MISMATCH');
-  return claims;
+  if(user.error||claimed.error||!uuid.safeParse(verifiedActor).success)return fail('AUTHENTICATION_REQUIRED');
+  const parsed=claimsSchema.safeParse(claimed.data?.claims);
+  if(!parsed.success)return fail('AUTHENTICATION_REQUIRED');
+  const claims=parsed.data;
+  if(claims.sub.toLowerCase()!==(verifiedActor as string).toLowerCase())fail('ACTOR_BINDING_MISMATCH');
+  // Only a verified, structurally valid, actor-matched session can need MFA.
+  // Never upgrade AAL1 to AAL2 or let it reach a pool checkout/dispatch.
+  if(claims.aal!=='aal2')return fail('MFA_REQUIRED');
+  return {...claims,aal:'aal2' as const};
  }
- function makeConnect(command:Pick<CoreTransactionCommandV1,'context_id'|'workspace_id'|'permission_code'|'module_code'|'authority_version'>|null,claims:z.infer<typeof claimsSchema>,state:{authorized:boolean;binding?:{workspace_id:string;tenant_id:string;membership_id:string}}){
+ function makeConnect(command:Pick<CoreTransactionCommandV1,'context_id'|'workspace_id'|'permission_code'|'module_code'|'authority_version'>|null,claims:VerifiedAal2Claims,state:{authorized:boolean;binding?:{workspace_id:string;tenant_id:string;membership_id:string}}){
   const connect=async()=>{
    state.authorized=false;assertPoolSelectors();const client=await options.pool.connect();
    const raw=client.query.bind(client);let leaseError:unknown,leaseFailed=false;
