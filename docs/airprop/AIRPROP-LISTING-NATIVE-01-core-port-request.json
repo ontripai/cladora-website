@@ -147,9 +147,17 @@
       "customer_api.publish_airprop_listing_v1(uuid,uuid,uuid,uuid,uuid,text,timestamptz,timestamptz,text)",
       "customer_api.control_airprop_listing_v1(uuid,uuid,uuid,text,integer,timestamptz,timestamptz,text,text)"
     ],
-    "existing_domain_gap": "market_listings stores explicit Unit/property/Opportunity but not selected Party/relationship/spec snapshot. AIRPROP must persist exact selected reference binding in the SAME C03 transaction; no inferred legacy Party/backfill and no parallel ownership registry.",
+    "existing_domain_gap": "SOURCE_IMPLEMENTED_INACTIVE: src/lib/airprop/listing-selected-binding-v1.ts plus supabase/proposals/airprop_listing_selected_bindings_v1.sql now persist the full selected reference/spec per Listing revision inside the supplied existing C03 mutate scope. Actual canonical producer, replay integration, limited-role storage/SQL adoption and native proof remain OPEN. No historical Party/spec/revision backfill.",
     "opportunity_note": "Existing Opportunity schema has no revision column; do not invent version1 or substitute a hash for a missing revision. Lock/recheck its existing id/tenant/Workspace/property binding.",
-    "receipt": "Actual Core receipt and validated native domain result with same Listing id; GET/high version or local journal is not a commit receipt."
+    "receipt": "Actual Core receipt and validated native domain result with same Listing id; GET/high version or local journal is not a commit receipt.",
+    "selected_binding": {
+      "source": "src/lib/airprop/listing-selected-binding-v1.ts",
+      "mutate_port": "CoreTransactionProvidersV1.mutate; createListingSelectedBindingMutatorV1",
+      "storage": "airprop.listing_selected_bindings_v1",
+      "status": "SOURCE_IMPLEMENTED_NOT_INSTALLED_NOT_NATIVE_VERIFIED",
+      "documentation": "docs/airprop/AIRPROP-LISTING-SELECTED-BINDING-01.md",
+      "receipt": "Deferred candidate assertion joins actual existing platform.idempotency_keys.response_ref/audit.events/platform.outbox_events in the SAME physical transaction; no receipt is minted. Source only; actual SQL/role/replay adoption requires review."
+    }
   },
   "platform": {
     "owner": "Platform",

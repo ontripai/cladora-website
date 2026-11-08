@@ -49,6 +49,15 @@ Two source facts must not be hidden:
 - Existing Opportunity has no revision column. Native publication checks its
   tenant/Workspace/property binding; do not invent a version or monetary fallback.
 
+Selected-tuple persistence successor is now implemented in
+`listing-selected-binding-v1.ts` with inactive candidate storage, exact existing
+Core mutate-port consumption and targeted controlled tests. See
+`AIRPROP-LISTING-SELECTED-BINDING-01.md`. This closes the absent domain storage
+SOURCE implementation, not its adoption/runtime gate. The candidate requires a
+real spec row, keeps immutable per-Listing-version reference history, and defers
+receipt linkage to the actual existing C03 ledger/audit/outbox at settlement.
+No historical Party/spec backfill or active route binding is inferred.
+
 ## Commands and evidence limits
 
 `node scripts/test-airprop-listing-publication-v1.mjs` — new pure intent/native
