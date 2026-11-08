@@ -65,13 +65,13 @@ export function actionProjection(row, actor, selection, action, allowed = true) 
 }
 export function fixture() {
   const load = loader(), contract = load('src/lib/airprop/listing-flow-contract-v1.ts');
-  const { readListingFlow } = load('src/lib/airprop/listing-flow-read-v1.ts');
+  const { readListingFlow, ListingSourceReadUnavailable } = load('src/lib/airprop/listing-flow-read-v1.ts');
   const { createListingFlowApi } = load('src/lib/airprop/listing-flow-api-v1.ts');
   const state = { row: sourceRow(), actor: id(3), aal: 'aal2', manage: true, readDenied: false, writes: 0, bridgeCalls: 0,
     ledger: new Map(), malformed: false, mode: 'normal' };
   const read = async (actor, selectedScope) => {
     assert.equal(actor, state.actor);
-    if (state.readDenied || selectedScope.context_id !== state.row.context_id || selectedScope.workspace_id !== state.row.workspace_id) throw Error('SYNTHETIC_DENIAL');
+    if (state.readDenied || selectedScope.context_id !== state.row.context_id || selectedScope.workspace_id !== state.row.workspace_id) throw new ListingSourceReadUnavailable('SCOPE_DENIED');
     const row = structuredClone(state.row);
     if (!Object.hasOwn(row, 'action_projections')) {
       const selection = (await readListingFlow(async () => [row], actor, selectedScope))[0].selection;

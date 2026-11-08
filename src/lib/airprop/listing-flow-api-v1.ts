@@ -15,6 +15,46 @@ export type ListingControlBridge = (actorId: string, request: ListingCommand) =>
   { status: 'receipt'; value: unknown } | { status: 'denied' | 'unauthorized' | 'conflict' | 'not_ready' | 'unknown_commit' }>;
 export type ListingRuntimePorts = { read: ListingSourceRead | null; control: ListingControlBridge | null };
 export type ListingRuntimeResolver = (session: AirpropB2Session, scope: { context_id: string; workspace_id: string }, request: Request) => Promise<ListingRuntimePorts | null>;
+type FailureCategory = 'auth' | 'denied' | 'unavailable';
+const authCodes = new Set(['AUTHENTICATION_REQUIRED', 'ACTOR_BINDING_MISMATCH']);
+const denialCodes = new Set(['SCOPE_DENIED', 'READ_SCOPE_DENIED', 'READ_SCOPE_FOREIGN']);
+const readUnavailableCodes = new Set(['HOST_NOT_READY', 'PRINCIPAL_PROFILE_NOT_READY', 'AUTHORITY_UNAVAILABLE',
+  'READ_HOST_TIMEOUT', 'READ_QUERY_NOT_ADMITTED', 'READ_CHECKPOINT_UNAVAILABLE']);
+const runtimeUnavailableCodes = new Set(['DEVELOPMENT_DATABASE_REQUIRED', 'DEVELOPMENT_TARGET_REQUIRED',
+  'POOL_BUDGET_REQUIRED', 'POOL_BINDING_MISMATCH', 'AUTH_TARGET_MISMATCH', 'RUNTIME_TIMEOUT']);
+function ownString(error: Error, key: string) {
+  const descriptor = Object.getOwnPropertyDescriptor(error, key);
+  return descriptor && 'value' in descriptor && typeof descriptor.value === 'string' ? descriptor.value : null;
+}
+/** Bounded status projection only. Message text, arbitrary driver codes and
+ * accessor-derived fields are not authentication or business-denial evidence.
+ * Load Core classes only for an actual candidate; ordinary domain HTTP handling
+ * does not acquire a runtime/host/session or create any capabilities. */
+async function knownFailure(error: unknown): Promise<FailureCategory | null> {
+  try {
+    if (!(error instanceof Error)) return null;
+    if (error instanceof ListingSourceReadUnavailable) {
+      const reason = ownString(error, 'reason');
+      if (reason === 'HOST_NOT_READY' || reason === 'CANONICAL_PRODUCER_NOT_READY') return 'unavailable';
+      if (reason && ['SCOPE_DENIED', 'SELECTOR_DENIED', 'CANONICAL_WITHHELD'].includes(reason)) return 'denied';
+      return null;
+    }
+    const code = ownString(error, 'code'), name = ownString(error, 'name');
+    if (!code) return null;
+    const category = authCodes.has(code) ? 'auth' : denialCodes.has(code) ? 'denied' : 'unavailable';
+    if (name === 'CoreReadHostUnavailableV1'
+      && (authCodes.has(code) || denialCodes.has(code) || readUnavailableCodes.has(code))) {
+      const { CoreReadHostUnavailableV1 } = await import('../core/airprop-read-host-v1');
+      return error instanceof CoreReadHostUnavailableV1 ? category : null;
+    }
+    if (name === 'CoreFunctionalRuntimeUnavailableV1'
+      && (authCodes.has(code) || denialCodes.has(code) || runtimeUnavailableCodes.has(code))) {
+      const { CoreFunctionalRuntimeUnavailableV1 } = await import('../core/functional-command-runtime-v1');
+      return error instanceof CoreFunctionalRuntimeUnavailableV1 ? category : null;
+    }
+    return null;
+  } catch { return null; }
+}
 export function createListingFlowApi(composition: {
   session(): Promise<AirpropB2Session | null>;
   read: ListingSourceRead | null;
@@ -38,8 +78,13 @@ export function createListingFlowApi(composition: {
           can_edit: canEdit, connection: connected ? 'command_bridge' : 'read_only' });
         return NextResponse.json(value, { headers: { ...diligenceHeaders, [LISTING_ACTOR_HEADER]: session.actor_id } });
       } catch (error) {
-        if (error instanceof ListingSourceReadUnavailable && ['HOST_NOT_READY', 'CANONICAL_PRODUCER_NOT_READY'].includes(error.reason)) return diligenceFailure('LISTING_SOURCE_NOT_READY', 503);
-        return diligenceFailure('LISTING_READ_UNAVAILABLE', 403);
+        const category = await knownFailure(error);
+        if (category === 'auth') return diligenceFailure('UNAUTHORIZED', 401);
+        if (category === 'denied') return diligenceFailure('LISTING_ACCESS_DENIED', 403);
+        if (category === 'unavailable') return diligenceFailure('LISTING_SOURCE_NOT_READY', 503);
+        // Unknown infrastructure/driver failure cannot assert an access denial.
+        // The host still owns discard/40001/settlement; no read value is released.
+        return diligenceFailure('LISTING_READ_UNAVAILABLE', 503);
       }
     },
     async POST(request: NextRequest) {
@@ -68,7 +113,15 @@ export function createListingFlowApi(composition: {
           : result.status === 'conflict' ? [409, 'LISTING_CONFLICT']
           : result.status === 'unknown_commit' ? [409, 'READBACK_REQUIRED'] : [503, 'LISTING_COMMAND_NOT_READY'];
         return diligenceFailure(String(code), Number(status));
-      } catch { return diligenceFailure('LISTING_RESULT_UNKNOWN', 502); }
+      } catch (error) {
+        const category = await knownFailure(error);
+        if (category === 'auth') return diligenceFailure('UNAUTHORIZED', 401);
+        if (category === 'denied') return diligenceFailure('LISTING_ACCESS_DENIED', 403);
+        if (category === 'unavailable') return diligenceFailure('LISTING_COMMAND_NOT_READY', 503);
+        // In particular raw40001/COMMIT-ACK errors remain uncertain here. Never
+        // manufacture a receipt, clear UNKNOWN or turn them into a definitive409.
+        return diligenceFailure('LISTING_RESULT_UNKNOWN', 502);
+      }
     },
   };
 }

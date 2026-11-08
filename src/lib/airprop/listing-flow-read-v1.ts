@@ -37,7 +37,7 @@ export async function readListingFlow(read: ListingSourceRead, actorId: string, 
       || !sameId(mapped.resource.workspace_id, scope.workspace_id) || !sameId(mapped.resource.tenant_id, row.tenant_id)
       || request?.resource?.permission_code !== 'airprop.asset.read' || request.resource.purpose !== 'airprop.portfolio.read'
       || mapped.resource.resource_type !== 'unit'
-      || !sameId(mapped.resource.resource_id, row.unit_id)) throw Error('LISTING_SOURCE_WITHHELD');
+      || !sameId(mapped.resource.resource_id, row.unit_id)) throw new ListingSourceReadUnavailable('SCOPE_DENIED');
     // Relationship identity/version/kind come from validated canonical evidence, not a form.
     const relationship = (row.core.companion as { relationship: { relationship_id: string; relationship_version: number; relationship_kind: string } }).relationship;
     const result = listingViewSchema.parse({
