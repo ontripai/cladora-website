@@ -1,0 +1,17 @@
+{
+  "schema": "service-shell-country-signal-fixture.v1",
+  "source_commit": "26e8b1eb0e753f8ec4a6a42d66180a12c8d49907",
+  "classification": "synthetic/test fixture",
+  "authority": "NONE",
+  "runtime_adoption": "NOT_READY",
+  "entries": [
+    {
+      "path": "scripts/test-real-authenticated-service-08.mjs",
+      "bytes": 76216,
+      "sha256": "ac1c4febb4b8fdf92b3e4919129aa870fe8d322bfa96528a4d26dfe2021eec71",
+      "git_blob": "57511d4682987624784f90919e2c6f3443c92537",
+      "classification": "synthetic/test fixture",
+      "reason": "Multilingual shell navigation and Romanian presentation checks with controlled data mention AIRPROP; these test literals neither select country nor grant jurisdiction or runtime authority."
+    }
+  ]
+}

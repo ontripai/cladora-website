@@ -1,0 +1,284 @@
+{
+  "format": "platform17-service-consumer-profile.v1",
+  "base": "29ed18541c602dae4e6db5c98a96201250af630b",
+  "authority": "owner TASK PLATFORM-SERVICE-CONSUMER-REHEARSAL-17; synthetic owned development only",
+  "target": "existing owned Platform12, private identity revalidated at each effect",
+  "host_ports": [],
+  "minimal_native_units": [
+    "foundation"
+  ],
+  "domain_order": [
+    "catalog",
+    "module-registry",
+    "request",
+    "service-v14",
+    "subject-validity",
+    "request-version",
+    "s01-store",
+    "canonical-sqlstate",
+    "session-authority-delegation",
+    "owner-execute-bindings",
+    "runtime-access"
+  ],
+  "core_source_pins": {
+    "docs/contracts/CORE-SERVICE-REAL-APP-ASSEMBLY-17.json": {
+      "bytes": 4421,
+      "sha256": "ba9bf3a9838d203315d705955e4f563cdb25c37c50a91fc05d27f97645d9a7c5"
+    },
+    "docs/contracts/CORE-SERVICE-REAL-APP-ASSEMBLY-17.md": {
+      "bytes": 15095,
+      "sha256": "e4984a128bdf7163ba912b2fe62b8b5286d4fd5f1462911af7c33a7c93334ee1"
+    },
+    "docs/testing/CORE-SERVICE-REAL-APP-ASSEMBLY-17.md": {
+      "bytes": 8683,
+      "sha256": "b7b97590c2fe250b74ca73c3f8dd2fca3167d07cbfac3d496f810e6f17612764"
+    },
+    "next.config.mjs": {
+      "bytes": 4052,
+      "sha256": "a426743cadeb5bea53478c579dc31fc40f46f49e26c37f772f76b0a6b7869888"
+    },
+    "scripts/bind-core-service-installer-17.mjs": {
+      "bytes": 792,
+      "sha256": "646bf4b8513c16ff8d6064a867bb01785f98bae0e84ef99e153d47927c092b68"
+    },
+    "scripts/check-core-service-assembly-17.mjs": {
+      "bytes": 4318,
+      "sha256": "f5b9a7390e8bcd30f81e297c39224b03c85bbffd713fde49a6dc773a8a578ca1"
+    },
+    "scripts/lib/core-installer-credential-binding-v1.mjs": {
+      "bytes": 5483,
+      "sha256": "6abe79b47b720ee19c8cbd2ac0425ff6a56e958d9df6a33825b202a583491e7d"
+    },
+    "scripts/lib/core-service-assembly-environment-v1.mjs": {
+      "bytes": 1488,
+      "sha256": "e18225bc814f3a250e661a5f9efa6850bc8716f6d473c08ab85ff10c01f48b13"
+    },
+    "scripts/lib/core15-ordinary-installer-profile-v3.mjs": {
+      "bytes": 3212,
+      "sha256": "803859ad75a68a7e602ee471e4eb5c3b1420bab1c7192e4e58400904b8596382"
+    },
+    "scripts/prepare-core-service-assembly-17-fixture.mjs": {
+      "bytes": 3396,
+      "sha256": "36d6eba5a754d66a863a123812b316856bf0a348c70e57738de9841c41acfefa"
+    },
+    "scripts/prepare-core-service-synthetic-fixture-v2.mjs": {
+      "bytes": 901,
+      "sha256": "6be8151364e48cb149f406bc689ef5b7a63b987f989bdd2d09c018501674adaa"
+    },
+    "scripts/prepare-core15-native-synthetic-auth-v1.mjs": {
+      "bytes": 4004,
+      "sha256": "4d6ae82385675e631c3b980260358d02421653e40de4f139ec4765c6c36f9b5f"
+    },
+    "scripts/prepare-core15-service-domain-v1.mjs": {
+      "bytes": 10233,
+      "sha256": "a6d87e50dd44b8ad7b721ce91216397cfd25571890d02dfb3ec293043222dbb7"
+    },
+    "scripts/prepare-core15-service-synthetic-fixture-v1.mjs": {
+      "bytes": 11709,
+      "sha256": "9d786d91072cd16cb0349e9f275d4d8f77eb148395ba4d73c17b611287771d07"
+    },
+    "scripts/prove-core-service-app-assembly-17.mjs": {
+      "bytes": 9300,
+      "sha256": "bb84e89c2cb7a87cdafbc79684ba897eca42018f6d1ebbf92aa24b3f7c398288"
+    },
+    "scripts/reauth-core-service-assembly-17.mjs": {
+      "bytes": 3913,
+      "sha256": "aab3ddf27197386ef11f62da500c58c15661e7270e0c786b86a397367045e807"
+    },
+    "scripts/run-core-service-app-assembly-17.mjs": {
+      "bytes": 3743,
+      "sha256": "16c15cccf686f8d775ba27a68cb6809ca3fbaa1b61d4805a88eb8eed1e90a2be"
+    },
+    "scripts/run-core-service-assembly-17-install.mjs": {
+      "bytes": 3174,
+      "sha256": "db1f136addf506cd3043990a101f8097f537916d6624a6cd7f1b7368dc449c21"
+    },
+    "scripts/run-core15-service-domain-v1.mjs": {
+      "bytes": 6075,
+      "sha256": "072bd7672b71f6aae4cc3e34eb4712ecf8c8f5c9c1993c18aebdefe4a0715a5f"
+    },
+    "scripts/run-core15-service-native-v3.mjs": {
+      "bytes": 11525,
+      "sha256": "8ec77569f16e8f899789d55f6f7cc438d1c0198c210dbefa24b400feb52b5e9e"
+    },
+    "scripts/run-core15-session-bootstrap.py": {
+      "bytes": 3455,
+      "sha256": "1121f729b282048fa798cc506fb4c7d15d46835b46a5ba6b43dd2b750c76a442"
+    },
+    "scripts/run-core15-session-owner-admission-v1.py": {
+      "bytes": 2704,
+      "sha256": "346670b10ec99a2609f6f8b4005a4e281371311b1e9ad24ef54cfc8e5bff2ab7"
+    },
+    "scripts/seal-core-service-assembly-17.mjs": {
+      "bytes": 7152,
+      "sha256": "402c52ddf54d8ca8b7eeed77c4ab28142004d7b7ab9b96b403a93a58f5ffd58e"
+    },
+    "scripts/test-core-installer-credential-binding-17.mjs": {
+      "bytes": 7964,
+      "sha256": "0cb65f2b68a9e0653ebb1a59a38133df7ef1335619f0caff9c54d06b288dc4ef"
+    },
+    "scripts/test-core-service-app-assembly-17.mjs": {
+      "bytes": 9389,
+      "sha256": "424e47d876f7f1c2434ee50778015962cb22a962ad4158e47aa16311e069e4ed"
+    },
+    "scripts/test-core-service-assembly-review-r1.mjs": {
+      "bytes": 7914,
+      "sha256": "c462e23b52a11fed8e95f3a4316c6a71be3c1432458bd044c66cfa71e7a0bf5f"
+    },
+    "scripts/verify-core-service-app-assembly-17.mjs": {
+      "bytes": 4020,
+      "sha256": "8ae02b25d72f3e05f362312351171e12b87963838b5e1819124f4d3c152b7d42"
+    },
+    "scripts/verify-core-service-installer-binding-17.mjs": {
+      "bytes": 2623,
+      "sha256": "34e11cd89f4554e2c539fb211d390371c192ffac318bb8e0e147ae93887ddfe8"
+    },
+    "scripts/write-core15-private-service-binding-v1.mjs": {
+      "bytes": 3762,
+      "sha256": "d9238a5b8c58fbdd1de609328e29fc84b6b23bd5d12e2147d485a60e2a3ee7e8"
+    },
+    "src/app/api/customer/v1/services/assembly-bootstrap/route.ts": {
+      "bytes": 373,
+      "sha256": "327790b1cea05beada33529c286cba592bf7872b902527532eb02f69bc451bc6"
+    },
+    "src/app/api/customer/v1/services/catalog/route.ts": {
+      "bytes": 4950,
+      "sha256": "212e8773998dcd0581081575549550b9448ea89d692cc05996da6393f236e435"
+    },
+    "src/app/api/customer/v1/services/requests/route.ts": {
+      "bytes": 3464,
+      "sha256": "ac228efc2340cf49bc2aa0e1bfe937b847712af6e894cf8dbc861bae068bbea2"
+    },
+    "src/lib/core/functional-command-runtime-v1.ts": {
+      "bytes": 24353,
+      "sha256": "c1461444af4baae11f40f62c03bcea86538bd6c91fe2846f300fc4511e0fded5"
+    },
+    "src/lib/core/private-service-development-binding-v1.ts": {
+      "bytes": 4060,
+      "sha256": "543e6dbb4120497737d5957f665505529e6100cc09c3969ca01b034347f41253"
+    },
+    "src/lib/core/service-app-read-v1.ts": {
+      "bytes": 2925,
+      "sha256": "5a7741338c20281473154829632e4d27fa8251b2d5e14913cf524bbc9fca0607"
+    },
+    "src/lib/supabase/env.ts": {
+      "bytes": 2759,
+      "sha256": "3d47d750e8b35d29f5a522b04b9b7761d4174c4a39bae1c9e8d097307277ad2d"
+    },
+    "supabase/hosted-service-v14-execution/forward.sql": {
+      "bytes": 15006,
+      "sha256": "b215663375d29ade089e60a1d84e0459919b21add895d8bd5cb2054372e37737"
+    },
+    "supabase/install/core-functional-runtime-v1/01-s01-store.sql": {
+      "bytes": 16609,
+      "sha256": "f7ed99779d1f69d18893392a1c593fe966086cc4adbfa838365a0c35f427ee0e"
+    },
+    "supabase/install/core-functional-runtime-v1/03-canonical-sqlstate.sql": {
+      "bytes": 57080,
+      "sha256": "4a10c4ad0002d0e98e8ccdfe8df8d90ef4772e9f06741548adb866d5de4c1c8e"
+    },
+    "supabase/install/core-functional-runtime-v1/04-session-bootstrap.sql": {
+      "bytes": 5788,
+      "sha256": "566f53876352618f4b74cd79ffe1b5a093ce788c165f020659bb7a6c0e8bdcb8"
+    },
+    "supabase/install/core-functional-runtime-v1/05-session-auth-owner.sql": {
+      "bytes": 5024,
+      "sha256": "0fc67958b6811a254603e3d4743e965288ede5d13c28fe8b6cb9825bad56ef4c"
+    },
+    "supabase/install/core-functional-runtime-v1/service-native-v3/06-session-authority-delegation.sql": {
+      "bytes": 3862,
+      "sha256": "8bf60e32e685fd5c8042bb287b2c76a0cc4085950e077d6d4fcebd862ef367d7"
+    },
+    "supabase/install/core-functional-runtime-v1/service-native-v3/07-runtime-access.sql": {
+      "bytes": 12669,
+      "sha256": "da89067ca7326cb27b4dea8a751cba47ae3c0c1e4df38ce79967fab57aec3d1c"
+    },
+    "supabase/install/core-functional-runtime-v1/service-native-v3/08-owner-execute-bindings.sql": {
+      "bytes": 2158,
+      "sha256": "22d268ab5c0799666b5545f27296e1d93e743bbd211d9fe280aca995b58d52ca"
+    },
+    "supabase/install/core-functional-runtime-v1/service-native-v3/domain-manifest.json": {
+      "bytes": 5062,
+      "sha256": "f8bd859ef411d521ae7220b2980ae1e2aa3f29578296d0480493582ca2a4c89e"
+    },
+    "supabase/install/core-functional-runtime-v1/service-native-v3/installer-prerequisites.sql": {
+      "bytes": 3564,
+      "sha256": "70b17acd04727287038078ac67785df31d73c32e667be5ec63da56724886511c"
+    },
+    "supabase/install/core-functional-runtime-v1/service-native-v3/manifest.json": {
+      "bytes": 4332,
+      "sha256": "61f7b69b90a96ed177a7db84ec7a9ddbd4120e20ec5595325b750fa504f0907a"
+    },
+    "supabase/install/core-service-app-assembly-v1/catalog-compatibility.sql": {
+      "bytes": 2260,
+      "sha256": "f62aed9a62d38751195d9add4eecc90d8ebcb52cc230f428ec927c507bf7dbfc"
+    },
+    "supabase/install/core-service-app-assembly-v1/manifest.json": {
+      "bytes": 22461,
+      "sha256": "4e8972cef4cff39cb707ab1dca8613c4c23089e178a7658a7dbcd3f597050a4f"
+    },
+    "supabase/install/core-service-app-assembly-v1/read-access.sql": {
+      "bytes": 5552,
+      "sha256": "4cfcc66ee261f208f6ec7abca5512582d52e1190ca539ee052f57209d7103539"
+    },
+    "supabase/migrations/20260829005200_customer_occupancy_parties_ownership_lease_registry.sql": {
+      "bytes": 26722,
+      "sha256": "1b78c4f78f1ee9d5aae4a8d8001d1056a6c97b4d642d26165f754680e9c38b56"
+    },
+    "supabase/migrations/20260917120000_workspace_dynamic_composition.sql": {
+      "bytes": 64157,
+      "sha256": "5d96ea037185f6a4b302455cd060ff598cac6435d05ce97e89d2e6c9d41189a6"
+    },
+    "supabase/migrations/20261003200211_20261003141918_service_catalog_persistence_v1.sql": {
+      "bytes": 21639,
+      "sha256": "64090bf0948e7f4b01188df9c81704a5af7a4a24dfbfa7ada3ed9a5ccebb4293"
+    },
+    "supabase/migrations/20261004182557_20261004181358_service_request_persistence_v1.sql": {
+      "bytes": 11755,
+      "sha256": "dde8935e1568c9def4a0f743fe871ce5c265118a87c00e658d8162a4bb387db6"
+    },
+    "supabase/migrations/20261013062342_service_request_subject_context_v1.sql": {
+      "bytes": 6001,
+      "sha256": "c8555ccaacd3964c7667d82bcbe904619fdda697a2e37f44870242c8cbc58e04"
+    }
+  },
+  "core300_manifest_sha256": "94543e82513461f808037fdbfcb6c3d51531f4d826e82155a8844ace15929822",
+  "runtime_closure_sha256": "43788c33970ff6ce06a81fbe86ec43566ad5bc7aab34430830057ef923d71864",
+  "runtime": {
+    "node": "v24.19.0",
+    "pg": "8.23.0",
+    "supabase": "2.112.4",
+    "ssr": "0.12.5",
+    "packages": 25,
+    "files": 845,
+    "install": false
+  },
+  "blocked_fixture": {
+    "producer": "service-native-v3/installer-secret.json",
+    "consumer": "explicit v3 binding in prepare-core-service-synthetic-fixture-v2.mjs",
+    "status": "CLOSED_SOURCE_BY_ACCEPTED_EE883B6_NATIVE_NOT_RUN",
+    "forbidden": [
+      "credential copy",
+      "historical credential alias/symlink",
+      "rotate existing credential",
+      "fake v2 receipt",
+      "fixture replay"
+    ]
+  },
+  "Storage_ACL_R2": "NOT_AUTHORIZED",
+  "reproduction": "each Seat has its OWN stack/private identity, synthetic users and runtime credential; localhost never denotes another Seat",
+  "accepted_core_successor": "ee883b62cf4a318af3450c506931a969623b8987",
+  "Core_admission": "Owner explicitly authorizes continuation with source-accepted ee883b6; native is separate",
+  "toolchain": {
+    "node": {
+      "bytes": 125989464,
+      "sha256": "bc17c508ffeed0ec622934f9b7fa72f8e78da65350e63c3eceb56fa688aa5e12"
+    },
+    "python": {
+      "bytes": 30894944,
+      "sha256": "fa67443527ed9647f760d807e2a38f26340757123e643c4639cf273ed15d5ea7"
+    }
+  },
+  "execution_location": "SERVICE application and browser run alongside this persistent backend; no cross-Seat tunnel/credential handoff",
+  "installer_generation": "v3"
+}

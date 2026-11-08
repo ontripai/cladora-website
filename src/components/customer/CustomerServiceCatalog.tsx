@@ -9,6 +9,8 @@ import { uuidSchema } from '@/lib/customer/workspace-composition-schema';
 import { serviceOfferingRevisionSchema } from '@/lib/customer/service-catalog-schema';
 import { CustomerServiceManagement } from './CustomerServiceManagement';
 import { CustomerServiceRequests } from './CustomerServiceRequests';
+import { useServiceRequestCustody, type ServiceRequestCustody } from '@/lib/customer/use-service-request-custody';
+import { sameServiceRequestCustodyScope, withServiceRequestCustodyScopes, type ServiceRequestCustodyScope } from '@/lib/customer/service-request-custody';
 import { CustomerServiceQuotes, serviceQuoteCopy } from './CustomerServiceQuotes';
 import { CustomerServiceQuotePublications, quotePublicationCopy } from './CustomerServiceQuotePublications';
 import { serviceManagementCopy } from '@/lib/customer/service-catalog-management-copy';
@@ -24,10 +26,30 @@ const accessCopy = {
   en: { session: 'Your session needs verification. Sign in again.', denied: 'Service access is unavailable in this workspace. Ask the workspace administrator to check your access.', check: 'Check access again' },
   ro: { session: 'Sesiunea necesită verificare. Autentifică-te din nou.', denied: 'Accesul la servicii nu este disponibil în acest spațiu. Solicită administratorului să verifice accesul.', check: 'Verifică din nou accesul' },
 };
+const recoveryCopy = {
+  en: { resume: 'Resume the pending request', blocked: 'The saved request cannot be safely restored. Sending is blocked; keep this tab for recovery.', missing: 'The pending request’s workspace is no longer available. Keep this tab and ask the workspace administrator to check access.' },
+  fa: { resume: 'ادامهٔ همان درخواست در انتظار', blocked: 'بازیابی امن درخواست ذخیره‌شده ممکن نیست؛ ارسال بسته است. این تب را برای بازیابی نگه دارید.', missing: 'فضای کاری درخواست در انتظار دیگر در دسترس نیست؛ این تب را نگه دارید و دسترسی را با مدیر فضای کاری بررسی کنید.' },
+  ro: { resume: 'Reia cererea în așteptare', blocked: 'Cererea salvată nu poate fi recuperată în siguranță. Trimiterea este blocată; păstrează această filă pentru recuperare.', missing: 'Spațiul cererii în așteptare nu mai este disponibil. Păstrează fila și solicită administratorului verificarea accesului.' },
+};
+const CORE_SERVICE_APP_READ_V1 = 'core-service-app-read.v1' as const;
 type LoadFailure = 'session' | 'denied' | 'retry';
 function classifyLoad(response: Response): LoadFailure { return response.status === 401 ? 'session' : [403, 404].includes(response.status) ? 'denied' : 'retry'; }
 function failureMessage(lang: Language, kind: LoadFailure) { return kind === 'session' ? accessCopy[lang].session : kind === 'denied' ? accessCopy[lang].denied : copy[lang].error; }
 const targetsSchema = z.strictObject({ workspaces: z.array(z.strictObject({ workspace_id: uuidSchema, workspace_type: z.string(), environment: z.string() })) });
+const assemblyBootstrapSchema = z.strictObject({
+  contract_version: z.literal(CORE_SERVICE_APP_READ_V1),
+  selections: z.array(z.strictObject({
+    context_id: uuidSchema,
+    membership_id: uuidSchema,
+    tenant_id: uuidSchema,
+    workspace_id: uuidSchema,
+    tenant_name: z.string().min(1),
+    role_code: z.string().min(1),
+    role_name: z.string().min(1),
+    workspace_type: z.string().min(1),
+    environment: z.string().min(1),
+  })),
+});
 const shape = serviceOfferingRevisionSchema.shape;
 const offeringsSchema = z.strictObject({ offerings: z.array(z.strictObject({ offering_id: uuidSchema, revision_id: uuidSchema,
   labels: shape.labels, description: shape.description, acquisition_mode: shape.acquisition_mode, price: shape.price,
@@ -37,14 +59,64 @@ const offeringsSchema = z.strictObject({ offerings: z.array(z.strictObject({ off
 })) });
 type Item = z.infer<typeof offeringsSchema>['offerings'][number];
 type Target = z.infer<typeof targetsSchema>['workspaces'][number];
+type AssemblySelection = z.infer<typeof assemblyBootstrapSchema>['selections'][number] & { custody_scope: ServiceRequestCustodyScope };
 
 export function CustomerServiceCatalog({ lang }: { lang: Language }) {
   const { active } = useCustomerContext();
   const t = copy[lang];
+  const assembly = process.env.NEXT_PUBLIC_CLADORA_OWNED_SERVICE_ASSEMBLY === 'v1';
   return <section dir={lang === 'fa' ? 'rtl' : 'ltr'} className="space-y-6">
     <header className="rounded-2xl border bg-white p-6"><h1 className="text-2xl font-bold text-[#102A43]">{t.title}</h1><p className="mt-2 text-sm text-[#52667A]">{t.subtitle}</p></header>
-    {active ? <WorkspaceChoice key={active.context_id} contextId={active.context_id} lang={lang} /> : <Notice text={t.noContext} />}
+    {assembly ? <AssemblyWorkspaceChoice lang={lang} />
+      : active ? <WorkspaceChoice key={active.context_id} contextId={active.context_id} lang={lang} /> : <Notice text={t.noContext} />}
   </section>;
+}
+function AssemblyWorkspaceChoice({ lang }: { lang: Language }) {
+  const fetch = useDashboardFetch();
+  const custody = useServiceRequestCustody(fetch);
+  const t = copy[lang];
+  const [selections, setSelections] = useState<AssemblySelection[] | null>(null);
+  const [selectedKey, setSelectedKey] = useState('');
+  const [selectionLocked, setSelectionLocked] = useState(false);
+  const [error, setError] = useState<LoadFailure | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    const controller = new AbortController();
+    void (async () => {
+      try {
+        const response = await fetch('/api/customer/v1/services/assembly-bootstrap', {
+          credentials: 'same-origin', cache: 'no-store', signal: controller.signal,
+        });
+        if (!response.ok) throw new Error(classifyLoad(response));
+        const data = assemblyBootstrapSchema.parse(await response.json());
+        const scoped = await withServiceRequestCustodyScopes(data.selections);
+        if (!controller.signal.aborted) setSelections(scoped);
+      } catch (reason) {
+        if (!controller.signal.aborted) setError(reason instanceof Error && ['session', 'denied'].includes(reason.message)
+          ? reason.message as LoadFailure : 'retry');
+      }
+    })();
+    return () => controller.abort();
+  }, [attempt, fetch]);
+  if (error) return <Notice text={failureMessage(lang, error)} retry={error === 'session' ? undefined : () => {
+    setError(null); setSelections(null); setSelectedKey(''); setAttempt(value => value + 1);
+  }} retryLabel={error === 'denied' ? accessCopy[lang].check : t.retry} />;
+  if (selections === null || custody.status === 'loading') return <Notice text={t.loading} />;
+  if (custody.status === 'blocked') return <Notice text={recoveryCopy[lang].blocked} />;
+  if (!selections.length) return <Notice text={t.noTargets} />;
+  const selected = selections.find(item => `${item.context_id}:${item.workspace_id}` === selectedKey);
+  const savedSelection = custody.record ? selections.find(item => sameServiceRequestCustodyScope(item.custody_scope, custody.record!.scope)) : null;
+  if (custody.record && !savedSelection) return <Notice text={recoveryCopy[lang].missing} />;
+  const savedKey = savedSelection ? `${savedSelection.context_id}:${savedSelection.workspace_id}` : '';
+  return <div className="space-y-5">{savedKey && selectedKey !== savedKey ? <button type="button" onClick={() => setSelectedKey(savedKey)} className="min-h-11 rounded-xl border bg-white px-4 py-2 font-semibold">{recoveryCopy[lang].resume}</button> : null}<label className="block rounded-2xl border bg-white p-4"><span className="mb-2 block text-sm font-semibold">{t.choose}</span>
+    <select aria-label={t.choose} value={selectedKey} disabled={selectionLocked || custody.record !== null} onChange={event => {
+      if (!selectionLocked && custody.record === null) setSelectedKey(event.target.value);
+    }} className="w-full rounded-xl border p-3">
+      <option value="">{t.choose}</option>{selections.map(item => {
+        const key = `${item.context_id}:${item.workspace_id}`;
+        return <option key={`${key}:${item.membership_id}`} value={key}>{item.tenant_name} — {item.role_name} · {item.workspace_type} · {item.environment}</option>;
+      })}
+    </select></label>{selected ? <Offerings key={`${selected.context_id}:${selected.workspace_id}:${custody.owner}`} contextId={selected.context_id} workspaceId={selected.workspace_id} lang={lang} custody={custody} custodyScope={selected.custody_scope} onCommandCustodyChange={setSelectionLocked} /> : null}</div>;
 }
 function WorkspaceChoice({ contextId, lang }: { contextId: string; lang: Language }) {
   const fetch = useDashboardFetch();
@@ -76,7 +148,7 @@ function WorkspaceChoice({ contextId, lang }: { contextId: string; lang: Languag
       <option value="">{t.choose}</option>{targets.map((target, index) => <option key={target.workspace_id} value={target.workspace_id}>{t.workspace} {index + 1}</option>)}
     </select></label>{selected ? <><div className="flex flex-wrap gap-3"><button type="button" aria-pressed={!manage && !quotes && !publication} onClick={() => { setManage(false); setQuotes(false); setPublication(null); }} className="rounded-xl border bg-white px-4 py-2 font-semibold">{t.title}</button><button type="button" aria-pressed={manage && !publication} onClick={() => { setManage(true); setQuotes(false); setPublication(null); }} className="rounded-xl bg-[#087A6E] px-4 py-2 font-semibold text-white">{serviceManagementCopy[lang].title}</button><button type="button" aria-pressed={quotes && !publication} onClick={() => { setQuotes(true); setManage(false); setPublication(null); }} className="rounded-xl border bg-white px-4 py-2 font-semibold">{serviceQuoteCopy[lang].title}</button>{(['coordinator','recipient'] as const).map(mode=><button key={mode} type="button" aria-pressed={publication===mode} onClick={()=>{setPublication(mode);setManage(false);setQuotes(false);}} className="rounded-xl border bg-white px-4 py-2 font-semibold">{quotePublicationCopy[lang][mode]}</button>)}</div>{publication ? <CustomerServiceQuotePublications contextId={contextId} workspaceId={selected} lang={lang} mode={publication}/> : quotes ? <CustomerServiceQuotes key={`${contextId}:${selected}`} contextId={contextId} workspaceId={selected} lang={lang} /> : manage ? <CustomerServiceManagement key={`${contextId}:${selected}`} contextId={contextId} workspaceId={selected} lang={lang} /> : <Offerings key={`${contextId}:${selected}`} contextId={contextId} workspaceId={selected} lang={lang} />}</> : null}</div>;
 }
-function Offerings({ contextId, workspaceId, lang }: { contextId: string; workspaceId: string; lang: Language }) {
+function Offerings({ contextId, workspaceId, lang, onCommandCustodyChange, custody, custodyScope }: { contextId: string; workspaceId: string; lang: Language; onCommandCustodyChange?: (held: boolean) => void; custody?: ServiceRequestCustody; custodyScope?: ServiceRequestCustodyScope }) {
   const fetch = useDashboardFetch();
   const t = copy[lang];
   const [items, setItems] = useState<Item[] | null>(null);
@@ -111,7 +183,7 @@ function Offerings({ contextId, workspaceId, lang }: { contextId: string; worksp
     </>}</div><details className="border-t pt-4"><summary className="cursor-pointer text-sm font-semibold text-[#087A6E]">{t.terms}</summary>
       <h3 className="mt-4 text-sm font-bold">{t.cancellation}</h3><p className="mt-1 whitespace-pre-line text-sm">{item.cancellation_terms[lang]}</p>
       <h3 className="mt-4 text-sm font-bold">{t.acceptance}</h3><p className="mt-1 whitespace-pre-line text-sm">{item.acceptance_criteria[lang]}</p>
-    </details></article>)}</div>}<CustomerServiceRequests contextId={contextId} workspaceId={workspaceId} lang={lang} offerings={items} onRefreshCatalog={refreshCatalog}/></>;
+    </details></article>)}</div>}<CustomerServiceRequests contextId={contextId} workspaceId={workspaceId} lang={lang} offerings={items} custody={custody} custodyScope={custodyScope} onRefreshCatalog={refreshCatalog} onCommandCustodyChange={onCommandCustodyChange}/></>;
 }
 function Notice({ text, retry, retryLabel }: { text: string; retry?: () => void; retryLabel?: string }) {
   return <div role="status" className="rounded-2xl border bg-white p-8 text-center text-sm text-[#52667A]">{text}{retry ? <button type="button" onClick={retry} className="ms-3 rounded-xl bg-[#0E9F8E] px-4 py-2 font-semibold text-white">{retryLabel}</button> : null}</div>;

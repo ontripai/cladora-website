@@ -6,13 +6,22 @@ import ts from 'typescript';
 
 const require = createRequire(import.meta.url);
 function load(path, mocks = {}) {
-  const filename = fileURLToPath(new URL(`../${path}`, import.meta.url));
-  const compiled = new Module(filename);
-  compiled.require = id => Object.hasOwn(mocks, id) ? mocks[id] : require(id);
-  compiled._compile(ts.transpileModule(readFileSync(filename, 'utf8'), { compilerOptions: {
-    module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022,
-  } }).outputText, filename);
-  return compiled.exports;
+  const cache = new Map();
+  function compile(url) {
+    if (cache.has(url.href)) return cache.get(url.href).exports;
+    if (url.pathname.endsWith('.json')) return JSON.parse(readFileSync(url, 'utf8'));
+    const filename = fileURLToPath(url);
+    const compiled = new Module(filename); cache.set(url.href, compiled);
+    compiled.require = id => Object.hasOwn(mocks, id) ? mocks[id]
+      : id === 'server-only' ? {}
+      : id.startsWith('@/') ? compile(new URL(`../src/${id.slice(2)}.ts`, import.meta.url))
+      : id.startsWith('.') ? compile(new URL(/\.(?:json|[cm]?[jt]sx?)$/.test(id) ? id : `${id}.ts`, url)) : require(id);
+    compiled._compile(ts.transpileModule(readFileSync(filename, 'utf8'), {fileName: filename, compilerOptions: {
+      module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022,
+    }}).outputText, filename);
+    return compiled.exports;
+  }
+  return compile(new URL(`../${path}`, import.meta.url));
 }
 const { NextRequest } = require('next/server');
 const schemas = load('src/lib/customer/workspace-composition-schema.ts');

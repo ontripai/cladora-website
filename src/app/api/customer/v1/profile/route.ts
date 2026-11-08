@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { hasTrustedMutationOrigin } from "@/lib/security/same-origin";
 import { isApplicationJson, parseJsonWithLimit } from "@/lib/security/request-body";
+import { isCoreServiceAssemblyProfile } from "@/lib/auth/post-auth-route";
 
 const headers = { "Cache-Control": "no-store, private", Vary: "Cookie" };
 const updateSchema = z.object({ display_name: z.string().trim().min(2).max(120) }).strict();
@@ -11,6 +12,33 @@ export async function GET() {
   const client = await createClient();
   const { data: user, error: authError } = await client.auth.getUser();
   if (authError || !user.user) return NextResponse.json({ error: { code: "UNAUTHORIZED" } }, { status: 401, headers });
+
+  const isAssembly = typeof isCoreServiceAssemblyProfile === "function"
+    ? isCoreServiceAssemblyProfile()
+    : process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE === "core-service-real-app-assembly.v1";
+
+  if (isAssembly) {
+    // Official SERVICE assembly profile: minimal real Auth identity display contract.
+    // Zero dependency on uninstalled customer_api.my_profile_v1 RPC.
+    const metadata = user.user.user_metadata as Record<string, unknown> | undefined;
+    const authDisplayName =
+      typeof metadata?.display_name === "string" && metadata.display_name.trim()
+        ? metadata.display_name.trim()
+        : typeof metadata?.full_name === "string" && metadata.full_name.trim()
+        ? metadata.full_name.trim()
+        : user.user.email ?? "";
+
+    const authLocale = typeof metadata?.locale === "string" && metadata.locale.trim() ? metadata.locale.trim() : null;
+    const authTimezone = typeof metadata?.timezone === "string" && metadata.timezone.trim() ? metadata.timezone.trim() : null;
+
+    return NextResponse.json({
+      email: user.user.email ?? "",
+      display_name: authDisplayName,
+      locale: authLocale,
+      timezone: authTimezone,
+    }, { headers });
+  }
+
   const { data: profile, error } = await client.schema("customer_api").rpc("my_profile_v1" as never);
   if (error) return NextResponse.json({ error: { code: "PROFILE_UNAVAILABLE" } }, { status: 500, headers });
   const own = profile as { display_name?: string; locale?: string; timezone?: string } | null;

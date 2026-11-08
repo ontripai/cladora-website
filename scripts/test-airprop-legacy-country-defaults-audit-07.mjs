@@ -269,10 +269,41 @@ const supplement=JSON.parse(read('docs/verification/CLADORA-V14-COUNTRY-SIGNAL-A
 assert.equal(supplement.official_manifest_blob,'3a52004d7281fac5f64780d00101c5daebdb3639');
 assert.equal(supplement.authority,'NONE');assert.equal(supplement.runtime_adoption,'NOT_READY');
 assert.equal(supplement.entries.length,5);
-const additions=supplement.entries.map(entry=>entry.path).sort();
+// The reviewed SERVICE shell test mentions AIRPROP navigation and Romanian
+// rendering. Keep it separate from the historical Platform264 packet and bind
+// its exact test bytes; unknown paths and mutations remain rejected.
+const shellFixturePath='docs/verification/SERVICE08-COUNTRY-SIGNAL-FIXTURE-01.json';
+assert.equal(createHash('sha256').update(readFileSync(shellFixturePath)).digest('hex'),
+ 'fca508d6181985a58fa9cc76c24384602a34e0fa127dfa71603ce40e5d0ea168');
+const shellFixture=JSON.parse(read(shellFixturePath));
+assert.equal(shellFixture.schema,'service-shell-country-signal-fixture.v1');
+assert.equal(shellFixture.source_commit,'26e8b1eb0e753f8ec4a6a42d66180a12c8d49907');
+assert.equal(shellFixture.authority,'NONE');assert.equal(shellFixture.runtime_adoption,'NOT_READY');
+assert.equal(shellFixture.classification,'synthetic/test fixture');
+assert.deepEqual(shellFixture.entries.map(entry=>entry.path),['scripts/test-real-authenticated-service-08.mjs']);
+const shellSuccessorPath='docs/verification/SERVICE08-COUNTRY-SIGNAL-FIXTURE-02.json';
+assert.equal(createHash('sha256').update(readFileSync(shellSuccessorPath)).digest('hex'),
+ 'f25cf83e65dec27077a804a29890f84451b475b1415fc62027b972842fb99378');
+const shellSuccessor=JSON.parse(read(shellSuccessorPath));
+assert.equal(shellSuccessor.schema,'service-shell-country-signal-fixture-successor.v1');
+assert.equal(shellSuccessor.previous_fixture,shellFixturePath);
+assert.equal(shellSuccessor.previous_fixture_sha256,createHash('sha256').update(readFileSync(shellFixturePath)).digest('hex'));
+assert.equal(shellSuccessor.source_commit,'79e2db9c42c61a217069f8e7412cc17179d720b3');
+assert.equal(shellSuccessor.source_tree,'e3eb47f6b56111e8a079122731697d15c10b7edd');
+assert.equal(shellSuccessor.authority,'NONE');assert.equal(shellSuccessor.runtime_adoption,'NOT_READY');
+assert.equal(shellSuccessor.classification,'synthetic/test fixture');
+assert.deepEqual(shellSuccessor.entries.map(entry=>entry.path),shellFixture.entries.map(entry=>entry.path));
+assert.equal(shellSuccessor.entries.length,1);
+const originalShell=shellFixture.entries[0],updatedShell=shellSuccessor.entries[0];
+assert.equal(updatedShell.before_bytes,originalShell.bytes);
+assert.equal(updatedShell.before_sha256,originalShell.sha256);
+const shellBytes=readFileSync(updatedShell.path);
+assert.equal(createHash('sha1').update(Buffer.concat([Buffer.from(`blob ${shellBytes.length}\0`),shellBytes])).digest('hex'),updatedShell.git_blob);
+const reviewedEntries=[...supplement.entries,...shellSuccessor.entries];
+const additions=reviewedEntries.map(entry=>entry.path).sort();
 assert.deepEqual(signalCandidates.filter(path=>!additions.includes(path)), expectedSignalCandidates);
 assert.deepEqual(signalCandidates.filter(path=>additions.includes(path)),additions);
-for(const entry of supplement.entries){
+for(const entry of reviewedEntries){
  const bytes=readFileSync(entry.path);assert.equal(bytes.length,entry.bytes);
  assert.equal(createHash('sha256').update(bytes).digest('hex'),entry.sha256);
  assert.ok(['presentation-only','synthetic/test fixture','dormant or superseded definition'].includes(entry.classification));

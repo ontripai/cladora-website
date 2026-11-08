@@ -96,7 +96,7 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
   if(claims.sub.toLowerCase()!==verifiedActor.toLowerCase())fail('ACTOR_BINDING_MISMATCH');
   return claims;
  }
- function makeConnect(command:Pick<CoreTransactionCommandV1,'context_id'|'workspace_id'|'permission_code'|'module_code'|'authority_version'>,claims:z.infer<typeof claimsSchema>,state:{authorized:boolean}){
+ function makeConnect(command:Pick<CoreTransactionCommandV1,'context_id'|'workspace_id'|'permission_code'|'module_code'|'authority_version'>|null,claims:z.infer<typeof claimsSchema>,state:{authorized:boolean}){
   const connect=async()=>{
    state.authorized=false;assertPoolSelectors();const client=await options.pool.connect();
    const raw=client.query.bind(client);let leaseError:unknown,leaseFailed=false;
@@ -111,7 +111,7 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
     backend=who.backend_pid;
    };
    try{await assertPrincipal();}catch(error){client.once('end',()=>client.removeListener('error',onError));client.release(true);throw error;}
-   const checkpoint=()=>raw(CORE_FUNCTIONAL_RUNTIME_SQL.checkpoint,[command.context_id,command.workspace_id,command.permission_code,command.module_code,command.authority_version]);
+   const checkpoint=()=>{if(command===null)return fail('READ_SCOPE_REQUIRED');return raw(CORE_FUNCTIONAL_RUNTIME_SQL.checkpoint,[command.context_id,command.workspace_id,command.permission_code,command.module_code,command.authority_version]);};
    const wrapped=new Proxy(client, {get(object,key){
     if(key==='query')return async(text:string,values:unknown[]=[])=>{
      if(typeof text!=='string')fail('WIRE_CONTRACT_MISMATCH');
@@ -121,8 +121,9 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
       if(normalized==='begin isolation level serializable'){
        const begin=await raw(text,values);if(begin.command!=='BEGIN')fail('BEGIN_ACK_INVALID');await assertPrincipal();
        await raw("set local lock_timeout='5s'");await raw("set local statement_timeout='10s'");
-       await raw(CORE_FUNCTIONAL_RUNTIME_SQL.identity,[JSON.stringify({...claims,active_context_id:command.context_id}),claims.sub,command.context_id,command.workspace_id]);
+       await raw(CORE_FUNCTIONAL_RUNTIME_SQL.identity,[JSON.stringify({...claims,active_context_id:command?.context_id??''}),claims.sub,command?.context_id??'',command?.workspace_id??'']);
        await raw(CORE_FUNCTIONAL_RUNTIME_SQL.session); // Real managed session row barrier, held to settlement.
+       if(command===null)return begin; // Own-selection discovery; no caller scope or allow.
        const resolved=await raw(CORE_FUNCTIONAL_RUNTIME_SQL.resolve,[command.context_id,command.workspace_id]);
        const binding=z.strictObject({workspace_id:uuid,tenant_id:uuid,membership_id:uuid}).parse(resolved.rows[0]);
        if(resolved.rowCount!==1||binding.workspace_id!==command.workspace_id)fail('SCOPE_DENIED');
@@ -225,8 +226,41 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
   finally{live=false;try{client.release(true);}catch(cleanup){if(!hasReadError)throw cleanup;
    if(typeof readError==='object'&&readError!==null){const prior=readFailures.get(readError);readFailures.set(readError,Object.freeze({settlement:prior?.settlement??'unknown',cleanup:'destroy_requested',rollback_error:prior?.rollback_error,cleanup_error:cleanup}));}}}
  };
+ /** Closed app reads use the same authenticated lease and canonical SQL gate.
+  * No caller query/callback, command lock, reservation or synthetic receipt.
+  */
+ const readServiceApp=async(kind:'selections'|'catalog'|'requests',input?:{context_id:string;workspace_id:string})=>{
+  if(!['selections','catalog','requests'].includes(kind)||(kind==='selections'&&input!==undefined))return fail('READ_KIND_NOT_ADMITTED');
+  const selected=kind==='selections'?null:z.strictObject({context_id:uuid,workspace_id:uuid}).parse(input);
+  const permission=kind==='catalog'?'services.catalog.read':'services.orders.read',moduleCode=kind==='catalog'?'services_catalog':'services_orders';
+  const claims=await authenticate(),state={authorized:false};
+  const command=selected?{...selected,permission_code:permission,module_code:moduleCode,authority_version:1}:null;
+  const client=await makeConnect(command,claims,state)();let settled=false,first:unknown;
+  try{
+   await client.query('begin isolation level serializable');
+   if(command){
+    const epoch=await client.query('select revision::text from app_private.canonical_authority_revision_v1 where singleton for share');
+    if(epoch.rowCount!==1)fail('READ_SCOPE_DENIED');command.authority_version=z.coerce.number().int().positive().safe().parse(epoch.rows[0].revision);
+    await client.query(CORE_FUNCTIONAL_RUNTIME_SQL.checkpoint,[command.context_id,command.workspace_id,permission,moduleCode,command.authority_version]);state.authorized=true;
+   }
+   const sql=kind==='selections'?'select app_private.list_core_service_selections_v1() as value'
+    :kind==='catalog'?'select customer_api.list_service_catalog_v1($1::uuid,$2::uuid) as value'
+     :'select customer_api.read_service_requests_v1($1::uuid,$2::uuid) as value';
+   const r=await client.query(sql,selected?[selected.context_id,selected.workspace_id]:[]);if(r.rowCount!==1)fail('READ_SOURCE_INVARIANT');
+   const value=structuredClone(r.rows[0].value);
+   // query proxy rechecks scoped authority after the RPC and before settlement.
+   // Discovery's SQL gate rechecks all returned tuples after its final row wait.
+   await client.query(CORE_FUNCTIONAL_RUNTIME_SQL.session);
+   const ack=await client.query('rollback');if(ack.command!=='ROLLBACK')fail('READ_ROLLBACK_UNKNOWN');settled=true;state.authorized=false;
+   const clock=await client.query(`select pg_backend_pid() as backend_pid,to_char(clock_timestamp() at time zone 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') as at`);
+   if(clock.rowCount!==1||clock.rows[0].backend_pid!==leasePids.get(client))fail('READ_CLOCK_UNAVAILABLE');
+   return{value,completed_at:z.iso.datetime({offset:true}).parse(clock.rows[0].at)};
+  }catch(error){first=error;let rollback_error:unknown;if(!settled)try{const ack=await client.query('rollback');settled=ack.command==='ROLLBACK';}catch(e){rollback_error=e;}
+   if(error!==null&&typeof error==='object')readFailures.set(error,Object.freeze({settlement:settled?'rolled_back':'unknown',cleanup:'destroy_requested',rollback_error}));throw error;
+  }finally{try{client.release(true);}catch(error){if(!first)throw error;}}
+ };
  const host=Object.freeze({contract_version:'core-transaction-host.v1' as const,execute}) as CoreTransactionHostV1;
- return Object.freeze({host,readers:producers.readers,withRequestScope,async verifyServerSession(){await authenticate();},contract:CORE_FUNCTIONAL_COMMAND_RUNTIME_V1});
+ return Object.freeze({host,readers:producers.readers,withRequestScope,readServiceApp,async verifyServerSession(){await authenticate();},contract:CORE_FUNCTIONAL_COMMAND_RUNTIME_V1});
 }
 /** No query runner is exported. Row type import preserves the real pg ABI. */
 export type CoreFunctionalRuntimeRowV1=QueryResultRow;

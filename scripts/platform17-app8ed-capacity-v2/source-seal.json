@@ -1,0 +1,66 @@
+{
+  "contract": "platform17.app8ed-controller.source-seal.v2",
+  "source_base": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119",
+  "files": [
+    {
+      "path": "scripts/platform17-app8ed-capacity-v2/controller.py",
+      "bytes": 13015,
+      "sha256": "34019b8d1ff154a7801f9dfecf55bc74da025575ac1390291dd901352e22aede"
+    },
+    {
+      "path": "scripts/platform17-app8ed-capacity-v2/host.py",
+      "bytes": 35665,
+      "sha256": "95769e06c55787180111c67ed82064367c20e8bb7b4182d2b23bf636e7e1e323"
+    },
+    {
+      "path": "scripts/platform17-app8ed-capacity-v2/contract.md",
+      "bytes": 7245,
+      "sha256": "00b1e9756ebf52e9fa943c440f331f924d067d70a01de13dff07295240072ff9"
+    },
+    {
+      "path": "scripts/platform17-app8ed-capacity-v2/request.template.json",
+      "bytes": 2195,
+      "sha256": "a2347437176cb66d3b90ef6b75d133a5b60d72be7a4c01d30ff031a4ff02a5d5"
+    },
+    {
+      "path": "scripts/platform17-app8ed-capacity-v2/registry.template.json",
+      "bytes": 82,
+      "sha256": "f642f30218803f2beca1d69e55175d8e804d78cd2faedbd9e9cc3087df1bcbfc"
+    },
+    {
+      "path": "tests/platform17-app8ed-capacity-v2/test_controller.py",
+      "bytes": 33717,
+      "sha256": "f83e034143f49dd34a6e7675238e5747af1108282f65224d8fbf7b74328b11e3"
+    },
+    {
+      "path": "scripts/platform17-app8ed-capacity-v2/resume.py",
+      "bytes": 9392,
+      "sha256": "09e776ae816d303b1ff65554f90110ad1f0930f1081a0bf90f5e7aa639071254"
+    },
+    {
+      "path": "scripts/platform17-app8ed-capacity-v2/listen-observer.mjs",
+      "bytes": 3414,
+      "sha256": "9f187b6cef368a78d287348d07570e1b9a0686ac05d7bdebb802741157c56e3b"
+    },
+    {
+      "path": "scripts/platform17-app8ed-capacity-v2/observation-probe.mjs",
+      "bytes": 2647,
+      "sha256": "842bb82d94a0d274ec27a3e3063a462a2a9c357010f11b37899abbfa4992eeac"
+    },
+    {
+      "path": "tests/platform17-app8ed-capacity-v2/test_resume.py",
+      "bytes": 24286,
+      "sha256": "34fd5ebd1d1cb93627d2691f67dea35bafdb6fe0aa403d00f565813b2972db18"
+    },
+    {
+      "path": "scripts/platform17-app8ed-capacity-v2/prepare.py",
+      "bytes": 6676,
+      "sha256": "d778209751783953f06b560675e53193eee20a200a9fe4caebdceec84df1d90a"
+    },
+    {
+      "path": "tests/platform17-app8ed-capacity-v2/test_scope_adoption.py",
+      "bytes": 10340,
+      "sha256": "b07512508f0f38985a78e6c1c0146e93d3ca84bbedc916d90b2eef8d20f0d98b"
+    }
+  ]
+}

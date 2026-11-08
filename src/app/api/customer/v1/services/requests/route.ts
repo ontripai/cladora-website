@@ -1,3 +1,4 @@
+import {coreServiceAppReadV1} from '@/lib/core/service-app-read-v1';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { uuidSchema } from '@/lib/customer/workspace-composition-schema';
@@ -17,6 +18,7 @@ function rpcFailure(code: string) {
   return failure('SERVICE_QUERY_FAILED', 500);
 }
 export async function GET(request: NextRequest) {
+  const assembly=await coreServiceAppReadV1(request,'requests');if(assembly)return assembly;
   const query = request.nextUrl.searchParams;
   const context = uuidSchema.safeParse(query.get('context_id'));
   const workspace = uuidSchema.safeParse(query.get('workspace_id'));

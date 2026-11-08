@@ -1,0 +1,29 @@
+{
+  "schema": "ce-benefit-handoff-service-custody-successor.v1",
+  "previous_service_successor": "docs/verification/CE-BENEFIT-HANDOFF-SERVICE-SUCCESSOR-02.json",
+  "previous_service_successor_sha256": "6e50e7f95719d897068d9bb9c884ea255f74ea6dff2bf1849ecb78780762a954",
+  "source_commit": "79e2db9c42c61a217069f8e7412cc17179d720b3",
+  "source_tree": "e3eb47f6b56111e8a079122731697d15c10b7edd",
+  "source_prerequisite": "e5fe6eabd3a0d77128f0863b7a5ac9ce35535436",
+  "classification": "SOURCE_AND_CONTROLLED_ACCEPTANCE_NOT_NATIVE_ACCEPTANCE",
+  "native_browser": "NOT_RUN_NOT_PASS",
+  "scope": "Same-tab SERVICE pending custody and opaque selection continuity. Historical CE inventory, copy, funding/benefit boundaries and earlier successor remain immutable.",
+  "changes": [
+    {
+      "path": "src/components/customer/CustomerServiceCatalog.tsx",
+      "before_sha256": "f931b78722973c63c1520cefe5e1c24268d527c13ca9a4a0e5224be82d10403f",
+      "after_bytes": 20517,
+      "after_sha256": "46f0b68816c7c11c70f223d486f62afebdc2155d596c8ee4cdb6fce1915cf491",
+      "source_commit": "79e2db9c42c61a217069f8e7412cc17179d720b3",
+      "source_git_blob": "e50ad0e716290ac8972bde5d0bdf7a74cbd6e545"
+    },
+    {
+      "path": "src/components/customer/CustomerServiceRequests.tsx",
+      "before_sha256": "a2b1c51e4751792a170ea6c87ac5e1651ca29e7aea0959a8374c036184ba3c5d",
+      "after_bytes": 25168,
+      "after_sha256": "8ee07ac782653c6b6ff2d7e88f146c838fbbae129ffb4172d3c31fc8b22633d6",
+      "source_commit": "79e2db9c42c61a217069f8e7412cc17179d720b3",
+      "source_git_blob": "913058b183c18b0df58fc9417d1edd7020bc29ca"
+    }
+  ]
+}

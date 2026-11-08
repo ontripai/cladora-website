@@ -1,0 +1,14 @@
+{
+  "contract": "platform17.relay-cors-source-seal.v2",
+  "files": {
+    "cors_policy.py": "dc2cf2e9de9e0fa911241b039dcbada5919bc6e3b9031a9a63ea59eed135ecaa",
+    "profile.json": "c18240593c5830a2a7d7932a3e94197bbb01d34686e10422e4ac20dfaed0df3b",
+    "relay_v2.py": "8a9843e1478c682e23fca406fa153c00ab3dfbc6d86eb9f5f52061ed0b1c1716",
+    "transition.py": "d17d5ff060cabe9ee6f5c1f4b2be73e70d85c2f85d449030a3b23ed877765474",
+    "test_cors_v2.py": "778e1cd7f15980877f307050c27966b5647bc3fe00afdaab378d34a07d632d14",
+    "CONTRACT.md": "221b7b598652f63307d41b8c1eff0a2bc84492f4d26a6a6d580c181800f5f3ed",
+    "activation-binding.template.json": "5458b6db593da975a5e09f28971dfe88527771ff62303c801f4f10d862619971",
+    "sdk-source-pins.json": "43c34788277e20c8facfddf3217acb5dfe9576f398d5014108f912fc00b0f54e"
+  },
+  "sha256": "d027ca71ccfdb4b572e97f3532a329803051f84f7593a8cdcbd6803df82709bf"
+}

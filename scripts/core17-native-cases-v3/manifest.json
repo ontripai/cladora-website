@@ -1,0 +1,671 @@
+{
+  "contract": "core17.coordinator206.native-case-source.v3",
+  "source_parent": "2d19e0669e10fdddf2b8ee2d1309d6e4d3b2f084",
+  "FullSHA": "CONTAINING_COMMIT",
+  "App": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119",
+  "App_tree": "6a660dc056e73dc547d9fd6b12fc0d83eca66ea2",
+  "App_build": "AupRkr1rvWViv-w3ffC4f",
+  "installed_core": "ee883b62cf4a318af3450c506931a969623b8987",
+  "profile": "core-service-real-app-assembly.v1",
+  "read_abi": "core-service-app-read.v1",
+  "source_only": true,
+  "runtime_activation": null,
+  "native": "NOT_RUN_NOT_PASS",
+  "input_packet": {
+    "bytes": 284974,
+    "sha256": "9ba4b31fc335e3bd3f050f7d59bf8ec2f5f7d3d5d922436ffda19f86c65d85b4",
+    "report_bytes": 18557,
+    "report_sha256": "98fe7efd0dd28eff165731ac920cf1b051ff7f5af19c4aa847c793f8c72fcdba",
+    "verified_files": 84,
+    "prior_53_controls": "NOT_REPEATED"
+  },
+  "operator_sources": [
+    {
+      "path": "scripts/core17-native-cases-v3/README.md",
+      "bytes": 17028,
+      "sha256": "a1c21d3e19270a7079c6531ab67d04c4eb60b48adf5297f2bad57473ad1d55e3",
+      "git_blob": "9f72b2abdccd45655ae07eedfbd90daaf917802c"
+    },
+    {
+      "path": "scripts/core17-native-cases-v3/case-contracts.json",
+      "bytes": 5120,
+      "sha256": "67f9d8ad03d864c4ee51c4098727fbfbaaf115259116742fab2fe28659c77c68",
+      "git_blob": "7760e18ddb96fb56b4e4178b810e644062733da3"
+    },
+    {
+      "path": "scripts/core17-native-cases-v3/cases.mjs",
+      "bytes": 15727,
+      "sha256": "d4b8b79e3bca9b53e402d58ae3fc7ac8115cef579f10d4c0fd454955d1d651b7",
+      "git_blob": "ba4db4f599c1a27e7d92422ce7c9303568dcdf8f"
+    },
+    {
+      "path": "scripts/core17-native-cases-v3/check.mjs",
+      "bytes": 3147,
+      "sha256": "7731287952bfe24abd9ed3a0a4e0e8bf75f2f286c1ec0fb59d392975c4f61006",
+      "git_blob": "2e0181d4d93de278ef2f5b193e498e528a1b8d8d"
+    },
+    {
+      "path": "scripts/core17-native-cases-v3/cli.mjs",
+      "bytes": 2311,
+      "sha256": "dd720f1745c82cf5bcafe706ec3a466e67bbc08ab91fa2317fb8c653db3ff642",
+      "git_blob": "0a6188fd716ba17c56d07e796735c9beff1a8571"
+    },
+    {
+      "path": "scripts/core17-native-cases-v3/contract.mjs",
+      "bytes": 8051,
+      "sha256": "353304e2c2701ee5bbb832a18b3cff6b0faa9d74409ab6a7dbffcc3daed5a94d",
+      "git_blob": "8c73243d30c7df40223fee39496d41dec7bc37de"
+    },
+    {
+      "path": "scripts/core17-native-cases-v3/current-process-hook.mjs",
+      "bytes": 10322,
+      "sha256": "2db0b61f3433f070cdf0550dfb9aa37224e3c0c7ac32e34a522eabc921d9c55b",
+      "git_blob": "ab66430fa9df1e937f04e5c0248147245e628b5e"
+    },
+    {
+      "path": "scripts/core17-native-cases-v3/fixture.mjs",
+      "bytes": 8233,
+      "sha256": "0c9e7c8420a059ae122a5590da319ed6eec7ac0021145b77157851a73f348407",
+      "git_blob": "630e9d9e3940c0272ab10694db509598cb69de6c"
+    },
+    {
+      "path": "scripts/core17-native-cases-v3/hook-control.mjs",
+      "bytes": 8967,
+      "sha256": "83b86aeda54f35cc103e0af954d2460220fb099d88b58a2f981642724b650555",
+      "git_blob": "dfe921da754766d45ad9d7996986825508b47bde"
+    },
+    {
+      "path": "scripts/core17-native-cases-v3/operator.mjs",
+      "bytes": 19530,
+      "sha256": "162c6534383f1db92b0f4715f49d56d5d4766b6c253e656e0232a66f5b357525",
+      "git_blob": "14adcd1f7163e141aef1b8044a70a2844ec92b87"
+    },
+    {
+      "path": "scripts/core17-native-cases-v3/queries.mjs",
+      "bytes": 4039,
+      "sha256": "d6f6415c0931ff2214a3ed0df682c37b54cc3b02ae5080e40296aa3238536f2c",
+      "git_blob": "5093ddb6cb7dc0c996c200706e7bfae223b2ab95"
+    },
+    {
+      "path": "scripts/core17-native-cases-v3/seal.mjs",
+      "bytes": 3701,
+      "sha256": "a8d679b170c9ceb8d180afcf82561b9f11fbf0d9756ee514b91d0d29943b22b7",
+      "git_blob": "831646cd519851984defb92bdb6081276d51e8fd"
+    },
+    {
+      "path": "scripts/core17-native-cases-v3/source-closure.mjs",
+      "bytes": 1721,
+      "sha256": "8c6acd003361e26f5ed61b3e161d72c633d78f86d744150e7a399c62cf1cea83",
+      "git_blob": "a32acecad4fd9b31fbf96b243b0fedfdc7aa1a96"
+    },
+    {
+      "path": "scripts/core17-native-cases-v3/test.mjs",
+      "bytes": 27854,
+      "sha256": "fcfaa6e62d63b8c3334bc370bc5339b00267299cb48e318b721ef6a5a680b925",
+      "git_blob": "5482778116a61eeee8124d89ff01502f31d6a174"
+    },
+    {
+      "path": "scripts/core17-native-cases-v3/wire.mjs",
+      "bytes": 3816,
+      "sha256": "b49a5723cbf7cd21825aeadced3b0d88ac1621258b700f5933f369d06326d4b5",
+      "git_blob": "144884c21c298deab2bb0447f2f0db09bd4b2ee8"
+    },
+    {
+      "path": "scripts/lib/core15-native-ts-loader.mjs",
+      "bytes": 1510,
+      "sha256": "01a6f0dd78534785087e67cb52db5d4b37aa8ccd552bddef6ed5ddb445a6c524",
+      "git_blob": "ebe068982f5ce4dce709b31cf82d096ec8c46663",
+      "unchanged_dependency": true
+    },
+    {
+      "path": "scripts/lib/core-installer-credential-binding-v1.mjs",
+      "bytes": 5483,
+      "sha256": "6abe79b47b720ee19c8cbd2ac0425ff6a56e958d9df6a33825b202a583491e7d",
+      "git_blob": "f0e16f96bfd47e8d0902bd1f917718127338724d",
+      "unchanged_dependency": true
+    },
+    {
+      "path": "scripts/lib/core-service-assembly-environment-v1.mjs",
+      "bytes": 1488,
+      "sha256": "e18225bc814f3a250e661a5f9efa6850bc8716f6d473c08ab85ff10c01f48b13",
+      "git_blob": "4bdad11b7845dc87a0488ea467304f8b1e96ad55",
+      "unchanged_dependency": true
+    }
+  ],
+  "product_sources": [
+    {
+      "path": "src/app/api/customer/v1/services/assembly-bootstrap/route.ts",
+      "bytes": 373,
+      "sha256": "327790b1cea05beada33529c286cba592bf7872b902527532eb02f69bc451bc6",
+      "git_blob": "fce90f2ca7a0cebd6e695ec1552d50dd2719aeb1",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/app/api/customer/v1/services/catalog/route.ts",
+      "bytes": 4950,
+      "sha256": "212e8773998dcd0581081575549550b9448ea89d692cc05996da6393f236e435",
+      "git_blob": "3c3efbb6cd492f05338decbefce54bb6e0b70175",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/app/api/customer/v1/services/offering-request-flow/route.ts",
+      "bytes": 391,
+      "sha256": "b8dccc986ee2894eb46fe74ff1aad437b19b67ab517c7a50d14df3592a7bda23",
+      "git_blob": "d34a292693f33a0e47367f793e290a946cd37a01",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/app/api/customer/v1/services/requests/route.ts",
+      "bytes": 3464,
+      "sha256": "ac228efc2340cf49bc2aa0e1bfe937b847712af6e894cf8dbc861bae068bbea2",
+      "git_blob": "a91024973104bb2a573788bb7dde2ac84ca67cf5",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/config/currencies.ts",
+      "bytes": 4487,
+      "sha256": "abb7ee604338a9ad2ea92f0a06f6bee1735c8dd9e4f45171a3f35ade9f4d9caf",
+      "git_blob": "bb531c86a436b613ff5a981a6fe635a3e1b387be",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/config/locales.ts",
+      "bytes": 2194,
+      "sha256": "0e4726a3e2f2b1cfa7a57e9b31f5db00a748bfc924b39be6ad7f9c44e9db6708",
+      "git_blob": "cf9383558b7da884fbbc5be710ab2b9cd1bfca96",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/community/experience-guide-command-contract.ts",
+      "bytes": 14414,
+      "sha256": "324d30b10eecb1b1f03f706118b51b7dc80605892f1ec267e9d4dc44a5f8e2e6",
+      "git_blob": "f423e40d9ebda19216d184ed72c8bdd09f27e353",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/core/ce012-combined-stored-relation-v1.ts",
+      "bytes": 9177,
+      "sha256": "2d775a6cc629c6b4bb2934345509421a461713cdcc1ba6309680947bc5f46938",
+      "git_blob": "db79cc649189c73d00692c023cbe59e9f21090cc",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/core/ce012-documents-joint-candidate-v1.ts",
+      "bytes": 3420,
+      "sha256": "cef58f74dc0096c2520edb6cf3f1077d822f5c870a9359962f9e009463626f3a",
+      "git_blob": "38b65bb50a2dec68a5b2a0d4788eb6fe9125e4d9",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/core/ce012-host-terminal-checkpoint-v1.ts",
+      "bytes": 2660,
+      "sha256": "4765e3d17fe12b41369a350afff7f62fc94bf03a3098d6c58c92ca63107bb29d",
+      "git_blob": "1d90f5c7badeaf14a3e922d788355ab90d14148b",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/core/ce012-replay-only-preflight-v1.ts",
+      "bytes": 2890,
+      "sha256": "a898905cc40118903f2d3f1c7cbc11631f8c0fc5fd8d99e97d940331fa14e459",
+      "git_blob": "ca9ca44cf7561e7df442200c47cff4a86fc59a82",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/core/ce012-stored-relation-v1.ts",
+      "bytes": 10032,
+      "sha256": "d6e8495f4f03c46076c3d4fb15c6174eccef8a4c161c644b5976ceeb2aed69f0",
+      "git_blob": "79456ecc7e5b372f01eb6422c48d0826e9512dab",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/core/ce012-terminal-authority-port-v1.ts",
+      "bytes": 16620,
+      "sha256": "c58e24ef2b00edb0524e43de145d8990ea4e6846b7d175399aaad7a9a7decf0a",
+      "git_blob": "1e89805d8b8565c0b0a5ea1e0857c6553d057a82",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "git_blob": "e67df2d947608f546dab42dba88b5bdc418cbffb",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/core/current-authority-transaction-port-v1.ts",
+      "bytes": 9496,
+      "sha256": "02e0b85d1dba7ca87ec0eddff5d3f3552bed518794888e9ee0f34c0de962c14f",
+      "git_blob": "3e70731254c06ec69a22ef5e2fa689b78ec22aa9",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/core/functional-command-runtime-v1.ts",
+      "bytes": 24353,
+      "sha256": "c1461444af4baae11f40f62c03bcea86538bd6c91fe2846f300fc4511e0fded5",
+      "git_blob": "79c16e9c6e75ea218ab25f1ed19dd89d0a0eabd7",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/core/functional-producers-v1.ts",
+      "bytes": 4260,
+      "sha256": "f44c68523edcb4c75589a7b040d6f380d5609788a6c12bb0fb661c74870ed887",
+      "git_blob": "2795ae040748018820e26aa827c174ac39cb7817",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/core/functional-read-queries-v1.json",
+      "bytes": 8718,
+      "sha256": "ef00194e555e28f9ce9601ae61435aba138f42999dcbd6f4bc9c62acac9d07c2",
+      "git_blob": "a1b4f673d5b4d491fe3abfa75dd62882b536f818",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/core/functional-request-auth-v1.ts",
+      "bytes": 1857,
+      "sha256": "50f3f913366cd93aa8342ce6d653a847ab3f2a90335777334b235bdf0a6c66e6",
+      "git_blob": "bb153cbe3eb2a440b7b5e374f2cdc907d075ef11",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/core/jurisdiction-domain-artifact-transaction-evidence-v1.ts",
+      "bytes": 2008,
+      "sha256": "e30ced9821eb8f8cc99dac45b1ae1461d46d53e34f1a7cdae774c55d54281981",
+      "git_blob": "f9dc899ab0d3e42c2396b61880e3fcb69fa98161",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "bytes": 62680,
+      "sha256": "9436c082f8ce8a054d8300f55bd49ac4b6120240cf06fa6ca94190b5c6c1858a",
+      "git_blob": "9e1a0229b9676368dc1d49015cf95be13fac9908",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/core/private-service-development-binding-v1.ts",
+      "bytes": 4060,
+      "sha256": "543e6dbb4120497737d5957f665505529e6100cc09c3969ca01b034347f41253",
+      "git_blob": "55d0f65e7f10cb3db93887aa9d3b92742275bbb7",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/core/product-rights-v1.ts",
+      "bytes": 4542,
+      "sha256": "0a150e396c76ddff9d9757c2e06174b3177c11c60126ef525b2a46c084a70ae6",
+      "git_blob": "412ea21931f9c8fdc7e5b5706d60d92be391c763",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/core/resource-contracts-v1.ts",
+      "bytes": 7849,
+      "sha256": "26ef73f7e8e9cc234b7fd2d8aac83ea3e69955f659bea57d5dba9337c821124d",
+      "git_blob": "3eedf8148bf2749621c21b064bd44880f5037cff",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/core/scoped-server-clock-v1.ts",
+      "bytes": 1120,
+      "sha256": "2753aee2dce0ed13e1dc8307eacfdb7f60f5bbacd90421968bcffe662f3a1823",
+      "git_blob": "d94ff4283f1920f643f23d860cbdca089a0303b2",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/core/service-app-read-v1.ts",
+      "bytes": 2925,
+      "sha256": "5a7741338c20281473154829632e4d27fa8251b2d5e14913cf524bbc9fca0607",
+      "git_blob": "25b25bf59fe653fe8055681443e73b08a114d862",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/core/service-functional-binding-v1.ts",
+      "bytes": 6450,
+      "sha256": "7951bb8f6f3a1507a8006fe3ff1d430a1f8b8be25c3e4793c3b1bcb498ba4ded",
+      "git_blob": "7c545113a92e12e8bac27bf9f87e4ebe6e7e872e",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/core/service-s01/errors-v1.ts",
+      "bytes": 301,
+      "sha256": "be1b63b6c9f62ae9d152a2ddda10d18508bd7426e5b66f2b9d3566d8f2b05e07",
+      "git_blob": "5d0408872fa2116bc49ca7ae5fa9b670030eb435",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/core/service-s01/offering-disclosure-policy-v1.ts",
+      "bytes": 7396,
+      "sha256": "3d57e846dd782a4443b637a4bf9fc8337fda471f36d56ad3ae5eaab0830c3df6",
+      "git_blob": "9cba2cc22501c0695837d2c800c00fa03d24f236",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "bytes": 19246,
+      "sha256": "977581d5c025287e7a88cc485a31d277fc412e8d7825087c871bfbdf2ecbeb8c",
+      "git_blob": "4080a96d003670068abbf435bb303f09e32cdc0d",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/core/transaction-provider-evidence-v1.ts",
+      "bytes": 2252,
+      "sha256": "515c173f1fa1aeed01ef1af465acf8cee6504cc09bbcf3d137549a8150f32d75",
+      "git_blob": "55843685128350c37b43ad0a12f183c7fb94ae1a",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/core/transaction-replay-provider-hook-v1.ts",
+      "bytes": 2688,
+      "sha256": "eb20fa622ba10b9cde6ea8d4d64f1ad9f9eea93f7fba354d03f6959156487dd4",
+      "git_blob": "bfec5bb136abad24a233544d3d63d00db1f8d678",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/customer/documents-ce012-reference-contract.ts",
+      "bytes": 1998,
+      "sha256": "1c6cae9052fb8bb1910f88af4ef264dbd973c52fe81e5394e1527db4aa2d4b93",
+      "git_blob": "cb7530910e59ca1ca121655465543dc11a5dc5df",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/customer/documents-ce012-reference-provider-v1.ts",
+      "bytes": 6458,
+      "sha256": "14c37f949f120fb071e0834773e3c7939022511673506bd1d2260ba881e6d0d3",
+      "git_blob": "daa1c030eb8b7a46c934c84e776c4464a8811c06",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/customer/documents-ce012-target-disclosure-port-v1.ts",
+      "bytes": 15787,
+      "sha256": "5e7beae0d47da015930d0325fa7faf28d03d6c4e3f70681febd8d59a6bf6e0dc",
+      "git_blob": "7f4ad245cf3686937c704d7d9d33c1ba8e571a80",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/customer/documents-reference-authority-v1.ts",
+      "bytes": 14569,
+      "sha256": "444c9b2c7b11be04ef6867887ebc77f7a0308414daee33ab41ecbf6eb9870b81",
+      "git_blob": "35bc69dd8d0e7156b5688c9e4b52def9c6c3729d",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/customer/documents-reference-tx-selector-v1.ts",
+      "bytes": 10550,
+      "sha256": "dd0834afe07bb61f7d00e43ace31e73faa9b9e6754a5f4e6a281bb0104ebfcca",
+      "git_blob": "ed1c27b998cb2c3122b5e946d041cc84f590bbe4",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/customer/service-catalog-schema.ts",
+      "bytes": 4333,
+      "sha256": "c5f26e512b43c8584937da461a3ee2927caf966cd966fad079666fd39a531bc5",
+      "git_blob": "c82e90d5fa40601c2225c3cb54ebe3b2585a8eda",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/customer/service-offering-disclosure-source-v1.ts",
+      "bytes": 18347,
+      "sha256": "f8667b1d69809d3880e477c5cd7b875db27cf7dd5a78a2fcd0feec796d06bf5b",
+      "git_blob": "89e771414eb3193fb93d2df6c2178a95ffa48b6f",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/customer/service-offering-request-flow-contract.ts",
+      "bytes": 2378,
+      "sha256": "973565a51a2e8189516d890b962890a0d6f2ae849c8a5c0d6b68ffc3f2856cd5",
+      "git_blob": "5bd99e2bc0762e9f7051ab1078db180eefb1f30c",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/customer/service-offering-time-precision-v1.ts",
+      "bytes": 2332,
+      "sha256": "a14d38abb83b15a39d82d928e1e8e03fbce9939b195cbfea3883aeaa5ed851a2",
+      "git_blob": "bd758c5f53cb26dbc266f54672cef979549ccc8f",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/customer/service-offering-v14-schema.ts",
+      "bytes": 12019,
+      "sha256": "90f45dcbac9d4756aef7ff242d02f693489cae7d26ca76d98ec9ab97a9543e30",
+      "git_blob": "5749e8dab5f592cf916dce9b663c8ec0863c3f5d",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/customer/service-provider-receipt-v1-schema.ts",
+      "bytes": 3616,
+      "sha256": "f27c1f704821552a4e4e6496a2c683faf316c6d3b52b241bc4ae1fe558e958f3",
+      "git_blob": "5c6dec8fb6ca4474f594852d8f687ff61bc52a3f",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/customer/service-request-custody.ts",
+      "bytes": 8407,
+      "sha256": "4c357c78aa09431d5ea23c375abb1abce09da711daa0fa527385d3c94d7a1c7f",
+      "git_blob": "c69d8ef428194cd461fdb88b3115b690b0682828",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/customer/service-request-read-schema.ts",
+      "bytes": 580,
+      "sha256": "a9e12ad257af1e5c7c7d5bff416f806e6854e073ee3fc1759fd2af63236293b0",
+      "git_blob": "39a0a85243a0b7b9fb2d22f8aa677d4e6c671f27",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/customer/service-request-schema.ts",
+      "bytes": 2008,
+      "sha256": "b3072890dd6baca35b114b6468b25758bb4f225037b3780bc2d3a29bcba9162b",
+      "git_blob": "a04f5a9ca3c8f76d91fae1b1158360f3f310c738",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/application-flow.ts",
+      "bytes": 17763,
+      "sha256": "5aeb49af2c1dd0b7027d49ef00c2f622ed04d14e93e342d647ef9ead33d3718b",
+      "git_blob": "355956332cc5e62491caf2750e0f6e85094f8b10",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/custody-owner.ts",
+      "bytes": 3108,
+      "sha256": "3ccf93326fd14bc3e74a1204c161305377cdcdcaa21f44856310c904ef4b6700",
+      "git_blob": "a442ef7b63e91978c57bd27c23cce383341d5b10",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/http.ts",
+      "bytes": 5755,
+      "sha256": "f818b7d6b2b50c3abbab544408d38880d7ee287b20fcaa90b0df4cf3c2060942",
+      "git_blob": "d00bd3fe092262528fedbd187102b9aee1e9d6bd",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/provider-binding.ts",
+      "bytes": 17376,
+      "sha256": "cc758f83ce3f851f7a5e52cd04d5b5936142ca3e6fea1f470f3b2806d21a0ee0",
+      "git_blob": "80bf96b10f83588bee4f5e6c0e74d51b6c304be3",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/read-denial.ts",
+      "bytes": 1026,
+      "sha256": "fb4c27977f3420a4c6be5f2b2859081707d06f26816d1d09f1cb299f26cc0e71",
+      "git_blob": "ad84e702fc32a77724424471b567643d8276558a",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/read-failure-boundary.ts",
+      "bytes": 3578,
+      "sha256": "865d4c61a00808da7193ce1ac7462dc08fd6ccb21cffea34fed37e414ca3b391",
+      "git_blob": "b3eb7f8595467fa40b331f6543943acd33cebd7f",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/request-command.ts",
+      "bytes": 2872,
+      "sha256": "bf64d03fd5d52d2cef4b72ef010738efd84b98ad2b8d722ec62172c82353f10a",
+      "git_blob": "6293c49b65481df820e9157bbd87f836938f878d",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/request-source-ports.ts",
+      "bytes": 13426,
+      "sha256": "9fb767911503ce7fb5db832b05e317ef61298506fab9db64068d140c97cb27cd",
+      "git_blob": "28089dbf0e14491870d6b6418a95f284738d4dc5",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/response-schema.ts",
+      "bytes": 2690,
+      "sha256": "c4ed79b06a06a5bbc1870567f0618da2664a6e19ea39bbb3328bfa66ef71312b",
+      "git_blob": "9a5b379f0deb94818adc92a8cb0f486b32a41084",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/runtime-binding.ts",
+      "bytes": 2403,
+      "sha256": "da0e5e301c620c0ac68c27a875d36e11d19d0d1bf02c3d92a7760b6a5733cd12",
+      "git_blob": "1795385361df4d743caa8969af7ddbd985f5e0bb",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/customer/workspace-composition-schema.ts",
+      "bytes": 3916,
+      "sha256": "d9888aa61cdf42618597b0984c75a922e83cdea6b3ba52d4f30a6f68cdb2da9f",
+      "git_blob": "68ae80929fa3d0ab3c45ad943d5e64f726ab82b0",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/security/request-body.ts",
+      "bytes": 2930,
+      "sha256": "6842df203b9032221f7ad645a60f619ca9f165b01d26ccb5c24701b4f4b2e427",
+      "git_blob": "67b7c1ca5fb609878d40cd79a70e3f3eeb3d88c6",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/supabase/env.ts",
+      "bytes": 2759,
+      "sha256": "3d47d750e8b35d29f5a522b04b9b7761d4174c4a39bae1c9e8d097307277ad2d",
+      "git_blob": "96fbab76cdc4088c9bd6e933d3b5603bce7101c1",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/lib/supabase/server.ts",
+      "bytes": 791,
+      "sha256": "5eb2bc418fbd3933ab2c45b2426f70f43cf1d392392788069b7832d5d6adffdc",
+      "git_blob": "8e5a47b6c28ef827efe1d58a9992cb37cf15e9e8",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "src/types/database.generated.ts",
+      "bytes": 75472,
+      "sha256": "9cb636b174782c9333afdf2775cb56bfca071cad5d79ccb48d9858cdc48fd6d2",
+      "git_blob": "620e06a44af329233f272288c76d6dbf82dd57e8",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    },
+    {
+      "path": "supabase/migrations/20261003200211_20261003141918_service_catalog_persistence_v1.sql",
+      "bytes": 21639,
+      "sha256": "64090bf0948e7f4b01188df9c81704a5af7a4a24dfbfa7ada3ed9a5ccebb4293",
+      "git_blob": "051b36744e88ccf0537c8f9182a9a25c38bc9332",
+      "unchanged": true,
+      "source": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119"
+    }
+  ],
+  "limits": {
+    "business_POSTs": 14,
+    "new_Requests": 7
+  },
+  "checks": {
+    "new_controlled": 54,
+    "CLI_dry_run": "PASS_NO_TARGET_NO_CREDENTIALS_NO_SQL",
+    "lint": "PASS_LIMITED",
+    "syntax": "PASS",
+    "diff": "PASS",
+    "native": "NOT_RUN_NOT_PASS"
+  },
+  "scope": {
+    "App_source_modified": false,
+    "installer_modified": false,
+    "Auth_role_ACL_RLS_modified": false,
+    "Platform_controller_modified": false,
+    "public_HTTP_or_RPC_added": false,
+    "Request_receipt_fixture_seeded": false
+  },
+  "native_inputs": [
+    "Coordinator-reviewed exact request digest and new effect budget within206",
+    "actual existing synthetic actor/session/canonical A/B tuple and B beneficiary",
+    "v3 private credential provenance and observer visibility",
+    "Platform exact current FD7 listening PID/nonce observation",
+    "fresh separately admitted same-FD7-build lifecycle with exact preload for probe cases only"
+  ],
+  "NOT_RUN": [
+    "PG/SQL/parser/compile",
+    "Auth",
+    "fixture",
+    "revoke/expiry",
+    "fault",
+    "preload/activation",
+    "native process/lifecycle",
+    "browser A09"
+  ],
+  "automation": "نیازمند بررسی"
+}

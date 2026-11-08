@@ -237,6 +237,7 @@ const coreResult = validateProtectedDirectory({
   expectedProtectedCount: 13,
   expectedProtectedDigest: '7502bf811cb4959cd7f7c1ade651b8020b3e99cb0d76a0667caf7fbdedb2c3be',
   isProtected: path => ![
+    'service-app-read-v1.ts',
     'functional-request-auth-v1.ts',
     'private-service-development-binding-v1.ts',
     'scoped-server-clock-v1.ts',
@@ -271,13 +272,18 @@ const coreResult = validateProtectedDirectory({
     'product-rights-v1.ts',
   ].includes(path),
   reviewedAdditions: {
+    'service-app-read-v1.ts': {
+      owner: 'Core17 / independently accepted source ee883b62cf4a318af3450c506931a969623b8987; source only, native acceptance separate',
+      sha256: '5a7741338c20281473154829632e4d27fa8251b2d5e14913cf524bbc9fca0607',
+    },
     'functional-request-auth-v1.ts': {
       owner: 'Core / published source 580de7be74d7bc1000119b0b940cff644c6437ab; development-only composition',
       sha256: '50f3f913366cd93aa8342ce6d653a847ab3f2a90335777334b235bdf0a6c66e6',
     },
     'private-service-development-binding-v1.ts': {
-      owner: 'Core / published source 580de7be74d7bc1000119b0b940cff644c6437ab; development-only composition',
-      sha256: '11a10fdca8eaa8c47c80e8730f5af5a1ce283b1f314fdeeef1ec56eabf4cc7ac',
+      owner: 'Core17 / independently accepted source ee883b62cf4a318af3450c506931a969623b8987; source only, native acceptance separate',
+      // Previous accepted source SHA256: 11a10fdca8eaa8c47c80e8730f5af5a1ce283b1f314fdeeef1ec56eabf4cc7ac.
+      sha256: '543e6dbb4120497737d5957f665505529e6100cc09c3969ca01b034347f41253',
     },
     'scoped-server-clock-v1.ts': {
       owner: 'Core / published source 580de7be74d7bc1000119b0b940cff644c6437ab; development-only composition',
@@ -316,10 +322,9 @@ const coreResult = validateProtectedDirectory({
       sha256: 'c58e24ef2b00edb0524e43de145d8990ea4e6846b7d175399aaad7a9a7decf0a',
     },
     'functional-command-runtime-v1.ts': {
-      owner: 'Core / published source a0a37f3c573558d14be2e62ba27e6e5475b9c4fe; source pin only, native gates separate',
-      // Previous published source hash: 36110c4747773d04380b2241b9b60749dfca9b75ac7b31accde140cc9c4f8d45.
-      // Service-first successor 580de7be74d7bc1000119b0b940cff644c6437ab.
-      sha256: '0a8f472e88d7b79fc55cc7e643852e66b8b9b0638de26a9c104840a23b352a75',
+      owner: 'Core17 / independently accepted source ee883b62cf4a318af3450c506931a969623b8987; source only, native acceptance separate',
+      // Previous accepted source SHA256: 0a8f472e88d7b79fc55cc7e643852e66b8b9b0638de26a9c104840a23b352a75.
+      sha256: 'c1461444af4baae11f40f62c03bcea86538bd6c91fe2846f300fc4511e0fded5',
     },
     'functional-producers-v1.ts': {
       owner: 'Core / published source a0a37f3c573558d14be2e62ba27e6e5475b9c4fe; source pin only, native gates separate',

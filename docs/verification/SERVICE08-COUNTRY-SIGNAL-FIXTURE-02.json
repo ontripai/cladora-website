@@ -1,0 +1,22 @@
+{
+  "schema": "service-shell-country-signal-fixture-successor.v1",
+  "previous_fixture": "docs/verification/SERVICE08-COUNTRY-SIGNAL-FIXTURE-01.json",
+  "previous_fixture_sha256": "fca508d6181985a58fa9cc76c24384602a34e0fa127dfa71603ce40e5d0ea168",
+  "source_commit": "79e2db9c42c61a217069f8e7412cc17179d720b3",
+  "source_tree": "e3eb47f6b56111e8a079122731697d15c10b7edd",
+  "classification": "synthetic/test fixture",
+  "authority": "NONE",
+  "runtime_adoption": "NOT_READY",
+  "entries": [
+    {
+      "path": "scripts/test-real-authenticated-service-08.mjs",
+      "before_bytes": 76216,
+      "before_sha256": "ac1c4febb4b8fdf92b3e4919129aa870fe8d322bfa96528a4d26dfe2021eec71",
+      "bytes": 77113,
+      "sha256": "b603383d56aaf6ef99f19adc368a7653bc8dd5e9b28b65b4263cd21a20e00303",
+      "git_blob": "106b8f6d790ee57444c6a9938b6e6006028b9b92",
+      "classification": "synthetic/test fixture",
+      "reason": "Retains all multilingual shell and denial assertions; adds controlled custody-owner transport and bounded discovery settlement. Existing AIRPROP navigation literals remain presentation fixtures, not country or runtime authority."
+    }
+  ]
+}
