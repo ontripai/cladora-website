@@ -1,6 +1,7 @@
 # Guide unit05 — effective Auth scope decision11
 
-Parent97d7a81ea40db5f158fea10ed9ff9e679ca60949. Same CORE-DOMAIN-PORTS-01 card.
+Delivery Base97d7a81ea40db5f158fea10ed9ff9e679ca60949; actual final Parent is
+recorded in manifest.json. Same CORE-DOMAIN-PORTS-01 card.
 DECISION: EXTRA_INVOKER_GUC_ACCESSOR_DOCUMENTED; NO_AUTH_SQL_OR_ACL_SUCCESSOR.
 Separate minimal Guide-port hardening is PROPOSED_NOT_APPLIED. This decision is not
 installation/adoption approval, a live leak finding or native/runtime acceptance.
@@ -56,7 +57,7 @@ Invalid selected JSON is not verified or safely skipped by these SQL expressions
 ## Official Guide source, not guessed target GUC values
 
 Core source: src/lib/core/platform-role-bound-pool-v1.ts and
-src/lib/core/guide-request-binding-v1.ts at this Parent. Actual accepted consumer:
+src/lib/core/guide-request-binding-v1.ts at the delivery Base. Actual accepted consumer:
 CE6259b70268a851113c8f981e2d346da5428e343f,
 src/lib/community/experience-guide-lifecycle-http-v1.ts, consumed from Git.
 Its trusted carrier contains sub/role/aal and verified session_id/exp; NOT email or

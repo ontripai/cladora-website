@@ -45,7 +45,7 @@ export function patch(){
  try{
   const before=join(temp,'before'),after=join(temp,'after');writeFileSync(before,readFileSync(resolve(ROOT,PATH)));writeFileSync(after,candidate());
   let output;try{output=execFileSync('git',['diff','--no-index','--',before,after],{encoding:'utf8'});}catch(e){if(e.status!==1)throw e;output=e.stdout;}
-  return output.split('\n').map(line=>line.startsWith('diff --git ')?`diff --git a/${PATH} b/${PATH}`:line.startsWith('--- ')?`--- a/${PATH}`:line.startsWith('+++ ')?`+++ b/${PATH}`:line).join('\n');
+  return output.split('\n').map(line=>line===' '?'':line.startsWith('diff --git ')?`diff --git a/${PATH} b/${PATH}`:line.startsWith('--- ')?`--- a/${PATH}`:line.startsWith('+++ ')?`+++ b/${PATH}`:line).join('\n');
  }finally{rmSync(temp,{recursive:true,force:true});}
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){

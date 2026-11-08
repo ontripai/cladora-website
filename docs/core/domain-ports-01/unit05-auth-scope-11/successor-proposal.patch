@@ -5,7 +5,7 @@ index 278e7cde..d84dc27a 100644
 @@ -49,6 +49,15 @@ const clearIdentitySql = `select
    set_config('request.cladora.context_id','',false),
    set_config('request.cladora.workspace_id','',false)`;
- 
+
 +
 +// Guide-only proposal: legacy aliases must not shadow its verified plural carrier.
 +const ceGuideLegacySessionClearSql = `select
@@ -27,7 +27,7 @@ index 278e7cde..d84dc27a 100644
 +    await client.query(ceGuideLegacySessionClearSql);
 +  }
  }
- 
+
  const ceGuideProfileV1 = Object.freeze({
 @@ -176,6 +189,9 @@ function createFixedRoleBoundPoolV1<Contract extends string>(
            transactionOpen = true;
