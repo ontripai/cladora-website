@@ -66,3 +66,41 @@ stays OPEN through independent Procedure/Coordinator acceptance.
 Automation: نیازمند بررسی — bounded validation/custody checks are mechanical;
 current authority, execution admission and explicit user actions remain required.
 Value is durable same-id recovery with no duplicate effect, not yet measured.
+
+## Continuation from f72f168 — native lifecycle parameter preparation
+
+`src/lib/airprop/listing-control-plan-v1.ts:prepareListingControlV1` consumes the
+EXISTING Listing control envelope and returns the exact fixed native invocation
+for edit, withdraw or republish. The native signature/argument order comes from
+`supabase/migrations/20261008135433_airprop_listing_controls_v1.sql`, not a new
+endpoint or persistence API. Withdrawal supplies NULL date arguments as required
+by that function; the existing writer retains the stored dates. The original
+wire/key/expected version and complete explicit source/Party/relationship selection
+remain available for the C03 provider's fingerprint, authorization and replay.
+No current GET/version substitutes for the original uncertain command.
+
+This module performs NO SQL and returns no receipt or authorized capability.
+Its status remains CURRENT_CORE_SOURCE_VALIDATION_REQUIRED. The native function
+checks property permission and its own revision ledger, but that alone does not
+prove the full selected canonical Party/relationship/resource tuple or real Core
+commit. The production route resolver remains fail-closed. No callback placeholder,
+memory Map, new journal or default-null factory is presented as native storage.
+
+Offline test: `node scripts/test-airprop-listing-control-plan-v1.mjs` (9 groups).
+Checks cover all three exact native mappings, routing scope/resource mismatch,
+missing tuple/version, stable retry, microsecond/calendar validation, native int4
+successor bound, malformed/oversized input and attempted authority injection.
+These tests execute real domain preparation only, not C03/SQL/DB/Auth/revocation.
+The existing accepted lifecycle/affordance/browser suites were not replayed.
+
+Latest observed Core branch62f3c4ea3280821d3df69cd5d0cfbd10fbf6cb6d adds Guide
+request binding over Offering4d15; its changed-path inventory contains no Listing
+producer. Neither is imported or relabelled as Listing authority. No Guide source
+is modified and Listing does not wait for Guide completion.
+
+Platform consumes the published exact AIRPROP branch/commit, integrates the actual
+Listing-specific Core delivery when available, and supplies its owned role/target
+and browser execution path. Current local Chromium limitation remains
+BLOCKED_TOOL (setsockopt EPERM); this continuation does not retry that launch or
+claim real browser evidence. Native creation/selection/atomic binding and durable
+same-ID readback remain OPEN, with exact requirements in the adjacent port request.
