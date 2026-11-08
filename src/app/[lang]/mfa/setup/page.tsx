@@ -32,7 +32,7 @@ export default async function MfaSetupPage({ params, searchParams }: { params: P
   }
 
   let platformAccess: boolean | null = null;
-  if (isAssembly) {
+  if (isAssembly || safeNextKey==='app/experience/guides') {
     platformAccess = false;
   } else {
     try {
@@ -44,7 +44,7 @@ export default async function MfaSetupPage({ params, searchParams }: { params: P
   if (platformAccess === null) redirect(`/${lang}/login?reason=security`);
 
   // Explicit owner navigation never grants owner access; the destination rechecks it.
-  const continueTo = safeNextKey === 'owner-portfolio'
+  const continueTo = safeNextKey==='app/experience/guides'?`/${lang}/app/experience/guides`:safeNextKey === 'owner-portfolio'
     ? `/${lang}/owner-portfolio`
     : safeNextKey === 'invitation-continuation' && !platformAccess
     ? `/${lang}/invitation-continuation`

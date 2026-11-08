@@ -27,18 +27,24 @@ const copy = {
   fa: { title: 'راهنماهای تجربه', subtitle: 'راهنماهای منتشرشده برای فضای کاری و مخاطب فعلی را ببینید.', choose: 'انتخاب راهنما', loading: 'در حال دریافت راهنماها…', empty: 'در این فضای کاری راهنمای واجد شرایطی وجود ندارد.', noContext: 'ابتدا یک زمینهٔ فعال انتخاب کنید.', session: 'نشست شما نیاز به بررسی دوباره دارد؛ دوباره وارد شوید.', denied: 'ماژول راهنما یا مجوز لازم در این فضای کاری فعال نیست.', notReady: 'اتصال عملیاتی راهنماها هنوز فعال نشده است.', retry: 'دریافت راهنماها ناموفق بود.', again: 'تلاش دوباره', viewOnly: 'ویرایش ارجاع‌ها تا فعال‌شدن انتخاب‌گر امن اسناد در دسترس نیست.' },
 } as const;
 
-export function CustomerExperienceGuidePage({ lang }: { lang: Language }) {
-  const { active, dashboard, loading } = useCustomerContext(); const t = copy[lang];
-  const token=useMemo(()=>({active,dashboard,loading,lang}),[active,dashboard,loading,lang]);
+export function CustomerExperienceGuidePage({lang}:{lang:Language}){
+ const {active,dashboard,loading}=useCustomerContext();
+ const scope=useMemo(()=>active&&dashboard&&active.context_id===dashboard.contextId?{context_id:active.context_id,membership_id:active.membership_id,workspace_id:dashboard.workspace_id}:null,[active,dashboard]);
+ return <CustomerExperienceGuideScope lang={lang} scope={scope} loading={loading}/>;
+}
+/** Receives a real server discovery tuple, not a fabricated legacy dashboard. */
+export function CustomerExperienceGuideScope({lang,scope,loading}:{lang:Language;scope:{context_id:string;membership_id:string;workspace_id:string}|null;loading:boolean}){
+ const t=copy[lang];
+  const token=useMemo(()=>({scope,loading,lang}),[scope,loading,lang]);
   const owner=useRef<object|null>(null);
   const [scopes]=useState(()=>new Map<string,GuideScopeCache>());
   useLayoutEffect(()=>{owner.current=loading?null:token;return()=>{owner.current=null;};},[token,loading]);
   const current=useCallback(()=>owner.current===token?token:null,[token]);
-  if (loading || !active || !dashboard || active.context_id!==dashboard.contextId) return <Notice lang={lang} text={loading?t.loading:t.noContext} />;
-  const binding=`${active.context_id}:${active.membership_id}:${dashboard.workspace_id}`;
-  let cache=scopes.get(binding);if(!cache){cache=createGuideScopeCache(active.context_id,dashboard.workspace_id);scopes.set(binding,cache);}
+  if (loading || !scope) return <Notice lang={lang} text={loading?t.loading:t.noContext} />;
+  const binding=`${scope.context_id}:${scope.membership_id}:${scope.workspace_id}`;
+  let cache=scopes.get(binding);if(!cache){cache=createGuideScopeCache(scope.context_id,scope.workspace_id);scopes.set(binding,cache);}
   return <GuideWorkspace key={binding} cache={cache} lang={lang}
-    contextId={active.context_id} workspaceId={dashboard.workspace_id} owner={current} generation={token} />;
+    contextId={scope.context_id} workspaceId={scope.workspace_id} owner={current} generation={token} />;
 }
 function GuideWorkspace({lang,contextId,workspaceId,owner,cache,generation}:{lang:Language;contextId:string;workspaceId:string;owner:()=>object|null;cache:GuideScopeCache;generation:object}){
  const fetch=useDashboardFetch(),t=copy[lang];

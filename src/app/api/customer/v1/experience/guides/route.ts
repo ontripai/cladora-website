@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { createCe012GuideReadCutoverV1 } from '@/lib/community/experience-guide-functional-http-v1';
+import {isGuideNativeEntrySelectedV1} from '@/lib/app/guide-platform-provider-v1';
+import {resolveGuideRequestHandlersV1,guideRuntimeUnavailableV1} from '@/lib/community/experience-guide-route-runtime-v1';
 import { createClient } from '@/lib/supabase/server';
 import { ce012CommandSchema } from '@/lib/community/experience-guide-schema';
 import { hasTrustedMutationOrigin } from '@/lib/security/same-origin';
@@ -50,7 +51,11 @@ async function readExistingGuides(request: NextRequest) {
   return NextResponse.json(data, { headers: HEADERS });
 }
 
-export const GET = createCe012GuideReadCutoverV1(readExistingGuides);
+export async function GET(request:NextRequest){
+  if(!isGuideNativeEntrySelectedV1())return readExistingGuides(request);
+  try{const handlers=await resolveGuideRequestHandlersV1(request);return handlers?await handlers.GET(request):guideRuntimeUnavailableV1();}
+  catch{return guideRuntimeUnavailableV1();}
+}
 
 export async function POST(request: NextRequest) {
   if (!hasTrustedMutationOrigin(request)) return fail('BAD_ORIGIN', 403);
