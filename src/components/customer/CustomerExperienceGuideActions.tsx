@@ -17,7 +17,7 @@ export function CustomerExperienceGuideActions({lang,status,commands,hasDraft,on
   catch{if(mounted.current){setUncertain(commands.isUncertain());setError(commands.isUncertain()?t.unknown:t.error);}}
   finally{flight.current=false;if(mounted.current){setBusy(false);onPending();}}}
  if(status==='cancelled'&&!uncertain)return null;
- return <div dir={lang==='fa'?'rtl':'ltr'} className="space-y-3 rounded-xl border p-4"><p role="status" aria-live="polite">{busy?t.busy:''}</p>{error?<p role="alert">{error}</p>:null}
+ return <div dir={lang==='fa'?'rtl':'ltr'} className="space-y-3 rounded-xl border p-4"><p role="status" aria-live="polite">{busy?t.busy:''}</p>{uncertain&&!busy?<p role="alert">{t.unknown}</p>:error?<p role="alert">{error}</p>:null}
   {!uncertain?<label className="block text-sm">{t.reason}<input name="guide-cancel-reason" minLength={5} maxLength={500} disabled={busy} value={reason} onChange={e=>setReason(e.target.value)} className="block w-full rounded-lg border p-2"/></label>:null}
   {uncertain?<button disabled={busy} onClick={()=>void run(commands.pendingOperation()!)}>{t.retry}</button>:<div className="flex flex-wrap gap-3">
    {status==='draft'?<button disabled={busy} onClick={()=>void run('publish')}>{t.publish}</button>:null}<button disabled={busy} onClick={()=>void run('cancel')}>{t.cancel}</button>

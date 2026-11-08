@@ -86,4 +86,37 @@ await check('native Guide cold MFA continuation retains Guide intent; inactive G
  try{await assert.rejects(Layout({params:Promise.resolve({lang:'en'}),children:null}),e=>typeof e.digest==='string'&&e.digest.includes('/en/mfa;')&&!e.digest.includes('experience/guides'));}finally{if(saved===undefined)delete process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE;else process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE=saved;}
  assert.equal(x.observed.length,0);
 });
+for(const operation of ['create','save','publish'])await check(`retained ${operation} UNKNOWN explains recovery after remount in FA/EN/RO without auto POST`,async()=>{
+ const x=platform(),creator=client.createCe012GuideCreatorV1({fetch:(...a)=>x.h.fetch(...a),context_id:ids.context,workspace_id:ids.workspace,owner:()=>owner,denied:()=>{}});
+ let guide,commands,Component,props;
+ if(operation==='create'){
+  commands=creator;Component=load('src/components/customer/CustomerExperienceGuideCreate.tsx').CustomerExperienceGuideCreate;props={commands,onCreated:()=>{completed++;}};
+ }else{
+  guide=await creator.create(input);
+  if(operation==='save'){
+   commands=load('src/lib/community/experience-guide-functional-client.ts').createCe012GuideHttpCommandsV1({fetch:(...a)=>x.h.fetch(...a),binding:{context_id:ids.context,workspace_id:ids.workspace,guide_id:guide,expected_guide_version:1},owner:()=>owner,denied:()=>{}});
+   Component=load('src/components/customer/CustomerExperienceGuide.tsx').CustomerExperienceGuide;
+   props={commands,guide:load('src/lib/community/experience-guide-client.ts').toExperienceGuideView(x.h.projection().guides[0],'en'),onChanged:()=>{completed++;}};
+  }else{
+   commands=load('src/lib/community/experience-guide-actions-client.ts').createCe012GuideActionsV1({fetch:(...a)=>x.h.fetch(...a),context_id:ids.context,workspace_id:ids.workspace,guide_id:guide,version:1,owner:()=>owner,denied:()=>{}});
+   Component=load('src/components/customer/CustomerExperienceGuideActions.tsx').CustomerExperienceGuideActions;props={commands,status:'draft',hasDraft:()=>false,onPending:()=>{},onChanged:()=>{completed++;}};
+  }
+ }
+ let completed=0,dropped=false;const original=x.h.fetch,execute=operation==='create'?'execute_create':operation==='save'?'execute':'execute_lifecycle';
+ x.h.fetch=async(...a)=>{const response=await original(...a);if(JSON.parse(a[1]?.body??'{}').op===execute&&!dropped){assert.equal(response.status,200);dropped=true;throw Error('controlled lost reply after modeled commit');}return response;};
+ await assert.rejects(operation==='create'?commands.create(input):operation==='save'?commands.saveDraft({guide_id:guide,title:'Retained edited guide',step_title:'Edited step',step_body:'Retained instructions',target_id:null}):commands.run('publish'),e=>e.code==='UNKNOWN');
+ assert.equal(commands.isUncertain(),true);const wire=x.h.wires.at(-1),postCount=x.h.wires.length,commits=x.h.f.commits;
+ const dom=new JSDOM('<div id="root"></div>',{url:'http://ce.test'});Object.assign(globalThis,{window:dom.window,document:dom.window.document,HTMLElement:dom.window.HTMLElement,Event:dom.window.Event,IS_REACT_ACT_ENVIRONMENT:true});const root=createRoot(document.getElementById('root'));
+ try{
+  for(const lang of ['fa','en','ro']){
+   await act(async()=>{root.render(React.createElement(Component,{...props,lang,key:lang}));});
+   const alert=document.querySelector('[role="alert"]');assert.ok(alert,`${operation}/${lang}: retained UNKNOWN must explain the pending command on remount`);
+   assert.ok(alert.textContent.startsWith(lang==='fa'?'نتیجه نامعلوم است':lang==='en'?'The result is unknown':'Rezultatul este necunoscut'));
+   assert.equal(x.h.wires.length,postCount,'mount/locale must not POST');assert.equal(completed,0);assert.equal(commands.isUncertain(),true);
+   if(operation!=='publish'){assert.equal(document.querySelector('fieldset').disabled,true);assert.equal(document.querySelector('input').value,operation==='create'?input.title:'Retained edited guide');}
+  }
+  await act(async()=>{document.querySelector('button').click();await new Promise(r=>setTimeout(r,35));});
+  assert.equal(x.h.wires.length,postCount+1);assert.equal(x.h.wires.at(-1),wire);assert.equal(x.h.f.commits,commits);assert.equal(completed,1);assert.equal(commands.isUncertain(),false);assert.equal(document.querySelector('[role="alert"]'),null);
+ }finally{await act(async()=>root.unmount());dom.window.close();}
+});
 console.log(JSON.stringify({task:'CE-GUIDE-NATIVE-01/CORE62-ROUTE-ADOPTION',groups:n,result:'PASS_CONTROLLED_ROUTE_COMPOSITION',native_platform_app_auth_pg_browser:'NOT_RUN_NOT_PASS',prior_core_ce_suites:'NOT_RERUN'}));
