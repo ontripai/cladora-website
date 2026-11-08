@@ -1,8 +1,8 @@
 {
   "task": "AIRPROP-LISTING-NATIVE-01",
-  "slice": "official-core-auth-mfa-direct-impact",
+  "slice": "QFW-R2-01-MFA-INTEGRATION-DELTA",
   "head": "CONTAINING_COMMIT",
-  "parent": "c5f57f0ddf77879925909318b448888359a25225",
+  "parent": "ddbe7661239e3db9813240ccd60581b3551091bb",
   "official_core_auth_source": "ae1fe67187b0b09bcc3fc5b8d22d55d08a7139e6",
   "official_core_auth_postimage": {
     "path": "src/lib/core/functional-command-runtime-v1.ts",
@@ -29,32 +29,32 @@
     },
     {
       "path": "src/lib/airprop/listing-runtime-binding-v1.ts",
-      "bytes": 8035,
-      "sha256": "c201f9ee7b9b2cb6b0c0f5bef4b5ff0f33e9d42c80a291363617e7a3307ede90",
-      "git_blob": "b9220f3e452ca5b8e52a94f254521324791331c4"
+      "bytes": 8156,
+      "sha256": "08c6f4f9a5ae3e4bb8edc13e22ac697ee04d1a28c4ecb941bdee33ab29af46a5",
+      "git_blob": "8b402a8cdaf04857c73b87c5f92286f1acde1c9d"
     },
     {
       "path": "src/lib/airprop/listing-flow-api-v1.ts",
-      "bytes": 8857,
-      "sha256": "31b4ac2572b51d4c0c1735aa4bce6a2f8201bec847cde562285a803ef6c3fded",
-      "git_blob": "ae402937b8c67929d9245808b9258cd7916b9032"
+      "bytes": 9082,
+      "sha256": "c75b61422b556c7b3c7dae093709af33b206d940a3f413dc70f21945cbc206c9",
+      "git_blob": "694308f3e4b73446cec3fe93e4d489122ad3b932"
     },
     {
       "path": "scripts/test-airprop-core-auth-mfa-consumption-v1.mjs",
-      "bytes": 8341,
-      "sha256": "bd4bb5bad79ed30594943710d0323528157da8441da4438b5b88d6fe0796a4ac",
-      "git_blob": "2a609042af017f2686468063858b2a997976a6d2"
+      "bytes": 16939,
+      "sha256": "bb82588a08fa1b92aa3cb85dfd8a6caaa70d0afc994c3f71dbdd5931484b2ea0",
+      "git_blob": "88d23ec155cbf7d5cd01984a7af8be3bca24afed"
     },
     {
       "path": "docs/airprop/AIRPROP-CORE-AUTH-MFA-IMPACT-01.md",
-      "bytes": 3590,
-      "sha256": "96320d4b2fe201bc8b27e54a67ef7fc0b115d7143b7e78375dbe5e31443b9e6c",
-      "git_blob": "7301eaf032be525cad7d100fe4331bea0a6e224d"
+      "bytes": 6673,
+      "sha256": "6d93a38e71ae14f797855717384ed84e6bd6a32178143d607b38534a6d47a6f3",
+      "git_blob": "e1a39e10354c153239885706aff8e601ebc29438"
     }
   ],
   "proof": {
-    "before": 1,
-    "successor_groups": 7,
+    "before": 3,
+    "successor_groups": 6,
     "layer": "ACTUAL_LISTING_ROUTE_CORE_BINDER_WITH_CONTROLLED_SDK_SQL",
     "typecheck": "PASS",
     "limited_lint": "PASS",
@@ -62,7 +62,19 @@
     "native": "NOT_RUN_NOT_PASS",
     "cache_next": "16.3.8",
     "cache_zod": "4.4.3",
-    "exact_target": "NOT_RUN_NOT_PASS"
+    "exact_target": "NOT_RUN_NOT_PASS",
+    "prior_ddbe_proof": {
+      "before": 1,
+      "successor_groups": 7,
+      "rerun": false
+    },
+    "negative_pairs": 14,
+    "mounted_unknown_custody": "PASS_BYTE_IDENTICAL_AFTER_GET_POST_MFA_AND_REMOUNT",
+    "getter_invocations": 0,
+    "real_network_attempts": 0,
+    "sql_calls_mfa": 0,
+    "diff_check": "PASS",
+    "execution_note": "first four new groups passed; mounted failed initially on mock path resolution, corrected and rerun alone; bridge group run alone; no assertion weakening"
   },
   "preserved": [
     {
@@ -122,5 +134,13 @@
   ],
   "activation": null,
   "sql_executed": false,
-  "automation": "نیازمند بررسی"
+  "automation": "نیازمند بررسی",
+  "classification": "reported / SOURCE_DELIVERED / INDEPENDENT_DELTA_REVIEW_REQUIRED",
+  "review_url": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-6718763075",
+  "qa_existing_matrix": {
+    "git_blob": "aeffaf418e33f46e4462601ba8576a4690019891",
+    "bytes": 34202,
+    "sha256": "7a9a43f7fd419327edfbf6ba905c69923048da4333e4339d76a70a014e1f4a9d",
+    "duplicated_or_edited": false
+  }
 }

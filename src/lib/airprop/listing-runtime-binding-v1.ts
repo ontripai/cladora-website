@@ -85,9 +85,12 @@ export function createListingRequestRuntimeResolverV1(
               status: request.command.action === 'withdraw_listing' ? 'withdrawn' : 'published',
               idempotent: result.status === 'exact_replay' } } };
         } catch (error) {
-          if (error instanceof CoreFunctionalRuntimeUnavailableV1 && error.code === 'MFA_REQUIRED') return { status: 'mfa_required' };
-          if (error instanceof CoreFunctionalRuntimeUnavailableV1
-            && ['AUTHENTICATION_REQUIRED', 'ACTOR_BINDING_MISMATCH'].includes(error.code)) return { status: 'unauthorized' };
+          if (error instanceof CoreFunctionalRuntimeUnavailableV1) {
+            const descriptor = Object.getOwnPropertyDescriptor(error, 'code');
+            const code = descriptor && 'value' in descriptor ? descriptor.value : null;
+            if (code === 'MFA_REQUIRED') return { status: 'mfa_required' };
+            if (code === 'AUTHENTICATION_REQUIRED' || code === 'ACTOR_BINDING_MISMATCH') return { status: 'unauthorized' };
+          }
           throw error; // Uncertain execution cannot become a successful GET/receipt.
         }
       } : null;

@@ -15,7 +15,7 @@ export type ListingControlBridge = (actorId: string, request: ListingCommand) =>
   { status: 'receipt'; value: unknown } | { status: 'denied' | 'unauthorized' | 'mfa_required' | 'conflict' | 'not_ready' | 'unknown_commit' }>;
 export type ListingRuntimePorts = { read: ListingSourceRead | null; control: ListingControlBridge | null };
 export type ListingRuntimeResolver = (session: AirpropB2Session, scope: { context_id: string; workspace_id: string }, request: Request) => Promise<ListingRuntimePorts | null>;
-type FailureCategory = 'auth' | 'denied' | 'unavailable';
+type FailureCategory = 'auth' | 'denied' | 'unavailable' | 'mfa';
 const authCodes = new Set(['AUTHENTICATION_REQUIRED', 'ACTOR_BINDING_MISMATCH']);
 const denialCodes = new Set(['SCOPE_DENIED', 'READ_SCOPE_DENIED', 'READ_SCOPE_FOREIGN']);
 const readUnavailableCodes = new Set(['HOST_NOT_READY', 'PRINCIPAL_PROFILE_NOT_READY', 'AUTHORITY_UNAVAILABLE',
@@ -41,14 +41,14 @@ async function knownFailure(error: unknown): Promise<FailureCategory | null> {
     }
     const code = ownString(error, 'code'), name = ownString(error, 'name');
     if (!code) return null;
-    const category = authCodes.has(code) ? 'auth' : denialCodes.has(code) ? 'denied' : 'unavailable';
+    const category = authCodes.has(code) ? 'auth' : denialCodes.has(code) ? 'denied' : code === 'MFA_REQUIRED' ? 'mfa' : 'unavailable';
     if (name === 'CoreReadHostUnavailableV1'
       && (authCodes.has(code) || denialCodes.has(code) || readUnavailableCodes.has(code))) {
       const { CoreReadHostUnavailableV1 } = await import('../core/airprop-read-host-v1');
       return error instanceof CoreReadHostUnavailableV1 ? category : null;
     }
     if (name === 'CoreFunctionalRuntimeUnavailableV1'
-      && (authCodes.has(code) || denialCodes.has(code) || runtimeUnavailableCodes.has(code))) {
+      && (authCodes.has(code) || denialCodes.has(code) || runtimeUnavailableCodes.has(code) || code === 'MFA_REQUIRED')) {
       const { CoreFunctionalRuntimeUnavailableV1 } = await import('../core/functional-command-runtime-v1');
       return error instanceof CoreFunctionalRuntimeUnavailableV1 ? category : null;
     }
@@ -80,6 +80,7 @@ export function createListingFlowApi(composition: {
       } catch (error) {
         const category = await knownFailure(error);
         if (category === 'auth') return diligenceFailure('UNAUTHORIZED', 401);
+        if (category === 'mfa') return diligenceFailure('MFA_REQUIRED', 403);
         if (category === 'denied') return diligenceFailure('LISTING_ACCESS_DENIED', 403);
         if (category === 'unavailable') return diligenceFailure('LISTING_SOURCE_NOT_READY', 503);
         // Unknown infrastructure/driver failure cannot assert an access denial.
@@ -117,6 +118,7 @@ export function createListingFlowApi(composition: {
       } catch (error) {
         const category = await knownFailure(error);
         if (category === 'auth') return diligenceFailure('UNAUTHORIZED', 401);
+        if (category === 'mfa') return diligenceFailure('MFA_REQUIRED', 403);
         if (category === 'denied') return diligenceFailure('LISTING_ACCESS_DENIED', 403);
         if (category === 'unavailable') return diligenceFailure('LISTING_COMMAND_NOT_READY', 503);
         // In particular raw40001/COMMIT-ACK errors remain uncertain here. Never
