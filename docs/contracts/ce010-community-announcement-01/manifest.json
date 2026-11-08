@@ -1,0 +1,360 @@
+{
+  "task": "CE010-COMMUNITY-ANNOUNCEMENT-01",
+  "worker": "CLADORA-CE-WORKER-01",
+  "base_parent": "c84f13ffeb97a8365385243c7712216d47a04c4e",
+  "branch": "codex/ce010-community-announcement-01",
+  "guide_checkpoint_preserved": "c84f13ffeb97a8365385243c7712216d47a04c4e",
+  "inventory": [
+    {
+      "path": "src/lib/community/community-announcement-provider-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 11100,
+        "sha256": "b34f8cdcd332a9336ba4da11655722d21364dd411879cdaa31cf88ae8bb7dd56",
+        "git_blob": "1f15385912b14200686bb45de82f4f009876ae5b"
+      }
+    },
+    {
+      "path": "src/lib/community/community-announcement-protocol-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 2260,
+        "sha256": "1550dd4fa19651e8fb9d2b1506bc30d29050be97ee5e51f9bc06d9b0857ca870",
+        "git_blob": "15a129b386134d4597a336eefd6ad54d114e6820"
+      }
+    },
+    {
+      "path": "src/lib/community/community-announcement-runtime-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 801,
+        "sha256": "fd9f1ffe4ce21e54588508c51a1d7f66284a9fdc61159c3bb7d60b0f93f48279",
+        "git_blob": "0b80e6868222d9c5cfa3d9650a3338e458ba32a1"
+      }
+    },
+    {
+      "path": "src/lib/community/community-announcement-http-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 7875,
+        "sha256": "07a83c324b897a671aa93d4e161275e2650ef2a5dad9c2f8749bcbefc528e2a2",
+        "git_blob": "2541c7a2f8670d8336d717514c30ec2d761971c6"
+      }
+    },
+    {
+      "path": "src/lib/community/community-command-session.ts",
+      "before": {
+        "bytes": 4809,
+        "sha256": "70f6c88e113654502ac3c8bc9d21cf393ce903ea830ee4bfaecdea6b5bc70321",
+        "git_blob": "4558edbb5c5c957bc0bf9c8e215ba4ed5fb18844"
+      },
+      "after": {
+        "bytes": 5999,
+        "sha256": "7f2b4652a4c978e0175e6fe15ae399b2d69504f2a90f6a4cad0e0dddef3c16ed",
+        "git_blob": "e46ff6bdba984c1b66e3c3b5c65ac21a7ff88ebc"
+      }
+    },
+    {
+      "path": "src/components/customer/CustomerCommunityBasePage.tsx",
+      "before": {
+        "bytes": 25335,
+        "sha256": "2db6b57ce6e99fbf9792e6fbf5e20f68b4f026cde150e812a875c41c848f51ce",
+        "git_blob": "55d41e16f12e5e1dec5ae658c25be627abd4cc25"
+      },
+      "after": {
+        "bytes": 25727,
+        "sha256": "7b9d2bdb6547160b97dfd2531642397ff43d47d1be896996c6c49060bf2571f6",
+        "git_blob": "0f9adfad3edb17752e4dbfefc6619413a1506738"
+      }
+    },
+    {
+      "path": "src/app/api/customer/v1/community/base/route.ts",
+      "before": {
+        "bytes": 3708,
+        "sha256": "01b2b53907b4753a1bfe96cb617ec743ccaf65f8eebcaf083ec67beb5ef04a27",
+        "git_blob": "8e0fdf7eadf78ce9a726818dd6430ce4f631a813"
+      },
+      "after": {
+        "bytes": 4384,
+        "sha256": "3a46730bab724714c413802a7da512c6f836374afc00b405a98bb4d0f8460606",
+        "git_blob": "1ec64846766fadf306d5d4eca736603f46b8e21c"
+      }
+    },
+    {
+      "path": "scripts/test-ce010-announcement-c03.mjs",
+      "before": null,
+      "after": {
+        "bytes": 21965,
+        "sha256": "166787adf2a6ecc5fb86814aa09761fe790119d2e21de5493051501f146f6ab0",
+        "git_blob": "eca1b6d5721262bf0afbf0d18097aabd501474df"
+      }
+    },
+    {
+      "path": "docs/contracts/ce010-community-announcement-01/README.md",
+      "before": null,
+      "after": {
+        "bytes": 6811,
+        "sha256": "5596d42ebbdcc89d9273884cc8b44e67017c96278917e784f4a87d96a632beed",
+        "git_blob": "6cee4590e895d70e57409ed3afb7b6bc0a1c8e33"
+      }
+    },
+    {
+      "path": "docs/contracts/ce010-community-announcement-01/dependencies.json",
+      "before": null,
+      "after": {
+        "bytes": 6864,
+        "sha256": "2af66ff41463e715a0931258dbac90981bc7996e9ae47584deea0923c2d8458b",
+        "git_blob": "d92d9ad6b9f6ac7be9b220b21b57fc37a2ed26ea"
+      }
+    }
+  ],
+  "manifest_self_excluded": true,
+  "readonly_inputs_byte_identical": [
+    {
+      "path": "src/lib/community/community-base-schema.ts",
+      "bytes": 2398,
+      "sha256": "d8a333fe486110c9825081b9d21011d0d5ba8ccdbf81f2ed8ab3169ebdaaa1c6",
+      "git_blob": "552fb483a6575f7b07a40d7883a001e049ba1168"
+    },
+    {
+      "path": "src/lib/community/community-base-domain.ts",
+      "bytes": 9221,
+      "sha256": "869b2984b1e08ee67fa42d67967f5bff0b4da8135d1ce1e61975e6b9fde6217b",
+      "git_blob": "90783def65155171e1db5c784a3c6dec21a3dba8"
+    },
+    {
+      "path": "src/lib/community/community-base-client.ts",
+      "bytes": 3187,
+      "sha256": "415198693473dd735dc8b240b74df2db858360a26e055355caa4f7ac72e209c6",
+      "git_blob": "904a2d1a95d58e97f1513228a937a34069583078"
+    },
+    {
+      "path": "src/components/customer/CustomerCommunityBase.tsx",
+      "bytes": 18315,
+      "sha256": "11df1b836e6e20167d0d36eece50aa9b88da0ad6bc0a702ab2efc0d4df335a2b",
+      "git_blob": "1af99bb789808a3a6b7bb4ff45adfe55b1942270"
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "bytes": 62680,
+      "sha256": "9436c082f8ce8a054d8300f55bd49ac4b6120240cf06fa6ca94190b5c6c1858a",
+      "git_blob": "9e1a0229b9676368dc1d49015cf95be13fac9908"
+    },
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "git_blob": "e67df2d947608f546dab42dba88b5bdc418cbffb"
+    },
+    {
+      "path": "src/lib/community/experience-guide-lifecycle-http-v1.ts",
+      "bytes": 22363,
+      "sha256": "94d5583349e77a5dcc549b7234739f66d8e20dc2735d2bd86e1d8a89fbbb6e3f",
+      "git_blob": "1941995c4987a90ac3899277edfba4bdeecb5700"
+    },
+    {
+      "path": "supabase/proposals/ce_010_community_operational_v1.sql",
+      "bytes": 24543,
+      "sha256": "53d999c351b36b62f253f0f13349bd154da2cac7b7900ff2a2146bc1ab660bf3",
+      "git_blob": "a48eb98fa85424895e0bfabe702bc562368ca2eb"
+    },
+    {
+      "path": "src/lib/app/guide-platform-provider-v1.ts",
+      "bytes": 837,
+      "sha256": "7416ad29a3935c0055492cdccfd8b236506be914269bba74e2ef3d3f443067b4",
+      "git_blob": "e1862ebeb8690e688e443c343bfa92b2a10f1e57"
+    },
+    {
+      "path": "package.json",
+      "bytes": 20058,
+      "sha256": "fd82e8763837cbf7af3a0b55dd3e17c9d51f916deab6f5551ecf1a74bce083ce",
+      "git_blob": "24d2aa6ac1b58b075a0e4c42b84ef73ab9ea063b"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 285183,
+      "sha256": "c0d6201b9dddab56818ee2c6a547cdba318b0f6979f2a27657b7ac5a41c9b4dc",
+      "git_blob": "e757f68e7602eb2f31dfd7d79eccedab18b72734"
+    }
+  ],
+  "ce_statement_pins": [
+    {
+      "name": "CE010_COMMUNITY_LOCK_SQL",
+      "path": "src/lib/community/community-announcement-provider-v1.ts",
+      "bytes": 119,
+      "sha256": "2577da8645acd8f3d42a6c94b2bdc0336987c0160fe12984e0eb98f25d7be775",
+      "git_blob": "f1acdc19f172a0f0ce417545504ec92e88285f0a",
+      "runtime_execution": "NOT_RUN_NOT_PASS"
+    },
+    {
+      "name": "CE010_ANNOUNCEMENT_LOCK_SQL",
+      "path": "src/lib/community/community-announcement-provider-v1.ts",
+      "bytes": 172,
+      "sha256": "f85e4c2016e0b03bc6734cf247c45af07cbe7f6357551740e8af74ac26b63859",
+      "git_blob": "301cdd9d13ab0eacccdd1e6df0f6757ccfeb02c0",
+      "runtime_execution": "NOT_RUN_NOT_PASS"
+    },
+    {
+      "name": "CE010_AUDIENCE_VALID_SQL",
+      "path": "src/lib/community/community-announcement-provider-v1.ts",
+      "bytes": 87,
+      "sha256": "48650d6d7256f060cb4761c240674188f64f413a767ec79608f0db6963cefa6e",
+      "git_blob": "dc2b1612096f7a2e2144c901d74fdfb56a533dfe",
+      "runtime_execution": "NOT_RUN_NOT_PASS"
+    },
+    {
+      "name": "CE010_ANNOUNCEMENT_INSERT_SQL",
+      "path": "src/lib/community/community-announcement-provider-v1.ts",
+      "bytes": 175,
+      "sha256": "7f93712df692ae530c2bb12c52ed17a83f78126fcd694ff80b98aab6f5e70555",
+      "git_blob": "e5fb41707621f8004760f4f2b6e3480d8afba31d",
+      "runtime_execution": "NOT_RUN_NOT_PASS"
+    },
+    {
+      "name": "CE010_ANNOUNCEMENT_UPDATE_SQL",
+      "path": "src/lib/community/community-announcement-provider-v1.ts",
+      "bytes": 276,
+      "sha256": "f9ff3d77ed3515431b0e5c1a3baca511265b9497a7957365583d63c5ddd5c1e2",
+      "git_blob": "38b4dbf2ebe6f25931e8cd1fbf4704cc5f506c5e",
+      "runtime_execution": "NOT_RUN_NOT_PASS"
+    },
+    {
+      "name": "CE010_NATIVE_AUTH_SQL",
+      "path": "src/lib/community/community-announcement-http-v1.ts",
+      "bytes": 781,
+      "sha256": "c4972b99d10042d1673e1222c67f857aaac13d7e7a3a670521223719c127c3ad",
+      "git_blob": "7f103c0b0ddb4bd73729fa7caada879cf9cb415e",
+      "runtime_execution": "NOT_RUN_NOT_PASS"
+    },
+    {
+      "name": "CE010_NATIVE_READ_SQL",
+      "path": "src/lib/community/community-announcement-http-v1.ts",
+      "bytes": 73,
+      "sha256": "94670109965d71f03e15a397bd33fcada74c25fc9cc50baaf130187f61715cf9",
+      "git_blob": "2e7bc55df58d71d6589c9958eaedfd02764c01fc",
+      "runtime_execution": "NOT_RUN_NOT_PASS"
+    }
+  ],
+  "other_statements": [
+    "begin isolation level serializable",
+    "select revision::text from app_private.canonical_authority_revision_v1 where singleton for share",
+    "rollback",
+    "provider checkpoint SELECT (see pinned provider source)"
+  ],
+  "closed_admission": "Core must review/include transitive existing host/resolver statements; this manifest does not extend an execution allowlist",
+  "tests": [
+    {
+      "name": "ce010-final-cases.txt",
+      "result": "PASS_CONTROLLED_13_GROUPS",
+      "evidence_local_not_transferred": {
+        "bytes": 1279,
+        "sha256": "feb54850932fde8274845b05edb701f00828c310d2fb15cb9161824f8210332e",
+        "git_blob": "3c45b2f6431a0c7c4edd11c5eb40b46c9e2a57c8"
+      }
+    },
+    {
+      "name": "ce010-commit-error.txt",
+      "result": "PASS",
+      "evidence_local_not_transferred": {
+        "bytes": 233,
+        "sha256": "b60873bfa1f8be2f5f26c00a37ee71f5788676bffb8346fff975968545b300fd",
+        "git_blob": "93a4321a8fe778f843bcd19aba7e390fb88e86b7"
+      }
+    },
+    {
+      "name": "ce010-resealed.txt",
+      "result": "PASS",
+      "evidence_local_not_transferred": {
+        "bytes": 226,
+        "sha256": "b119590f3795c0151091573b3618890ad0a19b4d623ab5bbd4b47279634b25d1",
+        "git_blob": "0b7c4d312a25c9786344473bad145194a6b34dfb"
+      }
+    },
+    {
+      "name": "ce010-legacy-delivery.txt",
+      "result": "PASS",
+      "evidence_local_not_transferred": {
+        "bytes": 248,
+        "sha256": "806e9bd4b3a085b737debe8c7f3738056fab6f8502ae3cf4369c26f9d8995382",
+        "git_blob": "242536a77fd2eb04906053b13386881dd4515e48"
+      }
+    },
+    {
+      "name": "ce010-tsc-delivery.txt",
+      "result": "PASS",
+      "evidence_local_not_transferred": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      }
+    },
+    {
+      "name": "ce010-lint-delivery.txt",
+      "result": "PASS",
+      "evidence_local_not_transferred": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      }
+    },
+    {
+      "name": "ce010-verified-delivery.txt",
+      "result": "PASS_CONTROLLED_14_GROUPS",
+      "evidence_local_not_transferred": {
+        "bytes": 1368,
+        "sha256": "c42357008c78972c7d9f9234884b9b11f468e17a2fa809bf886f6ca6194c2bce",
+        "git_blob": "811e6555c5e33c45c088826e0d57877c7e6b3a12"
+      }
+    },
+    {
+      "name": "ce010-tsc-verified.txt",
+      "result": "PASS_EXIT_0",
+      "evidence_local_not_transferred": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      }
+    },
+    {
+      "name": "ce010-lint-verified.txt",
+      "result": "PASS_EXIT_0",
+      "evidence_local_not_transferred": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      }
+    },
+    {
+      "name": "ce010-harness-lint-final.txt",
+      "result": "PASS_EXIT_0",
+      "evidence_local_not_transferred": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      }
+    }
+  ],
+  "distinct_new_groups_passed": 14,
+  "toolchain": {
+    "next": "16.4.1",
+    "zod": "4.6.6",
+    "typescript": "5.9.3",
+    "node": "24.19.0"
+  },
+  "runtime": null,
+  "provider_binding": null,
+  "new_mapping": "PROPOSED_NOT_ACTIVATED",
+  "native_SQL_Auth_RLS_restart_browser": "NOT_RUN_NOT_PASS",
+  "old_successful_Guide_CE010_G1_G2_suites": "NOT_RERUN",
+  "dependency_contract": "CE_CONSUMER_REQUIREMENTS_NOT_ACCEPTED_CORE_PLATFORM_ABI",
+  "remaining": [
+    "Core request-local identity/role-safe pool/currentness and exact mapping",
+    "Platform exact canonical schema/helper/RLS/ACL/closed-query installation and synthetic Community fixture",
+    "App CE entry/current Context projection",
+    "Platform native flow and independent QA"
+  ],
+  "skills_policy": "CLADORA-SKILLS-USAGE v1.1.0",
+  "automation": "نیازمند بررسی",
+  "status": "IMPLEMENTED_CONTROLLED_SOURCE_FOR_REVIEW_NATIVE_OPEN",
+  "final_semantic_run": "ce010-verified-delivery.txt / 14 new affected groups"
+}

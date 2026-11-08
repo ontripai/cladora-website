@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server';
 import { ce010CommandSchema } from '@/lib/community/community-base-schema';
 import { hasTrustedMutationOrigin } from '@/lib/security/same-origin';
 import { isApplicationJson, parseJsonWithLimit } from '@/lib/security/request-body';
+import {CE010_ANNOUNCEMENT_RUNTIME_V1} from '@/lib/community/community-announcement-runtime-v1';
+import {createAnnouncementHandlersV1} from '@/lib/community/community-announcement-http-v1';
 
 const HEADERS = { 'Cache-Control': 'no-store, private', Pragma: 'no-cache', Vary: 'Cookie' };
 const uuid = z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
@@ -22,6 +24,7 @@ function rpcFailure(error: { code?: string }) {
 }
 
 export async function GET(request: NextRequest) {
+  if(CE010_ANNOUNCEMENT_RUNTIME_V1.resolve!==null)return createAnnouncementHandlersV1(CE010_ANNOUNCEMENT_RUNTIME_V1).GET(request);
   const raw = Object.fromEntries(request.nextUrl.searchParams);
   if (Array.from(request.nextUrl.searchParams.keys()).some((key) => !['context_id', 'workspace_id'].includes(key))
     || request.nextUrl.searchParams.getAll('context_id').length !== 1
@@ -43,13 +46,15 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   if (!hasTrustedMutationOrigin(request)) return fail('BAD_ORIGIN', 403);
   if (!isApplicationJson(request.headers.get('content-type'))) return fail('UNSUPPORTED_MEDIA_TYPE', 415);
-  const { data: body, errorResponse } = await parseJsonWithLimit<unknown>(request, 32 * 1024);
+  const { data: body, errorResponse } = await parseJsonWithLimit<unknown>(new NextRequest(request.clone()), 32 * 1024);
   if (errorResponse) {
     for (const [key, value] of Object.entries(HEADERS)) errorResponse.headers.set(key, value);
     return errorResponse;
   }
+  if(body&&typeof body==='object'&&'op'in body)return createAnnouncementHandlersV1(CE010_ANNOUNCEMENT_RUNTIME_V1).POST(request);
   const parsed = ce010CommandSchema.safeParse(body);
   if (!parsed.success) return fail('INVALID_REQUEST', 400);
+  if(CE010_ANNOUNCEMENT_RUNTIME_V1.resolve!==null&&['create_announcement','publish_announcement','cancel_announcement'].includes(parsed.data.type))return fail('CE_COMMUNITY_CONNECTION_NOT_READY',503);
   const supabase = await createClient();
   const { data: claims, error: authError } = await supabase.auth.getClaims();
   if (authError || !claims?.claims?.sub) return fail('UNAUTHORIZED', 401);

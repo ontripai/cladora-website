@@ -15,7 +15,7 @@ const copy = {
   fa: { unsavedTitle: 'تغییرات حفظ شوند؟', unsavedBody: 'در جامعهٔ فعلی پیش‌نویس ارسال‌نشده دارید. برای تغییر جامعه آن‌ها را کنار می‌گذارید؟', keep: 'ادامهٔ ویرایش', discard: 'کنارگذاشتن پیش‌نویس و تغییر جامعه', unavailable: 'جامعهٔ انتخاب‌شده دیگر در دسترس نیست. پیش‌نویس‌ها در زمینهٔ جامعهٔ اولیه حفظ می‌شوند. جامعهٔ در دسترس دیگری انتخاب کنید.', title: 'جامعه', subtitle: 'اعلان‌های جامعه را ببینید و فقط اقدام‌های مجاز در زمینهٔ فعال را انجام دهید.', choose: 'انتخاب جامعه', loading: 'در حال دریافت جامعه…', empty: 'در این فضای کاری جامعهٔ واجد شرایطی وجود ندارد.', noContext: 'ابتدا یک زمینهٔ فعال انتخاب کنید.', session: 'نشست شما نیاز به بررسی دوباره دارد؛ دوباره وارد شوید.', denied: 'ماژول جامعه یا مجوز لازم در این فضای کاری فعال نیست.', notReady: 'اتصال عملیاتی جامعه هنوز فعال نشده است.', retry: 'دریافت جامعه ناموفق بود.', again: 'تلاش دوباره' },
 } as const;
 
-type CommunitySlot = { formRevision:number; session: ReturnType<typeof createCommunityCommandSession>; drafts: Map<string,string>; bridge: { fetch: typeof globalThis.fetch; owner:()=>object|null; changed:()=>void; denied:()=>void } };
+type CommunitySlot = { formRevision:number; session: ReturnType<typeof createCommunityCommandSession>; drafts: Map<string,string>; bridge: { fetch: typeof globalThis.fetch; owner:()=>object|null; changed:()=>void; denied:()=>void; announcementProtocol:()=>boolean } };
 function reconcileSubmittedDraft(store:Map<string,string>, before:Map<string,string>, command:Ce010Command) {
   const expected:Record<string,string> = command.type==='create_announcement'?{'announcement.body':command.body}
     : command.type==='report_content'?{'report.target':command.target_id,'report.reason':command.report_reason}
@@ -40,6 +40,7 @@ function CommunityWorkspace({ lang, contextId, workspaceId, membershipId, slots,
   const [communities, setCommunities] = useState<CommunityBaseView[] | null>(null); const [selectedId, setSelectedId] = useState('');
   const selectorRef = useRef<HTMLSelectElement>(null);
   const owner = useRef<object|null>(null), readAdmission = useRef(false), scopeRef = useRef<object|null>(null);
+  const nativeAnnouncementAdmission=useRef(false);
   const [reading,setReading] = useState(true);
   const [readViewOwner,setReadViewOwner] = useState<object|null>(null);
   const [,renderExecution] = useState(0);
@@ -61,7 +62,7 @@ function CommunityWorkspace({ lang, contextId, workspaceId, membershipId, slots,
   const keepSelection = useCallback(() => setPendingSelection(null), []);
   const [failure, setFailure] = useState<CommunityLoadFailure | null>(null); const [attempt, setAttempt] = useState(0);
   const load = useCallback(async (signal?: AbortSignal) => {
-    readAdmission.current=false; setReading(true);
+    readAdmission.current=false; nativeAnnouncementAdmission.current=false; setReading(true);
     const revision = ++loadRevision.current;
     if(suspended)return;
     const valid=()=>!signal?.aborted && revision===loadRevision.current && scopeRef.current===scopeOwner && owner.current===token;
@@ -76,6 +77,7 @@ function CommunityWorkspace({ lang, contextId, workspaceId, membershipId, slots,
       const firstLoad = !initialized.current;
       initialized.current = true;
       readAdmission.current=true;setReading(false);
+      nativeAnnouncementAdmission.current=response.headers.get('X-Cladora-Community-Read')==='core-announcement-v1';
       setCommunities(previous=>valid()?next:previous);setReadViewOwner(previous=>valid()?scopeOwner:previous);
       // Revocation never silently moves local drafts to the next community.
       setSelectedId((current) => !valid()?current:next.some((community) => community.community_id === current) ? current : firstLoad ? next[0]?.community_id ?? '' : '');
@@ -95,13 +97,13 @@ function CommunityWorkspace({ lang, contextId, workspaceId, membershipId, slots,
   const slotKey=JSON.stringify([membershipId,contextId,workspaceId,selectedId]);
   const slot=(() => {
     const existing=slots.get(slotKey);if(existing)return existing;
-    const bridge={fetch,owner:():object|null=>null,changed:()=>{},denied:()=>{}};
+    const bridge={fetch,owner:():object|null=>null,changed:()=>{},denied:()=>{},announcementProtocol:()=>false};
     const created:CommunitySlot={formRevision:0,drafts:new Map(),bridge,session:createCommunityCommandSession({contextId,workspaceId,communityId:selectedId,fetch:(...args)=>bridge.fetch(...args),
-      owner:()=>bridge.owner(),changed:()=>bridge.changed(),denied:()=>bridge.denied()})};slots.set(slotKey,created);return created;
+      owner:()=>bridge.owner(),changed:()=>bridge.changed(),denied:()=>bridge.denied(),announcementProtocol:()=>bridge.announcementProtocol()})};slots.set(slotKey,created);return created;
   })();
   useLayoutEffect(()=>{
     readAdmission.current=false;scopeRef.current=scopeOwner;owner.current=token;
-    Object.assign(slot.bridge,{fetch,owner:()=>owner.current===token && !suspended && readAdmission.current ? token : null,
+    Object.assign(slot.bridge,{fetch,announcementProtocol:()=>nativeAnnouncementAdmission.current,owner:()=>owner.current===token && !suspended && readAdmission.current ? token : null,
       changed:()=>renderExecution(n=>n+1), denied:()=>{readAdmission.current=false;setFailure('denied');setCommunities(null);}});
     return ()=>{owner.current=null;scopeRef.current=null;slot.session.invalidate();};
   },[token,scopeOwner,suspended,slot,fetch]);
