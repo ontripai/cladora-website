@@ -109,6 +109,33 @@ function sqlState(error: unknown) {
  * Caller owns the exact server transaction and its settlement. No client/BEGIN/COMMIT.
  */
 export function createCoreS01ProviderAgreementReaderV1(bindings: CoreS01BindingsV1) {
+  return createAgreementSourceReader(bindings,'request');
+}
+type AuthoringDisclosure={status:'withhold'}|{status:'disclose';provider_party_id:string;offering_id:null;revision_id:null;valid_from:null;valid_until:null};
+type SourceBindings=Omit<CoreS01BindingsV1,'offeringPolicy'>&{offeringPolicy:{readAndCheck(scope:CoreTransactionScopeV1,input:ProviderAgreementVerificationV1Input):Promise<Awaited<ReturnType<CoreS01OfferingDisclosurePolicyV1['readAndCheck']>>|AuthoringDisclosure>}};
+/** Separate disclosure family. No published Offering is required to author an
+ * Offering or Quote. Exact canonical workspace permission remains mandatory;
+ * no caller policy/allow, request-profile alias, new store or agreement writer. */
+export function createCoreS01AuthoringAgreementReaderV2(bindings:Omit<CoreS01BindingsV1,'offeringPolicy'>){
+  return createAgreementSourceReader({...bindings,offeringPolicy:{async readAndCheck(scope,input):Promise<AuthoringDisclosure>{
+    const rows=await scope.query(CORE_S01_SQL.discover,[input.provider_agreement_id,scope.tenant_id,scope.workspace_id]);
+    if(rows.rowCount===0&&rows.rows.length===0)return{status:'withhold'};
+    if(rows.rowCount!==1||rows.rows.length!==1)throw new CoreS01UnavailableV1('SOURCE_INVARIANT');
+    const h=headSchema.parse(rows.rows[0]);
+    if(h.id!==input.provider_agreement_id||h.tenant_id!==scope.tenant_id||h.workspace_id!==scope.workspace_id
+      ||h.current_version!==input.provider_agreement_version||h.status!=='effective')return{status:'withhold'};
+    return{status:'disclose',provider_party_id:h.provider_party_id,offering_id:null,revision_id:null,valid_from:null,valid_until:null};
+  }}},'authoring');
+}
+const authoringProfile=(input:ProviderAgreementVerificationV1Input)=>{
+  if(input.requested_service_scope.length!==1)return null;
+  const scope=input.requested_service_scope[0];
+  if(input.permission_code==='services.catalog.manage'&&['service.offering.create','service.offering.submit','service.offering.suspend','service.offering.archive'].includes(scope))return{module:'services_catalog',purpose:scope==='service.offering.create'?'service.create_offering':'service.transition_offering'};
+  if(input.permission_code==='services.catalog.publish'&&scope==='service.offering.publish')return{module:'services_catalog',purpose:'service.transition_offering'};
+  if(input.permission_code==='services.quotes.manage'&&scope==='service.quote.create')return{module:'services_orders',purpose:'service.create_quote'};
+  return null;
+};
+function createAgreementSourceReader(bindings:SourceBindings,family:'request'|'authoring') {
   const source = bindings.source === null ? null : Object.freeze({...bindings.source});
   return async function resolveProviderAgreement(scope: CoreTransactionScopeV1, value: ProviderAgreementVerificationV1Input):
     Promise<ProviderAgreementVerificationV1> {
@@ -124,10 +151,11 @@ export function createCoreS01ProviderAgreementReaderV1(bindings: CoreS01Bindings
       throw new CoreS01UnavailableV1('SOURCE_NOT_READY');
     }
     // S01 only: no publication, Finance, booking or resource-specific authority.
-    if (input.permission_code!=='services.orders.request'
-      ||input.requested_service_scope.length!==1||input.requested_service_scope[0]!=='service.request.create') {
-      throw new CoreS01UnavailableV1('INVALID_INPUT');
-    }
+    const authoring=family==='authoring'?authoringProfile(input):null;
+    const moduleCode=family==='request'
+      ?(input.permission_code==='services.orders.request'&&input.requested_service_scope.length===1&&input.requested_service_scope[0]==='service.request.create'?'services_orders':null)
+      :authoring?.module??null;
+    if(moduleCode===null)throw new CoreS01UnavailableV1('INVALID_INPUT');
     const bound={actor_id:scope.actor_id,tenant_id:scope.tenant_id,workspace_id:scope.workspace_id,
       transaction_id:scope.transaction_id,database_transaction_id:scope.database_transaction_id,attempt:scope.attempt};
     const unchanged=()=>Object.entries(bound).every(([k,v])=>scope[k as keyof typeof bound]===v);
@@ -146,7 +174,8 @@ export function createCoreS01ProviderAgreementReaderV1(bindings: CoreS01Bindings
       const request=currentAuthorityTransactionRequestV1Schema.parse(structuredClone(bindings.authorityRequestFor(scope,input)));
       if (request.context_id!==input.context_id||request.workspace_id!==bound.workspace_id
         ||request.actor_id!==bound.actor_id||request.permission_code!==input.permission_code
-        ||request.module_code!=='services_orders'||request.transaction_context.transaction_id!==bound.transaction_id
+        ||request.module_code!==moduleCode||(authoring!==null&&request.evaluation_purpose!==authoring.purpose)
+        ||request.transaction_context.transaction_id!==bound.transaction_id
         ||request.transaction_context.attempt!==bound.attempt) return withheld(clock.evaluated_at);
       const authority=async()=>{
         await scope.query(CORE_S01_SQL.session);
@@ -204,7 +233,7 @@ export function createCoreS01ProviderAgreementReaderV1(bindings: CoreS01Bindings
       try { if (!await authority()) return withheld(clock.evaluated_at); }
       catch (error) { if (sqlState(error)==='42501'||(error instanceof CoreAuthorityProviderUnavailableV1 && ['ACTOR_REVOKED','ACTOR_BINDING_MISMATCH','AUTHORITY_NOT_FOUND','AUTHORITY_DENIED','CROSS_WORKSPACE'].includes(error.code))) return withheld(clock.evaluated_at); throw error; }
       try {
-        const final=await scope.query(CORE_S01_SQL.final,[input.context_id,bound.workspace_id,input.permission_code,'services_orders']);
+        const final=await scope.query(CORE_S01_SQL.final,[input.context_id,bound.workspace_id,input.permission_code,moduleCode]);
         if (final.rowCount!==1||final.rows.length!==1) throw new CoreS01UnavailableV1('SOURCE_INVARIANT');
         const observed=clockSchema.extend({allowed:z.boolean(),session_guard:z.unknown(),authority_revision:z.string().regex(/^\d+$/)}).parse(final.rows[0]);
         if (!Object.hasOwn(final.rows[0],'session_guard')||observed.allowed!==true
@@ -214,7 +243,7 @@ export function createCoreS01ProviderAgreementReaderV1(bindings: CoreS01Bindings
       } catch (error) { if (sqlState(error)==='42501') return withheld(clock.evaluated_at); throw error; }
       if (clock.actor_id!==bound.actor_id||!unchanged()) return withheld(clock.evaluated_at);
       const finalTime=offeringInstant(clock.evaluated_at);
-      if(compareOfferingInstants(finalTime,offeringInstant(currentDisclosure.valid_from))<0
+      if((currentDisclosure.valid_from!==null&&compareOfferingInstants(finalTime,offeringInstant(currentDisclosure.valid_from))<0)
         ||(currentDisclosure.valid_until!==null&&compareOfferingInstants(finalTime,offeringInstant(currentDisclosure.valid_until))>=0)) return withheld(clock.evaluated_at);
       const today=clock.evaluated_at.slice(0,10);
       const status=head.status==='revoked'?'revoked':head.status!=='effective'||row.version!==input.provider_agreement_version

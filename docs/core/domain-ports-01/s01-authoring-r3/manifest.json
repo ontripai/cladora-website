@@ -1,0 +1,220 @@
+{
+  "contract": "core-service-authoring-agreement.delivery.v2",
+  "FullSHA": "CONTAINING_COMMIT",
+  "Parent": "fc179df92f26d63de9cfe03c5644719f0428913d",
+  "source_state": "CANONICAL_AUTHORING_S01_SOURCE_READY_FOR_REVIEW",
+  "native": "NOT_RUN_NOT_PASS",
+  "runtime": null,
+  "inventory": [
+    {
+      "path": "src/lib/core/functional-command-runtime-v1.ts",
+      "before": {
+        "bytes": 28727,
+        "sha256": "ec5ada6a57427d06dea947da621d0039f51078c8aaeca358349195b5b015f9c0",
+        "git_blob": "5c34552afe4323298730e7a622b2f437df1f874b"
+      },
+      "after": {
+        "bytes": 28792,
+        "sha256": "2733b390aed572f6751a209841ddf1e6429ead6859bc68c6e56ed46a9bef7152",
+        "git_blob": "c0504b734fb77d5d992a7e576d402728d30c2279"
+      }
+    },
+    {
+      "path": "src/lib/core/functional-producers-v1.ts",
+      "before": {
+        "bytes": 4260,
+        "sha256": "f44c68523edcb4c75589a7b040d6f380d5609788a6c12bb0fb661c74870ed887",
+        "git_blob": "2795ae040748018820e26aa827c174ac39cb7817"
+      },
+      "after": {
+        "bytes": 4581,
+        "sha256": "abf06b831c50fba806d9b2a9d297c752dc01d738949c8c175455e7c202dd5d01",
+        "git_blob": "71ca595a07b17a29976f8b7fbc4cc8c198591887"
+      }
+    },
+    {
+      "path": "src/lib/core/service-quote-command-binding-v1.ts",
+      "before": {
+        "bytes": 2846,
+        "sha256": "9ae57a5ee805f0e94f2ea799371d71f4dc87006c0b43997b541f4edfa3ccb4af",
+        "git_blob": "cf8d91a13b3ecb100f2d46f5aadf7fc54423be0b"
+      },
+      "after": {
+        "bytes": 3037,
+        "sha256": "cf7e44210df9ebb89e5a855d5adb1a97d531bb820eb741e8a08f6d97b8aec2eb",
+        "git_blob": "cf24162672b1751643b93050409f777ec7cde5dd"
+      }
+    },
+    {
+      "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "before": {
+        "bytes": 19246,
+        "sha256": "977581d5c025287e7a88cc485a31d277fc412e8d7825087c871bfbdf2ecbeb8c",
+        "git_blob": "4080a96d003670068abbf435bb303f09e32cdc0d"
+      },
+      "after": {
+        "bytes": 22117,
+        "sha256": "4fa4f47ec4bb6439c9b7ee35565adb5045d24b73b158df551685fc9e85a4e9cb",
+        "git_blob": "84616f7beb6e347896ce1f0c6f4a3a55ff208747"
+      }
+    },
+    {
+      "path": "src/lib/core/service-authoring-agreement-runtime-v2.ts",
+      "before": null,
+      "after": {
+        "bytes": 3194,
+        "sha256": "8bdbc5d29347378ff6835864b337a887a0e6d88e97e8bd2e5e25e7683fcb8335",
+        "git_blob": "7d6f8156d6255079b7a5339647442e28e47e24e5"
+      }
+    },
+    {
+      "path": "scripts/test-core-authoring-agreement-r3.mjs",
+      "before": null,
+      "after": {
+        "bytes": 16063,
+        "sha256": "f5a76136b8648ece51b4629356e62948e111e3ca6714a94d49a8bc626eef2ee0",
+        "git_blob": "6082a618d0ed7ec1994b575af645e1981efdddc9"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/WORKLOG.md",
+      "before": {
+        "bytes": 7766,
+        "sha256": "be10f70c249b6b63388c180c986e7198fcce0e01bd106f6bdeeb2937754005f8",
+        "git_blob": "2d3a680811c8a70775490ef2c6c780d5039cb10d"
+      },
+      "after": {
+        "bytes": 12303,
+        "sha256": "b29c8d12c7b1890c8bd923d978507a724ae04978772195a03bef71ff52dcb66f",
+        "git_blob": "3de2f5630547cc4397ceaadd1093d82ea738a4b5"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/s01-authoring-r3/README.md",
+      "before": null,
+      "after": {
+        "bytes": 8223,
+        "sha256": "b2a1d2e77b37efef02eef6101f0c824dc22a446007819ddb405c424f2e988971",
+        "git_blob": "1c97f5e070f8ece217b8ecadd45bdd32315f2d16"
+      }
+    }
+  ],
+  "SERVICE": {
+    "FullSHA": "fdfe3c6eb5f5f7dd586d21b5d8a8855fa912cb83",
+    "owner_files_edited": false,
+    "files": [
+      {
+        "path": "src/lib/customer/service-quote-runtime-composition-v1.ts",
+        "bytes": 6581,
+        "sha256": "b80dbac14f2b72907d1e3d27ebf47feefc21b4f7390f883312c1cd3271067047",
+        "git_blob": "6ef56dcbf060bae1c5cc7f1a8a1b9e98fdafedea"
+      },
+      {
+        "path": "src/lib/customer/service-quote-postgres-adapter-v1.ts",
+        "bytes": 6618,
+        "sha256": "fdb80393804fc344b2fd45aa557ca12d9dac58519d647eee927b02e313405e7b",
+        "git_blob": "0251f29d133b93e364965a23730843bf29d3f9b4"
+      },
+      {
+        "path": "src/lib/customer/service-quote-command-v1.ts",
+        "bytes": 14895,
+        "sha256": "6f0ffde43e6e34b02f2bc5142ba0d6a1a700c607fb5569df9beca05214c88ca8",
+        "git_blob": "60cd0d79e377a5e8320bcfa437f0d95ba39c226f"
+      },
+      {
+        "path": "src/lib/customer/service-quote-schema.ts",
+        "bytes": 3034,
+        "sha256": "c81e84c4e9f42ac67f2d17da45a8be2e43a8fe88ba712a2e2230516d7f0fe322",
+        "git_blob": "5c2f0532ebfc616660b0390ab92999cbc3b7a07a"
+      },
+      {
+        "path": "src/lib/customer/service-quote-http-v1.ts",
+        "bytes": 4164,
+        "sha256": "0e94b6fb18257566ced3ac5515cfea610717257c668908959fe58ff99886fd61",
+        "git_blob": "35396ada3109539cd38e63eece3838acddd8efc4"
+      },
+      {
+        "path": "src/lib/customer/service-offering-time-precision-v1.ts",
+        "bytes": 2332,
+        "sha256": "a14d38abb83b15a39d82d928e1e8e03fbce9939b195cbfea3883aeaa5ed851a2",
+        "git_blob": "bd758c5f53cb26dbc266f54672cef979549ccc8f"
+      },
+      {
+        "path": "src/lib/customer/service-v14-execution/offering-authoring-composition-v1.ts",
+        "bytes": 4653,
+        "sha256": "5c13bf6d85845dbb2358d9bdccf56db687019544e775ff8fa209986e9b3be2af",
+        "git_blob": "f2d7c5580ade1a513ff6e9ccbb2e33f9528c34b4"
+      }
+    ]
+  },
+  "protected": [
+    {
+      "path": "supabase/install/core-functional-runtime-v1/01-s01-store.sql",
+      "bytes": 16609,
+      "sha256": "f7ed99779d1f69d18893392a1c593fe966086cc4adbfa838365a0c35f427ee0e",
+      "git_blob": "5505ec04d1bdf3d373e2ff85231dee0a1403f9b8"
+    },
+    {
+      "path": "supabase/install/core-functional-runtime-v1/service-native-v3/07-runtime-access.sql",
+      "bytes": 12669,
+      "sha256": "da89067ca7326cb27b4dea8a751cba47ae3c0c1e4df38ce79967fab57aec3d1c",
+      "git_blob": "275178e64a0e43c7fb7490232151fd6f4e2a18b7"
+    },
+    {
+      "path": "supabase/proposals/core-service-s01/store-v1.sql",
+      "bytes": 16397,
+      "sha256": "42d2c96d7ac7e8a09aa2ecc60725054eb7c058ef471e64ea309add0a1bb72d50",
+      "git_blob": "d1fcd30e635c57e9a34c846aa6613e49daa471ea"
+    },
+    {
+      "path": "src/lib/core/service-s01/offering-disclosure-policy-v1.ts",
+      "bytes": 7396,
+      "sha256": "3d57e846dd782a4443b637a4bf9fc8337fda471f36d56ad3ae5eaab0830c3df6",
+      "git_blob": "9cba2cc22501c0695837d2c800c00fa03d24f236"
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "bytes": 62680,
+      "sha256": "9436c082f8ce8a054d8300f55bd49ac4b6120240cf06fa6ca94190b5c6c1858a",
+      "git_blob": "9e1a0229b9676368dc1d49015cf95be13fac9908"
+    },
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "git_blob": "e67df2d947608f546dab42dba88b5bdc418cbffb"
+    },
+    {
+      "path": "src/lib/core/current-authority-transaction-port-v1.ts",
+      "bytes": 9496,
+      "sha256": "02e0b85d1dba7ca87ec0eddff5d3f3552bed518794888e9ee0f34c0de962c14f",
+      "git_blob": "3e70731254c06ec69a22ef5e2fa689b78ec22aa9"
+    },
+    {
+      "path": "src/lib/core/scoped-server-clock-v1.ts",
+      "bytes": 1120,
+      "sha256": "2753aee2dce0ed13e1dc8307eacfdb7f60f5bbacd90421968bcffe662f3a1823",
+      "git_blob": "d94ff4283f1920f643f23d860cbdca089a0303b2"
+    }
+  ],
+  "checks": {
+    "new_controlled_groups": 16,
+    "request_only_predecessor": "COUNTEREXAMPLE_CONFIRMED",
+    "isolated_capture_predecessor": "COUNTEREXAMPLE_CONFIRMED",
+    "full_ES5_typecheck": "PASS",
+    "limited_lint": "PASS",
+    "syntax": "PASS",
+    "diff": "PASS"
+  },
+  "native_guide_proof_borrowed": false,
+  "remaining": [
+    "actual target store/ACL/session/epoch admission",
+    "SERVICE durable prepareOrRecover and history producer",
+    "native transaction/expiry/revoke/concurrency/restart/HTTP acceptance"
+  ],
+  "activation": null,
+  "seal": {
+    "algorithm": "sha256_canonical_json_excluding_seal",
+    "digest": "35c324e402b60403ed2e2c3fd9f3fb94d5df24123f0a9cdfc07f2e14e798d7e1"
+  }
+}

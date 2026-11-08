@@ -121,3 +121,69 @@ No approved authoring S01 source or Listing relationship revision is invented.
 - scripts/verify-core-domain-port-pins-r2.mjs (before edit: offline identity validator)
 Final source increment excludes the unfinished Guide installation draft. Local
 Guide files remain in the original worktree. Runtime/activation remain NULL.
+
+## R3: consume exact Platform helper/discovery input (before edits)
+Parent365d47b59d0cd0b5f7bb13604f1497c2104ed6e7. Both supplied Markdown files
+read from the authorized Page and matched their exact bytes/SHA256. Originals
+are private under /workspace/artifacts/core-domain-ports-01/platform-guide-inputs;
+no raw catalog/report is published. Guide draft checkpoint remains preserved.
+New/affected Core-owned paths for the independent Guide packet:
+- scripts/prepare-core-guide-install-v1.mjs
+- scripts/test-core-guide-install-v1.mjs
+- scripts/prepare-core-guide-save-adoption-v1.mjs (existing local draft)
+- scripts/test-core-guide-save-adoption-v1.mjs (existing local draft)
+- supabase/install/guide-no-document-v1/{10-guide-core.sql,20-save-relation.sql,preflight.sql,verify.sql,manifest.json,recovery.md,save-preflight.sql,save-verify.sql}
+- docs/core/domain-ports-01/guide-install-r3/{README.md,manifest.json}
+No existing helper body/owner is rewritten. Exact target/principal/privilege and
+role graph remain execution preconditions, not profile claims. SQL stays source.
+S01/Listing extensions use separate files/checkpoints; neither waits for Guide.
+
+## Independent S01 authoring/Quote extension (before edits)
+- src/lib/core/service-s01/provider-agreement-reader-v1.ts (private shared algorithm;
+  existing exported v1 remains request-only, new closed authoring family)
+- src/lib/core/functional-producers-v1.ts (explicit server-only family composition)
+- src/lib/core/functional-command-runtime-v1.ts (default remains Request)
+- src/lib/core/service-authoring-agreement-runtime-v2.ts
+- scripts/test-core-authoring-agreement-r3.mjs
+- docs/core/domain-ports-01/s01-authoring-r3/{README.md,manifest.json}
+Existing Request Offering policy, date policy, evaluator/store/writers and all SQL
+stay unchanged. No SERVICE owner source, provider registry or alternate engine.
+
+## QFW-R2-03 isolated correction (before edits)
+Recovered environment is the same managed ID; HEAD is365d47b5. Read-only inventory
+found19 WIP files, snapshotted under artifacts/core-domain-ports-01/qfw-r2-03.
+Guide/S01 draft files exist; their prior /tmp test logs and the unfinished R3
+coupling test are absent. No R3 result is reconstructed or promoted to PASS.
+Narrow edit paths: src/lib/core/functional-command-runtime-v1.ts (Auth schema/order
+only), scripts/test-core-quote-mfa-qfw-r2-03.mjs and docs/core/domain-ports-01/qfw-r2-03/.
+Existing uncommitted R3 family changes are preserved and excluded from this child.
+
+## R3 resumed from accepted QFW child (before further edits)
+HEAD ae1fe671;19 WIP paths snapshotted under artifacts/core-domain-ports-01/r3-resume.
+Guide first delivery scope extends to:
+- supabase/install/guide-no-document-v1/00-fixed-roles.sql
+- supabase/install/guide-no-document-v1/05-owner-delegations.sql
+- scripts/test-core-guide-install-pg17.py
+- scripts/lib/core-guide-lab-prestate-v1.mjs
+Test only in a unique disposable local PG17/Auth-migration environment using
+pinned cached images. No SQL/docker exec/restart/fixture against existing stacks.
+No provider credential, existing volume or shared target is reused.
+The draft incorrectly required ordinary-installer grant options on Auth/RPC
+functions. Owner-side narrow delegation is a separate explicit unit, not an
+installer privilege expansion. Existing helper definitions/owners are preserved.
+- docs/core/domain-ports-01/guide-install-r3/{README.md,manifest.json,native-pg17.receipt.json}
+The first Guide delivery includes only this installation/test packet. Actual
+native lab run008 has completed; raw catalog/env/passwords remain private.
+Shared-target installation, positive application Auth/C03/Guide/UI/restart remain
+separate gates. The accepted QFW files and S01/Listing WIP are not staged here.
+
+## S01 R3 request-local consumer closure (before edits)
+Actual SERVICE fdfe's resolver creates its own Core command port and later calls
+source.bind(request). A second independent producer runtime cannot see the first
+runtime's canonical capture; direct adapter-only coupling is insufficient.
+Additional affected Core path: src/lib/core/service-quote-command-binding-v1.ts.
+Use the same Request-keyed authoring composition with exact Pool/target identity;
+no SERVICE file, public resolver, reservation store or authority provider changes.
+Add corresponding actual-factory coupling and fail-closed identity controls to
+scripts/test-core-authoring-agreement-r3.mjs. Missing durable preparation stays
+explicit; a controlled reservation in a test is not a native producer.

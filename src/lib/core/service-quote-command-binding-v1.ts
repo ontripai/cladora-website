@@ -3,6 +3,7 @@ import 'server-only';
 import {z} from 'zod';
 import type {Pool} from 'pg';
 import {createCoreFunctionalCommandRuntimeV1,type CoreFunctionalDevelopmentTargetV1} from './functional-command-runtime-v1';
+import {createCoreServiceAuthoringAgreementRuntimeV2} from './service-authoring-agreement-runtime-v2';
 import {coreTransactionCommandV2Schema,type CoreTransactionProvidersV2} from './postgres-transaction-host-v1';
 const selection=z.strictObject({context_id:z.string().uuid(),workspace_id:z.string().uuid()});
 export const CORE_SERVICE_QUOTE_COMMAND_BINDING_V1='core-service-quote-command-binding.v1' as const;
@@ -13,6 +14,7 @@ export function createCoreServiceQuoteCommandBindingV1(options:Readonly<{pool:Po
   if(request.signal.aborted)return null;
   const runtime=createCoreFunctionalCommandRuntimeV1({...options,offering:null,request});
   await runtime.verifyServerSession();if(request.signal.aborted)return null;
+  const authoring=createCoreServiceAuthoringAgreementRuntimeV2({...options,request});
   let original:Readonly<{context_id:string;workspace_id:string}>|null=null,busy=false;
   const scope=(value:unknown)=>{const s=selection.parse(value);
    if(original&&(original.context_id!==s.context_id||original.workspace_id!==s.workspace_id))throw new Error('quote_request_scope_mismatch');
@@ -30,7 +32,7 @@ export function createCoreServiceQuoteCommandBindingV1(options:Readonly<{pool:Po
     const c=coreTransactionCommandV2Schema.parse(value);
     if(c.permission_code!=='services.quotes.manage'||c.module_code!=='services_orders'||c.evaluation_purpose!=='service.create_quote'||c.aggregate_type!=='service_quote')throw new Error('quote_command_profile_mismatch');
     scope({context_id:c.context_id,workspace_id:c.workspace_id});
-    return runtime.host.execute(c,providers);
+    return authoring.host.execute(c,providers);
    });}}),
   });
  }});

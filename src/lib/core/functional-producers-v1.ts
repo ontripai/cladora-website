@@ -2,7 +2,7 @@
 import {randomUUID} from 'node:crypto';
 import {canonicalResourceReferenceV1InputSchema,canonicalResourceReferenceV1Schema,
  type CanonicalResourceReferenceV1Input} from './resource-contracts-v1';
-import {createCoreS01AuthorityCaptureV1,createCoreS01ProviderAgreementReaderV1} from './service-s01/provider-agreement-reader-v1';
+import {createCoreS01AuthorityCaptureV1,createCoreS01ProviderAgreementReaderV1,createCoreS01AuthoringAgreementReaderV2} from './service-s01/provider-agreement-reader-v1';
 import {createCoreS01OfferingDisclosurePolicyV1,CORE_S01_OFFERING_SOURCE_PIN,
  type CoreS01ServiceOfferingBindingV1} from './service-s01/offering-disclosure-policy-v1';
 import {projectServiceOfferingDisclosureSourceV1,createServiceOfferingDisclosureCanDiscloseV1,
@@ -11,7 +11,7 @@ import {bindCanonicalCurrentAuthorityObservationV1} from './current-authority-tr
 import type {CoreTransactionScopeV1} from './postgres-transaction-host-v1';
 export const CORE_FUNCTIONAL_PRODUCERS_V1='core-functional-producers.v1' as const;
 export const CORE_FUNCTIONAL_DW02_SQL='select customer_api.resolve_canonical_resource_reference_v1($1::uuid,$2::uuid,$3::text,$4::uuid,$5::integer,$6::text,$7::text) as reference';
-export function createCoreFunctionalProducersV1(offeringValue:CoreS01ServiceOfferingBindingV1|null){
+export function createCoreFunctionalProducersV1(offeringValue:CoreS01ServiceOfferingBindingV1|null,family:'request'|'authoring'='request'){
  const binding=offeringValue===null?null:Object.freeze(serviceOfferingDisclosureBindingV1Schema.parse(offeringValue));
  const capture=createCoreS01AuthorityCaptureV1();
  const authorityRequestFor=(scope:CoreTransactionScopeV1)=>({...capture.authorityRequestFor(scope),
@@ -21,7 +21,7 @@ export function createCoreFunctionalProducersV1(offeringValue:CoreS01ServiceOffe
  // preflight decision is relabelled as a command-authority receipt.
  const policy=createCoreS01OfferingDisclosurePolicyV1(binding===null?null:{pin:CORE_S01_OFFERING_SOURCE_PIN,binding,
   projectServiceOfferingDisclosureSourceV1,createServiceOfferingDisclosureCanDiscloseV1,authorityRequestFor});
- const reader=createCoreS01ProviderAgreementReaderV1({source:binding===null?null:{contract:'core-provider-agreement-store.v1',
+ const reader=family==='authoring'?createCoreS01AuthoringAgreementReaderV2({source:{contract:'core-provider-agreement-store.v1',date_policy:'utc_start_inclusive_end_exclusive.operational.v1'},authorityRequestFor:scope=>capture.authorityRequestFor(scope)}):createCoreS01ProviderAgreementReaderV1({source:binding===null?null:{contract:'core-provider-agreement-store.v1',
   date_policy:'utc_start_inclusive_end_exclusive.operational.v1'},authorityRequestFor,offeringPolicy:policy});
  return Object.freeze({resolveAuthority:capture.resolveAuthority,readers:Object.freeze({resolveProviderAgreement:reader,
   async resolveCanonicalResource(scope:CoreTransactionScopeV1,value:CanonicalResourceReferenceV1Input){
