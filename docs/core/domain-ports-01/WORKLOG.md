@@ -199,3 +199,21 @@ Do not expose a canonical companion before writer/disclosure/source adoption.
 Proposal stays guarded55000/ROLLBACK; no target SQL or new grant/role is executed.
 Historical ownerships/party/member mappings, current evaluator, selectors and
 owner AIRPROP source remain byte-identical. No historical version backfill.
+
+## Listing writer epoch/row-lock closure continuation (before edits)
+Parent51eaa511. Existing untracked Python cache retained; read-only checkpoint saved.
+Authorized new Core source-only packet:
+- scripts/prepare-core-listing-writer-lock-v1.mjs
+- scripts/test-core-listing-writer-lock-v1.mjs
+- supabase/proposals/core-listing-writer-lock-v1/{delta.sql,preflight.sql,verify.sql}
+- docs/core/domain-ports-01/listing-writer-lock-r4/{README.md,manifest.json,caseplan.json,recovery.md}
+Historical migrations, prior revision proposal, auth/evaluator/host/consumer files
+remain unchanged. Exact canonical definitions are extracted and only an entry
+row-lock on the existing epoch is added, before earlier row/advisory/helper waits.
+No epoch UPDATE bypass, new helper/ACL/role, historical revision adoption or Party
+policy is introduced. Proposal55000/ROLLBACK retained; no SQL is executed.
+The packet also includes bounded read-only observe.sql (no raw catalog/body/ACL),
+for the exact eight presence/metadata pins. No observation is executed here.
+Upstream invitation wrapper was found to lock the invitation before its core call;
+that entry must participate too. Optional absent domains stay explicitly absent,
+not historical objects recreated by this delta.
