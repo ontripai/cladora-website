@@ -71,6 +71,12 @@ bypass closed admission; copied/model scope cannot mint an opaque checkpoint.
 The old6 fake-host groups remain historical evidence, not relabelled R2 proof.
 No assertions weakened; unsupported binding-query admission is explicitly denied.
 
+`node scripts/test-airprop-functional-listing-runtime-06.mjs`:5 affected
+request-boundary groups retargeted to the required original Request and official
+command configuration. Unconfigured/null resolver, pre-check guards, fresh
+principal and foreign-scope rejection before any checkout/control remain enforced.
+The old static control callback and old test loader are not used as R2 proof.
+
 Full typecheck, scoped lint/syntax/diff and official dependency identities checked.
 Cache Next16.3.8/Zod4.4.3; exact target16.4.1/4.6.6 NOT_RUN_NOT_PASS. No repeated
 accepted52/105/six sizing/browser cases. Native PG/Auth/RLS/helper compatibility,

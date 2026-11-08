@@ -2,7 +2,7 @@
   "task": "AIRPROP-LISTING-NATIVE-01",
   "slice": "official-core-r2-consumption.v1",
   "head": "CONTAINING_COMMIT",
-  "parent": "2f2867b773713fbb973ab399db76c329b911b4fb",
+  "parent": "eea84ff9f3d6a44d667c7a771102a9f6464c1a57",
   "main_base": "6cecfa15b00f445be68817e756d766fb0e6fe026",
   "core_dependency": "365d47b59d0cd0b5f7bb13604f1497c2104ed6e7",
   "integration": "SIX_EXACT_CORE_FILES_NOT_FULL_CORE_GUIDE_SERVICE_MERGE",
@@ -107,15 +107,21 @@
     },
     {
       "path": "docs/airprop/AIRPROP-CORE-R2-CONSUMPTION-01.md",
-      "bytes": 6234,
-      "sha256": "48b47c37c24a9752ed290f01019ccfc647b75c295b13771b4f13293e734b7034",
-      "git_blob": "16ac0270c3a9243cf71cc4634c8825fe6f587869"
+      "bytes": 6625,
+      "sha256": "2a1ebd3e1039c41e304c007b286075e6bb5fbb35d31c2d9aab50cf3801a40e7a",
+      "git_blob": "86c0321f9dcddac16982879dadc20ee6c57dfb33"
     },
     {
       "path": "docs/airprop/AIRPROP-LISTING-NATIVE-01-core-port-request.json",
       "bytes": 14506,
       "sha256": "c7acf0471f8459e5cbf8e583d6349bba20920df2bdc344173d46bbddc5f6dd70",
       "git_blob": "fbe1ecafb209b5744de5ba6e0476e47e22f47d01"
+    },
+    {
+      "path": "scripts/test-airprop-functional-listing-runtime-06.mjs",
+      "bytes": 4501,
+      "sha256": "f5ef6d92c78a12516eccbf098ebe06fa853c145294d83e774351e8a21fac8c5a",
+      "git_blob": "e38b1c1b7ba1b38072e4af857efa3b155dbc50c4"
     }
   ],
   "preserved": [
@@ -174,7 +180,8 @@
     "browser_tool": "BLOCKED_TOOL_PLATFORM_EXECUTES",
     "cache_next": "16.3.8",
     "cache_zod": "4.4.3",
-    "exact_target": "NOT_RUN_NOT_PASS"
+    "exact_target": "NOT_RUN_NOT_PASS",
+    "retargeted_request_boundary_groups": 5
   },
   "remaining": [
     "Full actual versioned canonical Party/relationship/discovery/current_until and prepared/replay provider",
@@ -184,5 +191,7 @@
   "activation": null,
   "sql_executed": false,
   "authority_fabricated": false,
-  "automation": "نیازمند بررسی"
+  "automation": "نیازمند بررسی",
+  "source_checkpoint": "eea84ff9f3d6a44d667c7a771102a9f6464c1a57",
+  "owner_base": "2f2867b773713fbb973ab399db76c329b911b4fb"
 }
