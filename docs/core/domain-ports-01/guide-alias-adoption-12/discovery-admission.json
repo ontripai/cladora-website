@@ -1,0 +1,118 @@
+{
+  "contract": "core-guide-discovery-query-admission.v1",
+  "decision": "CORE_SOURCE_QUERY_ACCEPTED_EXACT_CE7D_NO_INSTALLER_ACL_DELTA",
+  "CE_FullSHA": "7d5ec54a4718bdac600b6a668453d51818f22a4e",
+  "CE_Tree": "74e75c4512943739632443fda4e0ce3538aca480",
+  "source_path": "src/lib/community/experience-guide-discovery-v1.ts",
+  "source_sha256": "fd0530e071c2ab88d6f865ce0c232ce472b871fdaecbeebfbdf3efd61b61d673",
+  "symbol": "CE_GUIDE_DISCOVERY_CANDIDATES_SQL_V1",
+  "candidate_query": {
+    "bytes": 1269,
+    "sha256": "4fbe16a342af4bfdcb42dffb1b3ac8b8dc6ddf3095b3f75027a6ada7386a5f9c",
+    "sql": "select g.id::text as context_id,m.id::text as membership_id,\n m.tenant_id::text as tenant_id,w.id::text as workspace_id,\n case when pg_catalog.octet_length(t.legal_name) between 1 and 1024 and pg_catalog.char_length(t.legal_name)<=256\n  then t.legal_name else null end as tenant_name,\n case when pg_catalog.octet_length(r.name) between 1 and 1024 and pg_catalog.char_length(r.name)<=256\n  then r.name else null end as role_name,\n coalesce(pg_catalog.octet_length(t.legal_name) between 1 and 1024 and pg_catalog.char_length(t.legal_name)<=256\n  and pg_catalog.octet_length(r.name) between 1 and 1024 and pg_catalog.char_length(r.name)<=256,false) as transfer_bounds_valid\n from identity.context_grants g join identity.memberships m on m.id=g.membership_id and m.tenant_id=g.tenant_id\n join platform.tenants t on t.id=m.tenant_id join identity.roles r on r.id=m.role_id\n join platform.customer_workspaces w on w.tenant_id=m.tenant_id\n where m.user_id=auth.uid() and m.status='active' and w.archived_at is null and w.lifecycle_status='ACTIVE'\n and m.starts_at<=clock_timestamp() and (m.ends_at is null or m.ends_at>clock_timestamp())\n and g.starts_at<=clock_timestamp() and (g.ends_at is null or g.ends_at>clock_timestamp())\n order by g.id,w.id limit 51 for share of g,m,w"
+  },
+  "historical_query": {
+    "bytes": 766,
+    "sha256": "38e105274f5d7fd1dab49b86f93a99b2beafd11af91134b965fac8b15f1fa72d",
+    "sql": "select g.id::text as context_id,m.id::text as membership_id,\n m.tenant_id::text as tenant_id,w.id::text as workspace_id,t.legal_name as tenant_name,r.name as role_name\n from identity.context_grants g join identity.memberships m on m.id=g.membership_id and m.tenant_id=g.tenant_id\n join platform.tenants t on t.id=m.tenant_id join identity.roles r on r.id=m.role_id\n join platform.customer_workspaces w on w.tenant_id=m.tenant_id\n where m.user_id=auth.uid() and m.status='active' and w.archived_at is null and w.lifecycle_status='ACTIVE'\n and m.starts_at<=clock_timestamp() and (m.ends_at is null or m.ends_at>clock_timestamp())\n and g.starts_at<=clock_timestamp() and (g.ends_at is null or g.ends_at>clock_timestamp())\n order by g.id,w.id limit 51 for share of g,m,w"
+  },
+  "fixed_control_queries": {
+    "sessionSql": {
+      "bytes": 75,
+      "sha256": "33916a7fb60d8b6123cc4204bbf5ff5e84b314723421e6b4d38331ba69280816",
+      "sql": "select app_private.require_request_session_current_at_v1(clock_timestamp())"
+    },
+    "scopeSql": {
+      "bytes": 106,
+      "sha256": "04ebba8834c29fca3aa97267d7c9cf2d67ced0940091cf62f9b45561a4948e3b",
+      "sql": "select set_config('request.cladora.context_id',$1,true),set_config('request.cladora.workspace_id',$2,true)"
+    },
+    "epoch": {
+      "bytes": 96,
+      "sha256": "c68c616ed8e806234bde7ee81c83ca6fa66b29b403c25a772e2ca885a2364269",
+      "sql": "select revision::text from app_private.canonical_authority_revision_v1 where singleton for share"
+    },
+    "canonical_read": {
+      "bytes": 604,
+      "sha256": "bd4030118c726fa003ea86189c2e51d4c623b0c1ae8a47d299c3f7ab5ce72202",
+      "sql": "select r.tenant_id::text,r.membership_id::text,\n app_private.check_workspace_native_permission_v2_at_v1($1,$2,'experience.guide.manage','experience_guides',clock_timestamp()) as can_manage,\n app_private.check_workspace_native_permission_v2_at_v1($1,$2,'experience.guide.read','experience_guides',clock_timestamp()) as can_read,\n (select revision::text from app_private.canonical_authority_revision_v1 where singleton) as revision,\n app_private.require_request_session_current_at_v1(clock_timestamp()) as session_guard\n from app_private.resolve_workspace_native_context_v2_at_v1($1,$2,clock_timestamp()) r"
+    }
+  },
+  "new_Core_alias_queries": {
+    "ceGuideLegacySessionClearSql": {
+      "bytes": 121,
+      "sha256": "6f7ed5088ec0a7ffdf4ad54d912b95fa024d37042e7094f7ed0690ab921bff5f",
+      "sql": "select\n  pg_catalog.set_config('request.jwt.claim','',false),\n  pg_catalog.set_config('request.jwt.claim.email','',false)"
+    },
+    "ceGuideLegacyTransactionClearSql": {
+      "bytes": 119,
+      "sha256": "0045286ade582a23de705f5aaf48fd1eb31d77f38df63ef23c9f7fabbf01b0ed",
+      "sql": "select\n  pg_catalog.set_config('request.jwt.claim','',true),\n  pg_catalog.set_config('request.jwt.claim.email','',true)"
+    }
+  },
+  "Core_query_policy": "TRUSTED_SERVER_CE_MODULE; fixed role pool has NO per-candidate SHA allowlist and is not a client-SQL API",
+  "relations_columns": {
+    "identity.context_grants": [
+      "id",
+      "membership_id",
+      "tenant_id",
+      "starts_at",
+      "ends_at"
+    ],
+    "identity.memberships": [
+      "id",
+      "tenant_id",
+      "role_id",
+      "user_id",
+      "status",
+      "starts_at",
+      "ends_at"
+    ],
+    "platform.tenants": [
+      "id",
+      "legal_name"
+    ],
+    "identity.roles": [
+      "id",
+      "name"
+    ],
+    "platform.customer_workspaces": [
+      "id",
+      "tenant_id",
+      "archived_at",
+      "lifecycle_status"
+    ]
+  },
+  "lock_targets": [
+    "identity.context_grants",
+    "identity.memberships",
+    "platform.customer_workspaces"
+  ],
+  "new_columns_or_grants": false,
+  "result_private_marker": "transfer_bounds_valid MUST be true; not public; complete original labels or NULL; no truncation/filtering",
+  "bounds": {
+    "rows_fetched_max": 51,
+    "rows_returned_max": 50,
+    "per_label_characters_max": 256,
+    "per_label_utf8_octets_max": 1024,
+    "per_row_label_utf8_octets_max": 2048,
+    "fetched_label_utf8_octets_max": 104448,
+    "invalid_or_overflow": "whole response unavailable; no dropped row/shortened label/partial success",
+    "scope": "label text wire contribution; not a claim about total memory/framing/driver limits"
+  },
+  "Platform_consumption": {
+    "action": "Rebind only exact CE7d candidate/source and new Core alias statement/frame pins in existing closed profile where applicable; retain old pins historically, not a generic SQL regex",
+    "external_profile_changed": false,
+    "existing_adapter_not_copied": true,
+    "unknown_census_or_binding": "STOP before dispatch; no assumed profile adoption",
+    "installed_verification_remaining": [
+      "actual label types resolve pg_catalog.octet_length(text)/char_length(text)",
+      "existing effective EXECUTE on these builtins and set_config(text,text,boolean), no new GRANT",
+      "server/client UTF8; actual SELECT/UPDATE(lock) ACL/RLS and row cardinality",
+      "post-SDK canonical scope/revision/session, lease, rollback ACK and actual DB CASE/driver wire bounds",
+      "exact final integrated App/Core/source/profile after coordinator adoption"
+    ]
+  },
+  "native": "NOT_RUN_NOT_PASS",
+  "activation": null
+}

@@ -1,0 +1,35 @@
+/** Exact CE7d modules over actual Core. Controlled SDK/physical transport only. */
+import assert from'node:assert/strict';import{readFileSync}from'node:fs';import{execFileSync}from'node:child_process';import{createRequire}from'node:module';import{resolve}from'node:path';import{fileURLToPath}from'node:url';import{createHash}from'node:crypto';
+const root=resolve(fileURLToPath(new URL('..',import.meta.url))),realRequire=createRequire(import.meta.url),ts=realRequire('typescript');
+const CE='7d5ec54a4718bdac600b6a668453d51818f22a4e',git=p=>execFileSync('git',['show',CE+':'+p],{cwd:root,encoding:'utf8',stdio:['ignore','pipe','pipe']}),sha=s=>createHash('sha256').update(s).digest('hex');
+const pins=JSON.parse(git('docs/contracts/ce-guide-native-01/discovery-postwait-bounds/core-sql-pins.json'));
+const text=git(pins.source_path),query=/export const CE_GUIDE_DISCOVERY_CANDIDATES_SQL_V1=`([\s\S]*?)`;/.exec(text)[1];
+assert.equal(Buffer.byteLength(query),1269);assert.equal(sha(query),'4fbe16a342af4bfdcb42dffb1b3ac8b8dc6ddf3095b3f75027a6ada7386a5f9c');assert.equal(query,pins.candidate_query.sql);
+const previous=pins.previous_query.sql;assert.equal(Buffer.byteLength(previous),766);assert.equal(sha(previous),'38e105274f5d7fd1dab49b86f93a99b2beafd11af91134b965fac8b15f1fa72d');
+assert.equal(query.slice(query.indexOf('\n from identity.')),previous.slice(previous.indexOf('\n from identity.')),'relations/filters/order/LIMIT/locks unchanged');
+const admission=JSON.parse(readFileSync(resolve(root,'docs/core/domain-ports-01/guide-alias-adoption-12/discovery-admission.json'),'utf8'));
+function validateAdmission(value){
+ assert.equal(value.CE_FullSHA,CE);assert.equal(value.source_sha256,sha(text));assert.equal(value.candidate_query.sql,query);assert.equal(value.candidate_query.sha256,sha(query));assert.equal(value.candidate_query.bytes,Buffer.byteLength(query));
+ const core=readFileSync(resolve(root,'src/lib/core/platform-role-bound-pool-v1.ts'),'utf8');
+ for(const [name,pin]of Object.entries(value.new_Core_alias_queries)){const sql=new RegExp('const '+name+' = `([\\s\\S]*?)`;').exec(core)?.[1];assert.equal(pin.sql,sql);assert.equal(pin.sha256,sha(sql));}
+ assert.equal(value.new_columns_or_grants,false);
+}
+validateAdmission(admission);
+const wrong=structuredClone(admission);wrong.candidate_query.sha256=pins.previous_query.sha256;assert.throws(()=>validateAdmission(wrong));
+const mixed=structuredClone(admission);mixed.new_Core_alias_queries.ceGuideLegacyTransactionClearSql.sql+=' ';assert.throws(()=>validateAdmission(mixed));
+let ownerSetup=git('scripts/test-ce-guide-routes-r2.mjs');ownerSetup=ownerSetup.slice(0,ownerSetup.indexOf('const only='));
+ownerSetup=ownerSetup.replace("const require=createRequire(import.meta.url),ts=require('typescript');","const ts=__coreRuntimeRequire('typescript');").replace(')(require,realm,realm.exports);',')(__coreRuntimeRequire,realm,realm.exports);');
+ownerSetup+='\nmodule.exports={platform,ids};';
+const overlayRead=(path,encoding)=>{const p=path instanceof URL?fileURLToPath(path):String(path),rel=p.startsWith(root+'/')?p.slice(root.length+1):p;if(rel.startsWith('src/')&&!rel.startsWith('src/lib/core/')||rel.startsWith('scripts/test-ce-'))return encoding?git(rel):Buffer.from(git(rel));return readFileSync(path,encoding);};
+const scopedRequire=name=>name==='node:fs'?{...realRequire(name),readFileSync:overlayRead}:name==='node:module'?{...realRequire(name),createRequire:()=>scopedRequire}:realRequire(name);
+const env={exports:{}};const setupUrl=new URL('./test-ce-guide-routes-r2.mjs',import.meta.url).href;
+const compiled=ts.transpileModule(ownerSetup,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true},transformers:{before:[context=>{const visit=node=>ts.isPropertyAccessExpression(node)&&node.name.text==='url'&&node.expression.kind===ts.SyntaxKind.MetaProperty?ts.factory.createStringLiteral(setupUrl):ts.visitEachChild(node,visit,context);return source=>ts.visitNode(source,visit);}]}}).outputText;
+new Function('require','module','exports','__coreRuntimeRequire',compiled)(scopedRequire,env,env.exports,scopedRequire);
+const{platform}=env.exports;let n=0;async function check(name,fn){await fn();console.log(`PASS ${++n} ${name}`);}
+function wired(aliasError){const x=platform(),connect=x.physical.connect.bind(x.physical);x.adoptedTrace=[];x.aliasFailures=[];x.releaseFlags=[];
+ x.physical.connect=async()=>{const c=await connect(),q=c.query.bind(c),release=c.release.bind(c);c.release=flag=>{x.releaseFlags.push(flag);release(flag);};c.query=async(sql,v)=>{x.adoptedTrace.push(sql);if(aliasError&&sql.includes("pg_catalog.set_config('request.jwt.claim','',true)")){x.aliasFailures.push(aliasError);throw aliasError;}if(sql.includes("pg_catalog.set_config('request.jwt.claim',''"))return{rows:[{}],rowCount:1};return q(sql,v);};return c;};return x;}
+await check('exact CE7d discovery + actual adopted Core alias port returns bounded source projection',async()=>{const x=wired(),r=await x.h.fetch('/api/customer/v1/experience/guides/discovery');assert.equal(r.status,200);const b=await r.json();assert.equal(b.contract,'ce-guide-discovery.v1');assert.equal(b.selections.length,1);assert.equal(JSON.stringify(b).includes('transfer_bounds_valid'),false);assert.equal(x.h.f.commits,0);assert.deepEqual(x.h.f.writes,[]);
+ const trace=x.adoptedTrace,begin=trace.indexOf('begin isolation level serializable'),local=trace.findIndex((s,i)=>i>begin&&s.includes("pg_catalog.set_config('request.jwt.claim','',true)")),lease=trace.findIndex((s,i)=>i>begin&&s.includes('acquire_ce_guide_role_safety_lease_v1'));assert.ok(begin<local&&local<lease);assert.ok(trace.includes(query));});
+await check('CE7d final SDK-wait revoke remains denied with current Core; no write or fallback',async()=>{const x=wired(),original=x.SDK.auth.getUser;let reads=0;x.SDK.auth.getUser=async()=>{reads++;if(reads>=2)x.state.denyRead=true;return original();};const r=await x.h.fetch('/api/customer/v1/experience/guides/discovery');assert.equal(r.status,403);assert.deepEqual(await r.json(),{error:{code:'CE_GUIDE_ACCESS_DENIED'}});assert.equal(x.h.f.commits,0);assert.deepEqual(x.h.f.writes,[]);});
+await check('same40001 at new local alias boundary reaches real CE409 and destroys lease with no writes',async()=>{const error=Object.assign(Error('SYNTHETIC_ALIAS_FAULT'),{code:'40001'}),x=wired(error);const r=await x.h.fetch('/api/customer/v1/experience/guides/discovery');assert.equal(r.status,409);assert.deepEqual(await r.json(),{error:{code:'CE_GUIDE_CONFLICT'}});assert.ok(x.aliasFailures.length>0);assert.ok(x.aliasFailures.every(e=>e===error));assert.ok(x.releaseFlags.includes(true));assert.equal(x.h.f.commits,0);assert.deepEqual(x.h.f.writes,[]);});
+console.log(JSON.stringify({task:'GUIDE_DISCOVERY_CORE_CONSUMPTION',CE,query_bytes:Buffer.byteLength(query),query_sha256:sha(query),new_couplings:n,proof:'REAL_OWNER_ROUTE_AND_CORE_WITH_CONTROLLED_SDK_PG',native:'NOT_RUN_NOT_PASS',target_calls:0}));

@@ -49,6 +49,14 @@ const clearIdentitySql = `select
   set_config('request.cladora.context_id','',false),
   set_config('request.cladora.workspace_id','',false)`;
 
+// Guide-only: legacy aliases must not shadow its verified plural carrier.
+const ceGuideLegacySessionClearSql = `select
+  pg_catalog.set_config('request.jwt.claim','',false),
+  pg_catalog.set_config('request.jwt.claim.email','',false)`;
+const ceGuideLegacyTransactionClearSql = `select
+  pg_catalog.set_config('request.jwt.claim','',true),
+  pg_catalog.set_config('request.jwt.claim.email','',true)`;
+
 type FixedRoleBoundProfileV1<Contract extends string> = Readonly<{
   contract_version: Contract;
   runtime_role: string;
@@ -99,6 +107,10 @@ async function cleanForReuse(client: PoolClient, profile: FixedRoleBoundProfileV
   await client.query('reset all');
   await client.query('reset role');
   await assertRuntimeIdentity(client, profile);
+  if (profile.contract_version === corePlatformRoleBoundPoolContractV1) {
+    // RESET ALL can reinstate database/role defaults; blank AFTER it, not before.
+    await client.query(ceGuideLegacySessionClearSql);
+  }
 }
 
 const ceGuideProfileV1 = Object.freeze({
@@ -176,6 +188,9 @@ function createFixedRoleBoundPoolV1<Contract extends string>(
           transactionOpen = true;
           try {
             await assertExecutorIdentity(client, profile);
+            if (profile.contract_version === corePlatformRoleBoundPoolContractV1) {
+              await client.query(ceGuideLegacyTransactionClearSql);
+            }
             await assertSafety(client, profile, true);
           } catch (error) {
             poisoned = true;

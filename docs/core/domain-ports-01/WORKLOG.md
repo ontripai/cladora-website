@@ -230,3 +230,12 @@ New decision/proposal-only paths:
 Actual shared pool/CE/installer/Auth SQL/ACL/owner/config stay unchanged. A candidate
 patch is tested only in memory using controlled physical-Pool/GUC models; it is
 not applied to product/source or target. No prior successful suite is rerun.
+
+## Guide alias source adoption + CE7d discovery consumption (before edits)
+Parent9811a907; exact CE7d5ec54 source fetched as objects only, checkout/WIP intact.
+Paths: src/lib/core/platform-role-bound-pool-v1.ts (approved Guide-only patch),
+scripts/test-core-guide-alias-adoption-v1.mjs,
+scripts/test-core-guide-discovery-consumption-v1.mjs,
+docs/core/domain-ports-01/guide-alias-adoption-12/{README.md,manifest.json,discovery-admission.json}.
+Private auth-definition witness/old proposal and accepted source/evidence retained.
+No CE/App/Platform owner file, installer SQL/ACL/Auth/config/target is edited.
