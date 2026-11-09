@@ -1,0 +1,504 @@
+{
+  "contract": "ce010-install-dependency-closure.v1",
+  "base": "d23346a88253290d8842dfa0780a67c00c250390",
+  "status": "INACTIVE_SOURCE_CANDIDATE_NOT_ADMITTED",
+  "derived_query_inventory": "../../../../supabase/install/ce010-announcement-v1/packet.json#queries",
+  "canonical_objects": "../../../../supabase/install/ce010-announcement-v1/packet.json#declarations",
+  "shared_requirements_NOT_GRANTS": [
+    {
+      "object": "platform.tenants",
+      "columns": [
+        "id"
+      ],
+      "privilege": "REFERENCES",
+      "principal_requirement": "CE domain creator/owner",
+      "evidence": "canonical communities FK",
+      "granted_here": false
+    },
+    {
+      "object": "platform.customer_workspaces",
+      "columns": [
+        "id"
+      ],
+      "privilege": "REFERENCES",
+      "principal_requirement": "CE domain creator/owner",
+      "evidence": "canonical communities FK",
+      "granted_here": false
+    },
+    {
+      "object": "auth.users",
+      "columns": [
+        "id"
+      ],
+      "privilege": "REFERENCES",
+      "principal_requirement": "CE domain creator/owner",
+      "evidence": "communities/announcements created_by; reports decided_by FK",
+      "granted_here": false
+    },
+    {
+      "object": "identity.memberships",
+      "columns": [
+        "id"
+      ],
+      "privilege": "REFERENCES",
+      "principal_requirement": "CE domain creator/owner",
+      "evidence": "reports reporter_membership_id FK",
+      "granted_here": false
+    },
+    {
+      "object": "identity.memberships",
+      "columns": [
+        "id",
+        "tenant_id",
+        "status",
+        "starts_at",
+        "ends_at"
+      ],
+      "privilege": "SELECT",
+      "principal_requirement": "CE executor",
+      "evidence": "invoker ce_community_audience_valid_v1",
+      "granted_here": false
+    },
+    {
+      "object": "identity.roles",
+      "columns": [
+        "code",
+        "tenant_id"
+      ],
+      "privilege": "SELECT",
+      "principal_requirement": "CE executor",
+      "evidence": "invoker ce_community_audience_valid_v1",
+      "granted_here": false
+    },
+    {
+      "object": "platform.workspace_roles",
+      "columns": [
+        "code",
+        "tenant_id",
+        "customer_workspace_id",
+        "lifecycle_status",
+        "valid_from",
+        "valid_to"
+      ],
+      "privilege": "SELECT",
+      "principal_requirement": "CE executor",
+      "evidence": "invoker ce_community_audience_valid_v1",
+      "granted_here": false
+    },
+    {
+      "object": "platform.module_definitions",
+      "columns": [
+        "id",
+        "code",
+        "version",
+        "entitlement_key",
+        "is_active",
+        "lifecycle_status",
+        "valid_from",
+        "valid_to"
+      ],
+      "privilege": "SELECT",
+      "principal_requirement": "CE domain owner/definer",
+      "evidence": "ce_community_authorize_v1",
+      "granted_here": false
+    },
+    {
+      "object": "platform.module_permission_bindings",
+      "columns": [
+        "module_definition_id",
+        "permission_id",
+        "lifecycle_status",
+        "valid_from",
+        "valid_to"
+      ],
+      "privilege": "SELECT",
+      "principal_requirement": "CE domain owner/definer",
+      "evidence": "ce_community_authorize_v1",
+      "granted_here": false
+    },
+    {
+      "object": "identity.permissions",
+      "columns": [
+        "id",
+        "code"
+      ],
+      "privilege": "SELECT",
+      "principal_requirement": "CE domain owner/definer",
+      "evidence": "ce_community_authorize_v1",
+      "granted_here": false
+    },
+    {
+      "object": "platform.workspace_member_roles",
+      "columns": [
+        "id",
+        "tenant_id",
+        "customer_workspace_id",
+        "membership_id",
+        "workspace_role_id",
+        "scope_type",
+        "valid_from",
+        "valid_to"
+      ],
+      "privilege": "SELECT",
+      "principal_requirement": "CE domain owner/definer",
+      "evidence": "ce_community_audience_allows_v1",
+      "granted_here": false
+    },
+    {
+      "object": "platform.workspace_roles",
+      "columns": [
+        "id",
+        "code",
+        "tenant_id",
+        "customer_workspace_id",
+        "lifecycle_status",
+        "valid_from",
+        "valid_to"
+      ],
+      "privilege": "SELECT",
+      "principal_requirement": "CE domain owner/definer",
+      "evidence": "ce_community_audience_allows_v1",
+      "granted_here": false
+    },
+    {
+      "object": "app_private.canonical_authority_revision_v1",
+      "columns": [
+        "revision",
+        "singleton"
+      ],
+      "privilege": "SELECT + row-lock privilege supplied by Core",
+      "principal_requirement": "Core admitted executor",
+      "evidence": "HTTP revision FOR SHARE and resolveAuthority",
+      "granted_here": false
+    },
+    {
+      "object": "identity.context_grants",
+      "columns": [
+        "id",
+        "membership_id",
+        "tenant_id",
+        "starts_at",
+        "ends_at"
+      ],
+      "privilege": "SELECT",
+      "principal_requirement": "Core admitted executor",
+      "evidence": "resolveAuthority",
+      "granted_here": false
+    },
+    {
+      "object": "identity.memberships",
+      "columns": [
+        "id",
+        "tenant_id",
+        "user_id",
+        "status",
+        "starts_at",
+        "ends_at"
+      ],
+      "privilege": "SELECT",
+      "principal_requirement": "Core admitted executor",
+      "evidence": "resolveAuthority",
+      "granted_here": false
+    },
+    {
+      "object": "platform.customer_workspaces",
+      "columns": [
+        "id",
+        "tenant_id",
+        "archived_at",
+        "lifecycle_status"
+      ],
+      "privilege": "SELECT + row-lock privilege supplied by Core",
+      "principal_requirement": "Core admitted executor",
+      "evidence": "resolveAuthority and C03 host FOR SHARE/FOR UPDATE",
+      "granted_here": false
+    },
+    {
+      "object": "platform.module_definitions",
+      "columns": [
+        "id",
+        "code",
+        "is_active",
+        "lifecycle_status",
+        "valid_from",
+        "valid_to",
+        "entitlement_key"
+      ],
+      "privilege": "SELECT",
+      "principal_requirement": "Core admitted executor",
+      "evidence": "resolveAuthority",
+      "granted_here": false
+    },
+    {
+      "object": "platform.idempotency_keys",
+      "columns": [
+        "tenant_id",
+        "key",
+        "actor_id",
+        "request_hash",
+        "response_ref",
+        "expires_at"
+      ],
+      "privilege": "SELECT",
+      "principal_requirement": "Core admitted executor",
+      "evidence": "C03 prior receipt and server expiry query",
+      "granted_here": false
+    },
+    {
+      "object": "platform.idempotency_keys",
+      "columns": [
+        "tenant_id",
+        "actor_id",
+        "key",
+        "request_hash",
+        "expires_at"
+      ],
+      "privilege": "INSERT",
+      "principal_requirement": "Core admitted executor",
+      "evidence": "C03 insert before provider mutation",
+      "granted_here": false
+    },
+    {
+      "object": "platform.idempotency_keys",
+      "columns": [
+        "response_ref",
+        "status_code"
+      ],
+      "privilege": "UPDATE",
+      "principal_requirement": "Core admitted executor",
+      "evidence": "C03 receipt seal; WHERE tenant_id/key additionally SELECT",
+      "granted_here": false
+    },
+    {
+      "object": "audit.events",
+      "columns": [
+        "tenant_id",
+        "actor_id",
+        "action",
+        "entity_type",
+        "entity_id",
+        "request_id",
+        "after_snapshot"
+      ],
+      "privilege": "INSERT",
+      "principal_requirement": "Core admitted executor",
+      "evidence": "C03 audit after mutation, before COMMIT",
+      "granted_here": false
+    },
+    {
+      "object": "audit.events",
+      "columns": [
+        "id"
+      ],
+      "privilege": "SELECT RETURNING",
+      "principal_requirement": "Core admitted executor",
+      "evidence": "C03 audit returning id",
+      "granted_here": false
+    },
+    {
+      "object": "platform.outbox_events",
+      "columns": [
+        "tenant_id",
+        "aggregate_type",
+        "aggregate_id",
+        "aggregate_version",
+        "event_type",
+        "payload",
+        "trace_id"
+      ],
+      "privilege": "INSERT",
+      "principal_requirement": "Core admitted executor",
+      "evidence": "C03 outbox after mutation, before COMMIT",
+      "granted_here": false
+    },
+    {
+      "object": "platform.outbox_events",
+      "columns": [
+        "id"
+      ],
+      "privilege": "SELECT RETURNING",
+      "principal_requirement": "Core admitted executor",
+      "evidence": "C03 outbox returning id",
+      "granted_here": false
+    }
+  ],
+  "shared_routine_calls_NOT_NEW_ABI": [
+    {
+      "signature": "auth.uid()",
+      "result_requirement": "uuid",
+      "consumer": "HTTP/provider/definer",
+      "owner": "Core/Auth",
+      "live_overload_owner_acl": "UNKNOWN_NOT_QUERIED"
+    },
+    {
+      "signature": "auth.jwt()",
+      "result_requirement": "jsonb",
+      "consumer": "HTTP session guard",
+      "owner": "Core/Auth",
+      "live_overload_owner_acl": "UNKNOWN_NOT_QUERIED"
+    },
+    {
+      "signature": "app_private.resolve_workspace_native_context_v2(uuid,uuid)",
+      "result_requirement": "record set: canonical tenant/membership/role",
+      "consumer": "CE definers",
+      "owner": "Core",
+      "live_overload_owner_acl": "UNKNOWN_NOT_QUERIED"
+    },
+    {
+      "signature": "app_private.check_workspace_native_permission_v2(uuid,uuid,text,text)",
+      "result_requirement": "boolean",
+      "consumer": "CE definers + Core authority provider",
+      "owner": "Core",
+      "live_overload_owner_acl": "UNKNOWN_NOT_QUERIED"
+    },
+    {
+      "signature": "app_private.resolve_workspace_native_context_v2_at_v1(uuid,uuid,timestamp with time zone)",
+      "result_requirement": "canonical context row set",
+      "consumer": "HTTP + CE RLS",
+      "owner": "Core",
+      "live_overload_owner_acl": "UNKNOWN_NOT_QUERIED"
+    },
+    {
+      "signature": "app_private.check_workspace_native_permission_v2_at_v1(uuid,uuid,text,text,timestamp with time zone)",
+      "result_requirement": "boolean",
+      "consumer": "HTTP/provider + CE RLS",
+      "owner": "Core",
+      "live_overload_owner_acl": "UNKNOWN_NOT_QUERIED"
+    },
+    {
+      "signature": "app_private.require_request_session_current_at_v1(timestamp with time zone)",
+      "result_requirement": "guard, failure propagates",
+      "consumer": "HTTP/provider",
+      "owner": "Core",
+      "live_overload_owner_acl": "UNKNOWN_NOT_QUERIED"
+    },
+    {
+      "signature": "app_private.workspace_role_handover_lineage_valid_v1(uuid,uuid,uuid[])",
+      "result_requirement": "boolean; third uuid[] default",
+      "consumer": "CE audience definer; call (assignment_id,NULL)",
+      "owner": "Core",
+      "live_overload_owner_acl": "UNKNOWN_NOT_QUERIED"
+    }
+  ],
+  "module_mapping": {
+    "status": "PROPOSED_NOT_ADMITTED",
+    "module": "community_basic",
+    "version": 1,
+    "entitlement": "module.community_basic",
+    "read": "community.community.read",
+    "write": "community.announcement.publish",
+    "purpose": "community.announcement.command",
+    "read_rpc_also_checks": [
+      "community.report.create",
+      "community.report.decide"
+    ],
+    "not_requested": [
+      "positive report grant",
+      "social role to organization role mapping"
+    ]
+  },
+  "required_producer": {
+    "owner": "Core owns canonical producer/role-safe host; Platform owns private target/pool; App owns server-only injection",
+    "consumer_file": "src/lib/community/community-announcement-runtime-v1.ts",
+    "consumer_symbol": "CE010_ANNOUNCEMENT_RUNTIME_V1.resolve",
+    "consumer_contract_ONLY_NOT_OFFICIAL_CORE_ABI": "resolve(original Request,{context_id:string,workspace_id:string}): Promise<null|Readonly<{contract:\"ce010-request-binding.v1\",request:same Request,actor_id:string,session_id:string,request_pool:Pick<pg.Pool,\"connect\">}>>",
+    "current_value": null,
+    "official_Core_factory_symbol": null,
+    "private_target": null,
+    "runtime_role": null,
+    "executor_role": null,
+    "domain_owner_role": null,
+    "required_behaviour": [
+      "Same original Request; verify issuer actor/SID/exp/AAL2; no client identity proof",
+      "Every connect/BEGIN: admitted exact target/role and verified transaction-local request.jwt.claims + request.cladora.context_id/workspace_id; current Core session registry guard; repeat correctly after rollback for C03 new attempt",
+      "No SERVICE/Guide pool substitution, service_role, definer elevation or public setter",
+      "Role-safe lease and scrub/destroy on error, UNKNOWN or unsettled transaction; no request-claim carryover",
+      "Closed SQL/admission includes all provider and Core query cases; no positive permission/module admission inferred from this packet"
+    ],
+    "cases_blocked": [
+      "GET authorized audience projection",
+      "POST prepare_announcement authority observation",
+      "POST execute_announcement create/publish/cancel",
+      "C03 exact replay and current provider validation",
+      "native denial/revoke/expiry/40001/UNKNOWN tests"
+    ],
+    "observation": "No CE010-specific producer exists on pinned base. A current codex/core-domain-ports-01 directory listing showed no CE010/community/announcement-named producer; this is not proof about all unpublished Core WIP."
+  },
+  "closure_gates": [
+    {
+      "owner": "Core",
+      "gate": "Admit module/permission/purpose and exact request-local producer ABI; closed query source/shape and shared owner/ACL/currentness/lineage seals",
+      "status": "BLOCKED_INPUT"
+    },
+    {
+      "owner": "Core + Platform",
+      "gate": "Admit ordinary distinct NOLOGIN owner/executor/runtime graph; transitive SET/INHERIT/ADMIN edges; temporary schema CREATE lane; shared FK/helper/table/sequence dependencies and RLS; no arbitrary names/OIDs",
+      "status": "BLOCKED_INPUT"
+    },
+    {
+      "owner": "Platform",
+      "gate": "Exact target/schema/version + fresh-only catalog preimage. Existing CE objects or data require a separately reviewed reconciliation delta; do not replay/drop",
+      "status": "BLOCKED_INPUT"
+    },
+    {
+      "owner": "Core + Platform",
+      "gate": "Confirm Community FOR UPDATE minimal UPDATE(version) + UPDATE USING scoped/WITH CHECK false under actual PostgreSQL; C03 shared locks remain Core-owned",
+      "status": "NOT_RUN_NOT_PASS"
+    },
+    {
+      "owner": "Platform",
+      "gate": "Seal full reference postimage and protected role/defaultACL comparison inside admitted wrapper; current CE postcheck is bounded ceiling/count only, not complete permission to COMMIT",
+      "status": "BLOCKED_INPUT"
+    },
+    {
+      "owner": "Platform",
+      "gate": "Provide admitted Community parent through existing canonical provisioning with synthetic authorized workspace; no community creator/fixture/permission seed in this slice",
+      "status": "BLOCKED_INPUT"
+    },
+    {
+      "owner": "Platform + QA",
+      "gate": "Only after source review and target permission: create→publish→cancel same ID; audience/denial/version/same-key/UNKNOWN; zero-write denial; cross-workspace; reload/restart; independent native QA",
+      "status": "NOT_RUN_NOT_PASS"
+    }
+  ],
+  "closure_boundary": "C01/C03/evaluator, auth/session registry, canonical revision triggers, audit/outbox defaults/sequence, and recursive lineage dependency closure are Core-owned. Root query requirements above are not a grant script or a seal of those internals.",
+  "ownership": "Candidate creator=current domain owner, no ownership-transfer lane. Domain owner retains inherent DDL/admin powers; FORCE RLS is not revocation of ownership. No runtime SET/member/ADMIN grant supplied.",
+  "recovery": "Diagnostic on bounded metadata only. Missing seals/partial/drift/unsettled delivery => UNKNOWN_NO_ACK_NO_MUTATION. Exact postimage => no replay. Exact empty preimage => reviewable retry only; no auto resend/DDL. No data compensation/drop.",
+  "native": "NOT_RUN_NOT_PASS",
+  "automation": "نیازمند بررسی؛ بازتولید و تطبیق بایت‌ها آفلاین قابل تکرار است، اما admission اختیار و اجرای target به Core/Platform و پذیرش QA وابسته است.",
+  "schema_requirements_NOT_GRANTS": [
+    {
+      "principal": "CE domain creator/owner",
+      "schemas": [
+        "community",
+        "app_private",
+        "customer_api"
+      ],
+      "requires": "Core/Platform admitted temporary CREATE plus USAGE; remove temporary CREATE via their existing lane; no schema creation/owner transfer here"
+    },
+    {
+      "principal": "CE executor",
+      "schemas": [
+        "community",
+        "app_private",
+        "customer_api",
+        "auth",
+        "identity",
+        "platform"
+      ],
+      "requires": "USAGE plus admitted exact object privileges; no CREATE or owner SET lane"
+    },
+    {
+      "principal": "CE domain definer",
+      "schemas": [
+        "community",
+        "app_private",
+        "customer_api",
+        "auth",
+        "identity",
+        "platform"
+      ],
+      "requires": "USAGE plus exact shared dependency closure from Core"
+    }
+  ]
+}
