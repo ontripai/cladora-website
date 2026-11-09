@@ -61,7 +61,7 @@ const principalSchema=z.strictObject({backend_pid:z.number().int().positive().sa
  * never an HTTP payload. No default URL, env-secret discovery, alternate target,
  * service-role client, caller Auth callback or authority provider is accepted.
  */
-export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool;target:CoreFunctionalDevelopmentTargetV1;offering:CoreS01ServiceOfferingBindingV1|null;request?:Request;agreement_family?:'request'|'authoring'}>){
+export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool;target:CoreFunctionalDevelopmentTargetV1;offering:CoreS01ServiceOfferingBindingV1|null;request?:Request;agreement_family?:'request'|'authoring';claim_alias_profile?:'documents.v1'}>){
  const producers=createCoreFunctionalProducersV1(options.offering,options.agreement_family);
  const target=Object.freeze(coreFunctionalDevelopmentTargetV1Schema.parse(options.target));
  const platform12=target.database_name==='postgres'&&/^core15-dev:[a-f0-9]{32}$/.test(target.backend_id)
@@ -117,7 +117,7 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
       ||who.server_version_num<170000||who.server_version_num>=180000||(backend!==undefined&&who.backend_pid!==backend))fail('NATIVE_TARGET_MISMATCH');
     backend=who.backend_pid;
    };
-   try{await assertPrincipal();}catch(error){client.once('end',()=>client.removeListener('error',onError));client.release(true);throw error;}
+   try{await assertPrincipal();if(options.claim_alias_profile==='documents.v1')await raw("select pg_catalog.set_config('request.jwt.claim','',false),pg_catalog.set_config('request.jwt.claim.email','',false)");}catch(error){client.once('end',()=>client.removeListener('error',onError));try{client.release(true);}catch(cleanup){if(options.claim_alias_profile!=='documents.v1')throw cleanup;if(error!==null&&typeof error==='object')readFailures.set(error,Object.freeze({settlement:'unknown',cleanup:'destroy_requested',rollback_error:cleanup}));}throw error;}
    const checkpoint=()=>{if(command===null)return fail('READ_SCOPE_REQUIRED');return raw(CORE_FUNCTIONAL_RUNTIME_SQL.checkpoint,[command.context_id,command.workspace_id,command.permission_code,command.module_code,command.authority_version]);};
    const wrapped=new Proxy(client, {get(object,key){
     if(key==='query')return async(text:string,values:unknown[]=[])=>{
@@ -128,6 +128,7 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
       if(normalized==='begin isolation level serializable'){
        const begin=await raw(text,values);if(begin.command!=='BEGIN')fail('BEGIN_ACK_INVALID');await assertPrincipal();
        await raw("set local lock_timeout='5s'");await raw("set local statement_timeout='10s'");
+       if(options.claim_alias_profile==='documents.v1')await raw("select pg_catalog.set_config('request.jwt.claim','',true),pg_catalog.set_config('request.jwt.claim.email','',true)");
        await raw(CORE_FUNCTIONAL_RUNTIME_SQL.identity,[JSON.stringify({...claims,active_context_id:command?.context_id??''}),claims.sub,command?.context_id??'',command?.workspace_id??'']);
        await raw(CORE_FUNCTIONAL_RUNTIME_SQL.session); // Real managed session row barrier, held to settlement.
        if(command===null)return begin; // Own-selection discovery; no caller scope or allow.
@@ -165,7 +166,7 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
   };
   return connect;
  }
- const execute=async(commandValue:unknown,providers:CoreTransactionProvidersV1|CoreTransactionProvidersV2)=>{
+ const execute=async(commandValue:unknown,providers:CoreTransactionProvidersV1|CoreTransactionProvidersV2,documentsReplayOnly=false)=>{
   const command=commandSchema.parse(commandValue);
   const claims=await authenticate();
   if(claims.sub.toLowerCase()!==command.actor_id)fail('ACTOR_BINDING_MISMATCH');
@@ -173,7 +174,8 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
   const boundPool={connect:makeConnect(command,claims,state)};
   // Same C03 ledger/host, including existing retry/recovery, NOT a new engine.
   const host=createCorePostgresTransactionHostV1(boundPool,{replay_expiry:'database_after_lock.v1'});
-  return host.execute(command,{...providers,async resolveAuthority(...args:Parameters<typeof producers.resolveAuthority>){
+  const selectedHost=documentsReplayOnly?host.executeDocumentsReplayOnly.bind(host):host.execute.bind(host);
+  return selectedHost(command,{...providers,async resolveAuthority(...args:Parameters<typeof producers.resolveAuthority>){
    const observation=await producers.resolveAuthority(...args);state.authorized=observation.decision==='allowed';return observation;
   }} as CoreTransactionProvidersV1&CoreTransactionProvidersV2);
  };
@@ -303,7 +305,7 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
    if(first!==null&&typeof first==='object'){const prior=readFailures.get(first);readFailures.set(first,Object.freeze({settlement:prior?.settlement??'unknown',cleanup:'destroy_requested',rollback_error:prior?.rollback_error,cleanup_error:cleanup}));}}}
  };
  const host=Object.freeze({contract_version:'core-transaction-host.v1' as const,execute}) as CoreTransactionHostV1;
- return Object.freeze({host,readers:producers.readers,withRequestScope,readServiceApp,resolveCommandIdentity,async verifyServerSession(){await authenticate();},contract:CORE_FUNCTIONAL_COMMAND_RUNTIME_V1});
+ return Object.freeze({host,executeDocumentsReplayOnly(command:unknown,providers:CoreTransactionProvidersV1){return execute(command,providers,true);},readers:producers.readers,withRequestScope,readServiceApp,resolveCommandIdentity,async verifyServerSession(){await authenticate();},contract:CORE_FUNCTIONAL_COMMAND_RUNTIME_V1});
 }
 /** No query runner is exported. Row type import preserves the real pg ABI. */
 export type CoreFunctionalRuntimeRowV1=QueryResultRow;

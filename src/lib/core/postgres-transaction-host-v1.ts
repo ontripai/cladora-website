@@ -1,3 +1,4 @@
+import {isCoreDocumentsReplayProfileV1} from './documents-replay-only-v1';
 import { randomUUID, createHash } from 'node:crypto';
 import type { Pool, PoolClient, QueryResultRow } from 'pg';
 import type { CoreDocumentsJointCandidateV1 } from './ce012-documents-joint-candidate-v1';
@@ -322,6 +323,9 @@ export interface CoreCe012ReplayOnlyHostV1 extends CoreTransactionHostV1 {
   /** Private trusted-server entry. No fresh fallback and no request replay flag. */
   executeReplayOnly(command: unknown, providers: CoreTransactionProvidersV2): Promise<CoreCe012ReplayOnlyResultV1>;
 }
+export interface CoreDocumentsReplayOnlyHostV1 extends CoreTransactionHostV1 {
+ executeDocumentsReplayOnly(command: unknown, providers: CoreTransactionProvidersV1): Promise<CoreTransactionResultV1>;
+}
 export const CORE_CE012_REPLAY_ONLY_V1 = 'core-ce012-replay-only.v1' as const;
 type CoreJointReplaySealV1 = Readonly<{contract: 'core-ce012-joint-replay-seal.v1'; status: 'not_ready';
   registration: 'closed_opaque_candidate'; candidate_id: string; candidate_sha256: string;
@@ -420,7 +424,7 @@ export const CORE_SERVER_REPLAY_EXPIRY_SQL_V1 = `select expires_at>clock_timesta
 
 /** One backend connection, transaction, lock context and canonical ledger set. Unwired by default. */
 export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>, options?: Readonly<{replay_expiry: 'database_after_lock.v1'}>) {
-  const execute = async function(commandValue: unknown, providers: CoreTransactionProvidersV1 | CoreTransactionProvidersV2, replayOnly: boolean): Promise<CoreTransactionResult> {
+  const execute = async function(commandValue: unknown, providers: CoreTransactionProvidersV1 | CoreTransactionProvidersV2, replayOnly: boolean, documentsReplayOnly = false): Promise<CoreTransactionResult> {
       const parsed = commandSchema.safeParse(commandValue);
       if (!parsed.success) return { status: 'denied', code: 'INVALID_COMMAND' };
       const command = parsed.data;
@@ -436,10 +440,12 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>,
       const replayProviderCode = command.contract_version === 'core-transaction-command.v2'
         ? providerCode
         : (providers as CoreTransactionProvidersV1).replay_provider_code;
-      if (replayOnly && (command.contract_version !== 'core-transaction-command.v2'
+      if (documentsReplayOnly && (command.contract_version !== 'core-transaction-command.v1'
+        || !isCoreDocumentsReplayProfileV1(command,providers as CoreTransactionProvidersV1))) return {status:'denied',code:'PROVIDER_UNAVAILABLE'};
+      if (replayOnly && !documentsReplayOnly && (command.contract_version !== 'core-transaction-command.v2'
         || providerCode !== 'documents-ce012-reference-provider.v1' || command.aggregate_type !== 'experience_guide'
         || (providers.terminal_checkpoint !== undefined && providers.terminal_checkpoint !== 'core-ce012-host-terminal.v1'))) return {status:'denied',code:'PROVIDER_UNAVAILABLE'};
-      const terminalPolicy = replayOnly ? 'core-ce012-host-terminal.v1' : providers.terminal_checkpoint;
+      const terminalPolicy = replayOnly && !documentsReplayOnly ? 'core-ce012-host-terminal.v1' : providers.terminal_checkpoint;
       if (terminalPolicy !== undefined && (terminalPolicy !== 'core-ce012-host-terminal.v1'
         || command.contract_version !== 'core-transaction-command.v2'
         || providerCode !== 'documents-ce012-reference-provider.v1'
@@ -484,6 +490,7 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>,
         let live = true;
         let commitAttempted = false;
         let rollbackFailed = false;
+        let documentsFirstFailure: unknown;
         const terminal = terminalPolicy ? new TerminalAttemptV1(attempt) : null;
         let backendError: ((error: Error) => void) | undefined;
         const wire = async function<Row extends QueryResultRow = QueryResultRow>(text: string, values: unknown[] = [], settlement = false) {
@@ -632,11 +639,16 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>,
             return terminal!.record(response, true);
           }
           const requestHash = createHash('sha256').update(JSON.stringify(command)).digest('hex');
-          let existingReplay: CoreTransactionReceiptV2 | null = null;
+          let existingReplay: CoreTransactionReceiptV1 | CoreTransactionReceiptV2 | null = null;
           if (replayOnly) {
-            const preflight = await import('./ce012-replay-only-preflight-v1');
             terminal?.invalidate();
-            existingReplay = await preflight.readCoreCe012ReplayOnlyPreflightV1(scope, command as CoreTransactionCommandV2);
+            if (documentsReplayOnly) {
+              const preflight=await import('./documents-replay-only-v1');
+              existingReplay=await preflight.readCoreDocumentsReplayOnlyV1(scope,command as CoreTransactionCommandV1);
+            } else {
+              const preflight=await import('./ce012-replay-only-preflight-v1');
+              existingReplay=await preflight.readCoreCe012ReplayOnlyPreflightV1(scope,command as CoreTransactionCommandV2);
+            }
             if (terminal?.failed) throw terminal.first;
             if (!existingReplay) throw new AbortTransaction({status:'denied',code:'REPLAY_CONFLICT'});
           }
@@ -770,8 +782,15 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>,
               terminal.settlement = 'replay_rolled_back';
               return settledResponse(response);
             }
+            if (documentsReplayOnly) {
+              // Fresh clock after the final replay-provider wait, same lock/backend.
+              const preflight=await import('./documents-replay-only-v1');
+              const final=await preflight.readCoreDocumentsReplayOnlyV1(scope,command as CoreTransactionCommandV1);
+              if (!final || JSON.stringify(final)!==JSON.stringify(prior.data)) throw new AbortTransaction({status:'denied',code:'REPLAY_CONFLICT'});
+            }
             live = false;
-            await wire('rollback');
+            const rolled=await wire('rollback');
+            if (documentsReplayOnly && rolled.command!=='ROLLBACK') throw new Error('documents_replay_rollback_ack_unknown');
             return prior.data.contract_version === 'core-transaction-receipt.v2'
               ? { status: 'exact_replay', receipt: prior.data }
               : { status: 'exact_replay', receipt: prior.data };
@@ -947,6 +966,7 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>,
           live = false;
           const error = terminal?.failed ? terminal.first : caught;
           terminal?.fail(error);
+          if (documentsReplayOnly) documentsFirstFailure=error;
           if (client) await wire('rollback').then(ack => {
             // A cleanup ACK cannot undo an attempted/unknown COMMIT.
             if (terminal && (!commitAttempted || terminal.commitSerializationAbort) && ack.command === 'ROLLBACK') terminal.settlement = 'rolled_back';
@@ -955,6 +975,9 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>,
           const sqlCode = (error as { code?: string })?.code;
           if (sqlCode === '40001' && attempt < 3
             && (!terminal || !commitAttempted || (terminal.commitSerializationAbort && terminal.settlement !== 'committed'))) continue;
+          if (documentsReplayOnly && sqlCode === '40001') throw error;
+          if (documentsReplayOnly && (rollbackFailed || (error instanceof Error && error.message === 'documents_replay_rollback_ack_unknown')))
+            return failedResult({status:'unknown_commit',code:'READBACK_REQUIRED'});
           if (commitAttempted && (sqlCode !== '40001' || (terminal && !terminal.commitSerializationAbort))
             && terminal?.settlement !== 'rolled_back') {
             if (terminal) terminal.settlement = 'unknown';
@@ -976,7 +999,7 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>,
           } catch (cleanup) {
             if (terminal?.publishedResult) { terminalResults.delete(terminal.publishedResult); jointResults.delete(terminal.publishedResult); }
             terminal?.fail(cleanup);
-            throw terminal?.failed ? terminal.first : cleanup;
+            throw terminal?.failed ? terminal.first : documentsReplayOnly && documentsFirstFailure !== undefined ? documentsFirstFailure : cleanup;
           } finally { if (terminal) { terminal.closed = true; terminal.invalidate(); } }
         }
       }
@@ -985,5 +1008,6 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>,
   return {
     execute(command: unknown, providers: CoreTransactionProvidersV1 | CoreTransactionProvidersV2) { return execute(command, providers, false); },
     executeReplayOnly(command: unknown, providers: CoreTransactionProvidersV2) { return execute(command, providers, true); },
-  } as CoreCe012ReplayOnlyHostV1;
+    executeDocumentsReplayOnly(command: unknown, providers: CoreTransactionProvidersV1) { return execute(command, providers, true, true); },
+  } as CoreCe012ReplayOnlyHostV1 & CoreDocumentsReplayOnlyHostV1;
 }

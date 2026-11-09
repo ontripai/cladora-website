@@ -264,3 +264,33 @@ Bootstrap/owner transfer/revoke are a single transaction, with postcondition
 checks for existing Auth ACL/defaults/owners and temporary privileges. No SQL
 parser/PG/Auth/target execution. Native/installer proof NOT_RUN_NOT_PASS;
 SERVICE-owned fixed schema literal adoption remains a distinct open dependency.
+
+## Parallel wave15 — Documents replay prerequisite (before edits)
+Checkpoint a14a6b5b and accepted work preserved. Page common announcement and Core
+card read directly; exact Documents738 producer contract and full-main-prereq
+bundle verified/imported as objects only; AIRPROP6cd fetched as objects only.
+Paths for first independent increment: src/lib/core/documents-replay-only-v1.ts,
+src/lib/core/documents-command-binding-v1.ts,
+src/lib/core/postgres-transaction-host-v1.ts (explicit Documents replay family),
+src/lib/core/functional-command-runtime-v1.ts (same authenticated engine port),
+scripts/test-core-documents-replay-only-v1.mjs,
+docs/core/domain-ports-01/documents-producer-15/{README.md,manifest.json}.
+No owner Documents/CE/Listing files, Page, target, SQL or privileges changed.
+No handle/command-custody store invented; a missing durable plan source remains
+an explicit dependency rather than a memory/JSON success.
+Owner reply confirms no pre-dispatch custody implementation. Explicit authority
+for Core canonical custody extension received in this same card. Additional paths:
+src/lib/core/documents-upload-custody-v1.ts,
+supabase/install/documents-upload-custody-v1/{preflight.sql,install.sql,verify.sql,recovery.md}.
+This is preparation/handover metadata only; domain effect/receipt/audit/outbox
+remain in C03. No existing installer/migration, owner file or target is changed.
+Documents increment now includes Core-owned documents-intent-replay-provider-v1.ts,
+documents-download-recheck-v1.ts and the packet composer/checker + three direct
+shared-host regression controls. These additional paths are recorded in inventory;
+no owner source was edited.17 new actual Core/Documents738 couplings PASS over
+controlled SDK/RPC/PG,3 directly affected default/CE controls PASS. Full ES5
+TypeScript + focused lint + syntax pass. SQL/parser/native/restart NOT_RUN.
+SERVICE720 QFW-SERVICE720-01 is recorded as an independent subsequent Core
+producer/revise ABI contract increment; original tuple/wire/fingerprint must stay
+immutable while current permission is separately re-evaluated. Its consumer stays
+SERVICE-owned; it does not gate this Documents increment or Listing.
