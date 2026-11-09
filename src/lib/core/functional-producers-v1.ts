@@ -25,7 +25,7 @@ export function createCoreFunctionalProducersV1(offeringValue:CoreS01ServiceOffe
   projectServiceOfferingDisclosureSourceV1,createServiceOfferingDisclosureCanDiscloseV1,authorityRequestFor});
  const reader=family==='authoring'?createCoreS01AuthoringAgreementReaderV2({source:{contract:'core-provider-agreement-store.v1',date_policy:'utc_start_inclusive_end_exclusive.operational.v1'},authorityRequestFor:scope=>capture.authorityRequestFor(scope)}):createCoreS01ProviderAgreementReaderV1({source:binding===null?null:{contract:'core-provider-agreement-store.v1',
   date_policy:'utc_start_inclusive_end_exclusive.operational.v1'},authorityRequestFor,offeringPolicy:policy});
- return Object.freeze({resolveAuthority:revise?.resolveAuthority??capture.resolveAuthority,readers:Object.freeze({...(revise?{readCurrentOfferingRevisionForAuthoringV1:revise.readCurrentOfferingRevisionForAuthoringV1}:{}),resolveProviderAgreement:revise?.resolveProviderAgreement??reader,
+ return Object.freeze({reviseSource:revise,resolveAuthority:revise?.resolveAuthority??capture.resolveAuthority,readers:Object.freeze({...(revise?{readCurrentOfferingRevisionForAuthoringV1:revise.readCurrentOfferingRevisionForAuthoringV1}:{}),resolveProviderAgreement:revise?.resolveProviderAgreement??reader,
   async resolveCanonicalResource(scope:CoreTransactionScopeV1,value:CanonicalResourceReferenceV1Input){
    const input=canonicalResourceReferenceV1InputSchema.parse(value),request=authorityRequestFor(scope);
    if(input.context_id!==request.context_id||input.workspace_id!==scope.workspace_id

@@ -305,7 +305,7 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
    if(first!==null&&typeof first==='object'){const prior=readFailures.get(first);readFailures.set(first,Object.freeze({settlement:prior?.settlement??'unknown',cleanup:'destroy_requested',rollback_error:prior?.rollback_error,cleanup_error:cleanup}));}}}
  };
  const host=Object.freeze({contract_version:'core-transaction-host.v1' as const,execute}) as CoreTransactionHostV1;
- return Object.freeze({host,executeDocumentsReplayOnly(command:unknown,providers:CoreTransactionProvidersV1){return execute(command,providers,true);},readers:producers.readers,withRequestScope,readServiceApp,resolveCommandIdentity,async verifyServerSession(){await authenticate();},contract:CORE_FUNCTIONAL_COMMAND_RUNTIME_V1});
+ return Object.freeze({host,reviseSource:producers.reviseSource,executeDocumentsReplayOnly(command:unknown,providers:CoreTransactionProvidersV1){return execute(command,providers,true);},readers:producers.readers,withRequestScope,readServiceApp,resolveCommandIdentity,async verifyServerSession(){await authenticate();},contract:CORE_FUNCTIONAL_COMMAND_RUNTIME_V1});
 }
 /** No query runner is exported. Row type import preserves the real pg ABI. */
 export type CoreFunctionalRuntimeRowV1=QueryResultRow;

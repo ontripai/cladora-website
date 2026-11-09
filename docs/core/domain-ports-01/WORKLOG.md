@@ -482,3 +482,22 @@ controlled SDK/PG transport. SQL partial-null CHECK shown by three-valued model,
 not PG. Findings have exact paths/lines, owners and closure; operation stays
 blocked. Full ES5 and focused lint/syntax PASS. Existing Core/C03/S01/CE source and
 SQL remain byte-identical to Parent. SOURCE review is not install/currentness proof.
+
+## Same-card Core capture/checkpoint25 — before edits
+Parentd17d52e1 preserved as independent admission24 review. Close the independently
+implementable Core seam: expose the actual revise source from the SAME functional
+runtime capture; add a bound canonical S01 recheck after a writer/readback wait,
+without re-reading the now-advanced Offering head. Paths:
+src/lib/core/functional-producers-v1.ts, functional-command-runtime-v1.ts,
+service-offering-revise-source-port-v1.ts; scripts/test-core-service-revise-checkpoint-v1.mjs;
+docs/core/domain-ports-01/service-revise-checkpoint-25/{README.md,manifest.json}.
+No SERVICE file, default runtime, permit, SQL/helper body or target change. Consumer
+adoption and final host settlement-wait closure remain review gates, not assumed.
+
+Core25 implementation exposes runtime.reviseSource from the SAME private capture,
+plus requireCurrentAgreementAfterWriterWaitV1. The latter is bound to exact prior
+source metadata on the same official scope, reuses canonical S01 (no old-head
+reread, host, receipt or allow cache). Six new affected controlled cases cover
+success/expiry/revoke/denial/drift/same40001/copied scope. SERVICE adoption, matched
+receipt replay and later host settlement-wait renewal remain open; no full-currentness
+claim. Core24 review and owner/source artifacts stay historical, unmodified.

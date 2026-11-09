@@ -28,9 +28,12 @@ export const CORE_SERVICE_REVISE_FRESH_SQL_V1=Object.freeze({
  */
 export function createCoreServiceOfferingReviseSourcePortV1(){
  const capture=createCoreS01AuthorityCaptureV1();
+ // Original source identity metadata only, never a reusable current allow.
+ const originalSources=new WeakMap<CoreTransactionScopeV1,string>();
  const agreement=createCoreS01AuthoringAgreementReaderV2({source:{contract:'core-provider-agreement-store.v1',date_policy:'utc_start_inclusive_end_exclusive.operational.v1'},authorityRequestFor:scope=>capture.authorityRequestFor(scope)});
  return Object.freeze({contract_version:CORE_SERVICE_REVISE_SOURCE_PORT_V1,resolveAuthority:capture.resolveAuthority,resolveProviderAgreement:agreement,
  async readCurrentOfferingRevisionForAuthoringV1(scope:CoreTransactionScopeV1,value:unknown){
+  originalSources.delete(scope);
   const c=input.parse(value),request=capture.authorityRequestFor(scope);
   if(c.actor_id!==scope.actor_id||c.transaction_id!==scope.transaction_id||c.workspace_id!==scope.workspace_id
    ||c.actor_id!==request.actor_id||c.context_id!==request.context_id||c.workspace_id!==request.workspace_id||c.authority_version!==request.authority_version
@@ -54,10 +57,33 @@ export function createCoreServiceOfferingReviseSourcePortV1(){
   if(current.rowCount!==1||bound.workspace_id!==scope.workspace_id||bound.tenant_id!==scope.tenant_id||bound.membership_id!==bound.bound_membership_id)fail('42501');
   const permission=await scope.query(CORE_SERVICE_REVISE_FRESH_SQL_V1.permission,[c.context_id,c.workspace_id,at]);
   if(permission.rowCount!==1||permission.rows[0]?.allowed!==true||String(permission.rows[0]?.revision)!==String(c.authority_version))fail('42501');
+  originalSources.set(scope,JSON.stringify(c));
   return Object.freeze({contract_version:'service-offering-revise-source.v1' as const,tenant_id:scope.tenant_id,workspace_id:scope.workspace_id,
    offering_id:c.offering_id,old_revision_id:c.old_revision_id,offering_lock_version:row.head.lock_version,old_revision_version:row.revision.revision_version,
    provider_party_id:c.provider_party_id,provider_agreement:Object.freeze({...c.provider_agreement}),status:row.revision.status,
    observed_after_wait_at:at,source_current:true as const});
+ },
+ /** Bind to the same official runtime capture. Invoke AFTER a relevant writer
+  * wait, not as a stale preflight. No old-head lookup: a successful revise
+  * has advanced it. Later waits require renewal; this is not a settlement receipt.
+  */
+ async requireCurrentAgreementAfterWriterWaitV1(scope:CoreTransactionScopeV1,value:unknown):Promise<void>{
+  const c=input.parse(value),request=capture.authorityRequestFor(scope);
+  if(c.actor_id!==scope.actor_id||c.transaction_id!==scope.transaction_id||c.workspace_id!==scope.workspace_id
+   ||c.actor_id!==request.actor_id||c.context_id!==request.context_id||c.workspace_id!==request.workspace_id||c.authority_version!==request.authority_version
+   ||request.transaction_context.command_id!==c.command_id||request.transaction_context.lock.aggregate_id!==c.offering_id
+   ||request.permission_code!=='services.catalog.manage'||request.module_code!=='services_catalog'||request.evaluation_purpose!=='service.revise_offering')fail('42501');
+  if(originalSources.get(scope)!==JSON.stringify(c))fail('42501');
+  // The existing canonical S01 reader owns session/current authority, party /
+  // Workspace / head / immutable version locks, final DB clock, UTC dates and
+  // precise source binding. Never accept caller time, allow or a cached result.
+  const current=await agreement(scope,{contract_version:'provider-agreement-verification.v1',context_id:c.context_id,workspace_id:c.workspace_id,
+   provider_agreement_id:c.provider_agreement.agreement_id,provider_agreement_version:c.provider_agreement.agreement_version,
+   permission_code:'services.catalog.manage',requested_service_scope:['service.offering.revise']});
+  if(current.agreement_status!=='effective'||current.tenant_id!==scope.tenant_id||current.workspace_id!==scope.workspace_id
+   ||current.provider_party_id!==c.provider_party_id||current.provider_agreement_id!==c.provider_agreement.agreement_id
+   ||current.provider_agreement_version!==c.provider_agreement.agreement_version||current.allowed_service_scope.length!==1
+   ||current.allowed_service_scope[0]!=='service.offering.revise')fail('42501');
  },
  });
 }

@@ -1,0 +1,209 @@
+{
+  "contract": "core-service-revise-capture-checkpoint-25.delivery.v1",
+  "FullSHA": "CONTAINING_COMMIT",
+  "Parent": "d17d52e14be5eda7153083aceb1781e48ca840fd",
+  "branch": "codex/core-domain-ports-01",
+  "status": "SOURCE_SEAMS_DELIVERED_ADOPTION_AND_TERMINAL_PENDING",
+  "permit": null,
+  "runtime": null,
+  "target_changed": false,
+  "source_consumer": "a9889c3d79f076fa3bb2aa8ec9643ec07227fd10",
+  "combined_SERVICE_ref": null,
+  "new_ABI": {
+    "runtime": "createCoreFunctionalCommandRuntimeV1({...agreement_family:revise}).reviseSource",
+    "other_families": "reviseSource=NULL; previous host/readers behavior unchanged",
+    "method": "requireCurrentAgreementAfterWriterWaitV1(scope,originalCommand):Promise<void>",
+    "contract": "core-service-revise-source-port.v1 additive writer-only checkpoint",
+    "authority_proof": false,
+    "dispatch_permit": false,
+    "source_metadata": "WeakMap keyed by exact already-validated official scope; not an allow cache",
+    "replay_support": "NOT_ADMITTED; no prior source binding in replay scope; must bind canonical matched receipt in existing host"
+  },
+  "inventory": [
+    {
+      "path": "docs/core/domain-ports-01/WORKLOG.md",
+      "before": {
+        "bytes": 33381,
+        "sha256": "ec8c405153b7b41c58334b40c1ad2769ba126adae0abd90ea83854b9c7cab9ca",
+        "git_blob": "0e6cf0d4fd86af8874ab6b41d0ea73212ee070a3"
+      },
+      "after": {
+        "bytes": 34733,
+        "sha256": "abef143521c828fcdf917bad5dc0b90d76f97f2f490874646a73c91a97b5d7af",
+        "git_blob": "bed12bdb9939a47973789bfc7275177b264d28a4"
+      }
+    },
+    {
+      "path": "src/lib/core/functional-producers-v1.ts",
+      "before": {
+        "bytes": 4944,
+        "sha256": "c62e4603453ef7ec74834c197630623ed8cbc2c4d12451db68d6f31a705f05e7",
+        "git_blob": "4e86555da8c6d20c0a3f85a7c22fa8bfcad8fa96"
+      },
+      "after": {
+        "bytes": 4964,
+        "sha256": "615bb6568c275f6e196ad353ca835270722b1c1559b97b77391ed4772a7aa972",
+        "git_blob": "e4f77aa0132fe8ec2bc2df3ccd19b3cc227ccee6"
+      }
+    },
+    {
+      "path": "src/lib/core/functional-command-runtime-v1.ts",
+      "before": {
+        "bytes": 29693,
+        "sha256": "f282bbde661a8b4f46aee772f194c44bd96f0278028c85e3ddef61ab8a94eb1e",
+        "git_blob": "ad8f0d72c22a97e6f01881c0339cc2e3ea4be34b"
+      },
+      "after": {
+        "bytes": 29729,
+        "sha256": "f280cd4b43d85d6b9ae8ed8bc452f9ef17d8ade27e14b6260053e1eb0cea9140",
+        "git_blob": "b4caced0d7333b329106cd22b7c0cca5292b3f4b"
+      }
+    },
+    {
+      "path": "src/lib/core/service-offering-revise-source-port-v1.ts",
+      "before": {
+        "bytes": 6166,
+        "sha256": "354da01e744a342e19cd837496e874b429604adc498c26033c9f0e500c93885d",
+        "git_blob": "b0c0e753ee5b382014c0b1deffd1891b70458c8a"
+      },
+      "after": {
+        "bytes": 8507,
+        "sha256": "6f0eb057be5a6603ed62e80db91c254654163b65296745afe17f46efd150e2dc",
+        "git_blob": "f21735b3f3786086d2d3d2d59a8c2ea67fefbb71"
+      }
+    },
+    {
+      "path": "scripts/test-core-service-revise-checkpoint-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 5895,
+        "sha256": "4c5ce40759d96a6a2cee7bbb11c164f0d4b8e4ce5fef66555a6081b92deb16eb",
+        "git_blob": "8e4217857530abceb3a2dfb6c658340849c5c105"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/service-revise-checkpoint-25/README.md",
+      "before": null,
+      "after": {
+        "bytes": 5523,
+        "sha256": "d93c61c6f84cd413e0eb5122cfea308fd5786ea2495006fd1691005ad694b935",
+        "git_blob": "8ba50be51c63397e9140b0ecf3a4417074a273d5"
+      }
+    }
+  ],
+  "manifest_self": "sealed by commit/external delivery",
+  "protected": [
+    {
+      "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "bytes": 22276,
+      "sha256": "76855adaf81aa5446839754d3414b99761d0c60674e6f337b06ebf89eaadf326",
+      "git_blob": "e23f0c62eec6d258cf29975bbe3c20ff5eef2707",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "bytes": 64851,
+      "sha256": "e269802f7b4b5b376eb3910d9f1b55f42eb8abc87d1cf75fd9d019a0ffd2297a",
+      "git_blob": "8a2c5e97f929af3b52c66656046143fbf7fcbba1",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/core/service-offering-revision-source-v1.ts",
+      "bytes": 6921,
+      "sha256": "d5b251e1b1515ff0524af10322f16eabf890d65d4eefbb21dc423d1585e396ea",
+      "git_blob": "7df35d153c9fda60e989a048d8c0b26bd18fab76",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/core/service-revise-admission-candidate-v1.ts",
+      "bytes": 7821,
+      "sha256": "dce9d887e32b048e583db9c79e3f4e36f63f536a687f3dc38b67e007247af607",
+      "git_blob": "28d5056b90d922972581b8c1655236fc4944017d",
+      "unchanged": true
+    },
+    {
+      "path": "docs/core/domain-ports-01/service-revise-admission-24/admission.json",
+      "bytes": 10813,
+      "sha256": "2684dce8de5e75cd878137a44854cd3f295c4f05486331a611536f5f893207a0",
+      "git_blob": "3262579284ef6ac3483bf9ddf78c1f60c7cff338",
+      "unchanged": true
+    },
+    {
+      "path": "docs/core/domain-ports-01/service-revise-admission-24/manifest.json",
+      "bytes": 18727,
+      "sha256": "91682ce872865b12a42896e38a608eb9054e1b68077f2f51a114f38450966f9d",
+      "git_blob": "0feb393e08399f2402770132568963a9d15bf316",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/core/ce010-request-binding-v1.ts",
+      "bytes": 15164,
+      "sha256": "18c6a299465f9e6838b2ad8cebd92f5785877a28352d310f788f22d349a67d84",
+      "git_blob": "844abbececc0263c42e42a8359bdeef65e390408",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/core/platform-role-bound-pool-v1.ts",
+      "bytes": 12209,
+      "sha256": "a09a91da3d89f785a49559999482db6994a7607b375faa38aa0f994701522e17",
+      "git_blob": "2e91086349247b00c461d83c3cdf4ce5be6026be",
+      "unchanged": true
+    },
+    {
+      "path": "docs/core/domain-ports-01/ce010-producer-19/profile-contract.json",
+      "bytes": 4666,
+      "sha256": "75f139b554012956ae359dbb7547641a39908dac9a411cb4a6038368b42290b7",
+      "git_blob": "8496b60471305f59abc16a4263a4a1e132855b17",
+      "unchanged": true
+    },
+    {
+      "path": "supabase/install/documents-upload-custody-v1/install.sql",
+      "bytes": 22836,
+      "sha256": "3c0fc0f235a2568d3736ccbed9394769d76cdd6ca68ca0db4eba79e764542c5a",
+      "git_blob": "529b57040b7eaa9527d4340acef6ebcb8995cf06",
+      "unchanged": true
+    },
+    {
+      "path": "supabase/proposals/core-service-authoring-custody-v1/delta.sql",
+      "bytes": 9682,
+      "sha256": "b13ed0d5f956929f2780d60097d0d7cc829872f22d5a100912726174772c8e3e",
+      "git_blob": "152b1c242ce6ca5e669e7be1ca632f281e483c06",
+      "unchanged": true
+    }
+  ],
+  "checks": {
+    "new_controlled_groups": 6,
+    "log": {
+      "local_path": "/tmp/service25-sealed-tests.log",
+      "bytes": 796,
+      "sha256": "2d331396604332acff7b888fb55e99075fda3eb39bcabf9e8a3fef6216f0d9b7",
+      "git_blob": "5aa7b68e550aec9aba0b1e87ba68a771bfb11e0b",
+      "groups": [
+        "PASS 1 actual SERVICE provider consumes official same-capture runtime source and postwriter check",
+        "PASS 2 writer wait crossing UTC agreement expiry now rejects without old-head reread",
+        "PASS 3 current agreement revoke or canonical permission denial after writer wait remain denied",
+        "PASS 4 postwriter Context actor agreement and command identity cannot drift",
+        "PASS 5 postwriter exact40001 is retained for existing bounded host retry and rollback",
+        "PASS 6 uncaptured copied scope cannot invoke the new S01 checkpoint"
+      ]
+    },
+    "proof": "actual Core runtime/source/S01 + actual SERVICEa988 provider/writer, controlled SDK/PG only",
+    "full_ES5": "PASS",
+    "focused_lint_syntax_diff": "PASS",
+    "apply_reverse": "external final artifact check",
+    "old_suites_repeated": false,
+    "clock20_retested": false,
+    "SQL_parse_compile_execute": false,
+    "target_operations": false
+  },
+  "closure": {
+    "CORE24_CAPTURE_COMPOSITION": "Core actual shared-capture seam supplied; SERVICE default/final factory adoption still PENDING",
+    "CORE24_S01_AFTER_WRITER_WAIT": "Core same-bound postwriter primitive supplied and expiry/revoke denial modeled; final host and replay integration still PENDING",
+    "SQL24_NULL_EFFECT_GROUP": "SERVICE correction pending",
+    "SERVICE_COMBINED_REF_REQUIRED": "pending",
+    "Platform_owner_ACL_RLS_lock_install_native": "NOT_RUN_NOT_PASS"
+  },
+  "recovery": "existing C03 owns rollback/retry/UNKNOWN, preserve same key/body/authority/TTL; no new engine or repair",
+  "native": "NOT_RUN_NOT_PASS",
+  "automation": "نیازمند بررسی؛ source/coupling repeatable; terminal semantics and native admission require owners/Coordinator review"
+}
