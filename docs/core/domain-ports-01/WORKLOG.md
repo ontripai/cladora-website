@@ -459,3 +459,26 @@ bytes/SHA256/blob identities. Identify required_producer as consumer requirement
 not installed producer/admission. Existing packet.json inventory and recursive
 Core closure remain distinct. No code/SQL/profile permission change or old test
 rerun. Historical delivery manifest and artifacts remain unchanged.
+
+## Revise SQL admission24 — before edits
+Parent103ee9ad retained. Exact Page transfer913cc109 (55176 bytes) decoded two
+independently verified Git bundles: replay143 and SQLa988, both sibling5f99.
+Imported objects only, no checkout/owner-source edit. Paths for this review:
+scripts/check-core-service-revise-admission-v1.mjs,
+scripts/test-core-service-revise-admission-v1.mjs,
+docs/core/domain-ports-01/service-revise-admission-24/{README.md,admission.json,manifest.json},
+and this worklog. Closed exact two-query candidate, source/effect/body pins and
+real Core/SERVICE controlled coupling only. No production host/profile change,
+no permit/runtime enablement. Combined SERVICE reference, Platform owner/ACL/RLS
+and actual native proof stay open. Clock20/21/CE103 and accepted suites untouched.
+Owner continuation adds Core-only src/lib/core/service-revise-admission-candidate-v1.ts
+before creation: bounded operation/query/argument/result review guard, no host,
+Auth callback, dispatch, permit, runtime registration or owner-file change. Extend
+only the new service24 coupling script for this guard. No accepted suite repeats.
+Admission24 evidence:13 new groups PASS (7 source/coupling controls plus6 closed
+wire/result/scope groups); no old case/suite ran. Actual default factory capture
+mismatch and post-writer-wait S01 expiry counterexamples reproduced only on
+controlled SDK/PG transport. SQL partial-null CHECK shown by three-valued model,
+not PG. Findings have exact paths/lines, owners and closure; operation stays
+blocked. Full ES5 and focused lint/syntax PASS. Existing Core/C03/S01/CE source and
+SQL remain byte-identical to Parent. SOURCE review is not install/currentness proof.
