@@ -31,7 +31,7 @@ CREATE FUNCTION platform_dev.prepare_service_offering_authoring_v1(p_request jso
 RETURNS jsonb LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=pg_catalog AS $custody$
 DECLARE actor uuid;ctx uuid;ws uuid;tenant uuid;member uuid;rev bigint;
  kind text;key text;owner_key text;c jsonb;selected jsonb;rec jsonb;pub jsonb;permission text;
- r platform.service_authoring_custody_v1%rowtype;
+ r platform.service_authoring_custody_v1%rowtype;checked_at timestamptz;current_scope record;
 BEGIN
  IF jsonb_typeof(p_request) IS DISTINCT FROM 'object' OR octet_length(p_request::text)>262144
   OR NOT(p_request ?& ARRAY['context_id','workspace_id','kind','idempotency_key','custody_owner','command_sha256','public_wire','record_wire'])
@@ -65,15 +65,21 @@ BEGIN
  permission:=CASE WHEN kind='transition' AND c->>'action'='publish' THEN 'services.catalog.publish' ELSE 'services.catalog.manage' END;
  PERFORM app_private.lock_core_request_session_v1();
  SELECT revision INTO STRICT rev FROM app_private.canonical_authority_revision_v1 WHERE singleton FOR SHARE;
- SELECT v.tenant_id,v.membership_id INTO STRICT tenant,member FROM app_private.resolve_workspace_native_context_v2(ctx,ws) v;
+ SELECT v.tenant_id,v.membership_id INTO STRICT tenant,member FROM app_private.resolve_workspace_native_context_v2_at_v1(ctx,ws,clock_timestamp()) v;
  -- Serialize custody preparation, not a C03 command reservation. Same key never races to a replacement.
  PERFORM pg_advisory_xact_lock(hashtextextended('service-authoring-custody:'||owner_key||':'||ws::text||':'||kind||':'||key,0));
  SELECT * INTO r FROM platform.service_authoring_custody_v1 s WHERE s.custody_owner=owner_key AND s.workspace_id=ws AND s.kind=kind AND s.idempotency_key=key FOR SHARE;
  -- All lock waits above precede current authorization/clock. No stored historical allow is used.
- PERFORM app_private.require_request_session_current_at_v1(clock_timestamp());
- IF app_private.check_workspace_native_permission_v2(ctx,ws,permission,'services_catalog') IS NOT true
-  OR (c->>'authority_version')::bigint<>rev
- THEN RAISE EXCEPTION 'service_custody_denied' USING ERRCODE='42501';END IF;
+ -- FRESH_CUSTODY_CHECKPOINT_SERVICE_ROW_WAIT_BEGIN
+ checked_at:=clock_timestamp();
+ PERFORM app_private.require_request_session_current_at_v1(checked_at);
+ SELECT v.tenant_id,v.membership_id INTO STRICT current_scope
+  FROM app_private.resolve_workspace_native_context_v2_at_v1(ctx,ws,checked_at) v;
+ IF current_scope.tenant_id IS DISTINCT FROM tenant OR current_scope.membership_id IS DISTINCT FROM member
+  OR app_private.check_workspace_native_permission_v2_at_v1(ctx,ws,permission,'services_catalog',checked_at) IS NOT true
+ THEN RAISE EXCEPTION 'service_custody_denied' USING ERRCODE='42501'; END IF;
+ -- FRESH_CUSTODY_CHECKPOINT_SERVICE_ROW_WAIT_END
+ IF (c->>'authority_version')::bigint<>rev THEN RAISE EXCEPTION 'service_custody_denied' USING ERRCODE='42501';END IF;
  IF r.custody_owner IS NULL THEN
   IF EXISTS(SELECT 1 FROM platform.idempotency_keys k WHERE k.tenant_id=tenant AND k.key='core-tx.v1:'||ws::text||':'||key) THEN
    RAISE EXCEPTION 'service_custody_original_missing' USING ERRCODE='55000';END IF;
@@ -85,10 +91,16 @@ BEGIN
  THEN RAISE EXCEPTION 'service_custody_conflict' USING ERRCODE='23505';END IF;
  -- Retry returns exactly the original wire including its old authority revision.
  -- Missing policy, unavailable source, timeout/cancel/40001 all propagate, never create fallback.
- PERFORM app_private.require_request_session_current_at_v1(clock_timestamp());
- IF r.expires_at IS NOT NULL AND r.expires_at<=clock_timestamp() THEN RAISE EXCEPTION 'service_custody_expired' USING ERRCODE='55000';END IF;
- IF app_private.check_workspace_native_permission_v2(ctx,ws,permission,'services_catalog') IS NOT true
- THEN RAISE EXCEPTION 'service_custody_denied' USING ERRCODE='42501';END IF;
+ -- FRESH_CUSTODY_CHECKPOINT_SERVICE_FINAL_EFFECT_WAIT_BEGIN
+ checked_at:=clock_timestamp();
+ PERFORM app_private.require_request_session_current_at_v1(checked_at);
+ SELECT v.tenant_id,v.membership_id INTO STRICT current_scope
+  FROM app_private.resolve_workspace_native_context_v2_at_v1(ctx,ws,checked_at) v;
+ IF current_scope.tenant_id IS DISTINCT FROM tenant OR current_scope.membership_id IS DISTINCT FROM member
+  OR app_private.check_workspace_native_permission_v2_at_v1(ctx,ws,permission,'services_catalog',checked_at) IS NOT true
+ THEN RAISE EXCEPTION 'service_custody_denied' USING ERRCODE='42501'; END IF;
+ -- FRESH_CUSTODY_CHECKPOINT_SERVICE_FINAL_EFFECT_WAIT_END
+ IF r.expires_at IS NOT NULL AND r.expires_at<=checked_at THEN RAISE EXCEPTION 'service_custody_expired' USING ERRCODE='55000';END IF;
  RETURN jsonb_build_object('contract_version','core-service-authoring-custody-db.v1',
   'database_oid',(SELECT oid::integer FROM pg_database WHERE datname=current_database()),'database_name',current_database(),
   'backend_marker',(SELECT obj_description(oid,'pg_namespace') FROM pg_namespace WHERE nspname='core_runtime'),

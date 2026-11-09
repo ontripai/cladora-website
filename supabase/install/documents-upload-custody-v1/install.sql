@@ -5,8 +5,8 @@ CREATE ROLE cladora_document_custody_owner NOLOGIN NOINHERIT NOSUPERUSER NOBYPAS
 GRANT USAGE ON SCHEMA platform,platform_dev,app_private,auth,identity TO cladora_document_custody_owner;
 GRANT EXECUTE ON FUNCTION auth.uid(),auth.jwt(),app_private.lock_core_request_session_v1(),
  app_private.require_request_session_current_at_v1(timestamptz),
- app_private.resolve_workspace_native_context_v2(uuid,uuid),
- app_private.check_workspace_native_permission_v2(uuid,uuid,text,text) TO cladora_document_custody_owner;
+ app_private.resolve_workspace_native_context_v2_at_v1(uuid,uuid,timestamptz),
+ app_private.check_workspace_native_permission_v2_at_v1(uuid,uuid,text,text,timestamptz) TO cladora_document_custody_owner;
 GRANT SELECT(tenant_id,actor_id,key,request_hash,response_ref,expires_at),UPDATE(key) ON platform.idempotency_keys TO cladora_document_custody_owner;
 GRANT SELECT(revision,singleton),UPDATE(revision) ON app_private.canonical_authority_revision_v1 TO cladora_document_custody_owner;
 -- Scoped policy is required even if the lifecycle custodian could bypass RLS.
@@ -77,7 +77,7 @@ CREATE POLICY documents_custody_runtime_lock_v1 ON platform.document_upload_cust
 CREATE FUNCTION platform_dev.document_upload_custody_v1(p_phase text,p_request jsonb)
 RETURNS jsonb LANGUAGE plpgsql VOLATILE SECURITY DEFINER SET search_path=pg_catalog AS $custody$
 DECLARE actor uuid;ctx uuid;ws uuid;tenant uuid;member uuid;rev bigint;r platform.document_upload_custody_v1%rowtype;
- snap jsonb;wire text;key text;fresh boolean:=false;fresh_dispatch boolean:=false;c jsonb;stored record;observed_at timestamptz;
+ snap jsonb;wire text;key text;fresh boolean:=false;fresh_dispatch boolean:=false;c jsonb;stored record;observed_at timestamptz;checked_at timestamptz;current_scope record;
 BEGIN
  IF p_phase NOT IN('prepare','seal','dispatch','retain','seal_final','peek','claim','resume') OR p_phase IS NULL
   OR jsonb_typeof(p_request) IS DISTINCT FROM 'object' OR octet_length(p_request::text)>32768
@@ -89,7 +89,7 @@ BEGIN
  THEN RAISE EXCEPTION 'documents_custody_denied' USING ERRCODE='42501'; END IF;
  PERFORM app_private.lock_core_request_session_v1();
  SELECT revision INTO STRICT rev FROM app_private.canonical_authority_revision_v1 WHERE singleton FOR SHARE;
- SELECT v.tenant_id,v.membership_id INTO STRICT tenant,member FROM app_private.resolve_workspace_native_context_v2(ctx,ws) v;
+ SELECT v.tenant_id,v.membership_id INTO STRICT tenant,member FROM app_private.resolve_workspace_native_context_v2_at_v1(ctx,ws,clock_timestamp()) v;
  -- Preparation and stream admission lock the SAME row; read/recovery uses SHARE.
  IF p_phase IN('prepare','seal','dispatch','retain','claim','seal_final') THEN
   PERFORM pg_advisory_xact_lock(hashtextextended('documents-custody:'||tenant::text||':'||ws::text||':'||actor::text||':'||coalesce(p_request->>'intent_id',key),0));
@@ -104,9 +104,15 @@ BEGIN
   END IF;
  END IF;
  -- Authority/session/clock are renewed AFTER all above lock waits, same backend.
- PERFORM app_private.require_request_session_current_at_v1(clock_timestamp());
- IF app_private.check_workspace_native_permission_v2(ctx,ws,'documents.vault.upload','documents') IS NOT true THEN
-  RAISE EXCEPTION 'documents_custody_denied' USING ERRCODE='42501'; END IF;
+ -- FRESH_CUSTODY_CHECKPOINT_DOCS_ROW_WAIT_BEGIN
+ checked_at:=clock_timestamp();
+ PERFORM app_private.require_request_session_current_at_v1(checked_at);
+ SELECT v.tenant_id,v.membership_id INTO STRICT current_scope
+  FROM app_private.resolve_workspace_native_context_v2_at_v1(ctx,ws,checked_at) v;
+ IF current_scope.tenant_id IS DISTINCT FROM tenant OR current_scope.membership_id IS DISTINCT FROM member
+  OR app_private.check_workspace_native_permission_v2_at_v1(ctx,ws,'documents.vault.upload','documents',checked_at) IS NOT true
+ THEN RAISE EXCEPTION 'documents_custody_denied' USING ERRCODE='42501'; END IF;
+ -- FRESH_CUSTODY_CHECKPOINT_DOCS_ROW_WAIT_END
  observed_at:=clock_timestamp();
  IF r.intent_id IS NULL AND p_phase<>'prepare' THEN RETURN NULL; END IF;
  IF r.intent_id IS NULL THEN
@@ -176,7 +182,7 @@ BEGIN
   UPDATE platform.document_upload_custody_v1 SET dispatch_started=true WHERE intent_id=r.intent_id AND NOT dispatch_started RETURNING * INTO r;fresh_dispatch:=FOUND;
  END IF;
  IF p_phase IN('retain','claim','resume') THEN
-  SELECT k.actor_id,k.request_hash,k.response_ref INTO stored FROM platform.idempotency_keys k
+  SELECT k.actor_id,k.request_hash,k.response_ref,k.expires_at INTO stored FROM platform.idempotency_keys k
    WHERE k.tenant_id=tenant AND k.key='core-tx.v1:'||ws::text||':'||r.issue_key FOR SHARE;
   -- C03 is the ONLY receipt authority. A caller flag/JSON is never read here.
   IF NOT FOUND OR stored.actor_id<>actor OR stored.request_hash IS DISTINCT FROM r.command_sha256
@@ -187,14 +193,34 @@ BEGIN
    OR stored.response_ref->>'input_fingerprint' IS DISTINCT FROM (r.command_wire::jsonb)->>'input_fingerprint'
   THEN RAISE EXCEPTION 'documents_custody_receipt_unavailable' USING ERRCODE='55000'; END IF;
   -- ledger lock could wait; renew C01 and real expiry before touching custody.
-  PERFORM app_private.require_request_session_current_at_v1(clock_timestamp());
-  IF app_private.check_workspace_native_permission_v2(ctx,ws,'documents.vault.upload','documents') IS NOT true THEN RAISE EXCEPTION 'documents_custody_denied' USING ERRCODE='42501'; END IF;
+ -- FRESH_CUSTODY_CHECKPOINT_DOCS_LEDGER_WAIT_BEGIN
+ checked_at:=clock_timestamp();
+ PERFORM app_private.require_request_session_current_at_v1(checked_at);
+ SELECT v.tenant_id,v.membership_id INTO STRICT current_scope
+  FROM app_private.resolve_workspace_native_context_v2_at_v1(ctx,ws,checked_at) v;
+ IF current_scope.tenant_id IS DISTINCT FROM tenant OR current_scope.membership_id IS DISTINCT FROM member
+  OR app_private.check_workspace_native_permission_v2_at_v1(ctx,ws,'documents.vault.upload','documents',checked_at) IS NOT true
+ THEN RAISE EXCEPTION 'documents_custody_denied' USING ERRCODE='42501'; END IF;
+ -- FRESH_CUSTODY_CHECKPOINT_DOCS_LEDGER_WAIT_END
   IF r.expires_at<=clock_timestamp() OR NOT EXISTS(SELECT 1 FROM platform.idempotency_keys k WHERE k.tenant_id=tenant AND k.key='core-tx.v1:'||ws::text||':'||r.issue_key AND k.expires_at>clock_timestamp()) THEN RAISE EXCEPTION 'documents_custody_expired' USING ERRCODE='55000'; END IF;
   IF p_phase='retain' AND r.phase='sealed' THEN UPDATE platform.document_upload_custody_v1 SET receipt_id=(stored.response_ref->>'receipt_id')::uuid,phase='retained' WHERE intent_id=r.intent_id RETURNING * INTO r; END IF;
   IF p_phase='claim' THEN
    IF r.final_key IS NOT NULL AND r.final_key<>key THEN RAISE EXCEPTION 'documents_custody_final_key_conflict' USING ERRCODE='23505'; END IF;
    IF r.phase='retained' THEN UPDATE platform.document_upload_custody_v1 SET final_key=key,phase='stream_admitted' WHERE intent_id=r.intent_id AND phase='retained' RETURNING * INTO r;fresh:=FOUND; END IF;
   END IF;
+ END IF;
+ -- FRESH_CUSTODY_CHECKPOINT_DOCS_FINAL_EFFECT_WAIT_BEGIN
+ checked_at:=clock_timestamp();
+ PERFORM app_private.require_request_session_current_at_v1(checked_at);
+ SELECT v.tenant_id,v.membership_id INTO STRICT current_scope
+  FROM app_private.resolve_workspace_native_context_v2_at_v1(ctx,ws,checked_at) v;
+ IF current_scope.tenant_id IS DISTINCT FROM tenant OR current_scope.membership_id IS DISTINCT FROM member
+  OR app_private.check_workspace_native_permission_v2_at_v1(ctx,ws,'documents.vault.upload','documents',checked_at) IS NOT true
+ THEN RAISE EXCEPTION 'documents_custody_denied' USING ERRCODE='42501'; END IF;
+ -- FRESH_CUSTODY_CHECKPOINT_DOCS_FINAL_EFFECT_WAIT_END
+ IF r.expires_at<=checked_at THEN RAISE EXCEPTION 'documents_custody_expired' USING ERRCODE='55000'; END IF;
+ IF p_phase IN('retain','claim','resume') THEN
+  IF stored.expires_at IS NULL OR stored.expires_at<=checked_at THEN RAISE EXCEPTION 'documents_custody_expired' USING ERRCODE='55000'; END IF;
  END IF;
  RETURN to_jsonb(r)||jsonb_build_object('fresh_stream',fresh,'fresh_dispatch',fresh_dispatch,'database_oid',(SELECT oid::integer FROM pg_database WHERE datname=current_database()),'database_name',current_database(),
   'backend_marker',(SELECT obj_description(oid,'pg_namespace') FROM pg_namespace WHERE nspname='core_runtime'));

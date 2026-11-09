@@ -362,3 +362,35 @@ revision-source is executable but full status NOT_READY, projectionNULL and no
 agreement verification/dispatch. Missing SERVICE revise plan/writer and exact Core
 S01/host admission remain explicit. Separate real-schema sub-ms false-negative
 counterexample assigned SERVICE; guard not weakened. No target/native proof.
+
+## Independent CE010 request producer19 (before edits)
+Parentc332983d published and report readback MATCH. Read exact Page CE010 card;
+imported CE989 commit without checkout, Parent284a/Treef08fa1e4 observed. Paths:
+src/lib/core/ce010-request-binding-v1.ts,
+src/lib/core/ce010-query-profile-v1.json,
+src/lib/core/platform-role-bound-pool-v1.ts (closed CE010 profile only),
+scripts/prepare-core-ce010-query-profile-v1.mjs,
+scripts/test-core-ce010-request-binding-v1.mjs,
+docs/core/domain-ports-01/ce010-producer-19/{README.md,manifest.json}.
+CE-owned runtime/handler/provider remain unchanged. New role names and safety
+helper ABI are Core profile proposals, NOT observed/installed Platform objects;
+no Guide/SERVICE credential/profile substitution. Fixed Core role-pool primitive
+is reused; no new transaction host/authority engine/ledger. No target action.
+
+## Priority QFW-DOCS15-01 / sibling SERVICE custody (before edits)
+CE010 WIP is preserved under artifacts/core-domain-ports-01/ce010-producer-19-wip-before-docs15-priority,
+checkpoint.json SHA2566127bbc040d265a82dd2284891839384456182d13f5d4d295d5cc5323e47fc11.
+It is neither delivered nor accepted; no source reset/stash or WIP replacement.
+Priority paths: supabase/install/documents-upload-custody-v1/{install.sql,preflight.sql,verify.sql,recovery.md},
+supabase/proposals/core-service-authoring-custody-v1/{delta.sql,preflight.sql,verify.sql,recovery.md},
+scripts/test-core-custody-postwait-fresh-time-v1.mjs,
+docs/core/domain-ports-01/custody-fresh-time-20/{README.md,manifest.json,helper-pins.json}.
+No C03/evaluator/store/schema history/consumer/command/TTL change; reuse accepted
+canonical fresh-time ABI, no new authority engine/helper implementation. Native
+execution remains forbidden. CE010 source files remain outside this increment.
+QFW20 checks:5 explicit postwait checkpoints,30 expired source schedules,5
+unexpired controls,4 coherent regressions,13 exact canonical helper bodies and
+owner/ACL/config requirements checked. New source/table/immutable-trigger identity
+checks PASS. Models are not native SQL proof. Existing17/13/12 and CE23 tests not
+run. CE010 five code files still equal their preserved WIP hashes; worklog only
+records this priority. Installer images rebuilt from final source, no target call.

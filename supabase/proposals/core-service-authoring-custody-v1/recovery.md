@@ -42,3 +42,24 @@ If it rejects an old original command after an unrelated epoch bump, hold/denial
 is safe; this custody adapter does not rewrite it to pass. Allowing recovery under
 a separately current observation needs a reviewed C03 dual-binding ABI; it is not
 silently enabled here. Keep QFW closure and full SERVICE-C03 native proof distinct.
+
+## Same-root post-wait source correction (not a new independent finding)
+
+The two former legacy wrapper calls (Core22 delta.sql74/90) shared the
+QFW-DOCS15-01 temporal cause. After advisory/custody row waits and after INSERT or
+other effective wait before the return, the RPC now samples a server instant,
+re-resolves the same tenant/member through canonical `_at_v1` and checks the whole
+canonical permission chain with that instant, as well as the current session.
+The final actual metadata expiry uses that instant. Original stored record_wire,
+public fingerprint, actor/authority tuple/IDs/key and retention policy are unchanged.
+Neither new current authority nor clock causes a replacement command or TTL.
+
+Preflight/verify require the same13 exact canonical helper prosrc bodies and
+security/search_path/volatility, plus observed owner OID and normalized ACL hashes
+from `cladora.service.authoring_custody_binding` under fresh_helper_owner_oid and
+fresh_helper_acl_sha256. Canonical ACL hash encoding is documented in the sibling
+Documents recovery contract. This proposal still selects no installer/custodian,
+grantor or positive runtime privilege. Platform's future specific role grant needs
+an explicit before/after ACL delta, not replacing protected preimage hashes.
+The55000 source-adoption guard and final ROLLBACK remain. No SQL/parser/native
+execution or separate bypass/C03 effect has been demonstrated.

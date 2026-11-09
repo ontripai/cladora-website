@@ -57,3 +57,44 @@ prepare/claim races; revoke/expiry after each wait; process restart and immutabl
 Storage verification; original-plan C03 rollback/lostACK/replay. NOT_RUN_NOT_PASS.
 Scanner is not an initial-intent dependency; clean-dependent read/download remains
 closed without actual scan/attestation, custody and post-Storage current recheck.
+
+## QFW-DOCS15-01 successor — explicit fresh-time source boundary
+
+The legacy permission wrapper is STABLE and its downstream temporal chain reads
+statement_timestamp. Calling that wrapper again inside the same RPC cannot renew
+Context/member/role/entitlement validity. A current session or custody/C03 TTL alone
+is insufficient. This is a source-derived schedule finding, not a native exploit
+or a general C03 bypass.
+
+After custody/advisory row waits, after the C03 receipt row wait and again after
+possible custody/unique/trigger write waits, the RPC samples clock_timestamp and
+passes that SAME fresh instant to the accepted canonical session check, explicit
+Context/Workspace resolver and permission evaluator `_at_v1`. Tenant/member must
+still equal the original resolved scope. No client time/provider/callback is used.
+Final custody and actual locked C03 expiry are checked at that final instant; no
+expiry or historical command/authority/key/IDs/wire/hash is updated or extended.
+The existing table and immutable trigger definitions are byte-identical. The
+runtime RLS wrapper is not treated as an after-lock authorization checkpoint; C03
+and consumer checkpoints remain independently responsible for their own scopes.
+
+New install binding fields for the13 canonical helper closure signatures:
+`fresh_helper_owner_oid` and `fresh_helper_acl_sha256`. The latter is SHA256 of
+UTF8 canonical jsonb text of sorted [grantor,grantee,privilege_type,is_grantable]
+ACL rows from aclexplode(coalesce(proacl,acldefault('f',proowner))); ordering uses
+those same four columns. Read these from admitted Platform metadata; never infer
+owners from a role name or invent values. Fixed canonical prosrc hashes/security/
+volatility/search_path are in custody-fresh-time-20/helper-pins.json. Preflight
+requires the exact existing13 bodies/owners/ACLs; no helper is installed/replaced.
+Only two fresh-time ENTRY functions get EXECUTE for the dedicated custodian.
+No PUBLIC, managed Auth or transitive-helper grant is introduced. Postverify removes
+only those two exact new-grantee entries when comparing the protected preimage;
+extra grant-option or unrelated ACL/owner/body drift stops the packet.
+
+Same atomic installer transaction/deadlines, exact target binding and recovery
+rules remain. Fresh install source is a complete successor, not replay-all over an
+already populated/installed target. For any installed prior custody version,
+Platform needs an explicit additive/replace-function adoption with exact before
+body/ACL metadata; do not apply a fresh CREATE ROLE/TABLE image to it. A failure
+ROLLBACK of this install is distinct from recovery of committed business data.
+Native two-connection lock/expiry and exact owner/ACL/RLS/closure installation are
+NOT_RUN_NOT_PASS and still need their own reviewed admission. CE010 WIP is separate.
