@@ -294,3 +294,30 @@ SERVICE720 QFW-SERVICE720-01 is recorded as an independent subsequent Core
 producer/revise ABI contract increment; original tuple/wire/fingerprint must stay
 immutable while current permission is separately re-evaluated. Its consumer stays
 SERVICE-owned; it does not gate this Documents increment or Listing.
+
+## Independent Listing ownership companion16 (before edits)
+Parent Documents15 published; no dependency on its custody behavior. Exact AIRPROP
+6cd4a6a fetched as objects, read interface checked. Core-only paths:
+src/lib/core/listing-ownership-companion-queries-v1.ts,
+src/lib/core/listing-ownership-companion-v1.ts,
+src/lib/core/airprop-read-host-v1.ts (closed exact-query admission only),
+supabase/proposals/core-listing-party-revision-v1/{delta.sql,preflight.sql,verify.sql,recovery.md},
+scripts/test-core-listing-ownership-companion-v1.mjs,
+docs/core/domain-ports-01/listing-companion-16/{README.md,manifest.json}.
+No AIRPROP file, historical NULL revision, accepted selector/writer97d7, Page,
+shared target or owner/grant edited. Own-party policy still needs explicit owner
+adoption; private candidate != disclosed Listing producer, manage or native proof.
+Owner has now approved own-party V1 SOURCE disclosure: current canonical actor's
+membership Party, valid ownership of exact Unit, independent current asset.read;
+only minimum binding IDs/versions, no Party profile/contact. Other families and
+manage/publish remain excluded. Extra Core-generated paths before source edits:
+scripts/prepare-core-listing-companion-source-v1.mjs,
+src/lib/core/listing-ownership-adoption-query-v1.ts,
+supabase/proposals/core-listing-party-revision-v1/writer-pins.json.
+
+Companion16 final evidence:13 new controlled actual-host/AIRPROP6cd groups,2 exact
+writer roundtrips+2 source corruptions, full ES5 typecheck and focused lint PASS.
+Owner-approved own-party read family recorded; no Party profile/manage grant.
+Missing Party-version in AIRPROP command selection is an owner ABI dependency,
+not hidden by the read projection. Full native writer/role/adoption proof remains
+NOT_RUN_NOT_PASS. Automation classification: نیازمند بررسی.
