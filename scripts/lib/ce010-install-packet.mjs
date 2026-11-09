@@ -115,7 +115,7 @@ export function compareCe010Catalog(pre,post,expected){
 }
 export function classifyCe010Recovery(pre,actual,expected){
  const compared=compareCe010Catalog(pre,actual,expected);if(compared.status==='CATALOG_CONSISTENT_ONLY')return {status:'POSTIMAGE_MATCH_NO_REPLAY',native:false};
- if(expected?.reference&&expected?.core_seal&&pre.target===actual.target&&pre.objects?.length===0&&stable(pre)===stable(actual))return {status:'PREIMAGE_MATCH_REVIEWABLE_RETRY',automatic_retry:false};
+ if(expected?.reference&&expected?.core_seal&&pre.target===expected.target&&pre.target===actual.target&&pre.objects?.length===0&&stable(pre)===stable(actual))return {status:'PREIMAGE_MATCH_REVIEWABLE_RETRY',automatic_retry:false};
  return {status:'UNKNOWN_NO_ACK_NO_MUTATION',reason:compared.status};
 }
 export function verifyCe010Packet(packet,read){
