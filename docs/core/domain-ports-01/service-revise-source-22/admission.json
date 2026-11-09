@@ -1,0 +1,56 @@
+{
+  "contract": "core-service-revise-source-admission.v1.owner-policy22",
+  "source_status": "CONTROLLED_SOURCE_COUPLED",
+  "operation_status": "NOT_READY",
+  "runtime": null,
+  "operation_admitted": false,
+  "consumer": "5eadb64ca9848dc433582fe3f718b661d12548b4",
+  "Core_factory": "src/lib/core/service-offering-revise-source-port-v1.ts#createCoreServiceOfferingReviseSourcePortV1",
+  "preferred_seam": "createCoreFunctionalCommandRuntimeV1({...serverOptions,agreement_family:'revise'}).readers.readCurrentOfferingRevisionForAuthoringV1(scope, originalServiceCommand)",
+  "source_contract": "service-offering-revise-source.v1",
+  "permissions": {
+    "permission": "services.catalog.manage",
+    "module": "services_catalog",
+    "purpose": "service.revise_offering",
+    "canonical_agreement_scope_required": "service.offering.revise"
+  },
+  "fresh_helpers": [
+    "app_private.require_request_session_current_at_v1(timestamptz)",
+    "app_private.resolve_workspace_native_context_v2_at_v1(uuid,uuid,timestamptz)",
+    "app_private.check_workspace_native_permission_v2_at_v1(uuid,uuid,text,text,timestamptz)"
+  ],
+  "helper_closure_pins": "../custody-fresh-time-20/helper-pins.json",
+  "Platform_requirements_NOT_GRANTS": [
+    "actual Core runtime EXECUTE on exact fresh-time entries",
+    "existing canonical S01 store and SELECT/row-lock/RLS closure",
+    "exact Offering head/old revision SELECT and effective FOR SHARE rights",
+    "verified target/session/principal binding and actual writer lock order"
+  ],
+  "gates": [
+    {
+      "owner": "SERVICE",
+      "dependency": "actual service-offering-revise-writer.v1 implementation/provider; 5ead includes interface/validators only"
+    },
+    {
+      "owner": "Core",
+      "dependency": "closed operation admission after exact writer/provider/replay ABI; existing authoring wrapper stays closed"
+    },
+    {
+      "owner": "SERVICE",
+      "dependency": "commercial_terms sub-ms validation false-negative"
+    },
+    {
+      "owner": "Platform/Coordinator",
+      "dependency": "install/role/ACL/RLS/native lock/40001/settlement/restart admission"
+    }
+  ],
+  "historical_command": "immutable actor/authority/key/body/IDs/fingerprint; current authority independently rechecked",
+  "native": "NOT_RUN_NOT_PASS",
+  "old_commercial_window_policy": {
+    "status": "CLOSED_OWNER_POLICY_SOURCE",
+    "source_current": "exact current head and old revision/version in draft/submitted",
+    "expired_or_future_old_window": "not an authoring source blocker by itself",
+    "new_terms_validation": "unchanged SERVICE schema",
+    "other_read_publish_families": "unchanged"
+  }
+}

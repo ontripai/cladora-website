@@ -414,3 +414,19 @@ couplings PASS with zero new effect/writer calls. Actual writer interface is not
 an implementation; operation admission staysNULL/closed. Old-commercial-expiry
 policy and SERVICE schema precision limitation are not guessed/relaxed. Full ES5
 and focused lint PASS; no SQL/native. CE010 code still preserved/uncommitted.
+
+## Revise authoring policy22 (before edits)
+Parent0b73eb07 retained; clock fix20 awaits QA and is not retested/regenerated.
+Owner defines source_current for revise draft/submitted as exact current head +
+old revision/version, independently of old commercial availability. Paths:
+src/lib/core/service-offering-revision-source-v1.ts,
+scripts/test-core-service-original-current-v1.mjs (affected policy assertion only),
+scripts/test-core-service-revise-authoring-current-v1.mjs,
+docs/core/domain-ports-01/service-revise-source-22/{README.md,manifest.json,admission.json}.
+S01/current authority/new terms validation and all other read/publish families
+remain unchanged; actual SERVICE writer absent, admission stays closed. CE010
+WIP is preserved and resumes independently after this scoped source delivery.
+Policy22 evidence:7 new controlled policy groups plus the one affected Core18
+postwait assertion PASS. S01 revoke/expiry/scope and final authority denial remain
+blocking; invalid old/new terms and new revision identity/version still reject.
+20/21 artifacts or clock checks were not regenerated; writer admission staysNULL.

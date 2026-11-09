@@ -6,7 +6,7 @@ import {currentAuthorityTransactionRequestV1Schema} from './current-authority-tr
 import {observeCoreServiceOriginalCurrentBoundaryV1} from './service-original-current-boundary-v1';
 import {serviceOfferingRevisionSchema} from '../customer/service-catalog-schema';
 import {serviceOfferingCoverageSchema,serviceEligibilityPolicySchema} from '../customer/service-offering-v14-schema';
-import {serviceOfferingTimeWindowAvailableV1,parseServiceOfferingInstantMicrosV1} from '../customer/service-offering-time-precision-v1';
+import {parseServiceOfferingInstantMicrosV1} from '../customer/service-offering-time-precision-v1';
 export const CORE_SERVICE_OFFERING_REVISION_SOURCE_V1='core-service-offering-revision-source.v1' as const;
 export const CORE_SERVICE_OFFERING_REVISION_SOURCE_RUNTIME_BINDING=null;
 const uuid=z.string().uuid(),v=z.number().int().positive().safe(),dbv=z.coerce.number().int().positive().safe(),stamp=z.iso.datetime({offset:true});
@@ -53,10 +53,12 @@ export async function readCurrentOfferingRevisionForAuthoringV1(scope:CoreTransa
   ||hs.id!==expected.offering_id||rs.offering_id!==hs.id||hs.current_revision_id!==expected.old_revision_id||rs.id!==expected.old_revision_id
   ||hs.lock_version!==expected.expected_offering_lock_version||rs.revision_version!==expected.expected_revision_version
   ||hs.provider_party_id!==expected.provider_party_id||rs.provider_agreement_id!==expected.provider_agreement_id||rs.provider_agreement_version!==expected.provider_agreement_version)return closed('SOURCE_BINDING_DRIFT');
- if(rs.status==='archived'||!serviceOfferingTimeWindowAvailableV1(after.evaluated_at,rs.valid_from,rs.valid_until)
+ // Revise authoring: source_current is the exact current draft/submitted head,
+ // not availability of its OLD commercial terms. Other read/publish ports do not use this path.
+ if(!['draft','submitted'].includes(rs.status)
   ||parseServiceOfferingInstantMicrosV1(rs.valid_from)!==parseServiceOfferingInstantMicrosV1(rs.commercial_terms.valid_from)
   ||(rs.valid_until===null)!==(rs.commercial_terms.valid_until===null)
-  ||(rs.valid_until!==null&&parseServiceOfferingInstantMicrosV1(rs.valid_until)!==parseServiceOfferingInstantMicrosV1(rs.commercial_terms.valid_until!)))return closed('SOURCE_EXPIRED_OR_MALFORMED');
+  ||(rs.valid_until!==null&&parseServiceOfferingInstantMicrosV1(rs.valid_until)!==parseServiceOfferingInstantMicrosV1(rs.commercial_terms.valid_until!)))return closed('SOURCE_STATUS_OR_CONTENT_INVALID');
  return Object.freeze({...closed('SERVICE_REVISE_PLAN_WRITER_HOST_ABI_REQUIRED'),source_status:'matched_private' as const,
   source:structuredClone({head:hs,revision:rs,checked_at:after.evaluated_at}),provider_agreement_verification:'not_evaluated' as const,reusable_as_authority:false as const});
 }
