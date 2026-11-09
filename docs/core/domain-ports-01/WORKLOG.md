@@ -394,3 +394,23 @@ owner/ACL/config requirements checked. New source/table/immutable-trigger identi
 checks PASS. Models are not native SQL proof. Existing17/13/12 and CE23 tests not
 run. CE010 five code files still equal their preserved WIP hashes; worklog only
 records this priority. Installer images rebuilt from final source, no target call.
+
+## Independent revise source21 (before edits)
+PriorityQFW20 published/readback MATCH; CE010 WIP remains preserved and excluded.
+Exact SERVICE5ead bundle imported (12798 bytes, SHA2563f0c4b9406d4b9012e85660b53134b3eeabf913ca1fc807158d9e156c78d8736),
+Head5eadb64ca9848dc433582fe3f718b661d12548b4, Parent603f0313, Treea92f4dfc.
+Page exact revise contract1934 bytes SHA2561c2f62d77dc5dcb31f3cbfa6966aa0b13fa1f46bee8dfff7789d746323b9475a.
+Paths: src/lib/core/service-offering-revise-source-port-v1.ts,
+src/lib/core/functional-producers-v1.ts (explicit new inactive revise family),
+src/lib/core/functional-command-runtime-v1.ts (family type only),
+src/lib/core/service-s01/provider-agreement-reader-v1.ts (revise-only scope mapping),
+scripts/test-core-service-revise-source-v1.mjs,
+docs/core/domain-ports-01/service-revise-source-21/{README.md,manifest.json,admission.json}.
+Source queries reuse the existing Core18 canonical reader, no new store/reader or
+SERVICE writer. Actual SERVICE5ead delivers a writer INTERFACE, not executable
+implementation. Host operation admission remains closed; no fabricated provider.
+Source21 checks:7 new controlled Core C01/C03+real S01+SERVICE5ead source/plan
+couplings PASS with zero new effect/writer calls. Actual writer interface is not
+an implementation; operation admission staysNULL/closed. Old-commercial-expiry
+policy and SERVICE schema precision limitation are not guessed/relaxed. Full ES5
+and focused lint PASS; no SQL/native. CE010 code still preserved/uncommitted.

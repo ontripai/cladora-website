@@ -61,7 +61,7 @@ const principalSchema=z.strictObject({backend_pid:z.number().int().positive().sa
  * never an HTTP payload. No default URL, env-secret discovery, alternate target,
  * service-role client, caller Auth callback or authority provider is accepted.
  */
-export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool;target:CoreFunctionalDevelopmentTargetV1;offering:CoreS01ServiceOfferingBindingV1|null;request?:Request;agreement_family?:'request'|'authoring';claim_alias_profile?:'documents.v1'}>){
+export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool;target:CoreFunctionalDevelopmentTargetV1;offering:CoreS01ServiceOfferingBindingV1|null;request?:Request;agreement_family?:'request'|'authoring'|'revise';claim_alias_profile?:'documents.v1'}>){
  const producers=createCoreFunctionalProducersV1(options.offering,options.agreement_family);
  const target=Object.freeze(coreFunctionalDevelopmentTargetV1Schema.parse(options.target));
  const platform12=target.database_name==='postgres'&&/^core15-dev:[a-f0-9]{32}$/.test(target.backend_id)

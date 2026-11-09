@@ -131,6 +131,7 @@ const authoringProfile=(input:ProviderAgreementVerificationV1Input)=>{
   if(input.requested_service_scope.length!==1)return null;
   const scope=input.requested_service_scope[0];
   if(input.permission_code==='services.catalog.manage'&&['service.offering.create','service.offering.submit','service.offering.suspend','service.offering.archive'].includes(scope))return{module:'services_catalog',purpose:scope==='service.offering.create'?'service.create_offering':'service.transition_offering'};
+  if(input.permission_code==='services.catalog.manage'&&scope==='service.offering.revise')return{module:'services_catalog',purpose:'service.revise_offering'};
   if(input.permission_code==='services.catalog.publish'&&scope==='service.offering.publish')return{module:'services_catalog',purpose:'service.transition_offering'};
   if(input.permission_code==='services.quotes.manage'&&scope==='service.quote.create')return{module:'services_orders',purpose:'service.create_quote'};
   return null;

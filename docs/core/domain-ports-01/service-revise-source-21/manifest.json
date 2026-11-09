@@ -1,0 +1,192 @@
+{
+  "contract": "core-service-revise-source-21.delivery.v1",
+  "FullSHA": "CONTAINING_COMMIT",
+  "Parent": "c7df7ebd003c351bc80c5548c2cadf0ea1cd435a",
+  "branch": "codex/core-domain-ports-01",
+  "source_status": "CONTROLLED_SOURCE_COUPLED",
+  "operation_status": "NOT_READY",
+  "runtime": null,
+  "operation_admitted": false,
+  "target_changed": false,
+  "consumer": {
+    "FullSHA": "5eadb64ca9848dc433582fe3f718b661d12548b4",
+    "Parent": "603f031306cfb291d29ee1eef8d0e736a587d71d",
+    "Tree": "a92f4dfc990c1a3d2d7a5057319fd27e5f3b75eb",
+    "bundle": {
+      "bytes": 12798,
+      "sha256": "3f0c4b9406d4b9012e85660b53134b3eeabf913ca1fc807158d9e156c78d8736",
+      "git_blob": "7f82538095a596673a3c3d0affea04c09eec62d7",
+      "prerequisite": "d1b85ef23779025f9c792c7b1cb37a2852d91d15"
+    },
+    "source_pins": [
+      {
+        "path": "src/lib/customer/service-v14-execution/offering-revise-contract-v1.ts",
+        "bytes": 7538,
+        "sha256": "8b4e6f5ae5b7809fc737c1d73ac627ef958ca1d78abac5c4b06fc971d2a569a8",
+        "git_blob": "d2613feb70844e77e6b5acf564ae7fea91f1212b"
+      },
+      {
+        "path": "docs/service/service-offering-revise-v1/revise-contract.json",
+        "bytes": 1934,
+        "sha256": "1c2f62d77dc5dcb31f3cbfa6966aa0b13fa1f46bee8dfff7789d746323b9475a",
+        "git_blob": "c6e4afd6123e44c9c8754c130a2ae036bd43d4ab"
+      }
+    ]
+  },
+  "inventory": [
+    {
+      "path": "docs/core/domain-ports-01/WORKLOG.md",
+      "before": {
+        "bytes": 26937,
+        "sha256": "2a176c4111fc9f81ca37f31c63b5487ce788c9f0ade684b2a94227942016db7b",
+        "git_blob": "b01c92bac2e6d92bb4252812d2e4f3df9cdb55e9"
+      },
+      "after": {
+        "bytes": 28447,
+        "sha256": "7d7a498f58305c5fb81ef1e2c64d4196b9b7f3b66dfff52e5273a0ffe4499eeb",
+        "git_blob": "c5d20ef92d5421016f37cfeba6bcdba22faa2b3e"
+      }
+    },
+    {
+      "path": "src/lib/core/service-offering-revise-source-port-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 6166,
+        "sha256": "354da01e744a342e19cd837496e874b429604adc498c26033c9f0e500c93885d",
+        "git_blob": "b0c0e753ee5b382014c0b1deffd1891b70458c8a"
+      }
+    },
+    {
+      "path": "src/lib/core/functional-producers-v1.ts",
+      "before": {
+        "bytes": 4581,
+        "sha256": "abf06b831c50fba806d9b2a9d297c752dc01d738949c8c175455e7c202dd5d01",
+        "git_blob": "71ca595a07b17a29976f8b7fbc4cc8c198591887"
+      },
+      "after": {
+        "bytes": 4944,
+        "sha256": "c62e4603453ef7ec74834c197630623ed8cbc2c4d12451db68d6f31a705f05e7",
+        "git_blob": "4e86555da8c6d20c0a3f85a7c22fa8bfcad8fa96"
+      }
+    },
+    {
+      "path": "src/lib/core/functional-command-runtime-v1.ts",
+      "before": {
+        "bytes": 29684,
+        "sha256": "664e6527b5def43b0208c76341e995e74055c5eee3102b13d32e3d9500123232",
+        "git_blob": "2efcc11705a6005f03485af5d73abba205f89e64"
+      },
+      "after": {
+        "bytes": 29693,
+        "sha256": "f282bbde661a8b4f46aee772f194c44bd96f0278028c85e3ddef61ab8a94eb1e",
+        "git_blob": "ad8f0d72c22a97e6f01881c0339cc2e3ea4be34b"
+      }
+    },
+    {
+      "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "before": {
+        "bytes": 22117,
+        "sha256": "4fa4f47ec4bb6439c9b7ee35565adb5045d24b73b158df551685fc9e85a4e9cb",
+        "git_blob": "84616f7beb6e347896ce1f0c6f4a3a55ff208747"
+      },
+      "after": {
+        "bytes": 22276,
+        "sha256": "76855adaf81aa5446839754d3414b99761d0c60674e6f337b06ebf89eaadf326",
+        "git_blob": "e23f0c62eec6d258cf29975bbe3c20ff5eef2707"
+      }
+    },
+    {
+      "path": "scripts/test-core-service-revise-source-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 9511,
+        "sha256": "f1bc21b2398ef812ed4ce56903e74920f6c75e1511bfc8090838f5ab7ebf3af1",
+        "git_blob": "8b219b5a3b9bc812ba1a5ab46f5fe63ea3391b7a"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/service-revise-source-21/README.md",
+      "before": null,
+      "after": {
+        "bytes": 5583,
+        "sha256": "8d67668fcf6bd1266e28cec344ef65b652168a2f738306d4d5b39c42b56e9d4e",
+        "git_blob": "c64f83e18e860e9b0d6701e611c82dd3ed4b2391"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/service-revise-source-21/admission.json",
+      "before": null,
+      "after": {
+        "bytes": 2309,
+        "sha256": "6da2264497f3bd8540e7e540e25a6672505107bd2a803037570b8a274e793acf",
+        "git_blob": "e4746010411a00e8a32d5f3a8dfb149135481f07"
+      }
+    }
+  ],
+  "self_excluded": true,
+  "protected_pins": [
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "bytes": 64851,
+      "sha256": "e269802f7b4b5b376eb3910d9f1b55f42eb8abc87d1cf75fd9d019a0ffd2297a",
+      "git_blob": "8a2c5e97f929af3b52c66656046143fbf7fcbba1",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "git_blob": "e67df2d947608f546dab42dba88b5bdc418cbffb",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "src/lib/core/service-authoring-agreement-runtime-v2.ts",
+      "bytes": 3194,
+      "sha256": "8bdbc5d29347378ff6835864b337a887a0e6d88e97e8bd2e5e25e7683fcb8335",
+      "git_blob": "7d6f8156d6255079b7a5339647442e28e47e24e5",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "src/lib/core/service-offering-revision-source-v1.ts",
+      "bytes": 6844,
+      "sha256": "d64f64e8919409f03f075355d53a310a2b62c38643383d465aa2925ed210561a",
+      "git_blob": "7e711c8118088d605f865b3091f85cc3650f0a6e",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "supabase/install/documents-upload-custody-v1/install.sql",
+      "bytes": 22836,
+      "sha256": "3c0fc0f235a2568d3736ccbed9394769d76cdd6ca68ca0db4eba79e764542c5a",
+      "git_blob": "529b57040b7eaa9527d4340acef6ebcb8995cf06",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "supabase/proposals/core-service-authoring-custody-v1/delta.sql",
+      "bytes": 9682,
+      "sha256": "b13ed0d5f956929f2780d60097d0d7cc829872f22d5a100912726174772c8e3e",
+      "git_blob": "152b1c242ce6ca5e669e7be1ca632f281e483c06",
+      "unchanged_from_Parent": true
+    }
+  ],
+  "evidence": {
+    "new_targeted_groups": 7,
+    "consumer_schema_plan": "actual SERVICE5ead; source/plan matched inside actual Core C01/C03+S01 controlled transport",
+    "new_writer_calls_effects_receipts_audit_outbox": 0,
+    "writer_implementation": "NOT_DELIVERED; interface only in5ead",
+    "ES5_typecheck": "PASS",
+    "focused_lint": "PASS",
+    "syntax_diff": "PASS",
+    "apply_reverse": "external delivery receipt",
+    "native": "NOT_RUN_NOT_PASS",
+    "SQL_parser_compile_execute": "NOT_RUN"
+  },
+  "CE010_WIP": "five source pins still MATCH saved checkpoint; not included",
+  "gates": [
+    "actual SERVICE writer/provider implementation and replay",
+    "specific Core operation profile admission after exact implementation",
+    "Platform target/role/RLS/ACL/fresh helper EXECUTE and native proof",
+    "explicit old-commercial-validity authoring policy clarification",
+    "SERVICE commercial_terms precision validation false-negative"
+  ],
+  "automation": "نیازمند بررسی"
+}
