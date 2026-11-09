@@ -4,6 +4,7 @@ import {z} from 'zod';
 import type {Pool,PoolClient,QueryResult,QueryResultRow} from 'pg';
 import {createClient} from '../supabase/server';
 import type {CoreTransactionScopeV1} from './postgres-transaction-host-v1';
+import {admitCoreListingOwnershipQueryV1} from './listing-ownership-companion-queries-v1';
 import {admitCoreAirpropReadSelectorQueryV1} from './airprop-read-selector-queries-v1';
 
 declare const liveReadObservation:unique symbol;
@@ -169,7 +170,7 @@ export function createCoreAirpropReadHostV1(options:Readonly<{
       const hash=createHash('sha256').update(text).digest('hex');let args:unknown[];
       if(hash===pageHash){args=pageParams.parse(structuredClone(values));if(args[0]!==bound.tenant_id||args[1]!==bound.workspace_id)fail('READ_SCOPE_FOREIGN');}
       else if(hash===clockHash){if(values.length!==0)fail('READ_QUERY_NOT_ADMITTED');args=[];}
-      else {const admitted=admitCoreAirpropReadSelectorQueryV1(text,values,bound);if(admitted===null)fail('READ_QUERY_NOT_ADMITTED');args=admitted;}
+      else {const admitted=admitCoreAirpropReadSelectorQueryV1(text,values,bound)??admitCoreListingOwnershipQueryV1(text,values,bound);if(admitted===null)fail('READ_QUERY_NOT_ADMITTED');args=admitted;}
       sequence++;
       const q=wire<Row>(text,args);pending.add(q);q.then(()=>pending.delete(q),error=>{note(error,'callback');pending.delete(q);});return await q;
      }catch(error){note(error,'callback');throw error;}

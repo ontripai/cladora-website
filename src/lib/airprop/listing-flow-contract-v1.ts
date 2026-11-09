@@ -4,9 +4,12 @@ import { airpropListingControlCommandV1Schema } from './commercial-lifecycle-v1'
 const id = z.string().regex(/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i);
 const revision = z.number().int().positive().safe();
 export const listingScopeSchema = z.strictObject({ context_id: id, workspace_id: id });
+export const listingSourceVersionsV2Schema = z.strictObject({ version: z.literal(2),
+  specification_id: id, resource_version: revision, party_version: revision, relationship_version: revision });
 export const listingSelectionSchema = z.strictObject({
   listing_id: id, listing_version: revision, property_id: id, unit_id: id,
   resource_id: id, resource_version: revision, resource_type: z.literal('unit'),
+  source_versions: listingSourceVersionsV2Schema.optional(),
   party_id: id, party_kind: z.enum(['person', 'company']),
   relationship_id: id, relationship_version: revision,
   relationship_kind: z.enum(['ownership', 'management', 'representation']),
@@ -42,6 +45,8 @@ export const listingCommandSchema = z.strictObject({
   contract: z.literal('airprop-listing-flow.v1'), selection: listingSelectionSchema,
   command: airpropListingControlCommandV1Schema,
 }).superRefine((value, ctx) => {
+  if (value.selection.source_versions && (value.selection.source_versions.resource_version !== value.selection.resource_version
+    || value.selection.source_versions.relationship_version !== value.selection.relationship_version)) ctx.addIssue({ code: 'custom', message: 'source_version_binding' });
   if (!sameId(value.selection.listing_id, value.command.listing_id)
     || value.selection.listing_version !== value.command.expected_version) ctx.addIssue({ code: 'custom', message: 'listing_version_binding' });
 });
@@ -57,11 +62,17 @@ export type ListingCommand = z.infer<typeof listingCommandSchema>;
 export type ListingReadResponse = z.infer<typeof listingReadResponseSchema>;
 export const sameId = (a: string, b: string) => a.toLowerCase() === b.toLowerCase();
 export function sameSelection(a: ListingView['selection'], b: ListingView['selection']) {
+  if (Object.keys(a).length !== Object.keys(b).length) return false;
   return Object.keys(a).every(key => {
     const k = key as keyof typeof a;
+    if (k === 'source_versions') return sameListingSourceVersionsV2(a.source_versions, b.source_versions);
     return typeof a[k] === 'string' && typeof b[k] === 'string'
       ? String(a[k]).toLowerCase() === String(b[k]).toLowerCase() : a[k] === b[k];
   });
+}
+export function sameListingSourceVersionsV2(a: ListingView['selection']['source_versions'], b: ListingView['selection']['source_versions']) {
+  return !!a && !!b && a.version === 2 && b.version === 2 && sameId(a.specification_id,b.specification_id)
+    && a.resource_version === b.resource_version && a.party_version === b.party_version && a.relationship_version === b.relationship_version;
 }
 export function matchesListingReceipt(value: unknown, request: ListingCommand) {
   const parsed = listingCommandResponseSchema.safeParse(value);

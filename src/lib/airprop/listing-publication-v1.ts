@@ -26,6 +26,8 @@ export function prepareListingPublicationV1(wire: string, expectedScope: Listing
   if (!sameId(command.context_id, scope.context_id) || !sameId(command.workspace_id, scope.workspace_id)
     || !sameId(command.property_id, selected.property_id) || !sameId(command.unit_id, selected.unit_id)
     || !sameId(selected.resource_id, selected.unit_id)) throw Error('LISTING_PUBLICATION_BINDING');
+  if (selected.source_versions && (selected.source_versions.resource_version !== selected.resource_version
+    || selected.source_versions.relationship_version !== selected.relationship_version)) throw Error('LISTING_PUBLICATION_SOURCE_VERSIONS');
   const start = parseInstantMicros(command.available_from);
   const end = command.available_until === null ? null : parseInstantMicros(command.available_until);
   if (start === null || (command.available_until !== null && end === null) || (end !== null && start >= end)) throw Error('LISTING_PUBLICATION_INTERVAL');

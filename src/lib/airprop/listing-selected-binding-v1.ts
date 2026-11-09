@@ -3,22 +3,26 @@ import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import type { CoreTransactionCommandV1, CoreTransactionScopeV1, CoreTransactionProvidersV1 } from '../core/postgres-transaction-host-v1';
 import { mapAirpropCoreCompanionV1 } from '../core/airprop-companion-mapping-v1';
-import { listingSelectionSchema, sameId, sameSelection } from './listing-flow-contract-v1';
+import { listingSelectionSchema, listingSourceVersionsV2Schema, sameListingSourceVersionsV2, sameId, sameSelection } from './listing-flow-contract-v1';
 import { prepareListingControlV1 } from './listing-control-plan-v1';
 import { prepareListingPublicationV1 } from './listing-publication-v1';
 
 const uuid = z.string().uuid();
 const revision = z.number().int().positive().max(2147483647);
-const storedSchema = z.strictObject({
+const legacyStoredSchema = z.strictObject({
   tenant_id: uuid, context_id: uuid, workspace_id: uuid, actor_id: uuid,
   selection: listingSelectionSchema, spec_id: uuid, spec_version: revision,
   command_id: uuid, transaction_id: uuid, command_key: z.string(), wire_sha256: z.string().regex(/^[a-f0-9]{64}$/),
 });
-type Stored = z.infer<typeof storedSchema>;
+const storedV2Schema = legacyStoredSchema.extend({ binding_version: z.literal(2),
+  selection: listingSelectionSchema.extend({ source_versions: listingSourceVersionsV2Schema }) });
+const storedSchema = z.union([storedV2Schema, legacyStoredSchema]);
+type Stored = z.infer<typeof storedV2Schema>;
 type Plan = ReturnType<typeof prepareListingControlV1> | ReturnType<typeof prepareListingPublicationV1>;
 export type ListingSelectedCanonicalV1 = Readonly<{
   core: Parameters<typeof mapAirpropCoreCompanionV1>[0];
   spec: Readonly<{ id: string; version: number }>;
+  source_versions?: Readonly<{ specification_id: string; resource_version: number; party_version: number; relationship_version: number }>;
 }>;
 type CanonicalRecheck = (scope: CoreTransactionScopeV1, command: CoreTransactionCommandV1) => Promise<ListingSelectedCanonicalV1>;
 /** Consume the EXISTING Core mutate port. Only canonical observation is supplied
@@ -67,6 +71,9 @@ export async function readListingSelectedBindingV1(scope: CoreTransactionScopeV1
 export async function mutateListingWithSelectedBindingV1(scope: CoreTransactionScopeV1,
   command: CoreTransactionCommandV1, plan: Plan, recheckCanonical: CanonicalRecheck) {
   const request = plan.request, c = request.command, selected = request.selection;
+  if (!selected.source_versions) throw Error('LISTING_BINDING_VERSION_REQUIRED');
+  if (selected.source_versions.resource_version !== selected.resource_version
+    || selected.source_versions.relationship_version !== selected.relationship_version) throw Error('LISTING_BINDING_SOURCE_VERSIONS');
   if (!sameId(scope.actor_id, command.actor_id) || !sameId(scope.workspace_id, command.workspace_id)
     || !sameId(scope.transaction_id, command.transaction_id) || !sameId(command.context_id, c.context_id)
     || !sameId(command.workspace_id, c.workspace_id) || command.idempotency_key !== c.idempotency_key
@@ -96,8 +103,11 @@ export async function mutateListingWithSelectedBindingV1(scope: CoreTransactionS
     const relationship = (canonical.core.companion as { relationship: { relationship_id: string; relationship_version: number; relationship_kind: string } }).relationship;
     if (!sameId(relationship.relationship_id, selected.relationship_id) || relationship.relationship_version !== selected.relationship_version
       || relationship.relationship_kind !== selected.relationship_kind) throw Error('LISTING_BINDING_RELATIONSHIP');
+    const versions = listingSourceVersionsV2Schema.parse({ version: 2, ...canonical.source_versions });
+    if (!sameListingSourceVersionsV2(versions,selected.source_versions)) throw Error('LISTING_BINDING_SOURCE_VERSIONS');
     const spec = z.strictObject({ id: uuid, version: revision }).parse(canonical.spec);
-    if (spec.version !== selected.resource_version
+    if (!sameId(spec.id, versions.specification_id) || spec.version !== versions.resource_version
+      || spec.version !== selected.resource_version
       || !command.provider_source_ids.some(source => sameId(source, spec.id))) throw Error('LISTING_BINDING_SPEC');
     return spec;
   };
@@ -107,7 +117,7 @@ export async function mutateListingWithSelectedBindingV1(scope: CoreTransactionS
     || actual.rows[0].version !== spec.version) throw Error('LISTING_BINDING_SPEC');
   if ('listing_id' in selected) {
     const old = await readListingSelectedBindingV1(scope, c.context_id, selected.listing_id, selected.listing_version);
-    if (!old) throw Error('LISTING_LEGACY_BINDING_UNAVAILABLE');
+    if (!old || !('binding_version' in old) || old.binding_version !== 2) throw Error('LISTING_LEGACY_BINDING_UNAVAILABLE');
     if (!sameSelection(old.selection, selected) || !sameId(old.spec_id, spec.id) || old.spec_version !== spec.version) throw Error('LISTING_BINDING_DRIFT');
   }
   // A pre-lock observation cannot authorize effects after the spec/binding waits.
@@ -123,7 +133,7 @@ export async function mutateListingWithSelectedBindingV1(scope: CoreTransactionS
   if (('listing_id' in selected && (!sameId(native.listing_id, selected.listing_id) || native.listing_version !== next))
     || (!('listing_id' in selected) && native.listing_version !== undefined && native.listing_version !== 1)
     || native.status !== (c.action === 'withdraw_listing' ? 'withdrawn' : 'published')) throw Error('LISTING_BINDING_RESULT');
-  const value: Stored = storedSchema.parse({ tenant_id: scope.tenant_id, context_id: c.context_id,
+  const value: Stored = storedV2Schema.parse({ binding_version: 2, tenant_id: scope.tenant_id, context_id: c.context_id,
     workspace_id: scope.workspace_id, actor_id: scope.actor_id, selection: { ...selected, listing_id: native.listing_id, listing_version: next },
     spec_id: spec.id, spec_version: spec.version, command_id: command.command_id, transaction_id: command.transaction_id,
     command_key: c.idempotency_key, wire_sha256: createHash('sha256').update(plan.wire, 'utf8').digest('hex') });

@@ -9,6 +9,7 @@ import { prepareListingControlV1 } from './listing-control-plan-v1';
 import { createListingNativeReadV1, type ListingCanonicalProducerV1, type ListingSelectedBindingReaderV1 } from './listing-native-read-v1';
 import { listingScopeSchema, sameId } from './listing-flow-contract-v1';
 import type { ListingControlBridge, ListingRuntimeResolver } from './listing-flow-api-v1';
+import { createListingCoreOwnershipReadV2 } from './listing-core-ownership-read-v2';
 import type { ListingCommand } from './listing-flow-contract-v1';
 type CoreListingBoundPort = NonNullable<Awaited<ReturnType<ReturnType<typeof createCoreListingCommandBindingV1>['bind']>>>;
 export type ListingPreparedCoreControlV1 = Readonly<{
@@ -18,14 +19,14 @@ export type ListingPreparedCoreControlV1 = Readonly<{
 }>;
 
 /** Core R2 selector/command ports are official source dependencies. Platform
- * still admits pool/profile and selected-binding SQL. The full canonical producer
- * is missing; partial selector identity is not a Party companion. Commands use real
+ * still admits pool/profile and selected-binding SQL. Core16 now supplies the
+ * own-party READ companion; independent command mapping/replay remains absent. Commands use real
  * existing C03/session/full selection/current authority and durable native receipts.
  * No process-global actor, request scope, authenticated checkout or mutable registry. */
 export type ListingFunctionalDependenciesV1 = Readonly<{
   pool: Pick<Pool, 'connect'>;
   principal: Readonly<{ executor: string; runtime: string }>;
-  canonical: ListingCanonicalProducerV1 | null;
+  canonical?: ListingCanonicalProducerV1 | null;
   command?: Readonly<{ pool: Pool; target: CoreFunctionalDevelopmentTargetV1;
     /** Actual canonical/prepared-command producer, not supplied by Core R2.
      * Recover ORIGINAL command/plan/providers; no automatic resolveIdentity/rekey
@@ -52,7 +53,8 @@ export function createListingRequestRuntimeResolverV1(
     const dependencies = await resolveDependencies(identity, Object.freeze({ ...scope }));
     if (!dependencies) return null;
     const host = createCoreAirpropReadHostV1({ pool: dependencies.pool, principal: dependencies.principal });
-    const read = createListingNativeReadV1(host, dependencies.canonical, dependencies.selectedBindingRead ?? null);
+    const canonical = dependencies.canonical === undefined ? createListingCoreOwnershipReadV2() : dependencies.canonical;
+    const read = createListingNativeReadV1(host, canonical, dependencies.selectedBindingRead ?? null);
     const command = dependencies.command;
     const control: ListingControlBridge | null = command && (originalRequest.method === 'POST' || command.prepareControl)
       ? async (actorId, request) => {
@@ -109,8 +111,8 @@ export function createListingRequestRuntimeResolverV1(
   };
 }
 
-/** Core R2 read selector and command port are consumed above. Full canonical
- * Party/relationship/prepared-command producer and admitted target are still
+/** Official own-party Core16 read and R2 command port are consumed above.
+ * Independent prepared-command/mapping/replay producer and admitted target remain
  * missing. Installation goes at THIS private
  * boundary after actual delivery; never use env guesses or legacy/service_role.
  * This null is an OPEN functional dependency, not completion of a configured flow. */

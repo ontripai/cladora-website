@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { mapAirpropCoreCompanionV1 } from '../core/airprop-companion-mapping-v1';
-import { listingScopeSchema, listingViewSchema, listingSelectionSchema, listingActions, unavailableListingActions, sameSelection, sameId, type ListingScope } from './listing-flow-contract-v1';
+import { listingScopeSchema, listingViewSchema, listingSelectionSchema, listingActions, unavailableListingActions, sameSelection, sameId, listingSourceVersionsV2Schema, sameListingSourceVersionsV2, type ListingScope } from './listing-flow-contract-v1';
 
 /** Server-only output from a canonical DW02/C01 read in its authorized scope.
  * No runtime implementation is claimed by this port. Never supply browser JSON here. */
@@ -19,10 +19,11 @@ const sourceRow = z.strictObject({
   status: z.enum(['published', 'withdrawn', 'reserved']),
   available_from: z.string(), available_until: z.string().nullable(),
   core: z.strictObject({ request: z.unknown(), companion: z.unknown(), authority: z.unknown() }),
+  source_versions: z.unknown().optional(),
   action_projections: z.unknown().optional(),
   selected_binding: z.unknown().optional(),
 });
-const bindingRecord = listingScopeSchema.extend({ tenant_id: z.string(), selection: listingSelectionSchema,
+const bindingRecord = listingScopeSchema.extend({ binding_version: z.literal(2), tenant_id: z.string(), selection: listingSelectionSchema, spec_id: z.string(),
   spec_version: z.number().int().positive().safe() });
 /** Consume the actual accepted Core mapper; no ownership/representation evaluator is duplicated. */
 export async function readListingFlow(read: ListingSourceRead, actorId: string, input: ListingScope) {
@@ -40,8 +41,11 @@ export async function readListingFlow(read: ListingSourceRead, actorId: string, 
       || !sameId(mapped.resource.resource_id, row.unit_id)) throw new ListingSourceReadUnavailable('SCOPE_DENIED');
     // Relationship identity/version/kind come from validated canonical evidence, not a form.
     const relationship = (row.core.companion as { relationship: { relationship_id: string; relationship_version: number; relationship_kind: string } }).relationship;
+    const versions = row.source_versions == null ? null : listingSourceVersionsV2Schema.safeParse({ version: 2, ...(row.source_versions as object) });
+    if (versions && (!versions.success || versions.data.resource_version !== mapped.resource.resource_version
+      || versions.data.relationship_version !== relationship.relationship_version)) throw new ListingSourceReadUnavailable('SCOPE_DENIED');
     const result = listingViewSchema.parse({
-      selection: { listing_id: row.listing_id, listing_version: row.listing_version,
+      selection: { ...(versions?.success ? { source_versions: versions.data } : {}), listing_id: row.listing_id, listing_version: row.listing_version,
         property_id: row.property_id, unit_id: row.unit_id,
         resource_id: mapped.resource.resource_id, resource_version: mapped.resource.resource_version,
         resource_type: mapped.resource.resource_type, party_id: mapped.party.party_id, party_kind: mapped.party.party_kind,
@@ -56,11 +60,15 @@ export async function readListingFlow(read: ListingSourceRead, actorId: string, 
     if (binding?.state === 'legacy') result.binding_state = 'legacy';
     else if (binding?.state === 'invalid') result.binding_state = 'invalid';
     else if (binding?.state === 'record') {
+      if (!(binding.value && typeof binding.value === 'object' && 'binding_version' in binding.value)) { result.binding_state = 'legacy'; return result; }
       const record = bindingRecord.safeParse(binding.value);
       if (!record.success || !sameId(record.data.tenant_id, row.tenant_id)
         || !sameId(record.data.context_id, scope.context_id) || !sameId(record.data.workspace_id, scope.workspace_id)
         || !sameId(record.data.selection.listing_id, row.listing_id)) result.binding_state = 'invalid';
-      else result.binding_state = sameSelection(record.data.selection, result.selection)
+      else result.binding_state = !!result.selection.source_versions && !!record.data.selection.source_versions
+        && sameListingSourceVersionsV2(record.data.selection.source_versions,result.selection.source_versions)
+        && sameSelection(record.data.selection, result.selection)
+        && sameId(record.data.spec_id,result.selection.source_versions.specification_id)
         && record.data.spec_version === result.selection.resource_version ? 'bound' : 'stale';
     } else if (binding != null && binding.state !== 'unavailable') result.binding_state = 'invalid';
     if (result.binding_state !== 'bound') return result;

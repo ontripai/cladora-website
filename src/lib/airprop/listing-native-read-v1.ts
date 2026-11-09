@@ -89,6 +89,7 @@ export interface ListingCanonicalProducerV1 {
     /** Earliest REAL expiry across scope/authority/resource/relationship inputs, not a minted TTL/lease.
      * Producer unavailable if it cannot establish this bound. No null/infinite fallback. */
     current_until: string;
+    source_versions?: { specification_id: string; resource_version: number; party_version: number; relationship_version: number };
     /** Optional REAL canonical per-action evidence, never inferred from read. */
     action_projections?: unknown;
   }>;
@@ -126,6 +127,7 @@ export function createListingNativeReadV1(host: ListingNativeReadHostV1 | null, 
           return binding === null ? { state: 'legacy' } : { state: 'record', value: {
             context_id: binding.context_id, workspace_id: binding.workspace_id, tenant_id: binding.tenant_id,
             selection: binding.selection, spec_version: binding.spec_version,
+            ...('binding_version' in binding ? { binding_version: binding.binding_version, spec_id: binding.spec_id } : {}),
           } };
         } catch (error) {
           // Invalid returned metadata is a row-local custody failure, not denial
@@ -140,7 +142,7 @@ export function createListingNativeReadV1(host: ListingNativeReadHostV1 | null, 
         if (!producer) throw new ListingNativeReadUnavailable('CANONICAL_PRODUCER_NOT_READY');
         const at = await databaseTime(sql);
         const evidence = await producer.readCanonical(sql, server, row, at, selected);
-        const raw = { ...row, ...request, core: evidence.core, action_projections: evidence.action_projections,
+        const raw = { ...row, ...request, core: evidence.core, source_versions: evidence.source_versions, action_projections: evidence.action_projections,
           selected_binding: await bindingFor(row) };
         // Never construct canonical labels, versions, relationships or permission receipts.
         const mapped = (await readListingFlow(async () => [raw], actorId, request))[0];
@@ -165,7 +167,7 @@ export function createListingNativeReadV1(host: ListingNativeReadHostV1 | null, 
         const expires = timestamp.safeParse(evidence.current_until);
         if (!expires.success || instant(expires.data) > instant(selected[i].binding.scope_and_binding_until)) throw new ListingNativeReadUnavailable('CURRENTNESS_UNPROVEN');
         expiries.push(instant(expires.data));
-        const raw = { ...row, ...request, core: evidence.core, action_projections: evidence.action_projections,
+        const raw = { ...row, ...request, core: evidence.core, source_versions: evidence.source_versions, action_projections: evidence.action_projections,
           selected_binding: await bindingFor(row) };
         const mapped = (await readListingFlow(async () => [raw], actorId, request))[0];
         if (mapped.selection.resource_version !== selected[i].binding.resource_version) throw new ListingNativeReadUnavailable('SOURCE_DRIFT');

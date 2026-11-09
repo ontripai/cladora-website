@@ -1,0 +1,56 @@
+{
+  "contract": "airprop-listing-source-adoption.v2",
+  "base": "8ecbf41c8887983e788c6417c6248df68e999d34",
+  "producer": {
+    "sha": "ae1f370049302bca2cd6c771739f03a967db91a2",
+    "factory": "createCoreListingOwnershipCompanionV1",
+    "method": "readCanonical",
+    "family": "own-current-membership-party/exact-unit-ownership",
+    "read_permission": "airprop.asset.read",
+    "command_authority": false
+  },
+  "selection_source_versions": {
+    "version": 2,
+    "required_for_new_binding": [
+      "specification_id",
+      "resource_version",
+      "party_version",
+      "relationship_version"
+    ],
+    "all_revisions": "positive safe stored integers; no defaults",
+    "joins": [
+      "specification_id == binding.spec_id",
+      "resource_version == selection.resource_version == binding.spec_version",
+      "relationship_version == selection.relationship_version",
+      "party_version == actual canonical Party revision pre/post wait"
+    ]
+  },
+  "binding_record": {
+    "binding_version": 2,
+    "table": "airprop.listing_selected_bindings_v1",
+    "fresh_candidate": "supabase/proposals/airprop_listing_selected_bindings_v2.sql",
+    "replaces_source_proposal": "supabase/proposals/airprop_listing_selected_bindings_v1.sql",
+    "stack": false,
+    "existing_installed_v1": "separately reviewed non-destructive ALTER required",
+    "history_backfill": false
+  },
+  "wire": {
+    "envelope": "airprop-listing-flow.v1",
+    "extension": "optional atomic selection.source_versions with explicit version2",
+    "old_journal_schema_unchanged": true,
+    "old_unknown_wire_key_hash": "retain exact original bytes; no reconstruction or fresh dispatch through v2 mutator",
+    "read_receipt_is_command_authority": false
+  },
+  "command": {
+    "profile": "independent airprop.opportunity.manage / airprop_commercial / airprop.b2 / AAL2",
+    "mapping_replay": "NOT_READY: official original operation producer still required",
+    "effect_and_receipt_owner": "existing C03 same physical scope",
+    "runtime_binding": null
+  },
+  "adoption": {
+    "old_packet": "checkpoint8ecb only, unchanged; do not reuse/seal as compiled v2",
+    "new_candidate_guard": 55000,
+    "installed_compiled_owner_acl_rls": null,
+    "activation": null
+  }
+}
