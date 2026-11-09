@@ -449,3 +449,13 @@ written. Full ES5/focused lint checked. Two CE010 safety helpers and role graph
 are required Platform primitives, NOT observed/implemented/installed by this
 factory; profile-contract marks them open. Lease always destroyed, no fake native
 proof. Role/query mapping remains CE010 only; default CE runtime=NULL untouched.
+
+## CE010 reference correction (before metadata edit)
+Parent6adb3e3f preserved; existing unrelated pycache unchanged. Only
+ce010-producer-19/profile-contract.json, README.md, reference-correction.json and
+this worklog change. Replace ambiguous dependencies.json reference with exact
+pinned docs/contracts/ce010-community-announcement-01/install-packet path and
+bytes/SHA256/blob identities. Identify required_producer as consumer requirement,
+not installed producer/admission. Existing packet.json inventory and recursive
+Core closure remain distinct. No code/SQL/profile permission change or old test
+rerun. Historical delivery manifest and artifacts remain unchanged.

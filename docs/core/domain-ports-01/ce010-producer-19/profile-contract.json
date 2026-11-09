@@ -5,25 +5,98 @@
   "target": null,
   "factory": "src/lib/core/ce010-request-binding-v1.ts#createCoreCe010RequestRuntimeV1",
   "consumer": "989e35a78363908357f65460011492e0472dc047",
-  "mapping": {"module": "community_basic", "entitlement": "module.community_basic", "read": "community.community.read", "command": "community.announcement.publish", "purpose": "community.announcement.command", "AAL": "aal2"},
-  "source_proposed_roles_NOT_OBSERVED": {"runtime": "cladora_ce010_runtime", "executor": "cladora_ce010_executor", "owner": null, "grantor": null},
-  "connection_models": ["direct", "session_pooler"],
+  "mapping": {
+    "module": "community_basic",
+    "entitlement": "module.community_basic",
+    "read": "community.community.read",
+    "command": "community.announcement.publish",
+    "purpose": "community.announcement.command",
+    "AAL": "aal2"
+  },
+  "source_proposed_roles_NOT_OBSERVED": {
+    "runtime": "cladora_ce010_runtime",
+    "executor": "cladora_ce010_executor",
+    "owner": null,
+    "grantor": null
+  },
+  "connection_models": [
+    "direct",
+    "session_pooler"
+  ],
   "physical_release": "always destroy; no identity-bearing reuse",
   "required_Platform_primitives_NOT_IMPLEMENTED_HERE": [
-    {"signature": "app_private.assert_ce010_role_safety_v1()", "result": "exactly one row safe=true only for the admitted actual closed role/helper/owner/ACL graph"},
-    {"signature": "app_private.acquire_ce010_role_safety_lease_v1()", "result": "same invariant, real transaction/catalog-mutation exclusion or proven invalidation held to settlement; not a name/boolean-only proof"}
+    {
+      "signature": "app_private.assert_ce010_role_safety_v1()",
+      "result": "exactly one row safe=true only for the admitted actual closed role/helper/owner/ACL graph"
+    },
+    {
+      "signature": "app_private.acquire_ce010_role_safety_lease_v1()",
+      "result": "same invariant, real transaction/catalog-mutation exclusion or proven invalidation held to settlement; not a name/boolean-only proof"
+    }
   ],
-  "safety_semantics": ["current_user=CE010 executor; session_user=CE010 runtime", "runtime LOGIN, executor NOLOGIN; neither superuser/BYPASSRLS/CREATEROLE/CREATEDB/replication/INHERIT", "only admitted SET path runtime to executor; no ADMIN/INHERIT or other direct/transitive privilege/LOGIN/owner paths", "no namespace/database/relation/routine ownership or CREATE privilege", "exact installed helper definitions/owner/security/search_path/ACL and approved limited grants", "role/catalog mutations excluded during transaction or invalidate before effects; missing primitive fails closed"],
+  "safety_semantics": [
+    "current_user=CE010 executor; session_user=CE010 runtime",
+    "runtime LOGIN, executor NOLOGIN; neither superuser/BYPASSRLS/CREATEROLE/CREATEDB/replication/INHERIT",
+    "only admitted SET path runtime to executor; no ADMIN/INHERIT or other direct/transitive privilege/LOGIN/owner paths",
+    "no namespace/database/relation/routine ownership or CREATE privilege",
+    "exact installed helper definitions/owner/security/search_path/ACL and approved limited grants",
+    "role/catalog mutations excluded during transaction or invalidate before effects; missing primitive fails closed"
+  ],
   "privilege_requirements_NOT_GRANTS": [
     "exact canonical Context/session/fresh-time evaluator and Auth UID/JWT helper execution",
     "canonical revision SELECT/FOR SHARE under admitted RLS/row-lock rights",
     "read_ce_community_v1(uuid,uuid) only for selected current read scope",
     "CE communities/announcements exact SELECT/row-lock and provider INSERT/UPDATE columns from pinned CE packet",
     "C03 idempotency read/insert/update and audit/outbox INSERT RETURNING only through existing host and scoped RLS",
-    "CE packet dependency/helper/RLS closure: supabase/install/ce010-announcement-v1/packet.json and dependencies.json at consumer SHA"
+    "CE dependency/helper/RLS root requirements: docs/contracts/ce010-community-announcement-01/install-packet/dependencies.json; declaration/query inventory: supabase/install/ce010-announcement-v1/packet.json; both pinned to consumer SHA in source_references below. These are candidate requirements, not grants or a complete recursive Core closure."
   ],
-  "Platform_inputs": ["actual owned target/principal/OID/marker", "dedicated runtime credential custody (never public)", "admitted role graph and both real safety helper implementations", "exact definition/owner/default-ACL/RLS/helper/grantor prestate and bounded forward install/verify/recovery", "native two-session/currentness/settlement/restart and capacity proof"],
+  "Platform_inputs": [
+    "actual owned target/principal/OID/marker",
+    "dedicated runtime credential custody (never public)",
+    "admitted role graph and both real safety helper implementations",
+    "exact definition/owner/default-ACL/RLS/helper/grantor prestate and bounded forward install/verify/recovery",
+    "native two-session/currentness/settlement/restart and capacity proof"
+  ],
   "operation_engine": "existing Core C01/C03; existing CE provider",
-  "forbidden": ["Guide or SERVICE pool/profile fallback", "caller SQL/role/target/allow callback", "PUBLIC/customer_api exposure widening", "new ledger or fabricated receipt", "UNKNOWN command reconstruction", "target SQL/install/grant/activation in this source task"],
-  "native": "NOT_RUN_NOT_PASS"
+  "forbidden": [
+    "Guide or SERVICE pool/profile fallback",
+    "caller SQL/role/target/allow callback",
+    "PUBLIC/customer_api exposure widening",
+    "new ledger or fabricated receipt",
+    "UNKNOWN command reconstruction",
+    "target SQL/install/grant/activation in this source task"
+  ],
+  "native": "NOT_RUN_NOT_PASS",
+  "source_references": [
+    {
+      "ref": "989e35a78363908357f65460011492e0472dc047",
+      "path": "docs/contracts/ce010-community-announcement-01/install-packet/dependencies.json",
+      "bytes": 17182,
+      "sha256": "e0001c6bff6678820f6f50e9d0711a856c7a85450cf1e9a68b690d892794c81c",
+      "git_blob": "ddc1ad023abc72ef0b768f14776bff527223a368",
+      "sections": [
+        "required_producer",
+        "shared_requirements_NOT_GRANTS",
+        "shared_routine_calls_NOT_NEW_ABI",
+        "schema_requirements_NOT_GRANTS",
+        "module_mapping",
+        "closure_boundary",
+        "closure_gates"
+      ]
+    },
+    {
+      "ref": "989e35a78363908357f65460011492e0472dc047",
+      "path": "supabase/install/ce010-announcement-v1/packet.json",
+      "bytes": 31870,
+      "sha256": "a1c7a2f357cd319d89e83d7a3fcb971fdfd223b47aa3b02e3ea1c7ac8bc9892a",
+      "git_blob": "1ee09925b730d1ef75091a446bc652579fdff92d",
+      "sections": [
+        "declarations",
+        "queries",
+        "columns",
+        "policies",
+        "files"
+      ]
+    }
+  ]
 }

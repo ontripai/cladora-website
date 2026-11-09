@@ -81,3 +81,27 @@ actual expiry/concurrency/40001/UNKNOWN/restart and capacity before any executio
 Documents clock20 awaits QA;22 revise policy and all other work remain independent.
 Automation: نیازمند بررسی؛ source/type/query checks can be automated, native role/
 helper/install and business acceptance require Platform/Coordinator/QA.
+
+## Source-reference correction (documentation only)
+
+The dependency file is NOT beside packet.json. Both exact source references are
+pinned in profile-contract.json#source_references at CE989e35a78363908357f65460011492e0472dc047:
+
+- docs/contracts/ce010-community-announcement-01/install-packet/dependencies.json
+  (ce010-install-dependency-closure.v1): required_producer defines the CE consumer
+  slot and expected request-local behaviour; shared_requirements_NOT_GRANTS,
+  shared_routine_calls_NOT_NEW_ABI and schema_requirements_NOT_GRANTS describe root
+  requirements only. closure_boundary explicitly leaves recursive C01/C03/session/
+  evaluator/default/sequence closure with Core; closure_gates remain unclosed.
+- supabase/install/ce010-announcement-v1/packet.json
+  (ce010-install-source-packet.v1): declarations/queries/columns/policies/files
+  inventory canonical extraction and source requirements, not installed objects.
+
+The CE required_producer record's official_Core_factory_symbol=null describes its
+pinned historical source. It is not a contradiction with the later Core23 export
+createCoreCe010RequestRuntimeV1 and is not rewritten. The actual CE domain provider
+is createAnnouncementProviderV1 in src/lib/community/community-announcement-provider-v1.ts
+at the same CE SHA; Core does not create a replacement provider. Source references
+supply a consumer contract and inventory; neither supplies the two real role-safety
+helpers or native admission. The original Core23 manifest/artifact remains historical
+and unchanged; reference-correction.json records this child documentation delta.
