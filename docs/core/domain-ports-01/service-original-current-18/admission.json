@@ -1,0 +1,33 @@
+{
+  "contract": "core-service-revise-admission-candidate.v1",
+  "status": "NOT_READY",
+  "runtime": null,
+  "admitted": false,
+  "consumer": "d1b85ef23779025f9c792c7b1cb37a2852d91d15",
+  "source_export": "src/lib/core/service-offering-revision-source-v1.ts#readCurrentOfferingRevisionForAuthoringV1",
+  "authority_diagnostic": "src/lib/core/service-original-current-boundary-v1.ts#observeCoreServiceOriginalCurrentBoundaryV1",
+  "canonical_tables": ["service_catalog.offerings", "service_catalog.revisions"],
+  "field_sources": {
+    "current_revision_id_lock_version_provider_party": "supabase/migrations/20261003200211_20261003141918_service_catalog_persistence_v1.sql",
+    "revision_version_provider_agreement_coverage_eligibility": "supabase/hosted-service-v14-execution/forward.sql"
+  },
+  "closed_existing_gates": [
+    {"path": "src/lib/core/service-authoring-agreement-runtime-v2.ts", "gate": "offering command purpose limited to create/transition; revise not admitted"},
+    {"path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts", "gate": "authoringProfile excludes service.offering.revise"},
+    {"path": "src/lib/customer/service-v14-execution/provider-binding.ts", "gate": "exact accepted plan lacks revise_offering; domain owner SERVICE"}
+  ],
+  "dependencies": [
+    {"owner": "SERVICE", "required": "published exact revise plan/schema/writer ABI, old/new revision and optimistic head, original key/body/IDs, errors; separate precision fix for commercial_terms validator"},
+    {"owner": "Core", "required": "after exact SERVICE ABI, versioned closed host/S01/source admission; original/current diagnostic does not enable stale execution"},
+    {"owner": "Platform", "required": "fixed install/role/ACL/RLS and effective row-lock rights, writer lock/invalidation correspondence; no target effect in this source task"}
+  ],
+  "original_current": {
+    "same": "diagnostic aligned only; existing host rechecks",
+    "changed_current_allowed": "HOLD; original command and fingerprint unchanged",
+    "current_denied_or_revoked": "DENY/HOLD; no historical receipt permits dispatch",
+    "unknown_commit": "same key recovery only; no replacement or automatic success"
+  },
+  "public_projection": null,
+  "provider_agreement_verification": "not_evaluated",
+  "native": "NOT_RUN_NOT_PASS"
+}

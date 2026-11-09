@@ -1,0 +1,214 @@
+{
+  "contract": "core-service-original-current-18.delivery.v1",
+  "FullSHA": "CONTAINING_COMMIT",
+  "Parent": "22e0192ef03cbeec6b483e54b8aceed84db061a1",
+  "branch": "codex/core-domain-ports-01",
+  "status": "SOURCE_DIAGNOSTIC_AND_PRIVATE_REVISION_CANDIDATE",
+  "runtime": null,
+  "activation": null,
+  "target_changed": false,
+  "consumer": {
+    "FullSHA": "d1b85ef23779025f9c792c7b1cb37a2852d91d15",
+    "Parent": "8393c4a4c387aac2841e4f97813cf36990c105e7",
+    "Tree": "ca8f5d298487802783b2ab1632825c0b51062187",
+    "bundle": {
+      "bytes": 3540,
+      "sha256": "f92346a9563d2c966fa2456a01503862fa4c3bbcc11add288cef040565824379",
+      "git_blob": "08a69e3830a84c4d898adc14e63310747e2f68a3"
+    },
+    "verification": "MATCH; verified/imported Git objects without checkout changes"
+  },
+  "inventory": [
+    {
+      "path": "docs/core/domain-ports-01/WORKLOG.md",
+      "before": {
+        "bytes": 23099,
+        "sha256": "284a70ac4abc0e2608e2d3a2e8e36374808499a0f1c5199b16cb0be8a69f2c8a",
+        "git_blob": "7bc20aa9b23bfba0198b6f6a9048fb3d0dd930e7"
+      },
+      "after": {
+        "bytes": 24651,
+        "sha256": "76b3f710ac1b9ee869a33e357619c45d8a648585d797b74f8b7eab7245b8e339",
+        "git_blob": "e16df93b58273bebfd8def92b6f8f02d732ce57f"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/service-original-current-18/README.md",
+      "before": null,
+      "after": {
+        "bytes": 6945,
+        "sha256": "2883187fbc99942a7ca75a4389b8440096f29cc2eccc8e49038f61d970b38bbc",
+        "git_blob": "c3e3a182b6b8ad80e0130710798bfe983c5436fb"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/service-original-current-18/admission.json",
+      "before": null,
+      "after": {
+        "bytes": 2312,
+        "sha256": "378262c92332e86f71bec3da8977cf9f1c5f416297dc439f1fb16683407e3382",
+        "git_blob": "836a8e0b22bb64558eacee56a12d184e5ff060f7"
+      }
+    },
+    {
+      "path": "scripts/test-core-service-original-current-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 13125,
+        "sha256": "423ed612cfbd1bb23101e240af2ceec5095aded19f75bee71247916fb8112ab9",
+        "git_blob": "bcd7bbc275ce967153c4157ec8245f492d2bdb27"
+      }
+    },
+    {
+      "path": "src/lib/core/service-offering-revision-source-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 6844,
+        "sha256": "d64f64e8919409f03f075355d53a310a2b62c38643383d465aa2925ed210561a",
+        "git_blob": "7e711c8118088d605f865b3091f85cc3650f0a6e"
+      }
+    },
+    {
+      "path": "src/lib/core/service-original-current-boundary-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 4147,
+        "sha256": "ee39953aff550eae0f093480629488efcd3a5fa7dc425e2e459e41c5d3570d97",
+        "git_blob": "4d8eae9f2cc3a817ed67d5e71d9759b10068fca0"
+      }
+    }
+  ],
+  "protected_pins": [
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "bytes": 64851,
+      "sha256": "e269802f7b4b5b376eb3910d9f1b55f42eb8abc87d1cf75fd9d019a0ffd2297a",
+      "git_blob": "8a2c5e97f929af3b52c66656046143fbf7fcbba1",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "src/lib/core/functional-command-runtime-v1.ts",
+      "bytes": 29684,
+      "sha256": "664e6527b5def43b0208c76341e995e74055c5eee3102b13d32e3d9500123232",
+      "git_blob": "2efcc11705a6005f03485af5d73abba205f89e64",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "git_blob": "e67df2d947608f546dab42dba88b5bdc418cbffb",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "src/lib/core/current-authority-transaction-port-v1.ts",
+      "bytes": 9496,
+      "sha256": "02e0b85d1dba7ca87ec0eddff5d3f3552bed518794888e9ee0f34c0de962c14f",
+      "git_blob": "3e70731254c06ec69a22ef5e2fa689b78ec22aa9",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "src/lib/core/service-authoring-agreement-runtime-v2.ts",
+      "bytes": 3194,
+      "sha256": "8bdbc5d29347378ff6835864b337a887a0e6d88e97e8bd2e5e25e7683fcb8335",
+      "git_blob": "7d6f8156d6255079b7a5339647442e28e47e24e5",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "bytes": 22117,
+      "sha256": "4fa4f47ec4bb6439c9b7ee35565adb5045d24b73b158df551685fc9e85a4e9cb",
+      "git_blob": "84616f7beb6e347896ce1f0c6f4a3a55ff208747",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "src/lib/core/documents-upload-custody-v1.ts",
+      "bytes": 12155,
+      "sha256": "35990c6f571ed2957854a3d535f83ab2c2793a4aa9fda058837737f01f79c428",
+      "git_blob": "831956439161283674b8ffeac32da4a609289a28",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "src/lib/core/airprop-read-host-v1.ts",
+      "bytes": 20351,
+      "sha256": "bfe03bd3962fbf49c7628b4d316591a68e2335a7c676a1c91082aa2ff464717a",
+      "git_blob": "fe730b5db57544464e57414fedf95d45cc45eb92",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "src/lib/core/listing-ownership-companion-v1.ts",
+      "bytes": 9713,
+      "sha256": "96b36fcaddd59c5e12ade8f15386c277c86adb20966e57dc396871434f4c1420",
+      "git_blob": "8e426d7f00a247b0a78fc90a766b03b74dfcd11b",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "src/lib/core/service-offering-authoring-custody-v1.ts",
+      "bytes": 6590,
+      "sha256": "8ca0a476aa08a761d6aa1ccbcc274a02ab78e831b11b1dc966dabb5d21610d7d",
+      "git_blob": "924fb87d7a13f22027eca9905599aaf4e0b0a4c3",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "src/lib/customer/service-catalog-schema.ts",
+      "bytes": 4333,
+      "sha256": "c5f26e512b43c8584937da461a3ee2927caf966cd966fad079666fd39a531bc5",
+      "git_blob": "c82e90d5fa40601c2225c3cb54ebe3b2585a8eda",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "src/lib/customer/service-offering-time-precision-v1.ts",
+      "bytes": 2332,
+      "sha256": "a14d38abb83b15a39d82d928e1e8e03fbce9939b195cbfea3883aeaa5ed851a2",
+      "git_blob": "bd758c5f53cb26dbc266f54672cef979549ccc8f",
+      "unchanged_from_Parent": true
+    }
+  ],
+  "self_excluded": true,
+  "evidence": {
+    "unique_new_controlled_groups": 8,
+    "old_17_13_12_suites_repeated": false,
+    "actual_C03_original7_current8": {
+      "result": "denied/AUTHORITY_DENIED",
+      "positive_current_permission": true,
+      "settlement": "ROLLBACK in controlled transport",
+      "reservation_and_DML": 0,
+      "historical_command_rewritten": false
+    },
+    "source_counterexample": {
+      "owner": "SERVICE",
+      "path": "src/lib/customer/service-catalog-schema.ts",
+      "finding": "Date.parse commercial_terms refinement rejects valid sub-ms interval",
+      "status": "COUNTEREXAMPLE_REPRODUCED_NOT_FIXED_BY_CORE"
+    },
+    "typecheck_ES5": "PASS",
+    "focused_lint": "PASS",
+    "syntax_diff": "PASS",
+    "scratch_apply_reverse": "external delivery receipt",
+    "SQL_parser_compile_execute": "NOT_RUN",
+    "native": "NOT_RUN_NOT_PASS"
+  },
+  "source_lineage": [
+    {
+      "path": "supabase/migrations/20261003200211_20261003141918_service_catalog_persistence_v1.sql",
+      "bytes": 21639,
+      "sha256": "64090bf0948e7f4b01188df9c81704a5af7a4a24dfbfa7ada3ed9a5ccebb4293",
+      "git_blob": "051b36744e88ccf0537c8f9182a9a25c38bc9332"
+    },
+    {
+      "path": "supabase/hosted-service-v14-execution/forward.sql",
+      "bytes": 15006,
+      "sha256": "b215663375d29ade089e60a1d84e0459919b21add895d8bd5cb2054372e37737",
+      "git_blob": "24ebca740bc2dd040b9dcd6b9fa3fb727e4fb88b"
+    }
+  ],
+  "gates": [
+    "SERVICE exact revise plan/schema/writer ABI",
+    "Core S01 profile and host admission after exact owner ABI",
+    "optional dual-binding execution ABI is not implemented; default remains safe hold",
+    "SERVICE commercial_terms schema precision false-negative",
+    "Platform install/role/RLS/row-lock and actual writer correspondence",
+    "native concurrency/currentness/settlement/restart"
+  ],
+  "automation": "نیازمند بررسی"
+}

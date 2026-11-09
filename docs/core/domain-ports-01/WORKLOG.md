@@ -341,3 +341,24 @@ Actual producer SQL/table source remains a guarded Platform adoption proposal;
 no claim of installed custody or full native SERVICE/C03 completion. Original
 command authority is never replaced; old/current C03 dual-binding remains explicit.
 Documents17 couplings and Listing13 groups were not rerun for this increment.
+
+## Core18 original/current boundary and private revision-source (before edits)
+Parent22e0192e preserved; Page section 'سه producer جدید Core و ادامه موازی مصرف کننده ها'
+and exact Core card read directly. Imported d1b85 bundle (3540 bytes, SHA256
+f92346a9563d2c966fa2456a01503862fa4c3bbcc11add288cef040565824379), verified
+Parent8393/Treeca8f5d29; no owner checkout/files changed. Paths:
+src/lib/core/service-original-current-boundary-v1.ts,
+src/lib/core/service-offering-revision-source-v1.ts,
+scripts/test-core-service-original-current-v1.mjs,
+docs/core/domain-ports-01/service-original-current-18/{README.md,manifest.json,admission.json}.
+Existing host/checkpoint/evaluator, SERVICE/Docs/AIRPROP and installers remain
+unchanged. New source is observational/private, not dispatch admission. Source
+reader may be implemented without inventing SERVICE's missing revise plan/writer;
+its actual operation/host admission remains NOT_READY until that ABI arrives.
+Core18 evidence:8 unique new controlled groups across targeted runs; exact actual
+SERVICEd1 composition/Core17/C03 original7/current8 returns AUTHORITY_DENIED and
+ROLLBACK before reservation/DML. No C03/evaluator/command/receipt change. Private
+revision-source is executable but full status NOT_READY, projectionNULL and no
+agreement verification/dispatch. Missing SERVICE revise plan/writer and exact Core
+S01/host admission remain explicit. Separate real-schema sub-ms false-negative
+counterexample assigned SERVICE; guard not weakened. No target/native proof.
