@@ -1,0 +1,314 @@
+{
+  "contract": "airprop-listing-binding-adoption.v1",
+  "base": "6cd4a6a593058da57d0884a13579f6e62cc02afc",
+  "inventory": [
+    {
+      "path": "supabase/proposals/airprop_listing_selected_bindings_v1.sql",
+      "bytes": 8891,
+      "sha256": "124fc20a2dfb63d7da13290a1e1aaefc49655287d0e490c82d3dda85ab1640c1"
+    },
+    {
+      "path": "src/lib/airprop/listing-selected-binding-v1.ts",
+      "bytes": 11202,
+      "sha256": "d10f1dcbfb0b4169a1e00465f7125c7534c4a75216e965e6189ac03b4f29d665"
+    },
+    {
+      "path": "src/lib/airprop/listing-publication-v1.ts",
+      "bytes": 3506,
+      "sha256": "905e2fdfeaf64c8a2fc123ff9b1e4018402ed8bee77195b5c3a5677a0d35d81a"
+    },
+    {
+      "path": "src/lib/airprop/listing-control-plan-v1.ts",
+      "bytes": 2946,
+      "sha256": "0a4c336cbf40161de4683c310eb547501dec7164e8bf66d96e8a3b2fad84d1f0"
+    },
+    {
+      "path": "src/lib/core/listing-command-binding-v1.ts",
+      "bytes": 3038,
+      "sha256": "cc89f17fb7b9f2fb20a5c384a9c3ab204040f683541a3a09aac13d85f1a34b6e"
+    },
+    {
+      "path": "src/lib/core/current-unit-property-read-selector-v1.ts",
+      "bytes": 5747,
+      "sha256": "6be30696e2f75d94d62b105911f4e8df977383487baf8fe37bcfc8a574667844"
+    },
+    {
+      "path": "src/lib/core/functional-command-runtime-v1.ts",
+      "bytes": 28727,
+      "sha256": "ec5ada6a57427d06dea947da621d0039f51078c8aaeca358349195b5b015f9c0"
+    }
+  ],
+  "authority": "SOURCE_ONLY_NOT_INSTALL_OR_ACTIVATION_AUTHORITY",
+  "activation": null,
+  "table": "airprop.listing_selected_bindings_v1",
+  "owner": null,
+  "compiled_catalog": null,
+  "policy_adoption": null,
+  "functions": [
+    {
+      "signature": "airprop.guard_listing_selected_binding_v1()",
+      "body_sha256": "035b2764615273ba065a4dfca32e6889ce32081f4ab32a0067dae8b4f2092efd",
+      "kind": "f",
+      "result": "trigger",
+      "security_definer": false,
+      "config": [
+        "search_path=pg_catalog"
+      ]
+    },
+    {
+      "signature": "airprop.assert_listing_selected_binding_c03_v1()",
+      "body_sha256": "eae0d246d8160332fac1a73271ad3b74b291c3288a79473c15ab21efe3e74ede",
+      "kind": "f",
+      "result": "trigger",
+      "security_definer": false,
+      "config": [
+        "search_path=pg_catalog"
+      ]
+    }
+  ],
+  "columns": [
+    {
+      "name": "tenant_id",
+      "type": "uuid",
+      "generated": "",
+      "not_null": true,
+      "identity": ""
+    },
+    {
+      "name": "workspace_id",
+      "type": "uuid",
+      "generated": "",
+      "not_null": true,
+      "identity": ""
+    },
+    {
+      "name": "context_id",
+      "type": "uuid",
+      "generated": "",
+      "not_null": true,
+      "identity": ""
+    },
+    {
+      "name": "listing_id",
+      "type": "uuid",
+      "generated": "",
+      "not_null": true,
+      "identity": ""
+    },
+    {
+      "name": "listing_version",
+      "type": "integer",
+      "generated": "",
+      "not_null": true,
+      "identity": ""
+    },
+    {
+      "name": "binding",
+      "type": "jsonb",
+      "generated": "",
+      "not_null": true,
+      "identity": ""
+    },
+    {
+      "name": "unit_id",
+      "type": "uuid",
+      "generated": "s",
+      "not_null": true,
+      "identity": ""
+    },
+    {
+      "name": "party_id",
+      "type": "uuid",
+      "generated": "s",
+      "not_null": true,
+      "identity": ""
+    },
+    {
+      "name": "spec_id",
+      "type": "uuid",
+      "generated": "s",
+      "not_null": true,
+      "identity": ""
+    },
+    {
+      "name": "spec_version",
+      "type": "integer",
+      "generated": "s",
+      "not_null": true,
+      "identity": ""
+    }
+  ],
+  "foreign_keys": [
+    {
+      "source_columns": [
+        "listing_id",
+        "tenant_id",
+        "workspace_id"
+      ],
+      "target": "airprop.market_listings",
+      "target_columns": [
+        "id",
+        "tenant_id",
+        "workspace_id"
+      ],
+      "delete_action": "r",
+      "update_action": "a",
+      "match_type": "s",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false
+    },
+    {
+      "source_columns": [
+        "spec_id"
+      ],
+      "target": "portfolio.unit_specification_versions",
+      "target_columns": [
+        "id"
+      ],
+      "delete_action": "r",
+      "update_action": "a",
+      "match_type": "s",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false
+    },
+    {
+      "source_columns": [
+        "party_id"
+      ],
+      "target": "portfolio.parties",
+      "target_columns": [
+        "id"
+      ],
+      "delete_action": "r",
+      "update_action": "a",
+      "match_type": "s",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false
+    },
+    {
+      "source_columns": [
+        "unit_id",
+        "spec_version"
+      ],
+      "target": "portfolio.unit_specification_versions",
+      "target_columns": [
+        "unit_id",
+        "version"
+      ],
+      "delete_action": "r",
+      "update_action": "a",
+      "match_type": "s",
+      "validated": true,
+      "deferrable": false,
+      "initially_deferred": false
+    }
+  ],
+  "primary_key": [
+    "listing_id",
+    "listing_version"
+  ],
+  "check_count": 7,
+  "indexes": [
+    "listing_selected_bindings_v1_pkey",
+    "listing_selected_binding_command_v1",
+    "listing_selected_binding_command_id_v1"
+  ],
+  "triggers": [
+    {
+      "name": "listing_selected_binding_immutable_v1",
+      "function": "airprop.guard_listing_selected_binding_v1()",
+      "type": 29,
+      "deferrable": false,
+      "initially_deferred": false
+    },
+    {
+      "name": "listing_selected_binding_no_truncate_v1",
+      "function": "airprop.guard_listing_selected_binding_v1()",
+      "type": 34,
+      "deferrable": false,
+      "initially_deferred": false
+    },
+    {
+      "name": "listing_selected_binding_c03_v1",
+      "function": "airprop.assert_listing_selected_binding_c03_v1()",
+      "type": 5,
+      "deferrable": true,
+      "initially_deferred": true
+    }
+  ],
+  "policy_projection": [],
+  "rls": true,
+  "force_rls": true,
+  "projection_sql": "supabase/proposals/airprop-listing-binding-adoption-v1/observe.sql",
+  "adoption": {
+    "ddl": "supabase/proposals/airprop_listing_selected_bindings_v1.sql",
+    "guard": "AIRPROP_LISTING_SELECTED_BINDING_ADOPTION_REQUIRED/55000",
+    "edits_to_guard": false,
+    "new_roles_grants_policies": false,
+    "historical_backfill": false,
+    "missing": [
+      "PLATFORM_PRIVATE_TARGET_OWNER_AND_ROLE_CUSTODY",
+      "COMPILED_EXACT_CATALOG_SUCCESSOR",
+      "LIMITED_ROLE_RLS_POLICY_AND_PRIVILEGE_ADOPTION",
+      "CORE_SELECTED_BINDING_READ_SQL_ADMISSION",
+      "CORE_COMPLETE_VERSIONED_COMPANION_AND_POST_WAIT_CURRENTNESS",
+      "ORIGINAL_MAPPING_REPLAY_PRODUCER"
+    ]
+  },
+  "action_mapping": [
+    {
+      "action": "publish_listing",
+      "source": "src/lib/airprop/listing-publication-v1.ts",
+      "native": "customer_api.publish_airprop_listing_v1(uuid,uuid,uuid,uuid,uuid,text,timestamptz,timestamptz,text)",
+      "native_action": null,
+      "first_listing_version": 1
+    },
+    {
+      "action": "edit_listing",
+      "source": "src/lib/airprop/listing-control-plan-v1.ts",
+      "native": "customer_api.control_airprop_listing_v1(uuid,uuid,uuid,text,integer,timestamptz,timestamptz,text,text)",
+      "native_action": "edit",
+      "expected_version": "original",
+      "next_version": "original+1"
+    },
+    {
+      "action": "withdraw_listing",
+      "source": "src/lib/airprop/listing-control-plan-v1.ts",
+      "native": "customer_api.control_airprop_listing_v1(uuid,uuid,uuid,text,integer,timestamptz,timestamptz,text,text)",
+      "native_action": "withdraw",
+      "expected_version": "original",
+      "next_version": "original+1"
+    },
+    {
+      "action": "republish_listing",
+      "source": "src/lib/airprop/listing-control-plan-v1.ts",
+      "native": "customer_api.control_airprop_listing_v1(uuid,uuid,uuid,text,integer,timestamptz,timestamptz,text,text)",
+      "native_action": "republish",
+      "expected_version": "original",
+      "next_version": "original+1"
+    }
+  ],
+  "c03": {
+    "aggregate_type": "portfolio.unit",
+    "aggregate_id": "original selected.unit_id",
+    "provider_source_ids": [
+      "unit_id",
+      "property_id",
+      "party_id",
+      "relationship_id",
+      "spec_id"
+    ],
+    "permission": "airprop.opportunity.manage",
+    "module": "airprop_commercial",
+    "purpose": "airprop.b2",
+    "fingerprint": "sha256:SHA256(original UTF8 wire)",
+    "receipt_owner": "existing Core transaction host",
+    "mutate_result": "mutation_id only; not receipt",
+    "replay_policy": "provider_current_state_required",
+    "read_uses_command_receipt": false,
+    "session_storage_is_authority": false
+  }
+}
