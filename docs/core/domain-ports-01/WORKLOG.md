@@ -430,3 +430,22 @@ Policy22 evidence:7 new controlled policy groups plus the one affected Core18
 postwait assertion PASS. S01 revoke/expiry/scope and final authority denial remain
 blocking; invalid old/new terms and new revision identity/version still reject.
 20/21 artifacts or clock checks were not regenerated; writer admission staysNULL.
+
+## Resume independent CE010 producer (after policy22 delivery)
+Continue the same five preserved code files; no accepted tests/fixture regeneration.
+Additional affected work is physical backend error/end invalidation and scoped
+lease settlement behavior in ce010-request-binding-v1.ts, with targeted event
+coupling in its existing test file. No new host/role/SQL implementation selected.
+Docs/manifest paths from original CE19 inventory now finalized on Parent7e80988a;
+profile-contract.json is added for Platform's exact unadmitted role/helper ABI.
+CE source handoff also adds scripts/check-core-ce010-contract-types-v1.mjs before
+its creation: a virtual TypeScript entry reads ONLY the exact CE989 runtime type
+from Git and verifies structural factory compatibility under the existing ES5
+configuration. It copies/edits no owner production file and runs no old CE tests.
+Independent CE handoff23 evidence:14 unique new controlled groups (same preserved
+WIP plus physical-event/first-error cases), actual CE989 HTTP/provider+Core C01/C03.
+Typed assignment to actual CE989 runtime contract PASS under ES5, no owner file
+written. Full ES5/focused lint checked. Two CE010 safety helpers and role graph
+are required Platform primitives, NOT observed/implemented/installed by this
+factory; profile-contract marks them open. Lease always destroyed, no fake native
+proof. Role/query mapping remains CE010 only; default CE runtime=NULL untouched.

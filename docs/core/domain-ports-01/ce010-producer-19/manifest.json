@@ -1,0 +1,383 @@
+{
+  "contract": "core-ce010-request-producer-23.delivery.v1",
+  "FullSHA": "CONTAINING_COMMIT",
+  "Parent": "7e80988a99a9bfc02214db87a01ac6821ce8dc13",
+  "branch": "codex/core-domain-ports-01",
+  "status": "CONTROLLED_SOURCE_DELIVERED_NATIVE_NOT_READY",
+  "runtime": null,
+  "target_changed": false,
+  "consumer": {
+    "FullSHA": "989e35a78363908357f65460011492e0472dc047",
+    "Parent": "284a4640b8f4eaed919f7ba69c881673fbeb26bf",
+    "Tree": "f08fa1e403a706a1f25cc928c725e1ea89b5352e",
+    "owner_files_written": 0,
+    "actual_HTTP_provider_and_C03": true
+  },
+  "ABI": {
+    "file": "src/lib/core/ce010-request-binding-v1.ts",
+    "export": "createCoreCe010RequestRuntimeV1",
+    "contract": "core-ce010-request-factory.v1",
+    "returns": "structurally compatible Ce010RuntimeV1 with explicit request-local resolve",
+    "read": "community.community.read",
+    "command": "community.announcement.publish",
+    "module": "community_basic",
+    "entitlement": "module.community_basic",
+    "purpose": "community.announcement.command",
+    "aal": "aal2",
+    "closed_query_count": 31,
+    "release": "always destroy"
+  },
+  "inventory": [
+    {
+      "path": "docs/core/domain-ports-01/WORKLOG.md",
+      "before": {
+        "bytes": 29574,
+        "sha256": "cd08588a4c6fc6596342be17e8303bb44a8a623999919a3c00d943f58a321ef3",
+        "git_blob": "172b9da6371cd5070f0f0d6ff34634017ccb6384"
+      },
+      "after": {
+        "bytes": 31014,
+        "sha256": "4cfe995fa05e8ceb61dc52cc882e2389a71279ccea412d94cfffa41bdbc545fc",
+        "git_blob": "b692f2e39ed0a04e66420c0ba6d31f8f3b5b3eec"
+      }
+    },
+    {
+      "path": "src/lib/core/platform-role-bound-pool-v1.ts",
+      "before": {
+        "bytes": 11101,
+        "sha256": "d0a1a3d7f32e1ac4f53cd15cc5fb67ecbbe196128b7fc82733a2f5fceceee37d",
+        "git_blob": "d07e93ff658dcac28f1665c459054584e7669f1d"
+      },
+      "after": {
+        "bytes": 12209,
+        "sha256": "a09a91da3d89f785a49559999482db6994a7607b375faa38aa0f994701522e17",
+        "git_blob": "2e91086349247b00c461d83c3cdf4ce5be6026be"
+      }
+    },
+    {
+      "path": "src/lib/core/ce010-request-binding-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 15164,
+        "sha256": "18c6a299465f9e6838b2ad8cebd92f5785877a28352d310f788f22d349a67d84",
+        "git_blob": "844abbececc0263c42e42a8359bdeef65e390408"
+      }
+    },
+    {
+      "path": "src/lib/core/ce010-query-profile-v1.json",
+      "before": null,
+      "after": {
+        "bytes": 13147,
+        "sha256": "0069780e3f14a056800f6923b251b47a5d303d1ab2dfbb40ea448f7ada751839",
+        "git_blob": "8f76d65962deb52967d615d3bec53631fcff5b08"
+      }
+    },
+    {
+      "path": "scripts/prepare-core-ce010-query-profile-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 2061,
+        "sha256": "a479ae87070963c351f1ed573488f9b57b16cdb4c18c353215c98bdc62edfadf",
+        "git_blob": "ea456a19aaf5ebc8d6fbe4249e9e27b215ff788e"
+      }
+    },
+    {
+      "path": "scripts/test-core-ce010-request-binding-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 19614,
+        "sha256": "1a4a3fb8cd8799041d9125329b1c8778552f1dabc088f5700c2253af67e35216",
+        "git_blob": "72c75f70e8671495028322cf8c79b76a0034310a"
+      }
+    },
+    {
+      "path": "scripts/check-core-ce010-contract-types-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 1974,
+        "sha256": "a6c109454e75e1cf1be32f713a8f75cf128dae2608cfcfe18b64b6bad517af3e",
+        "git_blob": "f547f6bf2e605d211f3a30361c1fadcb03934bff"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/ce010-producer-19/README.md",
+      "before": null,
+      "after": {
+        "bytes": 5647,
+        "sha256": "fb87ecafbb1be314440185093cdf7706b0a5c4062d32d2b9d7cd625b2a3dffc1",
+        "git_blob": "2c9717dc6d7ae6571d1fd484d27d16ec668f4bcb"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/ce010-producer-19/profile-contract.json",
+      "before": null,
+      "after": {
+        "bytes": 3216,
+        "sha256": "bd6a736548d3df4e9fcc1bbc5e97ba316505c4f92c836ac4558fa7928f18685d",
+        "git_blob": "02acf9d34e62e0f219f5ee29017f6ef5fccc53f3"
+      }
+    }
+  ],
+  "manifest_self": "excluded from inventory; sealed by commit and external delivery",
+  "protected": [
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "bytes": 64851,
+      "sha256": "e269802f7b4b5b376eb3910d9f1b55f42eb8abc87d1cf75fd9d019a0ffd2297a",
+      "git_blob": "8a2c5e97f929af3b52c66656046143fbf7fcbba1",
+      "equal_parent": true
+    },
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "git_blob": "e67df2d947608f546dab42dba88b5bdc418cbffb",
+      "equal_parent": true
+    },
+    {
+      "path": "src/lib/core/functional-command-runtime-v1.ts",
+      "bytes": 29693,
+      "sha256": "f282bbde661a8b4f46aee772f194c44bd96f0278028c85e3ddef61ab8a94eb1e",
+      "git_blob": "ad8f0d72c22a97e6f01881c0339cc2e3ea4be34b",
+      "equal_parent": true
+    },
+    {
+      "path": "src/lib/core/functional-producers-v1.ts",
+      "bytes": 4944,
+      "sha256": "c62e4603453ef7ec74834c197630623ed8cbc2c4d12451db68d6f31a705f05e7",
+      "git_blob": "4e86555da8c6d20c0a3f85a7c22fa8bfcad8fa96",
+      "equal_parent": true
+    },
+    {
+      "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "bytes": 22276,
+      "sha256": "76855adaf81aa5446839754d3414b99761d0c60674e6f337b06ebf89eaadf326",
+      "git_blob": "e23f0c62eec6d258cf29975bbe3c20ff5eef2707",
+      "equal_parent": true
+    },
+    {
+      "path": "src/lib/core/service-offering-revision-source-v1.ts",
+      "bytes": 6921,
+      "sha256": "d5b251e1b1515ff0524af10322f16eabf890d65d4eefbb21dc423d1585e396ea",
+      "git_blob": "7df35d153c9fda60e989a048d8c0b26bd18fab76",
+      "equal_parent": true
+    },
+    {
+      "path": "supabase/install/documents-upload-custody-v1/install.sql",
+      "bytes": 22836,
+      "sha256": "3c0fc0f235a2568d3736ccbed9394769d76cdd6ca68ca0db4eba79e764542c5a",
+      "git_blob": "529b57040b7eaa9527d4340acef6ebcb8995cf06",
+      "equal_parent": true
+    },
+    {
+      "path": "supabase/proposals/core-service-authoring-custody-v1/delta.sql",
+      "bytes": 9682,
+      "sha256": "b13ed0d5f956929f2780d60097d0d7cc829872f22d5a100912726174772c8e3e",
+      "git_blob": "152b1c242ce6ca5e669e7be1ca632f281e483c06",
+      "equal_parent": true
+    }
+  ],
+  "evidence": {
+    "new_controlled_groups": 14,
+    "native": "NOT_RUN_NOT_PASS",
+    "logs": [
+      {
+        "local_log": "/tmp/ce19-normalfinal.log",
+        "identity": {
+          "bytes": 396,
+          "sha256": "afef3aacfa0a54fd3b814aafe71426d54ff2ed4f74e4925f79ecf85c59171e89",
+          "git_blob": "9f7cc2693e5f4c2892bb9a1bcc67ed8988ca20ee"
+        },
+        "passed_groups": [
+          "PASS 1 real CE989 GET/Core factory reads with publish denied, and scrubs aliases for reuse",
+          "PASS 2 real CE provider/C03 create and same original replay one effect through separate CE010 leases"
+        ]
+      },
+      {
+        "local_log": "/tmp/ce19-auth.log",
+        "identity": {
+          "bytes": 278,
+          "sha256": "f7b6feee5c44a126b4a0b3ee57300d59691425a7e248758b37a60f2faba12fe4",
+          "git_blob": "52ed8bd2b9062fd543f03c2647677192b84b0e06"
+        },
+        "passed_groups": [
+          "PASS 1 AAL1, invalid Auth and Guide-role target fail before pool checkout"
+        ]
+      },
+      {
+        "local_log": "/tmp/ce19-postwaitfinal.log",
+        "identity": {
+          "bytes": 290,
+          "sha256": "b69245d912a4e17d62c81006c093c0c1b02f6b2722d624fc345f5782e3418cce",
+          "git_blob": "c37bf888c6f6b2102ed1195896e5430fb7e7987f"
+        },
+        "passed_groups": [
+          "PASS 1 postwait revoke/expiry withholds read; wrong scope SQL never reaches transport"
+        ]
+      },
+      {
+        "local_log": "/tmp/ce23-40001.log",
+        "identity": {
+          "bytes": 285,
+          "sha256": "4cf9d8919b910d0fd9065a64972808f8e7083b3526143431602c9e0ca70669ca",
+          "git_blob": "52f59a6b52773d3a17a909ceffc847964991d2d8"
+        },
+        "passed_groups": [
+          "PASS 1 same40001 and cleanup error preserve first object; unsafe lease destroyed"
+        ]
+      },
+      {
+        "local_log": "/tmp/ce19-abort.log",
+        "identity": {
+          "bytes": 291,
+          "sha256": "f97e68e30caf613a62e2faea2a60ea68b947e3fab13cbcb6292949e7e3c980a9",
+          "git_blob": "7397ba5735d975739c02246025afd349330e3722"
+        },
+        "passed_groups": [
+          "PASS 1 abort, session drift and bad role safety cannot leak actor into another request"
+        ]
+      },
+      {
+        "local_log": "/tmp/ce19-unknown2.log",
+        "identity": {
+          "bytes": 307,
+          "sha256": "4a58cb878245d48a47384144cd4187ebe677af93e18b06cd13ad3ac75a725310",
+          "git_blob": "ccfb447e54aff0897eeff2fdd26650a038912560"
+        },
+        "passed_groups": [
+          "PASS 1 UNKNOWN commit retains the exact original command and key; no replacement generated by producer"
+        ]
+      },
+      {
+        "local_log": "/tmp/ce19-closed.log",
+        "identity": {
+          "bytes": 288,
+          "sha256": "175afbce0d861311d4fa304a4c79c9eccac691246f5458c8e4d7f2611b0ecce9",
+          "git_blob": "a8090f8aa92dc778619e6c4c67bf845bc4685c44"
+        },
+        "passed_groups": [
+          "PASS 1 closed SQL/read-mode denies arbitrary SQL and ledger writes before transport"
+        ]
+      },
+      {
+        "local_log": "/tmp/ce19-retry.log",
+        "identity": {
+          "bytes": 307,
+          "sha256": "dd29841314640a24816e62a7aba3b643cee8bb420909c56c76d7382e29231190",
+          "git_blob": "dbc144454a1d9f307d4316f69a27c3b709b21fb3"
+        },
+        "passed_groups": [
+          "PASS 1 existing host retries serialization three attempts under CE010 Auth, rollback and zero mutation"
+        ]
+      },
+      {
+        "local_log": "/tmp/ce19-profiles.log",
+        "identity": {
+          "bytes": 298,
+          "sha256": "3bcc5c44d37404dfe5f9e428dd007f0f3c028be26a2b112a7395f85ffb92ac08",
+          "git_blob": "632f43159f1aee35a83a35e1554bc9554ef6bbef"
+        },
+        "passed_groups": [
+          "PASS 1 independent Guide and SERVICE fixed profiles keep their own helpers and alias behavior"
+        ]
+      },
+      {
+        "local_log": "/tmp/ce19-target.log",
+        "identity": {
+          "bytes": 293,
+          "sha256": "28b872958a1045dd026e046460c1ca7cb296dfbb0eeb063963f67b682a95d329",
+          "git_blob": "b19b90e3f3e697f65e57ca13a06aafa23cb0a971"
+        },
+        "passed_groups": [
+          "PASS 1 observed foreign target and transaction-pool profile fail before any consumer SQL"
+        ]
+      },
+      {
+        "local_log": "/tmp/ce19-lifetime.log",
+        "identity": {
+          "bytes": 307,
+          "sha256": "3a1b4c5646c58284f12560194c6c25de2912d407033786035a49f4297de8f2ed",
+          "git_blob": "0f0fd93cc0ac58065a1f636853e0e282408ed0c0"
+        },
+        "passed_groups": [
+          "PASS 1 wrong entitlement and post-settlement/released lease cannot perform another read or transaction"
+        ]
+      },
+      {
+        "local_log": "/tmp/ce19-event.log",
+        "identity": {
+          "bytes": 299,
+          "sha256": "35fa682f1a0acdb8345e0122df53c4ef8dc527fc38adc4d8a1a781ddbce28f4b",
+          "git_blob": "9c9234659af407113b99efd11a91cb1ffde0a405"
+        },
+        "passed_groups": [
+          "PASS 1 physical asynchronous backend error invalidates pending read and preserves first object"
+        ]
+      },
+      {
+        "local_log": "/tmp/ce23-first.log",
+        "identity": {
+          "bytes": 298,
+          "sha256": "62de5ee32399b9f3e8ac65b2d7928c2b3bfb99d0c004a6dce8b7bd921de7f087",
+          "git_blob": "ac87831494eef5e5cc624ab1bf556482f9b0420c"
+        },
+        "passed_groups": [
+          "PASS 1 backend first error survives a later query rejection without false serialization retry"
+        ]
+      }
+    ],
+    "typecheck_ES5": {
+      "command": "./node_modules/.bin/tsc --noEmit --incremental false",
+      "result": "PASS",
+      "log_identity": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      }
+    },
+    "focused_lint": "PASS",
+    "syntax_and_diff": "PASS",
+    "actual_consumer_type_assignment": {
+      "actual_consumer": "989e35a78363908357f65460011492e0472dc047",
+      "factory_assignment": "PASS",
+      "target": "ES5",
+      "owner_files_written": 0,
+      "SQL_executed": false
+    },
+    "scratch_apply_reverse": "recorded in external delivery after final patch bytes are created",
+    "accepted_old_suites_repeated": false,
+    "SQL_parser_or_native_execution": false
+  },
+  "open_gates": [
+    {
+      "owner": "Platform",
+      "dependency": "two real CE010 safety helper implementations, exact role graph, owner/config/ACL/RLS/default ACL and scoped query admission",
+      "status": "NOT_IMPLEMENTED_OR_INSTALLED_HERE"
+    },
+    {
+      "owner": "Platform/Coordinator/QA",
+      "dependency": "real Auth/RLS/currentness, two sessions, settlement/UNKNOWN/restart and destroy-on-release capacity",
+      "status": "NOT_RUN_NOT_PASS"
+    },
+    {
+      "owner": "CE/Coordinator",
+      "dependency": "explicit adoption of this factory; existing global resolve remains NULL",
+      "status": "NOT_ACTIVATED"
+    }
+  ],
+  "preserved": {
+    "clock_fix20": "awaiting QA; not regenerated or retested",
+    "revise21_22": "actual SERVICE writer still missing; admission NULL",
+    "original_CE19_WIP_checkpoint": "6127bbc040d265a82dd2284891839384456182d13f5d4d295d5cc5323e47fc11"
+  },
+  "automation": {
+    "classification": "نیازمند بررسی",
+    "input": "pinned CE source and Core producer",
+    "automatable": "source/query/type and targeted controlled coupling checks",
+    "human_decision": "Platform admission; Coordinator/QA acceptance",
+    "conditions": "no target action in this source task",
+    "exception_owner": "Platform for missing role/helper primitives",
+    "formal_dependency": "pinned CE010 ABI and C01/C03",
+    "value": "detect cross-domain authority/query drift without re-running unrelated suites"
+  }
+}
