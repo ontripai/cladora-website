@@ -501,3 +501,45 @@ reread, host, receipt or allow cache). Six new affected controlled cases cover
 success/expiry/revoke/denial/drift/same40001/copied scope. SERVICE adoption, matched
 receipt replay and later host settlement-wait renewal remain open; no full-currentness
 claim. Core24 review and owner/source artifacts stay historical, unmodified.
+
+## Same-card terminal/replay26 — before edits
+Parent742d3ef9 and WIP preserved; no24/25 rebuild/retest. SERVICEe2c8 official
+bundle/Parent/Tree/10payload pins independently matched. Its new actual helper
+body is reviewed, NOT covered by a988 pins. Owner corrected successor still
+pending. Core paths: postgres-transaction-host-v1.ts,
+functional-command-runtime-v1.ts; new service-revise-terminal-v1.ts,
+service-revise-transport-boundary-v1.ts; scripts/test-core-service-revise-terminal-v1.mjs;
+docs/core/domain-ports-01/service-revise-terminal-26/{README.md,manifest.json,source-review.json}.
+Use the existing C03 transaction, canonical matched receipt, fixed real domain
+readback/currentness helper. Private original command is comparison data, never
+caller authorization. Close raw scope before final effect readback/S01 checkpoint;
+coordinate official runtime transport to avoid hidden post-seal checkpoint waits.
+No SQL/helper/owner-file/target edit, no callback authority or parallel host/ledger.
+Default runtime/permit NULL. Missing corrected SERVICE source blocks only final
+consumer pin/adoption; independently implementable Core lifecycle continues.
+Terminal26 adds before creation: src/lib/core/service-revise-query-profile-v1.json
+and service-revise-query-admission-v1.ts. Fixed TS-literal query extraction only,
+no SQL parser; close provider-scope SQL/arity/args/phase while existing C03-owned
+wire queries remain engine-internal. Terminal effect row is actually FOR SHARE
+locked, official domain readback compared, then fixed canonical currentness helper
+and matched ledger TTL/receipt sampled last. Platform row-lock/ACL proof stays open.
+Terminal26 further declared paths before creation: scripts/check-core-service-revise-terminal-types-v1.mjs,
+scripts/check-core-service-revise-terminal-source-v1.mjs. The former performs full
+ES5 typecheck with15 actual SERVICE0f876 customer postimages virtually overlaid
+and REAL Core custody dependency; no owner file written or import mocked. The
+latter verifies the NEW source/query/body pins only, never regenerates24/25.
+Official0f876 bundle10222 bytes SHA2562a85aba5e8f46af4141959f57d58f8981c75135b9d5ceb80973dfbb3881cca65
+and delivery/packet blobs, Parent/Tree independently matched. Effective consumer
+now0f876; no stale a988/e2c8 admission. Product factory and postwriter checkpoint
+used in fresh coupling, helper bodies retain exact owner definitions.
+Terminal26 final evidence:17 NEW direct late-host/replay/transport cases PASS on
+actual Core host/runtime and actual SERVICE0f876 factory/provider/writer with
+controlled SDK/PG. They include last principal/checkpoint waits, canonical matched
+receipt/effect/body replay, backend/scope drift, same40001 provenance, raw ACK loss,
+unknown rollback, raw provider scope invalidation and first-error cleanup. No24/25,
+SERVICE/CE/clock/Request healthy suite ran. Full ES5 composition with15 actual SERVICE
+postimages and REAL Core custody (no owner writes/mock imports), focused lint,
+JS syntax and new source/body/query checker PASS. Source/module identities were
+rechecked after the SAME environment returned ready; WIP and retained proofs matched.
+Last source currentness is final combined DB observation, not authority through
+ACK/delivery; operation/target/permit remain NULL and all native gates remain open.

@@ -1,0 +1,720 @@
+{
+  "contract": "core-service-revise-terminal-26.delivery.v1",
+  "FullSHA": "CONTAINING_COMMIT",
+  "Parent": "742d3ef9203c8135b56e45a941a3f664f09f097e",
+  "branch": "codex/core-domain-ports-01",
+  "status": "SOURCE_TERMINAL_REPLAY_COUPLED_CONTROLLED_TRANSPORT",
+  "runtime": null,
+  "permit": null,
+  "target": null,
+  "target_changed": false,
+  "source_pair": {
+    "Core": "CONTAINING_COMMIT",
+    "SERVICE": {
+      "FullSHA": "0f876064025c3073eb13dcbb53aba6377fadbe43",
+      "Parent": "e2c8d7ba18be7abc578d9127e74a89483a1c0049",
+      "Tree": "472f1b3064fb041048526dfe7ec17dcc2e05cef5"
+    },
+    "merged_App": "NOT_CREATED_BY_CORE"
+  },
+  "entry_ABI": {
+    "receiver": "createCoreFunctionalCommandRuntimeV1({...agreement_family:revise}).host",
+    "method": "executeServiceOfferingReviseV1(coreCommand,actualServiceProviders,canonicalOriginal):Promise<CoreTransactionResultV2>",
+    "authority": "existing C01/S01 and actual DB sources; original is comparison input, not proof",
+    "readback": "canonical C03 matched receipt -> actual locked immutable effect -> actual domain readback -> final S01/C01 + exact ledger/TTL",
+    "scope_queries": 22,
+    "private_terminal_queries": 3,
+    "engine": "same C03 connection/transaction/retry/ledger/receipt/audit/outbox; no parallel engine",
+    "default_generic_revise": "rejected; explicit entry required; other families unchanged",
+    "metadata_getters": [
+      "coreServiceReviseTerminalInfoV1",
+      "coreServiceReviseTerminalResponseMatchesV1"
+    ],
+    "metadata_authority": "historical completion/as-of only; reusable=false"
+  },
+  "inventory": [
+    {
+      "path": "docs/core/domain-ports-01/WORKLOG.md",
+      "before": {
+        "bytes": 34733,
+        "sha256": "abef143521c828fcdf917bad5dc0b90d76f97f2f490874646a73c91a97b5d7af",
+        "git_blob": "bed12bdb9939a47973789bfc7275177b264d28a4"
+      },
+      "after": {
+        "bytes": 38058,
+        "sha256": "d162b55ada49dd3c9ca24c4c26a9260e26bd63b3d83e02a7bd94f8c642ef852a",
+        "git_blob": "4bb54bf6b0743eb93d20e386ddd27ab0ae669097"
+      }
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "before": {
+        "bytes": 64851,
+        "sha256": "e269802f7b4b5b376eb3910d9f1b55f42eb8abc87d1cf75fd9d019a0ffd2297a",
+        "git_blob": "8a2c5e97f929af3b52c66656046143fbf7fcbba1"
+      },
+      "after": {
+        "bytes": 75138,
+        "sha256": "6bcca1f378b4a0c5f3a0367d5a03da96ce64ef4bdf71e7f4270bd4c804d2c21a",
+        "git_blob": "458576c1b9c44ea329f01ff91cfe9718d8ba3ef1"
+      }
+    },
+    {
+      "path": "src/lib/core/functional-command-runtime-v1.ts",
+      "before": {
+        "bytes": 29729,
+        "sha256": "f280cd4b43d85d6b9ae8ed8bc452f9ef17d8ade27e14b6260053e1eb0cea9140",
+        "git_blob": "b4caced0d7333b329106cd22b7c0cca5292b3f4b"
+      },
+      "after": {
+        "bytes": 32729,
+        "sha256": "3456e5defa4c13f8c8c7f4581865b011589c025a9b082c76cf2d058670c2f227",
+        "git_blob": "37555804be5c8a28dd9c90731c981c59c795f616"
+      }
+    },
+    {
+      "path": "src/lib/core/service-revise-terminal-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 6989,
+        "sha256": "ce1cd86f6c51099933b3ade60200459a0b343ef98c1f52ac56acda866612c69e",
+        "git_blob": "9d5084c475cfdd249d0aba4fa2f6e357cf6f9a0c"
+      }
+    },
+    {
+      "path": "src/lib/core/service-revise-transport-boundary-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 2247,
+        "sha256": "07840f538828bd27ad9963067795cdc0b3fd0fcec7c85a0b97c876bf54d491e3",
+        "git_blob": "6377cd7fbc9a2ebfa1b8f0168b1b7eb9a97563bc"
+      }
+    },
+    {
+      "path": "src/lib/core/service-revise-query-admission-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 2212,
+        "sha256": "fc6805c903cf59e54a0dfdddd9f3f90c750d0b7c6b909aa2caf501a0d2167201",
+        "git_blob": "d745963e5a8148b0401070cbe94cfaf8846210e5"
+      }
+    },
+    {
+      "path": "src/lib/core/service-revise-query-profile-v1.json",
+      "before": null,
+      "after": {
+        "bytes": 13359,
+        "sha256": "540ab4250b818225d6a4d9559dc73523849171b13ce80da04d03e952023782be",
+        "git_blob": "6f7dff15824b8d1fe4408a35f9df24353d5ea83e"
+      }
+    },
+    {
+      "path": "scripts/test-core-service-revise-terminal-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 14629,
+        "sha256": "f1f781f8cb84cd3dacfef26375d8818100a1fe7cf82f69dc2c1b021ffa099ad6",
+        "git_blob": "8a1acd827af85be75d9a5f4ab38e08ceb2440f93"
+      }
+    },
+    {
+      "path": "scripts/check-core-service-revise-terminal-types-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 3362,
+        "sha256": "06bb3651894937a813d4ad060e253c804e44ad815d3383cf355c5814641f3b77",
+        "git_blob": "253ce8ae16bb2f5b5420b0de61ce01354e61144e"
+      }
+    },
+    {
+      "path": "scripts/check-core-service-revise-terminal-source-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 3281,
+        "sha256": "eb924f67bc3aefa65731906bfa9b4dbb3a51a5d9bc5c28d14c7eed7abcdc2304",
+        "git_blob": "5f7ada3fb453b0311a34cffb912754e3fa6cb51b"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/service-revise-terminal-26/README.md",
+      "before": null,
+      "after": {
+        "bytes": 13281,
+        "sha256": "773e6870edeefeef58c857c5c4dda96c8776ba3bf473345900b39bef1d8a43a4",
+        "git_blob": "ec3d7837143a3a2d46fbec40be1c4817baadce1f"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/service-revise-terminal-26/source-review.json",
+      "before": null,
+      "after": {
+        "bytes": 9833,
+        "sha256": "0ea9a14dfb52ff34abe2e1f495d3052aee27198bfe3505cf9da5d534286afa74",
+        "git_blob": "df9e6efb5bc1301551c3be5e0806f1c34f0a3af1"
+      }
+    }
+  ],
+  "manifest_self": "sealed by containing commit and external delivery",
+  "protected": [
+    {
+      "path": "src/lib/core/service-revise-admission-candidate-v1.ts",
+      "bytes": 7821,
+      "sha256": "dce9d887e32b048e583db9c79e3f4e36f63f536a687f3dc38b67e007247af607",
+      "git_blob": "28d5056b90d922972581b8c1655236fc4944017d",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/core/service-offering-revise-source-port-v1.ts",
+      "bytes": 8507,
+      "sha256": "6f0eb057be5a6603ed62e80db91c254654163b65296745afe17f46efd150e2dc",
+      "git_blob": "f21735b3f3786086d2d3d2d59a8c2ea67fefbb71",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/core/service-offering-revision-source-v1.ts",
+      "bytes": 6921,
+      "sha256": "d5b251e1b1515ff0524af10322f16eabf890d65d4eefbb21dc423d1585e396ea",
+      "git_blob": "7df35d153c9fda60e989a048d8c0b26bd18fab76",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "bytes": 22276,
+      "sha256": "76855adaf81aa5446839754d3414b99761d0c60674e6f337b06ebf89eaadf326",
+      "git_blob": "e23f0c62eec6d258cf29975bbe3c20ff5eef2707",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "git_blob": "e67df2d947608f546dab42dba88b5bdc418cbffb",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/core/functional-producers-v1.ts",
+      "bytes": 4964,
+      "sha256": "615bb6568c275f6e196ad353ca835270722b1c1559b97b77391ed4772a7aa972",
+      "git_blob": "e4f77aa0132fe8ec2bc2df3ccd19b3cc227ccee6",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/core/service-offering-authoring-custody-v1.ts",
+      "bytes": 6590,
+      "sha256": "8ca0a476aa08a761d6aa1ccbcc274a02ab78e831b11b1dc966dabb5d21610d7d",
+      "git_blob": "924fb87d7a13f22027eca9905599aaf4e0b0a4c3",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/core/ce010-request-binding-v1.ts",
+      "bytes": 15164,
+      "sha256": "18c6a299465f9e6838b2ad8cebd92f5785877a28352d310f788f22d349a67d84",
+      "git_blob": "844abbececc0263c42e42a8359bdeef65e390408",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/core/ce010-query-profile-v1.json",
+      "bytes": 13147,
+      "sha256": "0069780e3f14a056800f6923b251b47a5d303d1ab2dfbb40ea448f7ada751839",
+      "git_blob": "8f76d65962deb52967d615d3bec53631fcff5b08",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/core/platform-role-bound-pool-v1.ts",
+      "bytes": 12209,
+      "sha256": "a09a91da3d89f785a49559999482db6994a7607b375faa38aa0f994701522e17",
+      "git_blob": "2e91086349247b00c461d83c3cdf4ce5be6026be",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/core/listing-ownership-companion-v1.ts",
+      "bytes": 9713,
+      "sha256": "96b36fcaddd59c5e12ade8f15386c277c86adb20966e57dc396871434f4c1420",
+      "git_blob": "8e426d7f00a247b0a78fc90a766b03b74dfcd11b",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/core/documents-upload-custody-v1.ts",
+      "bytes": 12155,
+      "sha256": "35990c6f571ed2957854a3d535f83ab2c2793a4aa9fda058837737f01f79c428",
+      "git_blob": "831956439161283674b8ffeac32da4a609289a28",
+      "unchanged": true
+    },
+    {
+      "path": "docs/core/domain-ports-01/custody-fresh-time-20/manifest.json",
+      "bytes": 10777,
+      "sha256": "a6ec95e3d9772a9ad300413b0fbb1964f5f407c531da82748ac3176cd0d3b3ce",
+      "git_blob": "876d2babd9379b9b043f819e40e47cd08642db7f",
+      "unchanged": true
+    },
+    {
+      "path": "docs/core/domain-ports-01/service-revise-source-21/manifest.json",
+      "bytes": 7296,
+      "sha256": "6414c5617616d51c27e051891839f87373099c23ef889d89f71053c1fe03b792",
+      "git_blob": "b14366baf5d4ef6bcc0bf89a3fe9faa0a1875186",
+      "unchanged": true
+    },
+    {
+      "path": "docs/core/domain-ports-01/service-revise-admission-24/manifest.json",
+      "bytes": 18727,
+      "sha256": "91682ce872865b12a42896e38a608eb9054e1b68077f2f51a114f38450966f9d",
+      "git_blob": "0feb393e08399f2402770132568963a9d15bf316",
+      "unchanged": true
+    },
+    {
+      "path": "docs/core/domain-ports-01/service-revise-checkpoint-25/manifest.json",
+      "bytes": 8818,
+      "sha256": "402c983384a3671ea264fec8b924d4676e3618c71c2e526ba50f7ebd3ca3a186",
+      "git_blob": "5a70771e3b8416be39c6064ebb5d007d2ef8a6ed",
+      "unchanged": true
+    },
+    {
+      "path": "docs/core/domain-ports-01/ce010-producer-19/profile-contract.json",
+      "bytes": 4666,
+      "sha256": "75f139b554012956ae359dbb7547641a39908dac9a411cb4a6038368b42290b7",
+      "git_blob": "8496b60471305f59abc16a4263a4a1e132855b17",
+      "unchanged": true
+    },
+    {
+      "path": "supabase/install/documents-upload-custody-v1/install.sql",
+      "bytes": 22836,
+      "sha256": "3c0fc0f235a2568d3736ccbed9394769d76cdd6ca68ca0db4eba79e764542c5a",
+      "git_blob": "529b57040b7eaa9527d4340acef6ebcb8995cf06",
+      "unchanged": true
+    },
+    {
+      "path": "supabase/proposals/core-service-authoring-custody-v1/delta.sql",
+      "bytes": 9682,
+      "sha256": "b13ed0d5f956929f2780d60097d0d7cc829872f22d5a100912726174772c8e3e",
+      "git_blob": "152b1c242ce6ca5e669e7be1ca632f281e483c06",
+      "unchanged": true
+    }
+  ],
+  "effective_source_and_helpers": {
+    "contract": "core-service-revise-terminal-source-review.v1",
+    "effective_SERVICE": {
+      "FullSHA": "0f876064025c3073eb13dcbb53aba6377fadbe43",
+      "Parent": "e2c8d7ba18be7abc578d9127e74a89483a1c0049",
+      "Tree": "472f1b3064fb041048526dfe7ec17dcc2e05cef5"
+    },
+    "Core_parent": "742d3ef9203c8135b56e45a941a3f664f09f097e",
+    "status": "SOURCE_COMPOSITION_REVIEWED_NATIVE_NOT_RUN",
+    "runtime": null,
+    "permit": null,
+    "installed": false,
+    "input_artifacts": {
+      "bundle": {
+        "blob": "f94be3f49f274980bba6e4e2f34b30d9f342b5ad",
+        "bytes": 10222,
+        "sha256": "2a85aba5e8f46af4141959f57d58f8981c75135b9d5ceb80973dfbb3881cca65",
+        "git_blob": "f94be3f49f274980bba6e4e2f34b30d9f342b5ad"
+      },
+      "delivery": {
+        "blob": "d7a18380f9683cc1f97ae0590da573429e3dced8",
+        "bytes": 4324,
+        "sha256": "dffce890821620167a6edb9a26e5e977311ee3bf3d87711feb662be2f93abb44",
+        "git_blob": "d7a18380f9683cc1f97ae0590da573429e3dced8"
+      },
+      "packet": {
+        "blob": "2a01a6cbde88029f103a141f11d016391e87b8e7",
+        "bytes": 1934,
+        "sha256": "8b1b7a77d7382fab67131a0c6da76dc6bf8849d36801b23ecf083d4931ae7962",
+        "git_blob": "2a01a6cbde88029f103a141f11d016391e87b8e7"
+      }
+    },
+    "effective_source_pins": [
+      {
+        "ref": "0f876064025c3073eb13dcbb53aba6377fadbe43",
+        "path": "supabase/proposals/service-offering-revise-writer-v1/install.sql",
+        "bytes": 21331,
+        "sha256": "29819becbdae14731c597977868c82bf91ae5c01e65701117e591e44bda5377a",
+        "git_blob": "35a5baa4c8851ebabb4e7d6753a63646fa9343b4"
+      },
+      {
+        "ref": "0f876064025c3073eb13dcbb53aba6377fadbe43",
+        "path": "supabase/proposals/service-offering-revise-writer-v1/preflight.sql",
+        "bytes": 3802,
+        "sha256": "eab1a262ec8140d92e632fd149c3031e63290298ad10c5dcae299e758a752499",
+        "git_blob": "9dc3b329d451d83f1442c0eadec2882d0a91e8c7"
+      },
+      {
+        "ref": "0f876064025c3073eb13dcbb53aba6377fadbe43",
+        "path": "supabase/proposals/service-offering-revise-writer-v1/verify.sql",
+        "bytes": 4374,
+        "sha256": "3cb94ddc51a5bcf020e1d349efff643d72b758228b5fff68c7ad9cbf499efad8",
+        "git_blob": "26c4d742e787381b264771c4f59d843b8b02c6bf"
+      },
+      {
+        "ref": "0f876064025c3073eb13dcbb53aba6377fadbe43",
+        "path": "supabase/proposals/service-offering-revise-writer-v1/RECOVERY.md",
+        "bytes": 2017,
+        "sha256": "1d464bbe0eb429fce475d20211c5280e8719e08a045e8353c15b6d2414b2067c",
+        "git_blob": "89cee8b19436f3b83dd6f564aa907c6e6a4dc26e"
+      },
+      {
+        "ref": "0f876064025c3073eb13dcbb53aba6377fadbe43",
+        "path": "supabase/proposals/service-offering-revise-writer-v1/CONSUMPTION.md",
+        "bytes": 3809,
+        "sha256": "5177fbbdab98d78f4e3f3049a4ee4c83a48a103ffa4fa0850557ff6e88d7e46f",
+        "git_blob": "03eeddcaedbff3abad3a0f9d9d314001dbc2279b"
+      },
+      {
+        "ref": "0f876064025c3073eb13dcbb53aba6377fadbe43",
+        "path": "supabase/proposals/service-offering-revise-writer-v1/packet-manifest.json",
+        "bytes": 1934,
+        "sha256": "8b1b7a77d7382fab67131a0c6da76dc6bf8849d36801b23ecf083d4931ae7962",
+        "git_blob": "2a01a6cbde88029f103a141f11d016391e87b8e7"
+      },
+      {
+        "ref": "0f876064025c3073eb13dcbb53aba6377fadbe43",
+        "path": "src/lib/customer/service-v14-execution/offering-revise-provider-v1.ts",
+        "bytes": 11745,
+        "sha256": "8c376020787534a41a7d1067d14f8dd42d85a8cd35e82cb6876ed833e14450a4",
+        "git_blob": "a4a3f3396fdeff763eb993500d811c275ffde226"
+      },
+      {
+        "ref": "0f876064025c3073eb13dcbb53aba6377fadbe43",
+        "path": "src/lib/customer/service-v14-execution/offering-revise-contract-v1.ts",
+        "bytes": 7794,
+        "sha256": "0df3d6e071d2522ed70661b3c54e404b1f59cabf459160fede1a9dd6ba7c334c",
+        "git_blob": "34d85b736e5c30ec35f4b4c76df68b4e0db4c2cc"
+      },
+      {
+        "ref": "0f876064025c3073eb13dcbb53aba6377fadbe43",
+        "path": "src/lib/customer/service-catalog-schema.ts",
+        "bytes": 4333,
+        "sha256": "c5f26e512b43c8584937da461a3ee2927caf966cd966fad079666fd39a531bc5",
+        "git_blob": "c82e90d5fa40601c2225c3cb54ebe3b2585a8eda"
+      },
+      {
+        "ref": "0f876064025c3073eb13dcbb53aba6377fadbe43",
+        "path": "src/lib/customer/service-offering-v14-schema.ts",
+        "bytes": 12019,
+        "sha256": "90f45dcbac9d4756aef7ff242d02f693489cae7d26ca76d98ec9ab97a9543e30",
+        "git_blob": "5749e8dab5f592cf916dce9b663c8ec0863c3f5d"
+      },
+      {
+        "ref": "0f876064025c3073eb13dcbb53aba6377fadbe43",
+        "path": "src/lib/customer/workspace-composition-schema.ts",
+        "bytes": 3916,
+        "sha256": "d9888aa61cdf42618597b0984c75a922e83cdea6b3ba52d4f30a6f68cdb2da9f",
+        "git_blob": "68ae80929fa3d0ab3c45ad943d5e64f726ab82b0"
+      },
+      {
+        "ref": "0f876064025c3073eb13dcbb53aba6377fadbe43",
+        "path": "docs/service/service-offering-revise-v1/revise-contract.json",
+        "bytes": 4867,
+        "sha256": "07946e90c951d2342aa42cc90dc67c016f1f3f7672b93eecccddb0ea853e0fba",
+        "git_blob": "123e9b9fc6b253a07ac232b0fbf22b4b87b80662"
+      }
+    ],
+    "function_definitions": [
+      {
+        "signature": "app_private.service_offering_revise_effect_immutable_v1()",
+        "source_path": "supabase/proposals/service-offering-revise-writer-v1/install.sql",
+        "start": "create function app_private.service_offering_revise_effect_immutable_v1(",
+        "start_byte": 1585,
+        "end_byte": 2219,
+        "bytes": 634,
+        "sha256": "a3a7a704e8e0237dcaf626264d7491c8bb4ec52f579108155bae14d1aa2fb323",
+        "git_blob": "51fc75996658b088b17b50464559cd90afa602ee"
+      },
+      {
+        "signature": "app_private.service_offering_revise_assert_current_v1(uuid,uuid,uuid,uuid,bigint,uuid,uuid,bigint)",
+        "source_path": "supabase/proposals/service-offering-revise-writer-v1/install.sql",
+        "start": "create function app_private.service_offering_revise_assert_current_v1(",
+        "start_byte": 2652,
+        "end_byte": 7433,
+        "bytes": 4781,
+        "sha256": "d0fb24307e276a7babc791a04f1dc3ca868f0886cbf2024a4e21adf4db0a241e",
+        "git_blob": "e9cc0d2a494cfb2490d1f4588fdb2a45e78d345a"
+      },
+      {
+        "signature": "app_private.read_service_offering_revision_result_v1(jsonb)",
+        "source_path": "supabase/proposals/service-offering-revise-writer-v1/install.sql",
+        "start": "create function app_private.read_service_offering_revision_result_v1(",
+        "start_byte": 7435,
+        "end_byte": 10738,
+        "bytes": 3303,
+        "sha256": "31b149e1a44d76950de13b2fc2d57ffb0910dff83e70ae4ee6410a08862fa075",
+        "git_blob": "d63b1819ce38fc972820aa819f26d3f18e50065e"
+      },
+      {
+        "signature": "app_private.apply_service_offering_revision_v1(jsonb)",
+        "source_path": "supabase/proposals/service-offering-revise-writer-v1/install.sql",
+        "start": "create function app_private.apply_service_offering_revision_v1(",
+        "start_byte": 10740,
+        "end_byte": 20979,
+        "bytes": 10239,
+        "sha256": "1f7ea9d54d2ee449154bac0897148a02f6eafa11da17d5bf5f575d4c3f3844c8",
+        "git_blob": "e8e645f3daea674e779a04ecc1471b085f25b2bd"
+      }
+    ],
+    "source_observations": {
+      "CHECK_all_five_explicit_nonNULL": "present; observed source correction, not native INSERT/QA closure",
+      "SERVICE_runtime_source": "actual runtime.reviseSource; no separate factory",
+      "SERVICE_postwriter": "actual source checkpoint before accepting writer result",
+      "replay143": "exact stored effect mutation versus canonical receipt comparison retained",
+      "old_commercial_window": "not an authoring availability gate; Core7e source unchanged",
+      "body_review": "actual SELECT/FOR SHARE/FOR UPDATE/INSERT/conditional UPDATE/helper calls and error catches read; not inferred from function name"
+    },
+    "recursive_helper_reference": {
+      "path": "docs/core/domain-ports-01/custody-fresh-time-20/helper-pins.json",
+      "bytes": 8077,
+      "sha256": "45224f26a85f4f4f34246998f49374ef151277c61e87a62df4b8c5b9b17dc3d0",
+      "git_blob": "319c23ceb36e6f6d170fab02f04a6fe13ef44e2b",
+      "evidence_reused": "existing canonical source/helper requirements only; no20 clock retest or reconstruction",
+      "installed_proof": false
+    },
+    "Platform_requirements": [
+      {
+        "object": "app_private.service_offering_revise_assert_current_v1(uuid,uuid,uuid,uuid,bigint,uuid,uuid,bigint)",
+        "needs": "exact installed body/owner/invoker/volatility/search_path/ACL and transitive C01/S01/session evaluator closure; EXECUTE only approved runtime",
+        "status": "NOT_INSTALLED_BY_CORE"
+      },
+      {
+        "object": "service_catalog.revisions",
+        "needs": "exact added metadata columns/immutable trigger/constraint/index + SELECT/FOR SHARE effective row-lock rights and RLS; no generic UPDATE/grant chosen",
+        "status": "TARGET_UNKNOWN"
+      },
+      {
+        "object": "platform.idempotency_keys",
+        "needs": "existing C03 SELECT/row-lock and canonical response/TTL; no new ledger or expiry repair",
+        "status": "TARGET_UNKNOWN"
+      },
+      {
+        "object": "runtime transport",
+        "needs": "same verified owned target, backend PID/DBtx, AAL2 actor/session/scope, bounds and positive raw CommandComplete; no hidden post-final query",
+        "status": "CONTROLLED_SOURCE_ONLY"
+      }
+    ],
+    "dependencies_order": [
+      "exact official SERVICE0f876 + Core successor and package lock",
+      "admitted native S01/C01/session/fresh-time source/helper/role/RLS prestate",
+      "SERVICE domain additive source packet under separately authorized Platform installer",
+      "exact metadata/owner/ACL/RLS/body/constraint/full postimage verify",
+      "explicit Core revise-only C03 terminal entry; public runtime/permit remain NULL",
+      "native two-session/revoke/expiry/40001/UNKNOWN/restart proof and independent acceptance before activation"
+    ],
+    "SQL_parse_compile_execute": "NOT_RUN_NOT_PASS",
+    "QA_closure": "independent QA remains separate"
+  },
+  "query_roots": [
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "ref": "742d3ef9203c8135b56e45a941a3f664f09f097e",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a"
+    },
+    {
+      "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "ref": "742d3ef9203c8135b56e45a941a3f664f09f097e",
+      "bytes": 22276,
+      "sha256": "76855adaf81aa5446839754d3414b99761d0c60674e6f337b06ebf89eaadf326"
+    },
+    {
+      "path": "src/lib/core/service-offering-revision-source-v1.ts",
+      "ref": "742d3ef9203c8135b56e45a941a3f664f09f097e",
+      "bytes": 6921,
+      "sha256": "d5b251e1b1515ff0524af10322f16eabf890d65d4eefbb21dc423d1585e396ea"
+    },
+    {
+      "path": "src/lib/core/service-offering-revise-source-port-v1.ts",
+      "ref": "742d3ef9203c8135b56e45a941a3f664f09f097e",
+      "bytes": 8507,
+      "sha256": "6f0eb057be5a6603ed62e80db91c254654163b65296745afe17f46efd150e2dc"
+    },
+    {
+      "path": "src/lib/core/service-original-current-boundary-v1.ts",
+      "ref": "742d3ef9203c8135b56e45a941a3f664f09f097e",
+      "bytes": 4147,
+      "sha256": "ee39953aff550eae0f093480629488efcd3a5fa7dc425e2e459e41c5d3570d97"
+    },
+    {
+      "path": "src/lib/core/scoped-server-clock-v1.ts",
+      "ref": "742d3ef9203c8135b56e45a941a3f664f09f097e",
+      "bytes": 1120,
+      "sha256": "2753aee2dce0ed13e1dc8307eacfdb7f60f5bbacd90421968bcffe662f3a1823"
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/offering-revise-provider-v1.ts",
+      "ref": "0f876064025c3073eb13dcbb53aba6377fadbe43",
+      "bytes": 11745,
+      "sha256": "8c376020787534a41a7d1067d14f8dd42d85a8cd35e82cb6876ed833e14450a4"
+    }
+  ],
+  "last_check": {
+    "location": "final fixed combined observation after audit/outbox/receipt/clock/effect readback and transport principal/checkpoint waits, before raw settlement",
+    "clock": "real server timestamptz encoded UTC microseconds; no JS clock/TTL rewrite",
+    "barriers": "same backend/DBtx held to settlement; actual writer/session participation requires native proof",
+    "not_claimed": [
+      "expiry/authority through ACK/delivery/client display",
+      "native participation or PG compilation",
+      "new policy making expiry at COMMIT irrelevant"
+    ]
+  },
+  "settlement": {
+    "positive_fresh": "raw COMMIT CommandComplete from same official transport/backend; exact response seal retained",
+    "positive_replay": "raw ROLLBACK; no new COMMIT or receipt",
+    "unknown": "lost/malformed settlement or cleanup ACK -> UNKNOWN/READBACK_REQUIRED, no positive metadata or blind retry",
+    "40001": "same raw object; existing bounded loop only with known rollback/raw-COMMIT abort provenance",
+    "first_error": "preserved through later failure/cleanup"
+  },
+  "checks": {
+    "new_groups": 17,
+    "transport_proof": "actual Core/actual SERVICE0f876 with modeled PG/SDK; NOT native",
+    "test_log": {
+      "path": "/tmp/core26-tests-sealed.log",
+      "bytes": 1802,
+      "sha256": "f98bc83441432e2452f500b65b4a2970509e043ce1051b727d662a945212f00a",
+      "git_blob": "29b8a83f4e5b8552674aabb633f43f7dcac14706",
+      "groups": [
+        "PASS 1 late host positive seals real receipt/effect/bytes; final observation is last SQL before raw COMMIT",
+        "PASS 2 expiry after each audit outbox receipt and clock wait aborts before final settlement",
+        "PASS 3 canonical current deny or revoke during effect/readback waits blocks mutation and replay",
+        "PASS 4 same-key replay uses canonical matched receipt and effect, positive ROLLBACK, no old-head read or write",
+        "PASS 5 replay effect/body mismatch and postwait S01 expiry/current denial never reconstruct writer metadata",
+        "PASS 6 terminal backend Context or tenant drift rejects exact effect and receipt",
+        "PASS 7 same40001 at late checkpoint uses existing bounded host retries and retains original object",
+        "PASS 8 lost raw COMMIT or replay ROLLBACK acknowledgement remains UNKNOWN despite cleanup ACK",
+        "PASS 9 generic revise entry and mismatched original data cannot bypass terminal profile",
+        "PASS 10 unknown SQL and foreign query args stop at provider scope before transport",
+        "PASS 11 retained provider scope cannot query during the terminal wait or forge a closed result",
+        "PASS 12 backend-event40001 is not a positive raw-COMMIT serialization abort",
+        "PASS 13 first terminal failure survives cleanup failure without a partial result",
+        "PASS 14 plain unregistered pool cannot enter the new official terminal path",
+        "PASS 15 positive raw serialization abort is bounded, and positive ROLLBACK tag is never COMMIT",
+        "PASS 16 late40001 with unknown rollback stops UNKNOWN instead of a blind next attempt",
+        "PASS 17 expiry during final transport principal or checkpoint waits is observed by the last helper"
+      ]
+    },
+    "full_ES5_composition": {
+      "contract": "core26-service0f876-full-type-composition.v1",
+      "consumer": "0f876064025c3073eb13dcbb53aba6377fadbe43",
+      "target": "ES5",
+      "actual_Service_TS_postimages": 15,
+      "owner_files_written": 0,
+      "explicit_composition": "actual Core runtime -> actual SERVICE factory -> official explicit C03 entry",
+      "custody": {
+        "path": "src/lib/core/service-offering-authoring-custody-v1.ts",
+        "ref": "CURRENT_CORE_CANDIDATE",
+        "sha256": "8ca0a476aa08a761d6aa1ccbcc274a02ab78e831b11b1dc966dabb5d21610d7d"
+      },
+      "selected": [
+        {
+          "path": "src/lib/core/service-revise-transport-boundary-v1.ts",
+          "ref": "CURRENT_CORE_CANDIDATE",
+          "sha256": "07840f538828bd27ad9963067795cdc0b3fd0fcec7c85a0b97c876bf54d491e3"
+        },
+        {
+          "path": "src/lib/core/service-revise-query-profile-v1.json",
+          "ref": "CURRENT_CORE_CANDIDATE",
+          "sha256": "540ab4250b818225d6a4d9559dc73523849171b13ce80da04d03e952023782be"
+        },
+        {
+          "path": "src/lib/core/service-revise-admission-candidate-v1.ts",
+          "ref": "CURRENT_CORE_CANDIDATE",
+          "sha256": "dce9d887e32b048e583db9c79e3f4e36f63f536a687f3dc38b67e007247af607"
+        },
+        {
+          "path": "src/lib/core/service-revise-query-admission-v1.ts",
+          "ref": "CURRENT_CORE_CANDIDATE",
+          "sha256": "fc6805c903cf59e54a0dfdddd9f3f90c750d0b7c6b909aa2caf501a0d2167201"
+        },
+        {
+          "path": "src/lib/core/service-revise-terminal-v1.ts",
+          "ref": "CURRENT_CORE_CANDIDATE",
+          "sha256": "ce1cd86f6c51099933b3ade60200459a0b343ef98c1f52ac56acda866612c69e"
+        },
+        {
+          "path": "src/lib/core/service-offering-revise-source-port-v1.ts",
+          "ref": "CURRENT_CORE_CANDIDATE",
+          "sha256": "6f0eb057be5a6603ed62e80db91c254654163b65296745afe17f46efd150e2dc"
+        },
+        {
+          "path": "src/lib/core/functional-command-runtime-v1.ts",
+          "ref": "CURRENT_CORE_CANDIDATE",
+          "sha256": "3456e5defa4c13f8c8c7f4581865b011589c025a9b082c76cf2d058670c2f227"
+        },
+        {
+          "path": "src/lib/core/service-offering-authoring-custody-v1.ts",
+          "ref": "CURRENT_CORE_CANDIDATE",
+          "sha256": "8ca0a476aa08a761d6aa1ccbcc274a02ab78e831b11b1dc966dabb5d21610d7d"
+        },
+        {
+          "path": "src/lib/customer/service-v14-execution/offering-revise-contract-v1.ts",
+          "ref": "0f876064025c3073eb13dcbb53aba6377fadbe43",
+          "sha256": "0df3d6e071d2522ed70661b3c54e404b1f59cabf459160fede1a9dd6ba7c334c"
+        },
+        {
+          "path": "src/lib/customer/service-v14-execution/offering-revise-provider-v1.ts",
+          "ref": "0f876064025c3073eb13dcbb53aba6377fadbe43",
+          "sha256": "8c376020787534a41a7d1067d14f8dd42d85a8cd35e82cb6876ed833e14450a4"
+        }
+      ],
+      "errors": 0
+    },
+    "full_ES5_log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "Next": "16.4.1",
+    "Zod": "4.6.6",
+    "TypeScript": "5.9.3",
+    "focused_lint": "PASS",
+    "JS_syntax_diff": "PASS",
+    "source_checker": {
+      "effective_SERVICE": "0f876064025c3073eb13dcbb53aba6377fadbe43",
+      "source_files": 12,
+      "whole_function_bodies": 4,
+      "scope_queries": 22,
+      "CE_terminal_bodies": "BYTE_IDENTICAL",
+      "Core24_25_S01_policy": "BYTE_IDENTICAL",
+      "permit": null,
+      "runtime": null,
+      "SQL_parser": false,
+      "native": "NOT_RUN_NOT_PASS"
+    },
+    "source_checker_log": {
+      "bytes": 282,
+      "sha256": "c6d8a86c8523dbaa0264e944152419e93ef418562eaf1d5d49a74bd8bcbdf539",
+      "git_blob": "d0252d2943f13b5c578b0820140df4b10bb80d4b"
+    },
+    "apply_reverse": "external final artifact check",
+    "healthy24_25_or_owner_suites_rerun": false,
+    "clock_retested": false,
+    "SQL_parse_compile_execute": false,
+    "real_Auth_DB_install_activation": false
+  },
+  "open_gates": [
+    {
+      "owner": "Coordinator/SERVICE",
+      "gate": "review/adopt this explicit Core entry in exact integrated loader/binding; preserve immutable canonical original, current scope and consumer fences; independent QA"
+    },
+    {
+      "owner": "Platform",
+      "gate": "exact0f876 installer/helper/owner/grantor/ACL/RLS/default privileges/effect FOR SHARE rights and full trigger/writer/session participation/native pre/poststate"
+    },
+    {
+      "owner": "Platform/QA",
+      "gate": "PG17 compile, actual two-session revoke/expiry/same-key concurrency/40001/UNKNOWN/restart persistence and capacity"
+    },
+    {
+      "owner": "Coordinator/domain owners",
+      "gate": "acceptance of exact last-check temporal semantics; no currentness through delivery or at COMMIT claimed beyond evidence"
+    }
+  ],
+  "recovery": "README fixed existing-C03 recovery; no new key/body/TTL, current GET proof, install replay or destructive compensation",
+  "native": "NOT_RUN_NOT_PASS",
+  "automation": {
+    "classification": "نیازمند بررسی",
+    "input": "pinned Core/SERVICE source, lock and controlled transports",
+    "automatable": "source identities, full typed composition, exact query/scope and late-wait tests",
+    "human_role": "owners/Platform/Coordinator/QA for semantic/native/install acceptance",
+    "conditions": "no target execution in this task",
+    "exception_owner": "Platform for missing native rights/helper/transport evidence",
+    "formal_dependencies": "actual0f876 and this Core child; canonical C01/C03/S01",
+    "value": "detect late-wait/stale-replay regressions without repeating unrelated suites"
+  }
+}

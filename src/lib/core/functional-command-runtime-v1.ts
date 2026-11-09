@@ -1,3 +1,5 @@
+import {CORE_SERVICE_REVISE_TERMINAL_SQL_V1} from './service-revise-terminal-v1';
+import {registerCoreServiceReviseTransportV1,coreServiceReviseTransportPhaseV1,completeCoreServiceReviseFinalWireV1,beginCoreServiceReviseSettlementV1,recordCoreServiceReviseRawSettlementV1,recordCoreServiceReviseRawCommitFailureV1,closeCoreServiceReviseTransportV1,invalidateCoreServiceReviseTransportV1} from './service-revise-transport-boundary-v1';
 /** Server-only binding of verified Auth to the EXISTING C03 host. */
 import 'server-only';
 import {z} from 'zod';
@@ -11,7 +13,7 @@ import {createClient} from '../supabase/server';
 import {getPublicSupabaseEnv} from '../supabase/env';
 import {createCoreFunctionalRequestAuthV1} from './functional-request-auth-v1';
 import {createCorePostgresTransactionHostV1,CORE_SERVER_REPLAY_EXPIRY_SQL_V1,coreTransactionCommandV1Schema,coreTransactionCommandV2Schema,
- type CoreTransactionHostV1,type CoreTransactionProvidersV1,type CoreTransactionProvidersV2} from './postgres-transaction-host-v1';
+ type CoreTransactionHostV1,type CoreTransactionProvidersV1,type CoreTransactionProvidersV2,type CoreTransactionResultV2} from './postgres-transaction-host-v1';
 import {CORE_S01_SQL} from './service-s01/provider-agreement-reader-v1';
 import {createCoreFunctionalProducersV1} from './functional-producers-v1';
 import type {CoreS01ServiceOfferingBindingV1} from './service-s01/offering-disclosure-policy-v1';
@@ -103,11 +105,11 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
   if(claims.aal!=='aal2')return fail('MFA_REQUIRED');
   return {...claims,aal:'aal2' as const};
  }
- function makeConnect(command:Pick<CoreTransactionCommandV1,'context_id'|'workspace_id'|'permission_code'|'module_code'|'authority_version'>|null,claims:VerifiedAal2Claims,state:{authorized:boolean;binding?:{workspace_id:string;tenant_id:string;membership_id:string}}){
+ function makeConnect(command:Pick<CoreTransactionCommandV1,'context_id'|'workspace_id'|'permission_code'|'module_code'|'authority_version'>|null,claims:VerifiedAal2Claims,state:{authorized:boolean;binding?:{workspace_id:string;tenant_id:string;membership_id:string}},serviceRevise=false){
   const connect=async()=>{
    state.authorized=false;assertPoolSelectors();const client=await options.pool.connect();
-   const raw=client.query.bind(client);let leaseError:unknown,leaseFailed=false;
-   const onError=(error:Error)=>{if(!leaseFailed){leaseFailed=true;leaseError=error;}};client.on('error',onError);
+   const raw=client.query.bind(client);let leaseError:unknown,leaseFailed=false,serviceClient:PoolClient|undefined;
+   const onError=(error:Error)=>{if(!leaseFailed){leaseFailed=true;leaseError=error;}if(serviceClient)closeCoreServiceReviseTransportV1(serviceClient);};client.on('error',onError);
    let backend:number|undefined;
    const assertPrincipal=async()=>{
     const result=await raw(CORE_FUNCTIONAL_RUNTIME_SQL.principal),who=principalSchema.parse(result.rows[0]);
@@ -139,6 +141,30 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
        await raw(CORE_FUNCTIONAL_RUNTIME_SQL.identity,[JSON.stringify({...claims,active_context_id:command.context_id,active_tenant_id:binding.tenant_id,active_membership_id:binding.membership_id,active_workspace_id:binding.workspace_id}),claims.sub,command.context_id,command.workspace_id]);
        return begin;
       }
+      if(serviceRevise){
+       const phase=coreServiceReviseTransportPhaseV1(wrapped as PoolClient),final=text===CORE_SERVICE_REVISE_TERMINAL_SQL_V1.final;
+       if(normalized==='commit'||(normalized==='rollback'&&phase==='sealed')){
+        beginCoreServiceReviseSettlementV1(wrapped as PoolClient,normalized);
+        try{const ack=await raw(text,values);
+         if(ack.command!=='COMMIT'&&ack.command!=='ROLLBACK')fail('COMMIT_ACK_UNKNOWN');
+         recordCoreServiceReviseRawSettlementV1(wrapped as PoolClient,ack.command as 'COMMIT'|'ROLLBACK');
+         if(leaseFailed)throw leaseError;
+         return ack;
+        }catch(error){if(normalized==='commit')recordCoreServiceReviseRawCommitFailureV1(wrapped as PoolClient,error);throw error;}
+       }
+       if(final){
+        if(phase!=='expect_final')fail('SERVICE_FINAL_WIRE_NOT_HOST_BOUND');
+        // All potentially waiting transport checks precede the combined S01/C01
+        // observation. No hidden query may follow that observation before COMMIT.
+        await checkpoint();await assertPrincipal();const answer=await raw(text,values);
+        if(leaseFailed)throw leaseError;
+        completeCoreServiceReviseFinalWireV1(wrapped as PoolClient);return answer;
+       }
+       if((phase==='sealed'||phase==='expect_final')&&normalized!=='rollback'){
+        invalidateCoreServiceReviseTransportV1(wrapped as PoolClient);fail('SERVICE_POST_SEAL_QUERY');
+       }
+       if(normalized==='rollback')closeCoreServiceReviseTransportV1(wrapped as PoolClient);
+      }
       // Guard after provider awaits, before the first/each effect and settlement.
       if(state.authorized&&normalized!=='rollback'&&!normalized.startsWith('set local '))await checkpoint();
       if(normalized==='commit')await assertPrincipal();
@@ -157,27 +183,30 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
        })};
       }
       return answer;
-     }catch(error){if(!leaseFailed){leaseFailed=true;leaseError=error;}throw error;} // Original40001 retained.
+     }catch(error){if(!leaseFailed){leaseFailed=true;leaseError=error;}throw serviceRevise?leaseError:error;} // Preserve the first service transport error; original40001 retained.
     };
-    if(key==='release')return()=>{object.once('end',()=>object.removeListener('error',onError));try{object.release(true);}catch(cleanup){throw leaseFailed?leaseError:cleanup;}}; // Never return a claim-bearing lease to the pool.
+    if(key==='release')return()=>{if(serviceRevise)closeCoreServiceReviseTransportV1(wrapped as PoolClient);object.once('end',()=>object.removeListener('error',onError));try{object.release(true);}catch(cleanup){throw leaseFailed?leaseError:cleanup;}}; // Never return a claim-bearing lease to the pool.
     const value=Reflect.get(object,key,object);return typeof value==='function'?value.bind(object):value;
    }});
+   if(serviceRevise){serviceClient=wrapped as PoolClient;registerCoreServiceReviseTransportV1(serviceClient);}
    leasePids.set(wrapped as PoolClient,backend!);return wrapped as PoolClient;
   };
   return connect;
  }
- const execute=async(commandValue:unknown,providers:CoreTransactionProvidersV1|CoreTransactionProvidersV2,documentsReplayOnly=false)=>{
+ const execute=async(commandValue:unknown,providers:CoreTransactionProvidersV1|CoreTransactionProvidersV2,documentsReplayOnly=false,serviceOriginal?:unknown)=>{
   const command=commandSchema.parse(commandValue);
   const claims=await authenticate();
   if(claims.sub.toLowerCase()!==command.actor_id)fail('ACTOR_BINDING_MISMATCH');
   const state={authorized:false};
-  const boundPool={connect:makeConnect(command,claims,state)};
+  const boundPool={connect:makeConnect(command,claims,state,serviceOriginal!==undefined)};
   // Same C03 ledger/host, including existing retry/recovery, NOT a new engine.
   const host=createCorePostgresTransactionHostV1(boundPool,{replay_expiry:'database_after_lock.v1'});
-  const selectedHost=documentsReplayOnly?host.executeDocumentsReplayOnly.bind(host):host.execute.bind(host);
-  return selectedHost(command,{...providers,async resolveAuthority(...args:Parameters<typeof producers.resolveAuthority>){
+  const boundProviders={...providers,async resolveAuthority(...args:Parameters<typeof producers.resolveAuthority>){
    const observation=await producers.resolveAuthority(...args);state.authorized=observation.decision==='allowed';return observation;
-  }} as CoreTransactionProvidersV1&CoreTransactionProvidersV2);
+  }} as CoreTransactionProvidersV1&CoreTransactionProvidersV2;
+  if(serviceOriginal!==undefined)return host.executeServiceOfferingReviseV1(command,boundProviders,serviceOriginal);
+  const selectedHost=documentsReplayOnly?host.executeDocumentsReplayOnly.bind(host):host.execute.bind(host);
+  return selectedHost(command,boundProviders);
  };
  const withRequestScope=async<T>(selection:{context_id:string;workspace_id:string;offering_id:string},
   operation:(scope:CoreTransactionScopeV1,ports:ReturnType<typeof createServiceOfferingRequestSourcePortsV1>)=>Promise<T>)=>{
@@ -304,7 +333,7 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
   }finally{try{client.release(true);}catch(cleanup){if(!failed)throw cleanup;
    if(first!==null&&typeof first==='object'){const prior=readFailures.get(first);readFailures.set(first,Object.freeze({settlement:prior?.settlement??'unknown',cleanup:'destroy_requested',rollback_error:prior?.rollback_error,cleanup_error:cleanup}));}}}
  };
- const host=Object.freeze({contract_version:'core-transaction-host.v1' as const,execute}) as CoreTransactionHostV1;
+ const host=Object.freeze({contract_version:'core-transaction-host.v1' as const,execute,executeServiceOfferingReviseV1(command:unknown,providers:CoreTransactionProvidersV2,original:unknown){if(options.agreement_family!=='revise'||original===undefined)fail('REVISE_FAMILY_REQUIRED');return execute(command,providers,false,original) as Promise<CoreTransactionResultV2>;}}) as CoreTransactionHostV1 & {executeServiceOfferingReviseV1(command:unknown,providers:CoreTransactionProvidersV2,original:unknown):Promise<CoreTransactionResultV2>};
  return Object.freeze({host,reviseSource:producers.reviseSource,executeDocumentsReplayOnly(command:unknown,providers:CoreTransactionProvidersV1){return execute(command,providers,true);},readers:producers.readers,withRequestScope,readServiceApp,resolveCommandIdentity,async verifyServerSession(){await authenticate();},contract:CORE_FUNCTIONAL_COMMAND_RUNTIME_V1});
 }
 /** No query runner is exported. Row type import preserves the real pg ABI. */

@@ -1,0 +1,260 @@
+{
+  "contract": "core-service-revise-scope-query-profile.v1",
+  "runtime": null,
+  "sourcePins": [
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "ref": "742d3ef9203c8135b56e45a941a3f664f09f097e",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a"
+    },
+    {
+      "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "ref": "742d3ef9203c8135b56e45a941a3f664f09f097e",
+      "bytes": 22276,
+      "sha256": "76855adaf81aa5446839754d3414b99761d0c60674e6f337b06ebf89eaadf326"
+    },
+    {
+      "path": "src/lib/core/service-offering-revision-source-v1.ts",
+      "ref": "742d3ef9203c8135b56e45a941a3f664f09f097e",
+      "bytes": 6921,
+      "sha256": "d5b251e1b1515ff0524af10322f16eabf890d65d4eefbb21dc423d1585e396ea"
+    },
+    {
+      "path": "src/lib/core/service-offering-revise-source-port-v1.ts",
+      "ref": "742d3ef9203c8135b56e45a941a3f664f09f097e",
+      "bytes": 8507,
+      "sha256": "6f0eb057be5a6603ed62e80db91c254654163b65296745afe17f46efd150e2dc"
+    },
+    {
+      "path": "src/lib/core/service-original-current-boundary-v1.ts",
+      "ref": "742d3ef9203c8135b56e45a941a3f664f09f097e",
+      "bytes": 4147,
+      "sha256": "ee39953aff550eae0f093480629488efcd3a5fa7dc425e2e459e41c5d3570d97"
+    },
+    {
+      "path": "src/lib/core/scoped-server-clock-v1.ts",
+      "ref": "742d3ef9203c8135b56e45a941a3f664f09f097e",
+      "bytes": 1120,
+      "sha256": "2753aee2dce0ed13e1dc8307eacfdb7f60f5bbacd90421968bcffe662f3a1823"
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/offering-revise-provider-v1.ts",
+      "ref": "0f876064025c3073eb13dcbb53aba6377fadbe43",
+      "bytes": 11745,
+      "sha256": "8c376020787534a41a7d1067d14f8dd42d85a8cd35e82cb6876ed833e14450a4"
+    }
+  ],
+  "queries": [
+    {
+      "sql": "select txid_current()::text as transaction_id,\n        auth.uid()::text as actor_id, current_setting('transaction_isolation') as isolation,\n        clock_timestamp()::text as evaluated_at",
+      "parameters": 0,
+      "arguments": [],
+      "source_path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "sha256": "044c38ac5ef44bbfb0c5891995714446417d3a65919339c45c17b00e91e9c5c0"
+    },
+    {
+      "sql": "select revision::text\n      from app_private.canonical_authority_revision_v1 where singleton for share",
+      "parameters": 0,
+      "arguments": [],
+      "source_path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "sha256": "c2010cd0f9768e32c9c615692e3b1a24e5e43d59cfd4e8264ac1c6dc8f462702"
+    },
+    {
+      "sql": "select m.tenant_id::text, m.user_id::text as actor_id,\n        m.status::text, (m.starts_at<=clock_timestamp()\n          and (m.ends_at is null or m.ends_at>clock_timestamp())\n          and g.starts_at<=clock_timestamp()\n          and (g.ends_at is null or g.ends_at>clock_timestamp())) as current\n      from identity.context_grants g join identity.memberships m\n        on m.id=g.membership_id and m.tenant_id=g.tenant_id\n      where g.id=$1",
+      "parameters": 1,
+      "arguments": [
+        "context"
+      ],
+      "source_path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "sha256": "f7690727dae6b06d1b314dd639cd94a7f4fd7ee95174d980d0aa58b56b0a6158"
+    },
+    {
+      "sql": "select tenant_id::text\n      from platform.customer_workspaces where id=$1 and archived_at is null\n        and lifecycle_status='ACTIVE'",
+      "parameters": 1,
+      "arguments": [
+        "workspace"
+      ],
+      "source_path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "sha256": "01034b9fa779d85272905df030f4a2155c783e47fb99a8f5e65a0b29276406e0"
+    },
+    {
+      "sql": "select\n      app_private.check_workspace_native_permission_v2($1,$2,$3,$4) as allowed,\n      statement_timestamp()::text as evaluated_at, d.id::text as module_definition_id,\n      d.entitlement_key from platform.module_definitions d\n      where d.code=$4 and d.is_active and d.lifecycle_status in ('active','published')\n        and d.valid_from<=statement_timestamp()\n        and (d.valid_to is null or d.valid_to>statement_timestamp())",
+      "parameters": 4,
+      "arguments": [
+        "context",
+        "workspace",
+        "permission",
+        "module"
+      ],
+      "source_path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "sha256": "8cac53cd9598384744e7a359a0147a99fe4af161b5e88a634f33b1cc46ab6baf"
+    },
+    {
+      "sql": "select txid_current()::text as database_transaction_id, auth.uid()::text as actor_id,\n    current_setting('transaction_isolation') as isolation,\n    to_char(clock_timestamp() at time zone 'UTC','YYYY-MM-DD\"T\"HH24:MI:SS.US\"Z\"') as evaluated_at",
+      "parameters": 0,
+      "arguments": [],
+      "source_path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "sha256": "a8ccc43265b83f1c1f6a31583fba3913395a809e3351455ce3f3fc0f7ff8e463"
+    },
+    {
+      "sql": "select app_private.require_request_session_current_at_v1(clock_timestamp())",
+      "parameters": 0,
+      "arguments": [],
+      "source_path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "sha256": "33916a7fb60d8b6123cc4204bbf5ff5e84b314723421e6b4d38331ba69280816"
+    },
+    {
+      "sql": "select * from (with allowed as materialized (select\n      app_private.check_workspace_native_permission_v2($1::uuid,$2::uuid,$3::text,$4::text) as allowed),\n    checked as materialized (select allowed,\n      app_private.require_request_session_current_at_v1(clock_timestamp()) as session_guard from allowed)\n    select txid_current()::text as database_transaction_id,auth.uid()::text as actor_id,\n      current_setting('transaction_isolation') as isolation,\n      to_char(clock_timestamp() at time zone 'UTC','YYYY-MM-DD\"T\"HH24:MI:SS.US\"Z\"') as evaluated_at,\n      allowed,session_guard,(select revision::text from app_private.canonical_authority_revision_v1 where singleton) as authority_revision\n    from checked) as final_observation",
+      "parameters": 4,
+      "arguments": [
+        "context",
+        "workspace",
+        "permission",
+        "module"
+      ],
+      "source_path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "sha256": "4322102bb41e85de4bd0ce8dd131db6ff86964591f41e50a078899387a874069"
+    },
+    {
+      "sql": "select id::text,tenant_id::text,workspace_id::text,provider_party_id::text,\n    current_version,revision,status from platform.provider_agreement_heads_v1\n    where id=$1::uuid and tenant_id=$2::uuid and workspace_id=$3::uuid",
+      "parameters": 3,
+      "arguments": [
+        "agreement",
+        "tenant",
+        "workspace"
+      ],
+      "source_path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "sha256": "313fceeeb625dc605d644108485f898aaa2d818db5a4656441df5253567e5257"
+    },
+    {
+      "sql": "select id::text,tenant_id::text,workspace_id::text,provider_party_id::text,\n    current_version,revision,status from platform.provider_agreement_heads_v1\n    where id=$1::uuid and tenant_id=$2::uuid and workspace_id=$3::uuid for share",
+      "parameters": 3,
+      "arguments": [
+        "agreement",
+        "tenant",
+        "workspace"
+      ],
+      "source_path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "sha256": "4ecceedcb636cace18508bfd67b97f842967b39177968894db528c4172e7aae3"
+    },
+    {
+      "sql": "select agreement_id::text,tenant_id::text,workspace_id::text,provider_party_id::text,\n    version,valid_from::text,valid_until::text,allowed_service_scope\n    from platform.provider_agreement_versions_v1\n    where agreement_id=$1::uuid and tenant_id=$2::uuid and workspace_id=$3::uuid and version=$4::integer for share",
+      "parameters": 4,
+      "arguments": [
+        "agreement",
+        "tenant",
+        "workspace",
+        "agreement_version"
+      ],
+      "source_path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "sha256": "0f47b86ad8750fea0a8c1d801797134530c281a15d6a882dbd82927694e85060"
+    },
+    {
+      "sql": "select id::text,tenant_id::text,archived_at is null as current\n    from portfolio.parties where id=$1::uuid and tenant_id=$2::uuid for share",
+      "parameters": 2,
+      "arguments": [
+        "party",
+        "tenant"
+      ],
+      "source_path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "sha256": "66c96b84f4ccb4ef2c29c2a4a2a4e3d1207678fa3f74e0dcb392e831e88bc59c"
+    },
+    {
+      "sql": "select id::text,tenant_id::text,archived_at is null and lifecycle_status='ACTIVE' as current\n    from platform.customer_workspaces where id=$1::uuid and tenant_id=$2::uuid for share",
+      "parameters": 2,
+      "arguments": [
+        "workspace",
+        "tenant"
+      ],
+      "source_path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "sha256": "01f679da38faf08160c6fbcf499157a62ca3e83879f12b381071a24b31d8bc7c"
+    },
+    {
+      "sql": "select id::text,tenant_id::text,workspace_id::text,definition_id::text,provider_party_id::text,lock_version::text,current_revision_id::text,published_revision_id::text\n from service_catalog.offerings where tenant_id=$1::uuid and workspace_id=$2::uuid and id=$3::uuid for share",
+      "parameters": 3,
+      "arguments": [
+        "tenant",
+        "workspace",
+        "offering"
+      ],
+      "source_path": "src/lib/core/service-offering-revision-source-v1.ts",
+      "sha256": "ef528adbe0e10eb798cb8455f3eb467bff116fc6485e3e431210af0eaad683a0"
+    },
+    {
+      "sql": "select id::text,tenant_id::text,workspace_id::text,offering_id::text,revision_version::text,provider_agreement_id::text,provider_agreement_version::text,\n status,commercial_terms,coverage,eligibility,to_char(valid_from at time zone 'UTC','YYYY-MM-DD\"T\"HH24:MI:SS.US\"Z\"') as valid_from,\n case when valid_until is null then null else to_char(valid_until at time zone 'UTC','YYYY-MM-DD\"T\"HH24:MI:SS.US\"Z\"') end as valid_until\n from service_catalog.revisions where tenant_id=$1::uuid and workspace_id=$2::uuid and offering_id=$3::uuid and id=$4::uuid for share",
+      "parameters": 4,
+      "arguments": [
+        "tenant",
+        "workspace",
+        "offering",
+        "old_revision"
+      ],
+      "source_path": "src/lib/core/service-offering-revision-source-v1.ts",
+      "sha256": "11bfc2b834d01bca6e5c2cd5595a730181e52eaf989497c353dede0914df30fb"
+    },
+    {
+      "sql": "select app_private.require_request_session_current_at_v1($1::timestamptz)",
+      "parameters": 1,
+      "arguments": [
+        "time"
+      ],
+      "source_path": "src/lib/core/service-offering-revise-source-port-v1.ts",
+      "sha256": "63f1c1b33740e7ba8d9c233eb31fc51e77c66ba10278cd595eef36ea6bbf5466"
+    },
+    {
+      "sql": "select r.workspace_id::text,r.tenant_id::text,r.membership_id::text,\n auth.jwt()->>'active_membership_id' as bound_membership_id\n from app_private.resolve_workspace_native_context_v2_at_v1($1::uuid,$2::uuid,$3::timestamptz) r",
+      "parameters": 3,
+      "arguments": [
+        "context",
+        "workspace",
+        "time"
+      ],
+      "source_path": "src/lib/core/service-offering-revise-source-port-v1.ts",
+      "sha256": "21daf2e4417ccfad65b0ce505476edfc948cf727ee403df10cad0cd7b4e89307"
+    },
+    {
+      "sql": "select app_private.check_workspace_native_permission_v2_at_v1($1::uuid,$2::uuid,'services.catalog.manage','services_catalog',$3::timestamptz) as allowed,\n (select revision::text from app_private.canonical_authority_revision_v1 where singleton) as revision",
+      "parameters": 3,
+      "arguments": [
+        "context",
+        "workspace",
+        "time"
+      ],
+      "source_path": "src/lib/core/service-offering-revise-source-port-v1.ts",
+      "sha256": "4634330cce39af86734ff23946bdb8f06346c1982904748556effa1ec593cbf8"
+    },
+    {
+      "sql": "select revision::text from app_private.canonical_authority_revision_v1 where singleton for share",
+      "parameters": 0,
+      "arguments": [],
+      "source_path": "src/lib/core/service-original-current-boundary-v1.ts",
+      "sha256": "c68c616ed8e806234bde7ee81c83ca6fa66b29b403c25a772e2ca885a2364269"
+    },
+    {
+      "sql": "select txid_current()::text as database_transaction_id,\n  auth.uid()::text as actor_id,auth.jwt()->>'active_workspace_id' as workspace_id,\n  pg_catalog.to_jsonb(pg_catalog.clock_timestamp()) #>> '{}' as evaluated_at",
+      "parameters": 0,
+      "arguments": [],
+      "source_path": "src/lib/core/scoped-server-clock-v1.ts",
+      "sha256": "bdc5c77b0aee989b1b6bf6e7c561022a04b9ffd9a91707265d94af7f53b791e5"
+    },
+    {
+      "sql": "select app_private.apply_service_offering_revision_v1($1::jsonb) as result",
+      "parameters": 1,
+      "arguments": [
+        "owner_json"
+      ],
+      "source_path": "src/lib/customer/service-v14-execution/offering-revise-provider-v1.ts",
+      "sha256": "e5878ef5d4d350ec9a3ab57c46ffe5aaf4081f5fbf4076dc07e44b651bd3dbd9"
+    },
+    {
+      "sql": "select app_private.read_service_offering_revision_result_v1($1::jsonb) as result",
+      "parameters": 1,
+      "arguments": [
+        "owner_json"
+      ],
+      "source_path": "src/lib/customer/service-v14-execution/offering-revise-provider-v1.ts",
+      "sha256": "1aeb0ac5862791ef5775b24ea333c9b2c05f5ec6009d82c93950d40a622f57d5"
+    }
+  ]
+}
