@@ -321,3 +321,23 @@ Owner-approved own-party read family recorded; no Party profile/manage grant.
 Missing Party-version in AIRPROP command selection is an owner ABI dependency,
 not hidden by the read projection. Full native writer/role/adoption proof remains
 NOT_RUN_NOT_PASS. Automation classification: نیازمند بررسی.
+
+## Independent SERVICE custody17 (before edits)
+Parent Listing16 remains immutable. Imported exact SERVICE8303→7204→8393 bundles
+as Git objects only; Page ABI read directly and hashes matched. No SERVICE-owned
+file is edited. Paths: src/lib/core/service-offering-authoring-custody-v1.ts,
+supabase/proposals/core-service-authoring-custody-v1/{delta.sql,preflight.sql,verify.sql,recovery.md},
+scripts/test-core-service-authoring-custody-v1.mjs,
+docs/core/domain-ports-01/service-custody-17/{README.md,manifest.json}.
+Fixed request-local producer, immutable original command and current authority
+separate; metadata is preparation custody, not a second C03 effect/receipt ledger.
+Platform owns role/ACL/install admission, no target effect. Revise ABI remains an
+independent Core/SERVICE dependency, never enabled by this create/transition port.
+Additional packet checker path: scripts/test-core-service-authoring-custody-packet-v1.mjs.
+12 new targeted groups PASS (11 real Core/actual SERVICE schema/composition
+controlled groups plus isolated immutable-target test),3 packet groups+4 coherent
+source negatives PASS. Full ES5 typecheck, focused lint, syntax/diff PASS.
+Actual producer SQL/table source remains a guarded Platform adoption proposal;
+no claim of installed custody or full native SERVICE/C03 completion. Original
+command authority is never replaced; old/current C03 dual-binding remains explicit.
+Documents17 couplings and Listing13 groups were not rerun for this increment.
