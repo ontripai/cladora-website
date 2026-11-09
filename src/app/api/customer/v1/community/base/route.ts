@@ -6,6 +6,8 @@ import { hasTrustedMutationOrigin } from '@/lib/security/same-origin';
 import { isApplicationJson, parseJsonWithLimit } from '@/lib/security/request-body';
 import {CE010_ANNOUNCEMENT_RUNTIME_V1} from '@/lib/community/community-announcement-runtime-v1';
 import {createAnnouncementHandlersV1} from '@/lib/community/community-announcement-http-v1';
+import {CE010_PLATFORM_PROVIDER_V1} from '@/lib/community/community-announcement-platform-provider-v1';
+import {createCoreCe010RequestRuntimeV1} from '@/lib/core/ce010-request-binding-v1';
 
 const HEADERS = { 'Cache-Control': 'no-store, private', Pragma: 'no-cache', Vary: 'Cookie' };
 const uuid = z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
@@ -23,8 +25,17 @@ function rpcFailure(error: { code?: string }) {
   return fail('CE_COMMUNITY_QUERY_FAILED', 500);
 }
 
+// Construct only from the dedicated, server-owned slot. A selected invalid
+// provider is unavailable; it must never fall back after failure or denial.
+function announcementRuntime() {
+  return CE010_PLATFORM_PROVIDER_V1===null?CE010_ANNOUNCEMENT_RUNTIME_V1
+    :createCoreCe010RequestRuntimeV1(CE010_PLATFORM_PROVIDER_V1);
+}
 export async function GET(request: NextRequest) {
-  if(CE010_ANNOUNCEMENT_RUNTIME_V1.resolve!==null)return createAnnouncementHandlersV1(CE010_ANNOUNCEMENT_RUNTIME_V1).GET(request);
+  let runtime;
+  try { runtime=announcementRuntime(); }
+  catch { return fail('CE_COMMUNITY_CONNECTION_NOT_READY',503); }
+  if(runtime.resolve!==null)return createAnnouncementHandlersV1(runtime).GET(request);
   const raw = Object.fromEntries(request.nextUrl.searchParams);
   if (Array.from(request.nextUrl.searchParams.keys()).some((key) => !['context_id', 'workspace_id'].includes(key))
     || request.nextUrl.searchParams.getAll('context_id').length !== 1
@@ -51,10 +62,15 @@ export async function POST(request: NextRequest) {
     for (const [key, value] of Object.entries(HEADERS)) errorResponse.headers.set(key, value);
     return errorResponse;
   }
-  if(body&&typeof body==='object'&&'op'in body)return createAnnouncementHandlersV1(CE010_ANNOUNCEMENT_RUNTIME_V1).POST(request);
+  if(body&&typeof body==='object'&&'op'in body){
+    let runtime;
+    try { runtime=announcementRuntime(); }
+    catch { return fail('CE_COMMUNITY_CONNECTION_NOT_READY',503); }
+    return createAnnouncementHandlersV1(runtime).POST(request);
+  }
   const parsed = ce010CommandSchema.safeParse(body);
   if (!parsed.success) return fail('INVALID_REQUEST', 400);
-  if(CE010_ANNOUNCEMENT_RUNTIME_V1.resolve!==null&&['create_announcement','publish_announcement','cancel_announcement'].includes(parsed.data.type))return fail('CE_COMMUNITY_CONNECTION_NOT_READY',503);
+  if((CE010_PLATFORM_PROVIDER_V1!==null||CE010_ANNOUNCEMENT_RUNTIME_V1.resolve!==null)&&['create_announcement','publish_announcement','cancel_announcement'].includes(parsed.data.type))return fail('CE_COMMUNITY_CONNECTION_NOT_READY',503);
   const supabase = await createClient();
   const { data: claims, error: authError } = await supabase.auth.getClaims();
   if (authError || !claims?.claims?.sub) return fail('UNAUTHORIZED', 401);
