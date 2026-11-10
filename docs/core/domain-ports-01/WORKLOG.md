@@ -631,3 +631,74 @@ DML.12 new actor/version/late-failure groups PASS on actual adapters/controlled 
 only affected source negatives rechecked after SQL edits. Older source checker
 negative adjusted to remove LAST guard, not a now-redundant earlier guard.
 Full ES5 typecheck/lint/syntax/diff pass, native/SQL/role mapping remain NOT_RUN.
+
+## Finance continuation30 — exact paths before edits
+Parent 1f13741d729cec0e2aff6d6b964e7196ee3ba18e verified; only existing
+scripts/__pycache__/ untracked. All checkpoint1f evidence/source preserved.
+Real Finance909→7fa→e849→622 afterimages fetched from owner's private Page;
+source byte identities verified outside repository. No Finance files edited.
+New Core files: src/lib/core/finance-monthly-binding-v1.ts,
+src/lib/core/finance-monthly-query-profile-v1.json;
+modify only src/lib/core/functional-command-runtime-v1.ts for a closed Finance
+read/identity seam and exact extra billing capability on this opt-in profile.
+No general host/codec or unchanged domain behavior changes.
+New Utilities proposal: supabase/proposals/utilities-monthly-input-v1/
+consumption-allocation-guard.sql and consumption-allocation-recovery.md;
+new scripts/test-core-finance-monthly-binding-v1.mjs,
+scripts/test-utilities-consumption-allocation-guard-v1.mjs;
+new docs/core/domain-ports-01/finance-composition-30/{README.md,manifest.json}.
+Explicit source-only reverse-billing guard uses existing locked consumption row
+and Finance's actual assertion helper; no new ledger/store. No SQL execution.
+Only new controlled/source tests, full ES5 typecheck, focused lint/syntax/diff
+and patch apply/reverse. Role mapping, other-actor origin RLS, domain approval
+provenance, target/native/admission remain separately gated. Runtime binding NULL.
+Continuation30 further exact paths before creation: supabase/proposals/
+core-finance-monthly-binding-v1/{checkpoint.sql,preflight.sql,verify.sql,recovery.md}.
+Closed, owner-only fresh-time wrapper of EXISTING C01 ABI; no new authority
+engine or modification of shared checkpoint. Finance-specific calls recheck
+canonical Context/workspace/member/permission/session at fresh DB time after
+existing lock barrier, including both billing permissions in the same observation.
+Continuation30 further declared check path before creation:
+scripts/check-core-finance-monthly-types-v1.mjs (real Finance overlay compiler
+host, no copied owner source, same tsconfig ES5). Source factory is inactive;
+not a claim of approved role mapping, complete Finance actor history, invoice-v2
+capture adoption or pre-dispatch Finance command custody across actor changes.
+Continuation30 source-seal path before creation:
+scripts/check-core-finance-monthly-source-v1.mjs. Validate actual Finance622
+module/query pins and existing recursive fresh-time ABI; no SQL evaluation.
+Continuation30 affected refinement: observed readback also needs ledger expiry
+AFTER the last relevant wait, not merely the Finance SELECT's earlier clock.
+Same new Finance-only checkpoint gains optional exact key/hash/receipt args,
+locks the existing C03 row before fresh time and checks full canonical response.
+Final read wire has no hidden post-observation query before ROLLBACK. No new
+store/receipt or Finance codec change. Only affected recovery controls rechecked.
+Continuation30 independent planner adoption paths before edits:
+NEW src/lib/core/monthly-source-handoff-v2.ts; adapt ONLY the new test/manifest.
+Actual Finance622 monthly-cycle-schema and capture contract now available.
+Add explicit v2 pure planner for vendor_payable while keeping accepted57/v1
+byte-identical and NOT_READY behavior unchanged; no source approval or dispatch.
+Finance transport hygiene refinement in the same declared runtime path: opt-in
+Finance reuses the ALREADY accepted Documents alias sanitation code, clearing
+legacy request.jwt.claim/email at checkout and locally before identity/session.
+No SERVICE profile change; no permission/pool alias is borrowed. New poisoned-
+alias controlled negative/positive control only; target/native remains untested.
+Continuation30 results: 20 distinct new actual Core/Finance controlled SDK/PG
+coupling groups (incremental affected-only reruns after refinements); 8 new
+Utilities source/equivalence/negative/scheduling groups PASS. Both native SQL
+and source SQL parsing/compilation NOT_RUN. Full existing ES5 typecheck and full
+ES5 with actual Finance622 virtual owner afterimages/real interface assignment
+PASS on Next16.4.1/Zod4.6.6; focused lint, script syntax, diff PASS. No accepted
+checkpoint1f/57/old Finance/SERVICE/072–076 suite rerun. Finance three-finding QA
+closure, invoice-v2 locked-content capture adoption, actual role mapping/ACL/RLS
+and target/native admission remain explicit. Original v1 planner + Core codec/
+host/evaluator, invoice producer and all historical migrations byte-identical.
+Finance-only principal census refinement in the same runtime path: include
+finance/billing/utilities in the ACTUAL schema CREATE/table-owner checks. The
+original SERVICE census remains byte-identical; profile/role labels are not
+substitutes for observed pg metadata. New synthetic owner/CREATE denial control.
+Final continuation30 count after the Finance principal-census refinement:
+21 distinct new controlled coupling groups +8 source/model groups PASS.
+Final full ES5 and actual Finance622 overlay assignment, targeted lint/syntax/diff
+PASS. Exact ten Finance622 parent→postimage entries and eleven protected Core
+source pins verified. Patch/bundle are additive to checkpoint1f only; no target
+or Page edit. Packaging/apply/reverse results are recorded in delivery identity.

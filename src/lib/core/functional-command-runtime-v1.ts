@@ -1,3 +1,4 @@
+import financeQueries from './finance-monthly-query-profile-v1.json';
 import {CORE_SERVICE_REVISE_TERMINAL_SQL_V1} from './service-revise-terminal-v1';
 import {registerCoreServiceReviseTransportV1,coreServiceReviseTransportPhaseV1,completeCoreServiceReviseFinalWireV1,beginCoreServiceReviseSettlementV1,recordCoreServiceReviseRawSettlementV1,recordCoreServiceReviseRawCommitFailureV1,closeCoreServiceReviseTransportV1,invalidateCoreServiceReviseTransportV1} from './service-revise-transport-boundary-v1';
 /** Server-only binding of verified Auth to the EXISTING C03 host. */
@@ -12,7 +13,7 @@ import type {Pool,PoolClient,QueryResultRow} from 'pg';
 import {createClient} from '../supabase/server';
 import {getPublicSupabaseEnv} from '../supabase/env';
 import {createCoreFunctionalRequestAuthV1} from './functional-request-auth-v1';
-import {createCorePostgresTransactionHostV1,CORE_SERVER_REPLAY_EXPIRY_SQL_V1,coreTransactionCommandV1Schema,coreTransactionCommandV2Schema,
+import {createCorePostgresTransactionHostV1,CORE_SERVER_REPLAY_EXPIRY_SQL_V1,coreTransactionCommandV1Schema,coreTransactionCommandV2Schema,coreTransactionReceiptV1Schema,
  type CoreTransactionHostV1,type CoreTransactionProvidersV1,type CoreTransactionProvidersV2,type CoreTransactionResultV2} from './postgres-transaction-host-v1';
 import {CORE_S01_SQL} from './service-s01/provider-agreement-reader-v1';
 import {createCoreFunctionalProducersV1} from './functional-producers-v1';
@@ -63,7 +64,12 @@ const principalSchema=z.strictObject({backend_pid:z.number().int().positive().sa
  * never an HTTP payload. No default URL, env-secret discovery, alternate target,
  * service-role client, caller Auth callback or authority provider is accepted.
  */
-export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool;target:CoreFunctionalDevelopmentTargetV1;offering:CoreS01ServiceOfferingBindingV1|null;request?:Request;agreement_family?:'request'|'authoring'|'revise';claim_alias_profile?:'documents.v1'}>){
+export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool;target:CoreFunctionalDevelopmentTargetV1;offering:CoreS01ServiceOfferingBindingV1|null;request?:Request;agreement_family?:'request'|'authoring'|'revise';claim_alias_profile?:'documents.v1';finance_profile?:'calculate'|'approve'|'bill'|'consume'|'read'}>){
+ const financeProfile=options.finance_profile;
+ const sanitizeAliases=options.claim_alias_profile==='documents.v1'||financeProfile!==undefined;
+ const principalSQL=financeProfile?CORE_FUNCTIONAL_RUNTIME_SQL.principal.replaceAll("'service_catalog','auth'","'service_catalog','finance','billing','utilities','auth'"):CORE_FUNCTIONAL_RUNTIME_SQL.principal;
+ const financeReadFinal='select app_private.core_finance_monthly_checkpoint_v1($1::uuid,$2::uuid,$3::text,$4::text,$5::bigint,$6::text,$7::text,$8::jsonb)';
+ const financePermissions={calculate:['finance.allocations.calculate','accounting'],approve:['finance.allocations.approve','accounting'],bill:['billing.manage','billing'],consume:['finance.monthly.manage','accounting'],read:['finance.allocations.read','accounting']} as const;
  const producers=createCoreFunctionalProducersV1(options.offering,options.agreement_family);
  const target=Object.freeze(coreFunctionalDevelopmentTargetV1Schema.parse(options.target));
  const platform12=target.database_name==='postgres'&&/^core15-dev:[a-f0-9]{32}$/.test(target.backend_id)
@@ -112,15 +118,17 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
    const onError=(error:Error)=>{if(!leaseFailed){leaseFailed=true;leaseError=error;}if(serviceClient)closeCoreServiceReviseTransportV1(serviceClient);};client.on('error',onError);
    let backend:number|undefined;
    const assertPrincipal=async()=>{
-    const result=await raw(CORE_FUNCTIONAL_RUNTIME_SQL.principal),who=principalSchema.parse(result.rows[0]);
+    const result=await raw(principalSQL),who=principalSchema.parse(result.rows[0]);
     if(result.rowCount!==1||who.principal!==target.runtime_role||who.login!==target.runtime_role
       ||who.database_oid!==target.database_oid||who.database_name!==target.database_name
       ||(platform12&&who.backend_marker!==target.backend_id)
       ||who.server_version_num<170000||who.server_version_num>=180000||(backend!==undefined&&who.backend_pid!==backend))fail('NATIVE_TARGET_MISMATCH');
     backend=who.backend_pid;
    };
-   try{await assertPrincipal();if(options.claim_alias_profile==='documents.v1')await raw("select pg_catalog.set_config('request.jwt.claim','',false),pg_catalog.set_config('request.jwt.claim.email','',false)");}catch(error){client.once('end',()=>client.removeListener('error',onError));try{client.release(true);}catch(cleanup){if(options.claim_alias_profile!=='documents.v1')throw cleanup;if(error!==null&&typeof error==='object')readFailures.set(error,Object.freeze({settlement:'unknown',cleanup:'destroy_requested',rollback_error:cleanup}));}throw error;}
-   const checkpoint=()=>{if(command===null)return fail('READ_SCOPE_REQUIRED');return raw(CORE_FUNCTIONAL_RUNTIME_SQL.checkpoint,[command.context_id,command.workspace_id,command.permission_code,command.module_code,command.authority_version]);};
+   try{await assertPrincipal();if(sanitizeAliases)await raw("select pg_catalog.set_config('request.jwt.claim','',false),pg_catalog.set_config('request.jwt.claim.email','',false)");}catch(error){client.once('end',()=>client.removeListener('error',onError));try{client.release(true);}catch(cleanup){if(!sanitizeAliases)throw cleanup;if(error!==null&&typeof error==='object')readFailures.set(error,Object.freeze({settlement:'unknown',cleanup:'destroy_requested',rollback_error:cleanup}));}throw error;}
+   const checkpoint=async()=>{if(command===null)return fail('READ_SCOPE_REQUIRED');
+    await raw(financeProfile?'select app_private.core_finance_monthly_checkpoint_v1($1::uuid,$2::uuid,$3::text,$4::text,$5::bigint)':CORE_FUNCTIONAL_RUNTIME_SQL.checkpoint,[command.context_id,command.workspace_id,command.permission_code,command.module_code,command.authority_version]);
+   };
    const wrapped=new Proxy(client, {get(object,key){
     if(key==='query')return async(text:string,values:unknown[]=[])=>{
      if(typeof text!=='string')fail('WIRE_CONTRACT_MISMATCH');
@@ -130,7 +138,7 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
       if(normalized==='begin isolation level serializable'){
        const begin=await raw(text,values);if(begin.command!=='BEGIN')fail('BEGIN_ACK_INVALID');await assertPrincipal();
        await raw("set local lock_timeout='5s'");await raw("set local statement_timeout='10s'");
-       if(options.claim_alias_profile==='documents.v1')await raw("select pg_catalog.set_config('request.jwt.claim','',true),pg_catalog.set_config('request.jwt.claim.email','',true)");
+       if(sanitizeAliases)await raw("select pg_catalog.set_config('request.jwt.claim','',true),pg_catalog.set_config('request.jwt.claim.email','',true)");
        await raw(CORE_FUNCTIONAL_RUNTIME_SQL.identity,[JSON.stringify({...claims,active_context_id:command?.context_id??''}),claims.sub,command?.context_id??'',command?.workspace_id??'']);
        await raw(CORE_FUNCTIONAL_RUNTIME_SQL.session); // Real managed session row barrier, held to settlement.
        if(command===null)return begin; // Own-selection discovery; no caller scope or allow.
@@ -165,9 +173,16 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
        }
        if(normalized==='rollback')closeCoreServiceReviseTransportV1(wrapped as PoolClient);
       }
+      if(financeProfile&&text===financeReadFinal){
+       if(!state.authorized||values.length!==8)fail('FINANCE_FINAL_READ_UNBOUND');
+       await checkpoint();await assertPrincipal();
+       // Receipt lock -> fresh clock -> combined C01/receipt observation. No
+       // transport wait follows this terminal read before raw ROLLBACK.
+       const answer=await raw(text,values);if(leaseFailed)throw leaseError;return answer;
+      }
       // Guard after provider awaits, before the first/each effect and settlement.
       if(state.authorized&&normalized!=='rollback'&&!normalized.startsWith('set local '))await checkpoint();
-      if(normalized==='commit')await assertPrincipal();
+      if(normalized==='commit'){await assertPrincipal();if(financeProfile&&state.authorized)await checkpoint();}
       const answer=await raw(text,values);
       if(normalized==='commit'&&answer.command!=='COMMIT')fail('COMMIT_ACK_UNKNOWN');
       if(normalized==='commit')await assertPrincipal();
@@ -195,6 +210,7 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
  }
  const execute=async(commandValue:unknown,providers:CoreTransactionProvidersV1|CoreTransactionProvidersV2,documentsReplayOnly=false,serviceOriginal?:unknown)=>{
   const command=commandSchema.parse(commandValue);
+  if(financeProfile){const pair=financePermissions[financeProfile];if(financeProfile==='read'||command.contract_version!=='core-transaction-command.v1'||command.permission_code!==pair[0]||command.module_code!==pair[1]||command.aggregate_type!=='finance.monthly_cycle'||!/^finance\.monthly\.(stage|calculate|approve|bill|consume)$/.test(command.evaluation_purpose)||(command.evaluation_purpose==='finance.monthly.stage'?'calculate':command.evaluation_purpose.slice('finance.monthly.'.length))!==financeProfile)fail('FINANCE_PROFILE_MISMATCH');}
   const claims=await authenticate();
   if(claims.sub.toLowerCase()!==command.actor_id)fail('ACTOR_BINDING_MISMATCH');
   const state={authorized:false};
@@ -299,6 +315,52 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
    if(error!==null&&typeof error==='object')readFailures.set(error,Object.freeze({settlement:settled?'rolled_back':'unknown',cleanup:'destroy_requested',rollback_error}));throw error;
   }finally{try{client.release(true);}catch(error){if(!first)throw error;}}
  };
+ /** Finance-only read/identity port. Logical IDs identify this read attempt;
+  * they reserve no command and are never persisted as a receipt. */
+ const withFinanceScope=async<T>(selection:unknown,kind:'identity'|'plan'|'readback',
+  operation:(scope:CoreTransactionScopeV1,identity:Readonly<{actor_id:string;tenant_id:string;membership_id:string;authority_version:number}>)=>Promise<T>)=>{
+  if(!financeProfile)fail('FINANCE_PROFILE_REQUIRED');
+  const selected=z.strictObject({context_id:uuid,workspace_id:uuid,cycle_id:uuid,allocation_run_id:uuid.optional(),idempotency_key:z.string().min(8).max(160).optional(),request_hash:z.string().regex(/^[a-f0-9]{64}$/).optional()}).parse(selection);
+  if(!['identity','plan','readback'].includes(kind)||(kind==='plan'&&(financeProfile!=='read'||!selected.allocation_run_id))||(kind==='readback'&&(!selected.idempotency_key||!selected.request_hash)))fail('FINANCE_READ_PROFILE_MISMATCH');
+  const claims=await authenticate(),pair=financePermissions[financeProfile!];
+  const command={context_id:selected.context_id,workspace_id:selected.workspace_id,permission_code:pair[0],module_code:pair[1],authority_version:1};
+  const state:{authorized:boolean;binding?:{workspace_id:string;tenant_id:string;membership_id:string}}={authorized:false};
+  const client=await makeConnect(command,claims,state)();let settled=false,live=false,pending=false,poisoned=false,first:unknown,failed=false;
+  try{
+   await client.query('begin isolation level serializable');
+   const epoch=await client.query('select revision::text from app_private.canonical_authority_revision_v1 where singleton for share');
+   if(epoch.rowCount!==1)fail('FINANCE_AUTHORITY_UNAVAILABLE');
+   command.authority_version=z.coerce.number().int().positive().safe().parse(epoch.rows[0]?.revision);
+   const args=[selected.context_id,selected.workspace_id,pair[0],pair[1],command.authority_version];
+   await client.query(CORE_FUNCTIONAL_RUNTIME_SQL.checkpoint,args);state.authorized=true;
+   const meta=await client.query(`select txid_current()::text as database_transaction_id,auth.uid()::text as actor_id`);
+   const m=z.strictObject({database_transaction_id:z.string().regex(/^[1-9][0-9]*$/),actor_id:uuid}).parse(meta.rows[0]);
+   if(meta.rowCount!==1||m.actor_id!==claims.sub||!state.binding)fail('FINANCE_SCOPE_DENIED');
+   const binding=state.binding!,scope:CoreTransactionScopeV1=Object.freeze({transaction_id:randomUUID(),database_transaction_id:m.database_transaction_id,
+    workspace_id:selected.workspace_id,tenant_id:binding.tenant_id,actor_id:claims.sub,attempt:1,
+    async query<Row extends QueryResultRow>(sql:string,values:unknown[]=[]){
+     const expected=kind==='plan'?[selected.cycle_id,binding.tenant_id,selected.workspace_id,selected.allocation_run_id,claims.sub,selected.context_id,m.database_transaction_id]
+      :[binding.tenant_id,`core-tx.v1:${selected.workspace_id}:${selected.idempotency_key}`,claims.sub,m.database_transaction_id,selected.context_id,selected.workspace_id,pair[0],pair[1]];
+     if(!live||pending||kind==='identity'||sql!==financeQueries[kind]||JSON.stringify(values)!==JSON.stringify(expected)){
+      poisoned=true;throw Error('FINANCE_QUERY_NOT_ADMITTED');
+     }
+     pending=true;try{return await client.query<Row>(sql,values);}catch(error){poisoned=true;throw error;}finally{pending=false;}
+    }});
+   live=true;let result:T;
+   try{result=await operation(scope,Object.freeze({actor_id:claims.sub,tenant_id:binding.tenant_id,membership_id:binding.membership_id,authority_version:command.authority_version}));}finally{live=false;}
+   if(pending||poisoned||options.request?.signal.aborted)fail('FINANCE_SCOPE_INVALIDATED');
+   // The fresh-time canonical wrapper is the last observation before rollback.
+   if(kind==='readback'&&result!==null&&typeof result==='object'&&'status' in result&&result.status==='observed'){
+    const receipt=z.object({receipt:coreTransactionReceiptV1Schema}).parse(result).receipt;
+    await client.query(financeReadFinal,[...args,`core-tx.v1:${selected.workspace_id}:${selected.idempotency_key}`,selected.request_hash,JSON.stringify(receipt)]);
+   }else await client.query(CORE_FUNCTIONAL_RUNTIME_SQL.checkpoint,args);
+   const ack=await client.query('rollback');if(ack.command!=='ROLLBACK')fail('READ_ROLLBACK_UNKNOWN');settled=true;state.authorized=false;
+   return result;
+  }catch(error){failed=true;first=error;let rollback_error:unknown;if(!settled)try{const ack=await client.query('rollback');settled=ack.command==='ROLLBACK';}catch(cleanup){rollback_error=cleanup;}
+   if(error!==null&&typeof error==='object')readFailures.set(error,Object.freeze({settlement:settled?'rolled_back':'unknown',cleanup:'destroy_requested',rollback_error}));throw error;
+  }finally{live=false;try{client.release(true);}catch(cleanup){if(!failed)throw cleanup;
+   if(first!==null&&typeof first==='object'){const prior=readFailures.get(first);readFailures.set(first,Object.freeze({settlement:settled?'rolled_back':'unknown',cleanup:'destroy_requested',rollback_error:prior?.rollback_error,cleanup_error:cleanup}));}}}
+ };
  /** Closed command-preparation identity read. No domain/provider callback,
   * command reservation, reusable scope, receipt, or mutation is exposed. */
  const resolveCommandIdentity=async(value:unknown)=>{
@@ -334,7 +396,7 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
    if(first!==null&&typeof first==='object'){const prior=readFailures.get(first);readFailures.set(first,Object.freeze({settlement:prior?.settlement??'unknown',cleanup:'destroy_requested',rollback_error:prior?.rollback_error,cleanup_error:cleanup}));}}}
  };
  const host=Object.freeze({contract_version:'core-transaction-host.v1' as const,execute,executeServiceOfferingReviseV1(command:unknown,providers:CoreTransactionProvidersV2,original:unknown){if(options.agreement_family!=='revise'||original===undefined)fail('REVISE_FAMILY_REQUIRED');return execute(command,providers,false,original) as Promise<CoreTransactionResultV2>;}}) as CoreTransactionHostV1 & {executeServiceOfferingReviseV1(command:unknown,providers:CoreTransactionProvidersV2,original:unknown):Promise<CoreTransactionResultV2>};
- return Object.freeze({host,reviseSource:producers.reviseSource,executeDocumentsReplayOnly(command:unknown,providers:CoreTransactionProvidersV1){return execute(command,providers,true);},readers:producers.readers,withRequestScope,readServiceApp,resolveCommandIdentity,async verifyServerSession(){await authenticate();},contract:CORE_FUNCTIONAL_COMMAND_RUNTIME_V1});
+ return Object.freeze({host,withFinanceScope,reviseSource:producers.reviseSource,executeDocumentsReplayOnly(command:unknown,providers:CoreTransactionProvidersV1){return execute(command,providers,true);},readers:producers.readers,withRequestScope,readServiceApp,resolveCommandIdentity,async verifyServerSession(){await authenticate();},contract:CORE_FUNCTIONAL_COMMAND_RUNTIME_V1});
 }
 /** No query runner is exported. Row type import preserves the real pg ABI. */
 export type CoreFunctionalRuntimeRowV1=QueryResultRow;

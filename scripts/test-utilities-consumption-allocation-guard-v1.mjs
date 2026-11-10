@@ -1,0 +1,22 @@
+/** Source and scheduling model only: never PostgreSQL execution or SQL parsing. */
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
+const source=read('supabase/migrations/20260908120000_utilities_metering_billing_slice.sql');
+const fn=source.match(/create or replace function utilities.bill_consumption\([\s\S]*?\n\$\$;/)[0];
+const original=fn.split('as $$')[1].split('$$;')[0];
+const proposal=read('supabase/proposals/utilities-monthly-input-v1/consumption-allocation-guard.sql');
+const before=proposal.match(/\$old\$([\s\S]*?)\$old\$/)[1],after=proposal.match(/\$new\$([\s\S]*?)\$new\$/)[1];
+const block=/  -- BEGIN consumption-allocation guard v1:[\s\S]*?  -- END consumption-allocation guard v1\.\n\n/;
+let count=0;function check(name,fn){fn();console.log(`PASS ${++count} ${name}`);}
+function guard(body){assert.ok(body.includes('for update;'));assert.ok(body.includes('perform finance.assert_consumption_not_allocated_v1(p_consumption_id)'));assert.ok(body.indexOf('for update;')<body.indexOf('perform finance.assert_consumption_not_allocated_v1(p_consumption_id)'));assert.ok(body.indexOf('perform finance.assert_consumption_not_allocated_v1(p_consumption_id)')<body.indexOf('billing.create_bill'));assert.match(body,/transaction_isolation/);assert.match(body,/relforcerowsecurity/);assert.match(body,/has_table_privilege/);assert.match(body,/raise exception 'consumption_claim_visibility_unproven'/);}
+check('whole original definition reconstructed exactly after removing the ONLY added guard',()=>{assert.equal(before,original);assert.equal(after.replace(block,''),original);assert.equal(after.match(block).length,1);});
+check('same-row lock precedes actual Finance claim helper and every billing effect',()=>guard(after));
+check('negative family: omitted/reordered guard, unsupported snapshot and hidden RLS claims fail source checker',()=>{const call='perform finance.assert_consumption_not_allocated_v1(p_consumption_id)';for(const bad of[after.replace(call,'perform unknown_claim()'),after.replace('for update;',';'),after.replace('transaction_isolation','isolation_removed'),after.replaceAll('relforcerowsecurity','hidden_rls'),after.replaceAll('has_table_privilege','unknown_privilege')])assert.throws(()=>guard(bad));});
+check('owner/ACL/defaults/security/search_path preserved by actual catalog-header replacement and poststate equality',()=>{for(const token of["p.proowner<>","p.prosrc IS DISTINCT FROM old_body","old_meta:=to_jsonb(p)-'prosrc'","header:=replace(definition,old_body,'')","EXECUTE replace(definition,old_body,new_body)","to_jsonb(p)-'prosrc' IS DISTINCT FROM old_meta"])assert.ok(proposal.includes(token),token);assert.ok(!/\b(grant|drop|if not exists)\b/i.test(proposal.replace(/^\s*--.*$/gm,'')));});
+check('helper exact body pin and VOLATILE/full visibility required; effective SELECT alone is insufficient',()=>{assert.match(proposal,/h\.provolatile<>'v'/);assert.match(proposal,/h\.prosecdef/);assert.match(proposal,/sha256\(convert_to\(h\.prosrc/);assert.match(after,/c\.relowner<>/);assert.match(after,/c\.relrowsecurity/);});
+check('counterexample scheduling: old Utilities bills after Finance claim, new RC guard denies',()=>{const committedClaim=true;const oldAllowed=true;assert.equal(oldAllowed,true);const guardedAllowed=!committedClaim;assert.equal(guardedAllowed,false);});
+check('reverse schedule: billed consumption excludes later Finance claim; RR is rejected, not falsely synchronized',()=>{const financeBasisEligible=cp=>cp.status==='approved'&&cp.invoice_id===null;assert.equal(financeBasisEligible({status:'billed',invoice_id:'existing'}),false);const admitted=isolation=>['read committed','read uncommitted','serializable'].includes(isolation);assert.equal(admitted('repeatable read'),false);assert.equal(admitted('read committed'),true);assert.equal(admitted('serializable'),true);});
+check('inactive proposal boundaries and exact body identity',()=>{assert.match(proposal,/^BEGIN;$/m);assert.match(proposal,/^COMMIT;$/m);assert.match(proposal,/lock_timeout='5s'/);assert.match(proposal,/statement_timeout='30s'/);assert.equal(createHash('sha256').update(before).digest('hex'),'c719f8d6d80afc14c7a9afe647a7ab6260675d9e3a5b4ad44e1c362530ce27aa');});
+console.log(JSON.stringify({new_groups:count,proof:'SOURCE_EQUIVALENCE_AND_SCHEDULING_MODEL_ONLY',SQL_parser:'NOT_RUN',PG_concurrency:'NOT_RUN_NOT_PASS',target:null}));
