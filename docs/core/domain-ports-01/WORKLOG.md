@@ -599,3 +599,35 @@ and adapter in the same declared files. No command/reservation is made for read.
 Two new direct read controls + changed static family control PASS; old mutation
 controls not repeated. Fifteen distinct new groups total, no native SQL claim.
 Three invoker functions closed owner ACL. Host/role/query admission still OPEN.
+
+
+## FIN-INPUT-02 actor/approval policy29 (paths before edits)
+Parent ab28c87a4eb82f5f462d3faf971149c4fec858f6; same workspace HEAD/WIP
+verified, only scripts/__pycache__/ remains untracked. Owner finalized invoice
+ingest/review keys, required independent reviewer by actor identity and exact
+content/version binding. No role/grant/activation authorization.
+Modify only src/lib/utilities/monthly-input-producer-v1.ts and proposal
+utilities-monthly-input-v1/{producer.sql,preflight.sql,verify.sql,recovery.md}.
+New: supabase/proposals/utilities-monthly-input-v1/origin-integrity.sql;
+scripts/test-utilities-invoice-approval-policy-v2.mjs;
+docs/core/domain-ports-01/finance-monthly-policy-29/{README.md,manifest.json}.
+Persist source actor as an append-only submission in existing canonical
+review_decisions; no new receipt/store/ledger or legacy actor backfill. Protect
+only this new source family's provenance/decision records, add unique origin
+per task. Source content-hash v2 includes exact scope/content/lines/provenance;
+no invented numeric source version. Invoice input/read contract versions advance
+explicitly; reading v1 remains unchanged. Existing healthy15/11/SERVICE suites
+not rerun. New actor/self-approval/hash-drift adapter/static checks only.
+Policy29 additionally declares supabase/proposals/utilities-monthly-input-v1/role-mapping-read-request.sql before creation: bounded read-only role census SOURCE only, no execution or positive mapping.
+Policy29 additionally declares affected scripts/test-utilities-monthly-input-producer-v1.mjs before edits: adapt only invoice/read fixtures/assertions to explicit v2, preserve healthy groups and do not execute them.
+Policy29 refinements: origin uniqueness is per tenant+invoice across tasks
+(not merely per task); insert validates actual actor/task/invoice/scope. Add
+new-family invoice content/approval immutability to cover the provenance fields
+not frozen by legacy guard; no legacy invoice behavior is changed. Six functions,
+one source-expression index, two triggers total. Install closed producer unit
+first, then integrity unit; separate COMMIT/recovery, never global rollback claim.
+Preparation uses invoice/task write-intent locks to avoid upgrade cycles; zero
+DML.12 new actor/version/late-failure groups PASS on actual adapters/controlled SQL;
+only affected source negatives rechecked after SQL edits. Older source checker
+negative adjusted to remove LAST guard, not a now-redundant earlier guard.
+Full ES5 typecheck/lint/syntax/diff pass, native/SQL/role mapping remain NOT_RUN.

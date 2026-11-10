@@ -8,9 +8,12 @@ executor or positive permission binding in this packet. Apply no SQL from chat.
    current Auth/session/C01/C03, transaction transport and observer. SERVICE role
    or permit does not satisfy this requirement. Unknown observation = STOP.
 2. Review/run preflight in its independent read-only transaction. Missing invoice
-   permission is an unresolved **policy** dependency; do not assign utilities.manage
+   permission/qualified existing-role mapping remains a closed **installation**
+   dependency despite owner approval of the two keys; do not assign utilities.manage
    or SERVICE permissions as fallback. No caller-chosen role/schema/SQL exists.
-3. The producer SQL is a single installation transaction, three new invoker functions,
+3. Only after reviewed prestate, apply producer.sql (closed functions), then
+   origin-integrity.sql (append-only origin and approved-content guards).
+   Combined source has six invoker functions, one origin index and two triggers,
    closed ACL and COMMIT. No existing helper/owner/trigger/table/policy is replaced.
    Every unexpected pre-existing new signature is a conflict, not replay-as-applied.
 4. Failure before confirmed installation COMMIT: bounded ROLLBACK on the same
@@ -40,3 +43,33 @@ captured meter reading, approved actor/role/AAL and target-bound two-cost/one-re
 fixtures. Do not seed approved:true or forge approval IDs. Observer checks actual
 invoice/line/review-decision/reading IDs and C03 receipt/audit/outbox after commit,
 then restart/readback under Platform's separate approval. SQL/PG/native not run here.
+
+Policy29: submission provenance is an append-only event in existing review_decisions,
+not a receipt/ledger. Never backfill legacy missing origins, delete committed
+origin/approval events, or reassign creator from current reviewer/session/context.
+Duplicates or a missing/foreign origin deny; immutable origin is held through the
+review transaction. Installation rollback removes uncommitted objects normally;
+rollback is not cleanup of confirmed business history. Pre-existing origin names,
+index/trigger or unexpected source/RLS are STOP, not IF NOT EXISTS or repair-as-applied.
+
+Invoice input v2/read-source v2/content-hash v2 are explicit. Reading remains v1.
+Old invoice v1 UNKNOWN must retain original key/body/actor and use canonical C03
+recovery; never synthesize origin or upgrade/resend with v2 data or a new command.
+Exact content hash is the actual version identity (not a numeric revision guess).
+Approval is invoice-only, never payment/publish/close; monthly president/censor
+and accountant acceptance remain independent. Core host terminal/native proof stays open.
+
+These two source units commit independently. If the origin-integrity unit fails,
+ROLLBACK covers only that unit; previously committed closed functions remain and
+must be verified, not assumed removed. No runtime is activated until both exact
+units, role mapping/ACL/RLS and verify are accepted. Any pre-existing entry names
+require a separately reviewed upgrade; current CREATE payloads do not overwrite
+an installed ab28 version. This is not permission to install either unit.
+
+The single immutable origin is keyed per invoice across all tasks. Same actor
+cannot escape by creating/switching tasks, sessions, Contexts or roles. No unknown
+creator is inferred for a legacy invoice. Origin/decision history and the new v2
+approved invoice content cannot be rewritten through ordinary DML. Existing
+approved-line protection remains unchanged. Independent external contract/document
+changes invalidate current content comparison; Finance must compare approval v2
+hash/image to current canonical inputs before capture, never use status alone.
