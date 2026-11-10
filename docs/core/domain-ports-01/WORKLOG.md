@@ -702,3 +702,42 @@ Final full ES5 and actual Finance622 overlay assignment, targeted lint/syntax/di
 PASS. Exact ten Finance622 parent→postimage entries and eleven protected Core
 source pins verified. Patch/bundle are additive to checkpoint1f only; no target
 or Page edit. Packaging/apply/reverse results are recorded in delivery identity.
+
+## Finance75 private reader31 — paths before edits
+Parent ef5beb10900b04a85cb75ceb6f9c0301a969b945, same branch/workspace;
+only prior scripts/__pycache__/ untracked. Shared Finance75 contract and actual
+214090-byte source envelope read. Checkpoint622 three findings CLOSED_SCOPED_SOURCE
+per Coordinator; not rerun/reopened or extended to invoice-v2/native.
+NEW supabase/proposals/core-finance-invoice-decisions-v2/{reader.sql,preflight.sql,
+verify.sql,recovery.md,rls-contract.json}; NEW scripts/
+render-core-finance-invoice-decisions-rls-v2.mjs,
+check-core-finance-invoice-decisions-v2.mjs,
+test-core-finance-invoice-decisions-v2.mjs;
+NEW docs/core/domain-ports-01/finance-private-reader-31/{README.md,manifest.json}.
+MODIFY only src/lib/core/finance-monthly-query-profile-v1.json's effective Finance
+source identity, not SQL/args/TS/HTTP; prior Core30 manifest remains historical.
+Reader and two narrow RLS projections are INVOKER, no parallel authority engine:
+canonical at-time C01/session checks, complete cross-actor/task scoped rows,
+policy+row-lock visibility proof, buffered deterministic locks and final recheck.
+No default owner/service_role fallback. Proposed SELECT/lock policies only for an
+actual private Platform principal, with UPDATE WITH CHECK false write fence;
+role/positive grants never created here. Platform owns actual admission/execution.
+No SQL/parser/PG/PGlite/Auth/target/install/activation. Only new source/model/
+limited rebind checks; healthy21/8, policy12 and Finance19 not repeated.
+Reader31 policy refinement: PG17 SELECT FOR SHARE also applies UPDATE USING.
+Exact scoped SELECT+lock policies and restrictive WITH CHECK(false) avoid both
+filtered locks and new business-update permission. Four transaction-local
+invoice/cycle/action selector GUCs are NOT allow proofs: each target row calls
+real canonical Finance/C01 and denial RAISES rather than silently filters. This
+prevents false completeness across expiry→new-grant gaps. Previous selectors
+restore before final fresh check; failed statement/transaction rolls them back.
+Reader31 results: 12 initial NEW source/reference-model/renderer groups +3
+freshness-refinement groups PASS; not SQL/PGlite/PG/Auth/RLS evidence. Real
+Finance75 rebind verified: old10 pins have9 identical/1 kernel changed; new
+SQL/image/forward-migration/seal/loader pins verified; external TS/HTTP/query args
+byte-identical. Three invoker source definitions and exact policy-source shape,
+original40001 propagation and no DML are source checked. PG17 upstream policy.c/
+rowsecurity.c inspected only for lock/RLS reasoning, not target behavior proof.
+No TS change, so accepted full ES5/21/8/policy12/Finance19/622 suites NOT_REPEATED.
+New MJS syntax/focused lint/diff PASS; install/parser/compile/native/target NEVER
+executed. Actual role/ACL/RLS/delegation/native admission remains Platform/QA.
