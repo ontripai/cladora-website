@@ -543,3 +543,26 @@ JS syntax and new source/body/query checker PASS. Source/module identities were
 rechecked after the SAME environment returned ready; WIP and retained proofs matched.
 Last source currentness is final combined DB observation, not authority through
 ACK/delivery; operation/target/permit remain NULL and all native gates remain open.
+
+
+## FIN-MONTHLY-E2E-01 — canonical input reference handoff (before edits)
+Parent/source discovery: 8d64bc5b868567edb32494d187feaf65fc03382f.
+Preserve untracked scripts/__pycache__/ and accepted SERVICE/Core26 source/proofs.
+Exact new paths: src/lib/core/monthly-source-handoff-v1.ts;
+scripts/test-core-monthly-source-handoff-v1.mjs;
+docs/core/domain-ports-01/finance-monthly-input-27/README.md;
+docs/core/domain-ports-01/finance-monthly-input-27/manifest.json.
+Only this worklog is additionally changed. No owner Finance/UI/Utilities/Operations
+file, SQL, host/evaluator, dependency or activation edit. Handoff only prepares
+existing monthly capture wire from strict qualified source references. It is not
+a canonical persisted-source reader or authorization; maintenance payable remains
+NOT_READY at monthly capture. Native inputs and approved run are not available.
+Official task attachment24492bytes SHA25670033eeae132efd6dc24b8175594ee0efa1d6dc24ad18b2e01a05e7800b45bd1
+read through shared Viewer Page; no target access. Validate only this new adapter
+and pins; do not rerun SERVICE17/Finance072–076 or earlier accepted suites.
+Finance27 result:11 new groups PASS using actual existing monthly action handler
+and real schemas; only SDK boundary controlled. Full project ES5 typecheck and
+focused lint PASS; no previous suites run. Canonical source pins include the
+work-order authority supplement. No authority/source approval inferred from
+planner; utility invoice ingestion, maintenance-monthly bridge and exact persisted
+snapshot/period/currency semantics are explicit owner requests. No target action.
