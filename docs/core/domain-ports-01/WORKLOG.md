@@ -566,3 +566,36 @@ focused lint PASS; no previous suites run. Canonical source pins include the
 work-order authority supplement. No authority/source approval inferred from
 planner; utility invoice ingestion, maintenance-monthly bridge and exact persisted
 snapshot/period/currency semantics are explicit owner requests. No target action.
+
+
+## FIN-INPUT-02 — source producer (paths declared before editing)
+Same workspace resumed; HEAD57a1525d35ba4bcfbe4d998bd48e37e9f9dee547,
+no tracked changes, only preserved scripts/__pycache__/. Environment connected.
+New paths: src/lib/utilities/monthly-input-producer-v1.ts;
+supabase/proposals/utilities-monthly-input-v1/producer.sql;
+supabase/proposals/utilities-monthly-input-v1/preflight.sql;
+supabase/proposals/utilities-monthly-input-v1/verify.sql;
+supabase/proposals/utilities-monthly-input-v1/recovery.md;
+scripts/test-utilities-monthly-input-producer-v1.mjs;
+docs/core/domain-ports-01/finance-monthly-input-28/README.md;
+docs/core/domain-ports-01/finance-monthly-input-28/manifest.json.
+No accepted57/host/evaluator/Finance file or historical migration edit.
+Implement domain SQL and typed same-C03-scope adapter; closed default binding.
+No independent command engine/ledger/receipt, no financial write, no data fixture.
+Invoice ingest/review require explicit proposed permission keys (no positive role
+assignment); missing canonical policy denies rather than borrowing SERVICE or
+meter permissions. Native actor/role/RLS/installation acceptance remains open.
+Only new affected adapter controls/static source analysis/typecheck/lint; no11
+accepted57, SERVICE17, Finance072–076 or other healthy suite re-execution.
+Input28:13 new controlled/static groups PASS; final SQL parent→child lock and
+malformed-source refinements got affected source-only recheck. Full ES5 typecheck,
+focused lint/syntax/diff passed. Accepted57 and shared host bytes unchanged.
+Invoice permission mapping/reviewer policy, actual source custody and role/RLS/
+C03 native composition remain OPEN; two new invoker functions closed owner ACL,
+no permission registration or runtime binding. No SQL/parser/PG/Auth/fixture ran.
+Input28 review refinement: full invoice+ordered locked lines, not just header,
+bind review to its actual task/preimage; add exact read-only preparation helper
+and adapter in the same declared files. No command/reservation is made for read.
+Two new direct read controls + changed static family control PASS; old mutation
+controls not repeated. Fifteen distinct new groups total, no native SQL claim.
+Three invoker functions closed owner ACL. Host/role/query admission still OPEN.
