@@ -7,7 +7,7 @@ DO $verify$ DECLARE role_oid oid; f record; p pg_proc; BEGIN
  FOR f IN SELECT * FROM (VALUES
  ('app_private.finance_invoice_origin_scope_v2(uuid,uuid)','e02748281ef2a59d1f1537040be2e6dc01ba0659a864850a98ce7a0de8559142'),
  ('app_private.finance_invoice_decision_scope_v2(uuid,uuid,text,text,jsonb)','596227506f5b244168e66e5373345eb3ccea323cb5dda3ecb80bc9f0a6d2c8b7'),
- ('app_private.lock_finance_invoice_decisions_v2(uuid,uuid,text,text,uuid,uuid)','815759f80526b8386cad743603159ee0fb5e7b897aa777f3fc95ab15bd7a47dd')) x(signature,body_hash) LOOP
+ ('app_private.lock_finance_invoice_decisions_v2(uuid,uuid,text,text,uuid,uuid)','1ab4160f37d53d3f8b8f6f7056645cc2ed8ce0aed3e4a03b477fbd723e1c01e1')) x(signature,body_hash) LOOP
  SELECT * INTO STRICT p FROM pg_proc WHERE oid=to_regprocedure(f.signature);
  IF p.prosecdef OR p.provolatile<>'v' OR p.proconfig IS DISTINCT FROM ARRAY['search_path=pg_catalog']
   OR encode(sha256(convert_to(p.prosrc,'UTF8')),'hex')<>f.body_hash
@@ -39,13 +39,13 @@ DO $policies$ DECLARE who pg_roles; rel record; policy record; expected record; 
    ('select','r'::"char",true),('lock','w'::"char",true),('no_write','w'::"char",false)) x(suffix,command,permissive)
   LOOP
    SELECT * INTO policy FROM pg_policy WHERE polrelid=rel.oid AND polname=
-    CASE WHEN rel.oid='utilities.review_tasks'::regclass THEN 'core_finance_invoice_tasks_v2_' ELSE 'core_finance_invoice_decisions_v2_' END||expected.suffix;
+    (CASE WHEN rel.oid='utilities.review_tasks'::regclass THEN 'core_finance_invoice_tasks_v2_' ELSE 'core_finance_invoice_decisions_v2_' END)||expected.suffix;
    IF NOT FOUND OR policy.polcmd<>expected.command OR policy.polpermissive<>expected.permissive
     OR policy.polroles IS DISTINCT FROM ARRAY[who.oid]::oid[]
-    OR pg_get_expr(policy.polqual,rel.oid) IS DISTINCT FROM CASE
+    OR pg_get_expr(policy.polqual,rel.oid) IS DISTINCT FROM (CASE
      WHEN expected.suffix='no_write' THEN 'true'
      WHEN rel.oid='utilities.review_tasks'::regclass THEN 'app_private.finance_invoice_origin_scope_v2(tenant_id, invoice_id)'
-     ELSE 'app_private.finance_invoice_decision_scope_v2(tenant_id, task_id, decision, reason, after_snapshot)' END
+     ELSE 'app_private.finance_invoice_decision_scope_v2(tenant_id, task_id, decision, reason, after_snapshot)' END)
     OR (expected.command='w' AND pg_get_expr(policy.polwithcheck,rel.oid) IS DISTINCT FROM 'false')
     OR (expected.command='r' AND policy.polwithcheck IS NOT NULL)
    THEN RAISE EXCEPTION 'finance_invoice_visibility_not_ready' USING ERRCODE='55000'; END IF;
@@ -56,7 +56,7 @@ DO $policies$ DECLARE who pg_roles; rel record; policy record; expected record; 
    AND p.polcmd IN ('r','w','*') AND (0=ANY(p.polroles) OR EXISTS(
     SELECT 1 FROM unnest(p.polroles) role_oid WHERE role_oid<>0 AND pg_has_role(who.oid,role_oid,'USAGE')))
    AND NOT (p.polcmd='w' AND p.polroles=ARRAY[who.oid]::oid[] AND p.polname=
-    CASE WHEN rel.oid='utilities.review_tasks'::regclass THEN 'core_finance_invoice_tasks_v2_no_write' ELSE 'core_finance_invoice_decisions_v2_no_write' END))
+    (CASE WHEN rel.oid='utilities.review_tasks'::regclass THEN 'core_finance_invoice_tasks_v2_no_write' ELSE 'core_finance_invoice_decisions_v2_no_write' END)))
   THEN RAISE EXCEPTION 'finance_invoice_visibility_not_ready' USING ERRCODE='55000'; END IF;
  END LOOP;
 END $policies$;

@@ -164,13 +164,13 @@ BEGIN
    ('select','r'::"char",true),('lock','w'::"char",true),('no_write','w'::"char",false)) x(suffix,command,permissive)
   LOOP
    SELECT * INTO policy FROM pg_policy WHERE polrelid=rel.oid AND polname=
-    CASE WHEN rel.oid='utilities.review_tasks'::regclass THEN 'core_finance_invoice_tasks_v2_' ELSE 'core_finance_invoice_decisions_v2_' END||expected.suffix;
+    (CASE WHEN rel.oid='utilities.review_tasks'::regclass THEN 'core_finance_invoice_tasks_v2_' ELSE 'core_finance_invoice_decisions_v2_' END)||expected.suffix;
    IF NOT FOUND OR policy.polcmd<>expected.command OR policy.polpermissive<>expected.permissive
     OR policy.polroles IS DISTINCT FROM ARRAY[who.oid]::oid[]
-    OR pg_get_expr(policy.polqual,rel.oid) IS DISTINCT FROM CASE
+    OR pg_get_expr(policy.polqual,rel.oid) IS DISTINCT FROM (CASE
      WHEN expected.suffix='no_write' THEN 'true'
      WHEN rel.oid='utilities.review_tasks'::regclass THEN 'app_private.finance_invoice_origin_scope_v2(tenant_id, invoice_id)'
-     ELSE 'app_private.finance_invoice_decision_scope_v2(tenant_id, task_id, decision, reason, after_snapshot)' END
+     ELSE 'app_private.finance_invoice_decision_scope_v2(tenant_id, task_id, decision, reason, after_snapshot)' END)
     OR (expected.command='w' AND pg_get_expr(policy.polwithcheck,rel.oid) IS DISTINCT FROM 'false')
     OR (expected.command='r' AND policy.polwithcheck IS NOT NULL)
    THEN RAISE EXCEPTION 'finance_invoice_visibility_not_ready' USING ERRCODE='55000'; END IF;
@@ -181,7 +181,7 @@ BEGIN
    AND p.polcmd IN ('r','w','*') AND (0=ANY(p.polroles) OR EXISTS(
     SELECT 1 FROM unnest(p.polroles) role_oid WHERE role_oid<>0 AND pg_has_role(current_user,role_oid,'USAGE')))
    AND NOT (p.polcmd='w' AND p.polroles=ARRAY[who.oid]::oid[] AND p.polname=
-    CASE WHEN rel.oid='utilities.review_tasks'::regclass THEN 'core_finance_invoice_tasks_v2_no_write' ELSE 'core_finance_invoice_decisions_v2_no_write' END))
+    (CASE WHEN rel.oid='utilities.review_tasks'::regclass THEN 'core_finance_invoice_tasks_v2_no_write' ELSE 'core_finance_invoice_decisions_v2_no_write' END)))
   THEN RAISE EXCEPTION 'finance_invoice_visibility_not_ready' USING ERRCODE='55000'; END IF;
  END LOOP;
  -- Lock ALL invoice tasks, not only the selected approved task. Prevent new

@@ -741,3 +741,48 @@ rowsecurity.c inspected only for lock/RLS reasoning, not target behavior proof.
 No TS change, so accepted full ES5/21/8/policy12/Finance19/622 suites NOT_REPEATED.
 New MJS syntax/focused lint/diff PASS; install/parser/compile/native/target NEVER
 executed. Actual role/ACL/RLS/delegation/native admission remains Platform/QA.
+
+## ENTRY-01 coordination32 — exact paths before edits
+Parent c39824bc0cd77cf52f8a831c14d4d186ca477b0a verified; same branch, prior
+scripts/__pycache__/ preserved. Shared ENTRY-01 and actual Finance private Page
+read. Consumer successor fixing entry not delivered yet; Finance197 allocation
+is independent and does not count as an ENTRY fix.
+ENTRY requires no ABI/policy widening: Finance's PRIVATE canonical snapshot must
+own selector lifetime enclosing its first task lock and subsequent decision use;
+nested Core reader restores that authorized outer scope. No public setter/preseed.
+Independent actual Finance receipt FIN-CORE31-COUPLING-01 (28369 bytes, SHA256
+b413f605d69460c450e10a3e5c02fe0adaede5a2536a5c33d83cdfb26d6a5879) reports
+PGlite42601 at CASE guard in the exact unchanged Core source. Minimal necessary
+syntax fix only: MODIFY supabase/proposals/core-finance-invoice-decisions-v2/
+reader.sql and verify.sql, parenthesize the same three CASE expressions, update
+only reader checksum in verifier. No role/ACL/RLS/ABI/scope/lock change.
+NEW docs/core/domain-ports-01/finance-entry-contract-32/{README.md,manifest.json};
+NEW scripts/check-core-finance-entry-contract-v2.mjs. Verify exact whole-body
+reconstruction and IF delimiter source counterexample, not SQL compile/run.
+15/21/8/policy12/Finance19/622/QA entry models NOT_REPEATED. No Finance owner
+files, host/evaluator/TS/HTTP, target, SQL/Auth/install/activation or runtime change.
+User update authorizes the same limited embedded compile and newly reachable
+coupling, NOT PG server/native/target. Exact Finance harness/fixture received;
+PGlite absent locally. Isolated artifact-only @electric-sql/pglite@0.5.16 prepared
+with scripts disabled, project package/lock untouched. Owner tool version requested;
+not claimed identical until provided. NEW scripts/check-core-finance-reader-compile-v2.mjs
+before creation: load original receipt/harness by hash, substitute ONLY reader file
+and body pins, invoke actual source in ephemeral WASM with an allowlisted child env.
+No accepted Finance19/Core15 suite import or private reader replacement.
+Additional exact path before creation: docs/core/domain-ports-01/
+finance-entry-contract-32/compile-evidence.json. Actual limited embedded run PASS:
+new source compiled/loaded; four newly reachable actual Finance→Core checks in
+same received harness, only TWO expected pin literals advanced. Missing RLS
+remains NOT_READY; mismatch denied; no monthly capture/receipt. Auth/C01/session/
+schema/role fixtures remain synthetic, NOT native. PGlite0.5.16 artifact-only,
+owner engine version still unconfirmed. No project dependency/lock changed.
+Final tool applicability refinement: first0.5.16 embedded engine reports PG18.6,
+so it is retained but not PG17 evidence. Isolated0.3.14 reports PostgreSQL17.5 WASM;
+same actual harness newly reachable four checks PASS there too. Additional
+compile-only pre-grant prefix asserts check_function_bodies=on BEFORE actual
+reader CREATE and confirms all three definitions; no healthy suite rerun.
+Owner exact PGlite version remains unconfirmed; server/native/actual RLS/ENTRY
+closure NOT_RUN/pending. User accepted the unchanged-ABI outer Finance scope
+contract: after canonical guard, establish selectors BEFORE first source/task
+query, nested restore, restore originals before last fresh check. Actual Finance
+ENTRY successor still absent; allocation197 not substituted. No allocation work.
