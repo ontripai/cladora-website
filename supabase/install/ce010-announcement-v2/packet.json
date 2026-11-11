@@ -1,0 +1,155 @@
+{
+  "contract": "ce010-admission-packet.v2",
+  "base": "c89feaedb8ffe7f7302fe6e34864aad6e06bb7b1",
+  "producer": "6adb3e3f0ffc72f1f138a4990b23653a7c5b62cd",
+  "metadata": "103ee9ad61c033a0745b2558b052912f16381ee2",
+  "sources": [
+    {
+      "scope": "ce",
+      "ref": "c89feaedb8ffe7f7302fe6e34864aad6e06bb7b1",
+      "path": "src/app/api/customer/v1/community/base/route.ts",
+      "bytes": 5131,
+      "sha256": "2192521ed308093379df9031eb4839d2193818456b61ebc17318e9a9bcd48d4d",
+      "git_blob": "e485e4d5954110a47d6bf7e5cb06293f22432657"
+    },
+    {
+      "scope": "ce",
+      "ref": "c89feaedb8ffe7f7302fe6e34864aad6e06bb7b1",
+      "path": "src/lib/community/community-announcement-platform-provider-v1.ts",
+      "bytes": 623,
+      "sha256": "5136a195edb2afada122c0fbb2d08f84df2ee9bb89a619ce1dff7787106c7163",
+      "git_blob": "d49899970ce1abcecb35f37626530980470273ac"
+    },
+    {
+      "scope": "ce",
+      "ref": "c89feaedb8ffe7f7302fe6e34864aad6e06bb7b1",
+      "path": "src/lib/community/community-announcement-http-v1.ts",
+      "bytes": 8106,
+      "sha256": "d3b50b33dd0189a53a584cd494d64ff883b7c089e339c50bbb8d76a9279a5765",
+      "git_blob": "8450708b8a9d352c766b891c8cebe7687eb0adfb"
+    },
+    {
+      "scope": "ce",
+      "ref": "c89feaedb8ffe7f7302fe6e34864aad6e06bb7b1",
+      "path": "src/lib/community/community-announcement-provider-v1.ts",
+      "bytes": 11100,
+      "sha256": "b34f8cdcd332a9336ba4da11655722d21364dd411879cdaa31cf88ae8bb7dd56",
+      "git_blob": "1f15385912b14200686bb45de82f4f009876ae5b"
+    },
+    {
+      "scope": "legacy",
+      "ref": "989e35a78363908357f65460011492e0472dc047",
+      "path": "supabase/install/ce010-announcement-v1/packet.json",
+      "bytes": 31870,
+      "sha256": "a1c7a2f357cd319d89e83d7a3fcb971fdfd223b47aa3b02e3ea1c7ac8bc9892a",
+      "git_blob": "1ee09925b730d1ef75091a446bc652579fdff92d"
+    },
+    {
+      "scope": "legacy",
+      "ref": "989e35a78363908357f65460011492e0472dc047",
+      "path": "supabase/install/ce010-announcement-v1/10-domain-candidate.sql",
+      "bytes": 26294,
+      "sha256": "91e97be48b473852b16d41fa1437bd6ec7e0f8343cdb1a1df7ba80ea194fa5dd",
+      "git_blob": "0d8ae6cd3622389ec83bece8a03335dc7159917d"
+    },
+    {
+      "scope": "legacy",
+      "ref": "989e35a78363908357f65460011492e0472dc047",
+      "path": "docs/contracts/ce010-community-announcement-01/install-packet/dependencies.json",
+      "bytes": 17182,
+      "sha256": "e0001c6bff6678820f6f50e9d0711a856c7a85450cf1e9a68b690d892794c81c",
+      "git_blob": "ddc1ad023abc72ef0b768f14776bff527223a368"
+    },
+    {
+      "scope": "core",
+      "ref": "103ee9ad61c033a0745b2558b052912f16381ee2",
+      "path": "src/lib/core/ce010-request-binding-v1.ts",
+      "bytes": 15164,
+      "sha256": "18c6a299465f9e6838b2ad8cebd92f5785877a28352d310f788f22d349a67d84",
+      "git_blob": "844abbececc0263c42e42a8359bdeef65e390408"
+    },
+    {
+      "scope": "core",
+      "ref": "103ee9ad61c033a0745b2558b052912f16381ee2",
+      "path": "src/lib/core/ce010-query-profile-v1.json",
+      "bytes": 13147,
+      "sha256": "0069780e3f14a056800f6923b251b47a5d303d1ab2dfbb40ea448f7ada751839",
+      "git_blob": "8f76d65962deb52967d615d3bec53631fcff5b08"
+    },
+    {
+      "scope": "core",
+      "ref": "103ee9ad61c033a0745b2558b052912f16381ee2",
+      "path": "src/lib/core/platform-role-bound-pool-v1.ts",
+      "bytes": 12209,
+      "sha256": "a09a91da3d89f785a49559999482db6994a7607b375faa38aa0f994701522e17",
+      "git_blob": "2e91086349247b00c461d83c3cdf4ce5be6026be"
+    },
+    {
+      "scope": "core",
+      "ref": "103ee9ad61c033a0745b2558b052912f16381ee2",
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "bytes": 64851,
+      "sha256": "e269802f7b4b5b376eb3910d9f1b55f42eb8abc87d1cf75fd9d019a0ffd2297a",
+      "git_blob": "8a2c5e97f929af3b52c66656046143fbf7fcbba1"
+    },
+    {
+      "scope": "core",
+      "ref": "103ee9ad61c033a0745b2558b052912f16381ee2",
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "git_blob": "e67df2d947608f546dab42dba88b5bdc418cbffb"
+    },
+    {
+      "scope": "core",
+      "ref": "103ee9ad61c033a0745b2558b052912f16381ee2",
+      "path": "docs/core/domain-ports-01/ce010-producer-19/profile-contract.json",
+      "bytes": 4666,
+      "sha256": "75f139b554012956ae359dbb7547641a39908dac9a411cb4a6038368b42290b7",
+      "git_blob": "8496b60471305f59abc16a4263a4a1e132855b17"
+    },
+    {
+      "scope": "core",
+      "ref": "103ee9ad61c033a0745b2558b052912f16381ee2",
+      "path": "docs/core/domain-ports-01/ce010-producer-19/reference-correction.json",
+      "bytes": 3091,
+      "sha256": "4b8445d41f991cd63afd591122d3a0f544543b835cea01d648dcc318a23312cd",
+      "git_blob": "b4259e3b15ac02bdc6944dd8d4337fac53b235f6"
+    }
+  ],
+  "files": [
+    {
+      "path": "inventory.json",
+      "bytes": 48319,
+      "sha256": "14f75647057ddf6668e4026b1a0b2260cca61c9ada3d3d39786c08b940874476"
+    },
+    {
+      "path": "fresh-plan.json",
+      "bytes": 1838,
+      "sha256": "50266f2fe50c553f075e01ac620e11effd2e99433c2c885c3b1c51d4e5315897"
+    },
+    {
+      "path": "adaptation-plan.json",
+      "bytes": 1076,
+      "sha256": "7762b714643bde869bef8b857561e891f5b322dd2add200f51790cf6ec7f98e5"
+    },
+    {
+      "path": "00-preflight.sql",
+      "bytes": 6310,
+      "sha256": "460d80f9056df9a4f6f977a90341d7f3fe184033258fbe64961bbd35881970c7"
+    },
+    {
+      "path": "20-verify.sql",
+      "bytes": 6307,
+      "sha256": "f1e8a459bfb2e7521ba3272eb4f368d37d7d7b3afac653418e5416def77b4e8d"
+    },
+    {
+      "path": "30-recovery.sql",
+      "bytes": 6319,
+      "sha256": "3263161631d217464d3c75fe37f22c6306d9a08041ab91a370decafd7707e71c"
+    }
+  ],
+  "status": "SOURCE_RECONSTRUCTED_CAPABILITY_BLOCKED",
+  "activation": null,
+  "native": "NOT_RUN_NOT_PASS"
+}
