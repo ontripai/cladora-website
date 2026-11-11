@@ -1,0 +1,83 @@
+{
+  "task": "CE011_SQL_COMPILE",
+  "executor": "CLADORA-CE-WORKER-01",
+  "source": {
+    "path": "supabase/proposals/ce011-basic-event-command-v2/command.sql",
+    "bytes": 27198,
+    "sha256": "8c50327189769c022fd3c9b13f1620d9abb8fc910fe01e670aa2ec12c304d1ce",
+    "guard_untouched": true
+  },
+  "legacy_source": {
+    "path": "supabase/proposals/ce_011_event_interest_operational_v1.sql",
+    "sha256": "5894363db4fa0fee49737371546e9cd1cbeddb2dcc44723a81cca396004feafc"
+  },
+  "harness_sha256": "24c502e4768543285935ec1008b00b10ffe3de82c39d23dc5f086f068d3802c5",
+  "fixture_sha256": "abc1300ffa4f0289fb3e85413d9fd809146ce6dc45e1cb962ab084b096c1af25",
+  "engine": {
+    "name": "@electric-sql/pglite",
+    "version": "0.3.14",
+    "pins": {
+      "dist/index.js": "03bce0708dbe57ab154c75089ded04c47d0a9e713fe397dee33cd3912101cab5",
+      "dist/pglite.wasm": "8140392c5f70c5aecb40f514db242fce4223cfdd5f37a2b101dbdc30208dc49d",
+      "dist/pglite.data": "4703ec26f5710abb62db42acad229478b75c51ef7f3bb037286bb2bac139a930",
+      "package.json": "a540c379fd1d820810793681d25fa7ad5dadfcee2b190d14a6553fdb469cfe3c"
+    },
+    "mode": "POSTGRESQL_WASM_IN_MEMORY_TASK_OWNED",
+    "postgres": {
+      "version": "PostgreSQL 17.5 on aarch64-unknown-linux-gnu, compiled by emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 3.1.74 (1092ec30a3fb1d46b1782ff1b4db5094d3d06ae5), 32-bit",
+      "server_version_num": "170005"
+    }
+  },
+  "dependency_class": {
+    "CE_tables": "7 exact canonical declarations",
+    "CE_authorizer": "exact canonical declaration",
+    "Core_Auth_shared_shapes": "EXPLICIT_DENY_ONLY_SUBSTITUTES",
+    "RLS_roles_triggers": "NOT_INSTALLED"
+  },
+  "units": [
+    {
+      "signature": "app_private.ce011_audience_current_v2(uuid,uuid)",
+      "offset": 301,
+      "bytes": 1874,
+      "declaration_sha256": "3dec1e2a3c335e8c0b45ed06a0dc0498a6acc43d9d5fbe7870ac4256e865cc56",
+      "source_body_sha256": "eab3e34c17a1aabf14105094904324f9ac258c1cdbf61570205edde7d7111c1b",
+      "status": "PASS_EMBEDDED_BODY_VALIDATION",
+      "compiled_body_sha256": "eab3e34c17a1aabf14105094904324f9ac258c1cdbf61570205edde7d7111c1b",
+      "definition_sha256": "4b51ef4732ab47657c93f3031f078de31a711645726cb35540021da57672ec79",
+      "identity_arguments": "p_event_id uuid, p_membership_id uuid",
+      "security_definer": true,
+      "volatility": "v",
+      "config": [
+        "search_path=pg_catalog"
+      ]
+    },
+    {
+      "signature": "customer_api.command_ce_event_v2(jsonb)",
+      "offset": 2177,
+      "bytes": 24626,
+      "declaration_sha256": "a459ee1634e063fc84012d881a62cc565a0749e6c9a5b2617674db2aa722194e",
+      "source_body_sha256": "633a539cb36a51d4f067859344a5a254a3abbdc3839e28d67b39ea89cf34feba",
+      "status": "PASS_EMBEDDED_BODY_VALIDATION",
+      "compiled_body_sha256": "633a539cb36a51d4f067859344a5a254a3abbdc3839e28d67b39ea89cf34feba",
+      "definition_sha256": "1133e584191bd84fc35dc948c366a6378de5acddb376a68d9d13b43b2b8fd0e3",
+      "identity_arguments": "p_request jsonb",
+      "security_definer": true,
+      "volatility": "v",
+      "config": [
+        "search_path=pg_catalog"
+      ]
+    }
+  ],
+  "status": "PASS_EMBEDDED_BODY_VALIDATION_ONLY",
+  "native_RLS": "NOT_RUN_NOT_PASS",
+  "installation": "NOT_RUN",
+  "real_Auth": "NOT_RUN",
+  "all_seven_execution_plans": "NOT_RUN_NOT_CLAIMED",
+  "check_function_bodies": "on",
+  "invalid_body_control": {
+    "result": "REJECTED",
+    "SQLSTATE": "42601"
+  },
+  "fixture_guard_control": "DENY_ONLY",
+  "guard_unchanged_after": true
+}

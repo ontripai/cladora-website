@@ -1,0 +1,75 @@
+{
+  "engine": "@electric-sql/pglite",
+  "version": "0.3.14",
+  "public_tarball": "https://registry.npmjs.org/@electric-sql/pglite/-/pglite-0.3.14.tgz",
+  "npm_integrity": "sha512-3DB258dhqdsArOI1fIt7cb9RpUOgcDg5hXWVgVHAeqVQ/qxtFy605QKs4gx6mFq3jWsSPqDN8TgSEsqC3OfV9Q==",
+  "tarball_bytes": 6803270,
+  "tarball_sha256": "1e5a4ddec392f7edf604b5db8d679b822fab013c4004bbcb5ff58684d5712e38",
+  "engine_files": [
+    {
+      "path": "runtime/LICENSE",
+      "bytes": 10173,
+      "sha256": "a6cba85bc92e0cff7a450b1d873c0eaa2e9fc96bf472df0247a26bec77bf3ff9"
+    },
+    {
+      "path": "runtime/dist/chunk-3WWIVTCY.js",
+      "bytes": 20270,
+      "sha256": "144a34c1e07ac2ed140606b6251cba8c1526d050d1c951c91bb38909e30d17b2"
+    },
+    {
+      "path": "runtime/dist/chunk-F2DQ4FIK.js",
+      "bytes": 4209,
+      "sha256": "659d29def262133c5ae937b73d3ba8fbd9a0c8749634a03d416662a3df223deb"
+    },
+    {
+      "path": "runtime/dist/chunk-F4GETNPB.js",
+      "bytes": 998,
+      "sha256": "5ab11fd9fd74b259484f42a7855cd9569a5fe6ee1cf3c032238ac43a59511d97"
+    },
+    {
+      "path": "runtime/dist/chunk-QY3QWFKW.js",
+      "bytes": 1335,
+      "sha256": "bff6d3144dd6ea2689b00d9d0eea1ea2267b9cc14505fb9107b6194c1832bdea"
+    },
+    {
+      "path": "runtime/dist/chunk-VBDAOXYI.js",
+      "bytes": 14926,
+      "sha256": "484585558e9a3f852712b744f7c2c7601e339c7431b8e4f862c91ed59003e640"
+    },
+    {
+      "path": "runtime/dist/fs/nodefs.js",
+      "bytes": 536,
+      "sha256": "4b0a8239034ff8d71ea779c62b878068562925eb1c266ff6801975e57a797e06"
+    },
+    {
+      "path": "runtime/dist/fs/opfs-ahp.js",
+      "bytes": 10083,
+      "sha256": "4a475a25a3c89f1e8ba041f1cda2c8593808685e4829564a04efd9c7798bfd76"
+    },
+    {
+      "path": "runtime/dist/index.js",
+      "bytes": 356948,
+      "sha256": "03bce0708dbe57ab154c75089ded04c47d0a9e713fe397dee33cd3912101cab5"
+    },
+    {
+      "path": "runtime/dist/pglite.data",
+      "bytes": 4939155,
+      "sha256": "4703ec26f5710abb62db42acad229478b75c51ef7f3bb037286bb2bac139a930"
+    },
+    {
+      "path": "runtime/dist/pglite.wasm",
+      "bytes": 8859436,
+      "sha256": "8140392c5f70c5aecb40f514db242fce4223cfdd5f37a2b101dbdc30208dc49d"
+    },
+    {
+      "path": "runtime/package.json",
+      "bytes": 5853,
+      "sha256": "a540c379fd1d820810793681d25fa7ad5dadfcee2b190d14a6553fdb469cfe3c"
+    }
+  ],
+  "engine_files_checked": "ALL_12_MATCH",
+  "reference_files_manifest_sha256": "88e3d76e7f4cc116400eb773fb6ad5733e0d1c8f3be65a698c58f24fbb196a92",
+  "provenance_boundary": "Original private capsule inspect returned404 on this connection. Only its authorized files.json was read. Public runtime was independently materialized from pinned NPM tarball; no private capsule/Finance fixtures reconstructed. Historical runtime identity remains unproven.",
+  "materialization": "Local task-owned extraction only; no npm install/hooks, package/lock changes or shared runtime installation",
+  "binary_in_source_artifact": false
+}
