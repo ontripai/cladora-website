@@ -1,4 +1,10 @@
 -- Catalog-only proposal. No claims, review records or Auth fixtures are read.
+-- Core33: keep SELECT + UPDATE(id), no table UPDATE/MAINTAIN workaround.
+-- Zero-tuple FOR SHARE obtains RowShareLock before policy proof on both tables.
+-- Existing a2ad deployment: exact preimage body/owner/ACL required by
+-- upgrade-rowshare-v3.sql; absent fresh installation uses reader.sql instead.
+-- Native observer must verify held RowShareLock and policy DDL blocking in an
+-- isolated two-connection case; catalog observation alone is not that proof.
 BEGIN READ ONLY;
 SET LOCAL lock_timeout='5s';
 SET LOCAL statement_timeout='30s';

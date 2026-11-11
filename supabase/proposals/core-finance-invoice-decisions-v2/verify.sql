@@ -7,7 +7,7 @@ DO $verify$ DECLARE role_oid oid; f record; p pg_proc; BEGIN
  FOR f IN SELECT * FROM (VALUES
  ('app_private.finance_invoice_origin_scope_v2(uuid,uuid)','e02748281ef2a59d1f1537040be2e6dc01ba0659a864850a98ce7a0de8559142'),
  ('app_private.finance_invoice_decision_scope_v2(uuid,uuid,text,text,jsonb)','596227506f5b244168e66e5373345eb3ccea323cb5dda3ecb80bc9f0a6d2c8b7'),
- ('app_private.lock_finance_invoice_decisions_v2(uuid,uuid,text,text,uuid,uuid)','1ab4160f37d53d3f8b8f6f7056645cc2ed8ce0aed3e4a03b477fbd723e1c01e1')) x(signature,body_hash) LOOP
+ ('app_private.lock_finance_invoice_decisions_v2(uuid,uuid,text,text,uuid,uuid)','6b0b40174965ab0a9844ee8d761d9304abd74492060fbc0cd5a84e92e54a8306')) x(signature,body_hash) LOOP
  SELECT * INTO STRICT p FROM pg_proc WHERE oid=to_regprocedure(f.signature);
  IF p.prosecdef OR p.provolatile<>'v' OR p.proconfig IS DISTINCT FROM ARRAY['search_path=pg_catalog']
   OR encode(sha256(convert_to(p.prosrc,'UTF8')),'hex')<>f.body_hash

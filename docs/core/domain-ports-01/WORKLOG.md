@@ -786,3 +786,33 @@ closure NOT_RUN/pending. User accepted the unchanged-ABI outer Finance scope
 contract: after canonical guard, establish selectors BEFORE first source/task
 query, nested restore, restore originals before last fresh check. Actual Finance
 ENTRY successor still absent; allocation197 not substituted. No allocation work.
+
+## Core33 — FIN-CORE32-LOCK-PRIVILEGE-01 (before edits)
+Parent a2ad62a29e522745e91fb6f2170c97ce892131f8; branch unchanged;
+pre-existing scripts/__pycache__/ preserved. Finance763 actual nine afterimages,
+manifest/failed bounded receipt obtained from authorized private Page; no guessed
+caller or target. Runtime identity already matched; do not repeat its checks or
+healthy suites. This task permits only affected embedded synthetic coupling.
+Exact intended edit set: this WORKLOG; existing reader.sql, verify.sql,
+preflight.sql and recovery.md in supabase/proposals/core-finance-invoice-decisions-v2;
+NEW upgrade-rowshare-v3.sql in that directory; NEW scripts/check-core-finance-lock-v3.mjs;
+NEW docs/core/domain-ports-01/finance-lock-33/{README.md,manifest.json,evidence.json}.
+Replace explicit table ROW SHARE by zero-tuple SELECT id FOR SHARE, in the same
+review_tasks then review_decisions order BEFORE policy proof. No row returned,
+no DML/ACL widening, no owner fallback. Check actual held lock modes with the
+actual Finance763 caller under original SELECT+UPDATE(id), initially empty
+selectors; same new reachable denial/restore cases only. Canonical/RLS predicates,
+ABI, all-task locks, final fresh checks, 40001/rollback unchanged. Source evidence
+from upstream PG17 parser/policy/explicit LOCK ACL code; not managed native proof.
+Core33 actual result: same real Finance763/private role/exact policies/empty
+selectors: 12 newly reachable checks PASS in isolated PGlite0.3.14/PG17.5 WASM.
+First added pg_locks retention assertion FAILED (empty WASM view); preserved
+failure receipt, NOT native lock proof. Positive actual caller reached before that
+failure. Resume only affected checks with native assertion kept as NOT_RUN gate;
+old explicit LOCK42501 negative and zero-tuple SELECT positive included. Prepared
+official runner byte-matches executed runner; no successful business suite rerun
+for packaging. Guarded function-only a2ad upgrade + repeat-denial two checks PASS.
+Three source groups, syntax, focused lint/diff PASS. No Finance/host/TS/HTTP/RLS/
+role/target change, no parallel store, runtime NULL. Runtime identity reused,
+historical cde UNPROVEN. Upstream PG17 source explains identical lock mode;
+actual two-connection retention/policy-DDL wait proof NOT_RUN_NOT_PASS.

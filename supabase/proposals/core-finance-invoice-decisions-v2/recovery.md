@@ -61,3 +61,43 @@ immutable-writer/source lock order. No tests were executed against PG/Auth/targe
 DDL/helper/role/policy changes must be excluded from the admitted campaign window;
 upstream PG17 policy locking assumptions do not independently prove a managed
 provider or modified-server binary. Source, installation and native remain distinct.
+
+
+## Core33 narrow lock-admission successor (a2ad -> function-only upgrade)
+
+Existing a2ad: preflight must observe reader body
+1ab4160f37d53d3f8b8f6f7056645cc2ed8ce0aed3e4a03b477fbd723e1c01e1,
+INVOCATION/owner/ACL/search_path and both unchanged policy helpers. Platform binds
+actual installer to the existing function owner; no owner transfer or delegation
+is performed here. `upgrade-rowshare-v3.sql` checks exact preimage, replaces only
+this function, asserts new body/unchanged owner/ACL/ABI/security and commits one
+unit. Fresh absent functions use reader.sql; do NOT replay CREATE over deployment.
+Partial/unknown state or any other body: STOP, no retry, no function recreation.
+Then run the new verify.sql with separately admitted observer/runtime selector;
+current Finance763 wrapper source and real role/RLS admission remain separate.
+
+RowShareLock is acquired by two zero-tuple `SELECT id ... WHERE false FOR SHARE`
+statements in tasks -> decisions order before catalog proof. PostgreSQL parses
+FOR SHARE relation references with RowShareLock even if the plan returns no rows;
+transaction-held relation locks conflict with policy DDL AccessExclusiveLock.
+This changes lock admission, not mode/extent/lifetime, RLS policy or row visibility.
+Ordinary SELECT plus UPDATE(id) suffices; no table UPDATE/MAINTAIN is authorized.
+All-task FOR UPDATE, decisions FOR SHARE and final fresh checks remain unchanged.
+A policy DDL waiting behind this transaction may run after settlement; neither
+this change nor historical hashes promise permanent policy/helper immutability.
+Keep existing exclusion of helper/role/DDL changes from the admitted window.
+
+Upgrade failure with positive same-backend ROLLBACK returns to a2ad only for that
+DDL transaction. Unknown COMMIT: authorized read-only observation of exact
+signature/body/security/owner/ACL distinguishes old/new/mismatch; do not resend.
+Known new body: finish verify rather than apply again. Reversal requires separately
+reviewed exact new->old function body/owner/ACL guard and quiescent dependent callers,
+not automatic DROP or whole reader.sql replay. The old body's ACL failure returns
+if reverted. No business invoice/approval/receipt is undone by installer rollback.
+
+Embedded Finance763 coupling is synthetic; WASM pg_locks returned no rows even
+after real row-locking queries. That probe is NOT PASS for native lock retention.
+Real PG17 two-connection observer: assert RowShareLock on BOTH tables after the
+zero-tuple queries and through scan; policy ALTER/CREATE/DROP in connection B
+must wait/timeout until A settles; A's denial/error releases locks by rollback.
+Do not run these target writes under this source-only packet.

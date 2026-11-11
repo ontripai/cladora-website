@@ -144,9 +144,15 @@ BEGIN
   set_config('request.cladora.finance_cycle_v2',p_cycle::text,true),
   set_config('request.cladora.finance_permission_v2',p_permission,true),
   set_config('request.cladora.finance_module_v2',p_module,true);
- -- ROW SHARE conflicts with PG17 CREATE/ALTER/DROP POLICY's AccessExclusiveLock;
- -- metadata cannot change between proof and scan. Ordinary row writers can run.
- LOCK TABLE utilities.review_tasks,utilities.review_decisions IN ROW SHARE MODE;
+ -- Take the SAME RowShareLock on each relation before policy proof, through
+ -- row-locking SELECT admission (SELECT + UPDATE(id)), not LOCK TABLE admission
+ -- (which needs table-level UPDATE/DELETE/TRUNCATE/MAINTAIN for ROW SHARE).
+ -- WHERE false returns/locks no tuple, even for empty or RLS-hidden tables.
+ -- PostgreSQL takes relation RowShareLock for FOR SHARE before planning/execution
+ -- and holds it until transaction end; PG17 policy DDL requires AccessExclusiveLock.
+ -- Keep deterministic tasks -> decisions order; do not remove these acquisitions.
+ PERFORM rt.id FROM utilities.review_tasks rt WHERE false FOR SHARE OF rt;
+ PERFORM rd.id FROM utilities.review_decisions rd WHERE false FOR SHARE OF rd;
  FOR rel IN SELECT x.oid,x.relkind,x.relispartition,x.relrowsecurity FROM pg_class x
   WHERE x.oid IN ('utilities.review_tasks'::regclass,'utilities.review_decisions'::regclass)
  LOOP

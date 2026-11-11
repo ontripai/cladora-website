@@ -1,0 +1,112 @@
+{
+  "schema": "core-finance-lock-v3.evidence",
+  "parent": "a2ad62a29e522745e91fb6f2170c97ce892131f8",
+  "Finance": {
+    "head": "7638f9145f17785ad4bb29108e6c30ac6479e86f",
+    "parent": "197cb86aa3e21e9289c9a4862393455b86ffb6af",
+    "tree": "9e86efa2bc65c9fccd27806d7c5c556c4840e236",
+    "inventory_sha256": "ed8c1d4412a94fea01c077a128de47340cdd4dabe7a3ab03b723f617b9f1cf2f",
+    "received_failed_receipt_sha256": "e31211c0a70bec19cf3c16de889c7081677d553d8d2833622155aaf759943e93",
+    "original_harness_sha256": "77f4510fa3bf3f3f472d259269e0e7a2632ec4704b5f1222538e98e59f18c0bd"
+  },
+  "reader": {
+    "bytes": 18641,
+    "sha256": "8684a59a2485d56589f26594321342556758228a4563de998d9bcb8e2d69895c",
+    "body_sha256": "6b0b40174965ab0a9844ee8d761d9304abd74492060fbc0cd5a84e92e54a8306"
+  },
+  "embedded_coupling": {
+    "result": "PASS_CONTROLLED_ENTRY_DELTA_ONLY_PENDING_INDEPENDENT_QA",
+    "checks": 12,
+    "names": [
+      "actual a2ad reader compiled unchanged with check_function_bodies=on",
+      "actual Finance entry with EMPTY selectors + exact private SELECT/UPDATE USING policies reaches actual reader/full approval, no preseed",
+      "success restores all four initially empty selectors",
+      "same-role old table LOCK rejected 42501; zero-tuple FOR SHARE succeeds without table UPDATE/MAINTAIN or business rows",
+      "next request begins without prior selectors",
+      "nested actual Core and Finance preserve a pre-existing legitimate caller scope",
+      "official Context mismatch rejected before source reads; first error and rollback selector restore, no partial output",
+      "simulated post-wait final denial; first error and rollback selector restore, no partial output",
+      "simulated post-wait final expiry; first error and rollback selector restore, no partial output",
+      "simulated post-wait final serialization; first error and rollback selector restore, no partial output",
+      "incomplete private decision lock visibility remains NOT_READY; first error and rollback selector restore, no partial output",
+      "caller compile/coupling produces zero capture/receipt/payment/journal effects"
+    ],
+    "diagnostic_note": "original harness name mentions a2ad; actual revised source SHA and body above were measured and asserted; no substitute reader",
+    "raw_receipt_sha256": "1248e26b234cac779560831da61e36a5155bc4779c4086d6c4ca5c7816851551",
+    "adapted_harness_sha256": "bf78ee302d1729b950030bbf07586559f8b3e9878352ba123e3b5316aec530d9",
+    "driver_prepare_only_byte_match": true,
+    "adaptation": "two expected reader pins plus one focused lock ACL negative/zero-tuple positive; read-only pg_locks observation NOT native proof"
+  },
+  "upgrade": {
+    "schema": "core-finance-lock-coupling.v3",
+    "parent": "a2ad62a29e522745e91fb6f2170c97ce892131f8",
+    "Finance": "7638f9145f17785ad4bb29108e6c30ac6479e86f",
+    "original_harness_sha256": "77f4510fa3bf3f3f472d259269e0e7a2632ec4704b5f1222538e98e59f18c0bd",
+    "adapted_harness_sha256": "19d5beab8f16948064807d21f968b0d13430731ddc673cc9f9ab793c39eec15b",
+    "reader_sha256": "8684a59a2485d56589f26594321342556758228a4563de998d9bcb8e2d69895c",
+    "reader_body_sha256": "6b0b40174965ab0a9844ee8d761d9304abd74492060fbc0cd5a84e92e54a8306",
+    "raw_receipt_sha256": "a56450f93ce476d17f7e86d20c0180b8ecdf2527fe071eb88df983f68899bb6e",
+    "result": {
+      "result": "PASS_EMBEDDED_GUARDED_UPGRADE_AND_REAPPLY_DENIAL",
+      "checks": 2
+    },
+    "names": [],
+    "substitutions": [
+      "Auth/C01/session/resolver schema/role synthetic in ephemeral WASM; exact six RLS policies",
+      "actual Core utilities producer creates synthetic input and independent review",
+      "post-wait denial/expiry/40001 simulated; not two-connection native waits"
+    ],
+    "native_lock_retention": "NOT_PROVEN_WASM_PG_LOCKS_EMPTY",
+    "historical_cde_runtime": "UNPROVEN",
+    "target_SQL": 0,
+    "runtime": null,
+    "actual_role_RLS": "NOT_ADMITTED",
+    "native": "NOT_RUN_NOT_PASS"
+  },
+  "source_checks": {
+    "new_groups": 3,
+    "syntax": "PASS",
+    "focused_lint": "PASS",
+    "diff": "PASS"
+  },
+  "engine": {
+    "version": "PostgreSQL 17.5 on aarch64-unknown-linux-gnu, compiled by emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 3.1.74 (1092ec30a3fb1d46b1782ff1b4db5094d3d06ae5), 32-bit",
+    "check_function_bodies": "on"
+  },
+  "runtime_identity": "MATCH_PREVIOUS_RECEIPT_NOT_RETESTED",
+  "historical_cde_runtime": "UNPROVEN",
+  "lock_probe": {
+    "initial_assertion": "FAILED_NOT_PASS_WASM_PG_LOCKS_EMPTY",
+    "failure_receipt_sha256": "41d21e824aad9ca9fb099cda8038d529d7b3f7d3a563e7bef783d64791a7b497",
+    "kept_separately": true,
+    "native_two_connection_assertion": "REMAINS_REQUIRED_NOT_RUN_NOT_PASS"
+  },
+  "substitutions": [
+    "minimal source schema/FK targets/ordinary role + six exact policies in disposable PGlite",
+    "Auth/AAL/C01/session/resolvers and final-check failpoint; simulated post-wait, NOT two-connection wait",
+    "actual producer creates synthetic input; actual independent review; no reader fixture"
+  ],
+  "references": [
+    {
+      "url": "https://raw.githubusercontent.com/postgres/postgres/REL_17_STABLE/src/backend/commands/lockcmds.c",
+      "sha256": "1b308a6be724132c9198d43811225f648a556f367653ee1f48bc8454a8b7c8fd",
+      "proof": "UPSTREAM_PG17_SOURCE_NOT_RUNTIME"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/postgres/postgres/REL_17_STABLE/src/backend/parser/parse_relation.c",
+      "sha256": "c4d70094ecf1633689ebb05fd9e271e1c85c5cdaf2f52e37a6a03bbc229583b7",
+      "proof": "UPSTREAM_PG17_SOURCE_NOT_RUNTIME"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/postgres/postgres/REL_17_STABLE/src/backend/commands/policy.c",
+      "sha256": "700727e1e4c056093cf7c6b8b17ebda2e38ccd75a400b24ba490d7d1c565debd",
+      "proof": "UPSTREAM_PG17_SOURCE_NOT_RUNTIME"
+    }
+  ],
+  "runtime": null,
+  "actual_role_RLS": "NOT_ADMITTED",
+  "installation": "UNKNOWN_NO_RECEIPT",
+  "target_SQL": 0,
+  "PostgreSQL_server_native": "NOT_RUN_NOT_PASS",
+  "ENTRY": "CONTROLLED_COUPLING_PASS_INDEPENDENT_QA_PENDING"
+}
