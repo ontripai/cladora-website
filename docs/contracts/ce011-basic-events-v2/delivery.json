@@ -1,0 +1,843 @@
+{
+  "task": "CE011 / basic events source candidate v2",
+  "worker": "CLADORA-CE-WORKER-01",
+  "parent": "b5adc9bc392838dee384b1cd8c6e297084626659",
+  "branch": "codex/ce011-basic-events-c03",
+  "status": "SOURCE_CANDIDATE_DELIVERED_CORE_PORT_AND_NATIVE_OPEN",
+  "assignment": {
+    "Page_sequence": 87,
+    "CE_block": "af688e29-3ef0-4c1e-930b-6203463d5e4c",
+    "hash": "0d26c2768177d48c2c8637be847ae73cbf875ec26540e2480bd366dc81125b4d",
+    "rechecked_Page_sequence": 90
+  },
+  "inventory": [
+    {
+      "path": "src/lib/community/event-interest-domain.ts",
+      "before": {
+        "bytes": 13623,
+        "sha256": "307264a482642e07869592cc3554dc3c6d32d4abd3042c79e1c5593c73c5939f"
+      },
+      "after": {
+        "path": "src/lib/community/event-interest-domain.ts",
+        "bytes": 13623,
+        "sha256": "06bd2328faa7040d6f71ec8d6f12d30e0786299aa9edd41038ed468ab2ca8f08",
+        "git_blob": "55d1d6187c7b002ee110d70344d42bc967d46f79"
+      }
+    },
+    {
+      "path": "src/lib/community/event-command-runtime-v2.ts",
+      "before": null,
+      "after": {
+        "path": "src/lib/community/event-command-runtime-v2.ts",
+        "bytes": 989,
+        "sha256": "848f028a8ef2e46618bf228eac981e2f74f4c2c0b77e6edae67804a8e8b5502e",
+        "git_blob": "ffabc3af451958575f4b953c3258db7c2ecefefe"
+      }
+    },
+    {
+      "path": "src/lib/community/event-command-persistence-v2.ts",
+      "before": null,
+      "after": {
+        "path": "src/lib/community/event-command-persistence-v2.ts",
+        "bytes": 1973,
+        "sha256": "449905625bd095195194279b89dd46535cb0ecb293c52fdd52433ff886093e3d",
+        "git_blob": "3d78249dd1e8f49bfb5de0f61167736f402605f5"
+      }
+    },
+    {
+      "path": "src/lib/community/event-command-http-v2.ts",
+      "before": null,
+      "after": {
+        "path": "src/lib/community/event-command-http-v2.ts",
+        "bytes": 3920,
+        "sha256": "87a2b1b0f626784b482b3e6c2a99f018bcc1162441bd4aba710fd174c6f5e8b8",
+        "git_blob": "4e766ac8942d887cf5a6ba5aa9aaabaaaded4ef3"
+      }
+    },
+    {
+      "path": "src/app/api/customer/v1/community/events/command/route.ts",
+      "before": null,
+      "after": {
+        "path": "src/app/api/customer/v1/community/events/command/route.ts",
+        "bytes": 322,
+        "sha256": "b344ee919f0b6496a58bdbba1da2226e1b496decb32a4d719e1e21c8b9c008ee",
+        "git_blob": "3ede4597f8ac828121723fdb6eddaebeefbe8887"
+      }
+    },
+    {
+      "path": "scripts/build-ce011-basic-command-v2.mjs",
+      "before": null,
+      "after": {
+        "path": "scripts/build-ce011-basic-command-v2.mjs",
+        "bytes": 6712,
+        "sha256": "2ccaf95485b16eed280550b96ea81acd11c2a43a35c4b15f896124c3f220abd0",
+        "git_blob": "59c73e92aae6c2f329b5c757fd01966adcf184c0"
+      }
+    },
+    {
+      "path": "scripts/test-ce011-basic-events-v2.mjs",
+      "before": null,
+      "after": {
+        "path": "scripts/test-ce011-basic-events-v2.mjs",
+        "bytes": 14023,
+        "sha256": "3fc51584c1363836d35d37a7f0750ca334958740aea89e7e9b7cc1fe47d1414f",
+        "git_blob": "55da608d22134a8d4d451984974c773d169e052d"
+      }
+    },
+    {
+      "path": "supabase/proposals/ce011-basic-event-command-v2/command.sql",
+      "before": null,
+      "after": {
+        "path": "supabase/proposals/ce011-basic-event-command-v2/command.sql",
+        "bytes": 27103,
+        "sha256": "a8c5cbbcd4436c6bd8597c22e00d4db57e2de1824264b0446125cb55f3954657",
+        "git_blob": "0070d1b75c4628ce13b8c452dd74deab4e1fc5b5"
+      }
+    },
+    {
+      "path": "docs/contracts/ce011-basic-events-v2/core-port-request.json",
+      "before": null,
+      "after": {
+        "path": "docs/contracts/ce011-basic-events-v2/core-port-request.json",
+        "bytes": 3448,
+        "sha256": "cb4552dd4cf8238a2579e9c810325825a8fe21dadeaf5f945273913e05d87ab6",
+        "git_blob": "79bc8b36f188332c857b103eac931683aaa12c0b"
+      }
+    },
+    {
+      "path": "docs/contracts/ce011-basic-events-v2/README.md",
+      "before": null,
+      "after": {
+        "path": "docs/contracts/ce011-basic-events-v2/README.md",
+        "bytes": 12939,
+        "sha256": "64b2bc43789dceb52264a1f677e70ab2e0ec226890b9ae5b4bf9224b31f4aeef",
+        "git_blob": "db95f411838f24bf9aef4c8ea394e27c1dac5692"
+      }
+    },
+    {
+      "path": "docs/contracts/ce011-basic-events-v2/evidence-receipt.json",
+      "before": null,
+      "after": {
+        "path": "docs/contracts/ce011-basic-events-v2/evidence-receipt.json",
+        "bytes": 3225,
+        "sha256": "385bc5dd50826263b5efa548a6f67fe448e551461293f85a614fe84046a3a6b2",
+        "git_blob": "7f147d7e22ada5c7058c88837888893a6f16b1a9"
+      }
+    }
+  ],
+  "manifest_self": "Excluded from recursive hash; external readback receipt supplies full identity",
+  "preserved_inputs": [
+    {
+      "path": "package-lock.json",
+      "bytes": 285183,
+      "sha256": "c0d6201b9dddab56818ee2c6a547cdba318b0f6979f2a27657b7ac5a41c9b4dc",
+      "git_blob": "e757f68e7602eb2f31dfd7d79eccedab18b72734"
+    },
+    {
+      "path": "package.json",
+      "bytes": 20058,
+      "sha256": "fd82e8763837cbf7af3a0b55dd3e17c9d51f916deab6f5551ecf1a74bce083ce",
+      "git_blob": "24d2aa6ac1b58b075a0e4c42b84ef73ab9ea063b"
+    },
+    {
+      "path": "src/app/[lang]/app/experience/guides/page.tsx",
+      "bytes": 697,
+      "sha256": "1bde638bdc0be6d3972222c9c7209442be13f368a83c29b03a5e149198c1ddf6",
+      "git_blob": "b71a9a6403722943bfd1b4845528fdd132d184f6"
+    },
+    {
+      "path": "src/app/[lang]/resources/guides/[slug]/page.tsx",
+      "bytes": 21288,
+      "sha256": "0d072649053a9b931457566e3439da577c81ce434691835ccda2628629ed8d7f",
+      "git_blob": "b605b486c0b4af768c7ed0a808664fa50ec49fdf"
+    },
+    {
+      "path": "src/app/[lang]/resources/guides/page.tsx",
+      "bytes": 43358,
+      "sha256": "04b604b0b91c7cf1ca3276aebf22b2106d170df5be0a6cb3d8eeff1b2b08894b",
+      "git_blob": "9e7206df46a1f3a3cc9452981a2ee22ad3a492d7"
+    },
+    {
+      "path": "src/app/api/customer/v1/community/events/attendance/route.ts",
+      "bytes": 2622,
+      "sha256": "29fb98a710b989a2b839ce869711ae5f7030b43b93a3d8c49dd661d70a203a24",
+      "git_blob": "d3bfffd775fb8ade14756e4ed9ba27e2889ec171"
+    },
+    {
+      "path": "src/app/api/customer/v1/community/events/receipt/route.ts",
+      "bytes": 2247,
+      "sha256": "40563a12df5a9462f5caf6e5e882c188e7298f1d4eb6050c04c437486d26bde3",
+      "git_blob": "2d9fd07ba296b1c13a11a4ac9539dc21917de21b"
+    },
+    {
+      "path": "src/app/api/customer/v1/community/events/route.ts",
+      "bytes": 3769,
+      "sha256": "5db031281dbc9da6b4b342fe8a9a99cf6c43dbd08d70f898ce6c2ef19b9e4ac8",
+      "git_blob": "d55a7daadd0e632054a40896020baaceacec8af3"
+    },
+    {
+      "path": "src/app/api/customer/v1/experience/guides/discovery/route.ts",
+      "bytes": 232,
+      "sha256": "639d9fa23f952abdfbc38d62ca533ed21793948c23d666f888066bfd02faf584",
+      "git_blob": "f4fefa38c779575bd35fed5ac234deac747b3664"
+    },
+    {
+      "path": "src/app/api/customer/v1/experience/guides/draft/route.ts",
+      "bytes": 658,
+      "sha256": "970e45049e38bedbc9f1ac89237c00e0fe5c5846700657b5bc631dee39746d64",
+      "git_blob": "f0f87146b0fa320cf8cbb782295b9e3fa90e98d9"
+    },
+    {
+      "path": "src/app/api/customer/v1/experience/guides/route.ts",
+      "bytes": 4592,
+      "sha256": "243156678f5261c9eb31b0605a59746f1b095815fd955ea3586358f4d47c2114",
+      "git_blob": "067ecbe588b44f8607adf2a4c2858d68ec5f5ac4"
+    },
+    {
+      "path": "src/components/customer/CustomerExperienceGuide.tsx",
+      "bytes": 10834,
+      "sha256": "9ddd963fddef2e6aa9879d2de7fc4600955d10e362ad23dbe46c8569516dcc4b",
+      "git_blob": "aa410f5e94912d2d7fe183d8ca0e6f2175213064"
+    },
+    {
+      "path": "src/components/customer/CustomerExperienceGuideActions.tsx",
+      "bytes": 4319,
+      "sha256": "8807a146babfdc03850f95c683ff9683061f8919b5fee50e6852f3515a98f1c2",
+      "git_blob": "3d20815b043d5e48720747a3d9c61df15664b768"
+    },
+    {
+      "path": "src/components/customer/CustomerExperienceGuideCreate.tsx",
+      "bytes": 5249,
+      "sha256": "b26d026435d4fa9f3b0aced25f7cc2c120a76a93ecebd501870df84e32306350",
+      "git_blob": "0dbc8839cc19248b79bfaaf96ba207ebf01850d9"
+    },
+    {
+      "path": "src/components/customer/CustomerExperienceGuideNativeEntry.tsx",
+      "bytes": 4182,
+      "sha256": "b755cb7f539ae69d1249af7a082742c10e36dbf59413b0d576a20b7809141363",
+      "git_blob": "83b5aa0033bf5f0b765e33ff09c0bfebf4094807"
+    },
+    {
+      "path": "src/components/customer/CustomerExperienceGuidePage.tsx",
+      "bytes": 12313,
+      "sha256": "caba77e856908f0edf2ba08db815847aa6f1c70375b2e6ba21f12c232e2dca4c",
+      "git_blob": "afcd6666aa397e1f7147cda731e303af84211599"
+    },
+    {
+      "path": "src/data/guides-articles.ts",
+      "bytes": 160,
+      "sha256": "9fa96317d38b8c5039dcf7dc802fe4ea9c70e7d34443c0219daf8dcfe6e27a86",
+      "git_blob": "8a74ea65ac624cbcd0e5557c43151594b8f4a9c7"
+    },
+    {
+      "path": "src/data/guides/cluster-a-associations.ts",
+      "bytes": 93851,
+      "sha256": "feee6564a0614a108218d4bd7f9edf8c704a0b7e02e270d7f303605058bbe278",
+      "git_blob": "0aae8cd179f66e96aadaf7ce8ddda72ddd48ded6"
+    },
+    {
+      "path": "src/data/guides/cluster-b-operations.ts",
+      "bytes": 39443,
+      "sha256": "22e422ff3e4005f332eead2a54381edda4190c14b04e3a2145b3accd4a3529bc",
+      "git_blob": "6ca4a966b3cafa53e6cfb5065e51549aa559a5db"
+    },
+    {
+      "path": "src/data/guides/cluster-c-property-managers.ts",
+      "bytes": 15432,
+      "sha256": "e69b9fa561a3869318953bf05b26ebcbf3ffac84c1087116aa513051fc8e34e8",
+      "git_blob": "0a0e65c6b73d96869ce1a8f9d585133f615680c6"
+    },
+    {
+      "path": "src/data/guides/cluster-platform.ts",
+      "bytes": 35797,
+      "sha256": "baa3cdbf0d8f63fff2cb39fea53082be754e225f40e2dbe01ee85b0e70a6a4f2",
+      "git_blob": "a83679ce5b8641d0bbd69d3166ef59781e289004"
+    },
+    {
+      "path": "src/data/guides/index.ts",
+      "bytes": 53,
+      "sha256": "f1526c256dd2f96adc6b8c7be64ec25b1f4132856f6e888f30263f1dc2ca2412",
+      "git_blob": "4c491ff6b8e1407e4edbadffc1e4077d8ceb128f"
+    },
+    {
+      "path": "src/data/guides/registry.ts",
+      "bytes": 1334,
+      "sha256": "3c1327f7e0bfc7db30a4dea21935c56b02f1b475180fdade03f8a7300de1a5a1",
+      "git_blob": "e7dda088b15e9e15e6529e90a35ed5ab4d05c5ca"
+    },
+    {
+      "path": "src/data/guides/types.ts",
+      "bytes": 1816,
+      "sha256": "01488627cd93d31ae8931133a26341f32591ff732a7e4e2411c36828d205fba0",
+      "git_blob": "a756b2409f0550ca7fd4816cac4182012109fd86"
+    },
+    {
+      "path": "src/lib/app/guide-platform-provider-v1.ts",
+      "bytes": 837,
+      "sha256": "7416ad29a3935c0055492cdccfd8b236506be914269bba74e2ef3d3f443067b4",
+      "git_blob": "e1862ebeb8690e688e443c343bfa92b2a10f1e57"
+    },
+    {
+      "path": "src/lib/community/event-interest-client.ts",
+      "bytes": 12545,
+      "sha256": "ce1a41ed4da209413a4d3e50fea7af69faa4b87c7e1adc75392ae313c6fd54ec",
+      "git_blob": "7648172eb9a73cf8afe80b8c7dc9f52ba27fead2"
+    },
+    {
+      "path": "src/lib/community/event-interest-schema.ts",
+      "bytes": 3787,
+      "sha256": "2817be81fb24922fdd94f66e2e029405730d322092ee667cd0fbdaa15e7ed967",
+      "git_blob": "7e9a4a2b515c42d798684e46f5595271bebec612"
+    },
+    {
+      "path": "src/lib/community/event-receipt-lookup.ts",
+      "bytes": 532,
+      "sha256": "90cace07bbd23e7a7249dfd84c709698de93843313b1f371e46148199db2d86d",
+      "git_blob": "f061d2df04dd52d0c822c8ae9678c777d435558d"
+    },
+    {
+      "path": "src/lib/community/experience-guide-actions-client.ts",
+      "bytes": 5001,
+      "sha256": "8b5f0587e3a61af4092afe2a9bd4232126029a49ceb1876e5d55bc0058d29980",
+      "git_blob": "ba0b59378b1a59d818173ba83dc47a468ac2d353"
+    },
+    {
+      "path": "src/lib/community/experience-guide-client.ts",
+      "bytes": 2348,
+      "sha256": "cdca7fe2c8cd058ebbe76b65879240263bb6738f2e0e01822ec6b9f9c8e3531d",
+      "git_blob": "eb3465f556a84ff27a39b07ed12b207985fcf333"
+    },
+    {
+      "path": "src/lib/community/experience-guide-command-contract.ts",
+      "bytes": 14414,
+      "sha256": "324d30b10eecb1b1f03f706118b51b7dc80605892f1ec267e9d4dc44a5f8e2e6",
+      "git_blob": "f423e40d9ebda19216d184ed72c8bdd09f27e353"
+    },
+    {
+      "path": "src/lib/community/experience-guide-create-client.ts",
+      "bytes": 5985,
+      "sha256": "60cd7646a1d7a6d59868b9d55540ec5c1f71eace856011dbe7b7024911d48c8a",
+      "git_blob": "6c3ff1c7fccced52996013ae01cd1608570fd9bb"
+    },
+    {
+      "path": "src/lib/community/experience-guide-create-writer-v1.ts",
+      "bytes": 9471,
+      "sha256": "75711664a2dcef9ab5ec123861678f09f7c7f96fdf2e36a5cee4380603bb792c",
+      "git_blob": "839950405f531ff5c7a3eafc50908a7413d4d80e"
+    },
+    {
+      "path": "src/lib/community/experience-guide-discovery-contract.ts",
+      "bytes": 543,
+      "sha256": "c0c93995be6a6c58dad7ddb9045ffb7aaca41c110a8704b83e26e9af176b0068",
+      "git_blob": "e600299a7c49d1f5afc8f6229874c6031f5a4da0"
+    },
+    {
+      "path": "src/lib/community/experience-guide-discovery-v1.ts",
+      "bytes": 4936,
+      "sha256": "2edd77e4f00fe77686a97441a57faad49cb71ba4bfbef7e28c63acdf4bfcd10d",
+      "git_blob": "7d69a3a8d2679b1ac7da822fb85c5d3249e8f7df"
+    },
+    {
+      "path": "src/lib/community/experience-guide-domain.ts",
+      "bytes": 6388,
+      "sha256": "cc307994338efe02e569b6c7eb32e3ec437c21c3902402d0bd7dc89d6c665c78",
+      "git_blob": "254947cbb940873cf7ef7398bd51522bcce00ec4"
+    },
+    {
+      "path": "src/lib/community/experience-guide-editor-adapter.ts",
+      "bytes": 7826,
+      "sha256": "57b04afd9ac99616d69e45f2c645f9fc0927861b24a0e9c92b7cf6f1bde9395c",
+      "git_blob": "95324958399881fc1b35596133f00db570be978f"
+    },
+    {
+      "path": "src/lib/community/experience-guide-functional-client.ts",
+      "bytes": 5924,
+      "sha256": "53e56510717da6778c1bc5bde37bb6080dc11e81fe5f3061120a33668bcacf27",
+      "git_blob": "5c8af8f2ee7f4a4519aedf49b98896bdf694c569"
+    },
+    {
+      "path": "src/lib/community/experience-guide-functional-http-v1.ts",
+      "bytes": 16808,
+      "sha256": "b2d2214d16a6439b77d042560be09b6a534b8779ad15ef3508b76c5fefa664a4",
+      "git_blob": "bcd24b96221941ccbc2cc4270d5a928f5be9c57f"
+    },
+    {
+      "path": "src/lib/community/experience-guide-lifecycle-http-v1.ts",
+      "bytes": 22363,
+      "sha256": "94d5583349e77a5dcc549b7234739f66d8e20dc2735d2bd86e1d8a89fbbb6e3f",
+      "git_blob": "1941995c4987a90ac3899277edfba4bdeecb5700"
+    },
+    {
+      "path": "src/lib/community/experience-guide-lifecycle-provider-v1.ts",
+      "bytes": 21944,
+      "sha256": "4971b7e235088c524e5e5a3242fe8606fe8723dabe0802d23fb561a9ffe66d0c",
+      "git_blob": "1d610a4cc3a7b341b2ebf3a646341dec184feab4"
+    },
+    {
+      "path": "src/lib/community/experience-guide-provider-bridge.ts",
+      "bytes": 9983,
+      "sha256": "ddeda87fc4d19fb9516198fbcb1290240b1d3e152a5e85a936d513a7994b52ca",
+      "git_blob": "8e61503042837522fbe6f9643e6d90bda435b2de"
+    },
+    {
+      "path": "src/lib/community/experience-guide-route-runtime-v1.ts",
+      "bytes": 1275,
+      "sha256": "e0578c8d0cfe8bf35e9016d52f7cf53532bf004f4041e064f8bddd6dd8f5a587",
+      "git_blob": "8cb6d07117d56edb23ff03864af72e216a7139f3"
+    },
+    {
+      "path": "src/lib/community/experience-guide-save-writer-v1.ts",
+      "bytes": 27586,
+      "sha256": "49de9fc3ca5a867eb1c4b22692afd635d04cec4f17aa87106da33dd88552a7ed",
+      "git_blob": "15c210dd2882c70121bd4f13b00dabacf7cbde25"
+    },
+    {
+      "path": "src/lib/community/experience-guide-schema.ts",
+      "bytes": 2484,
+      "sha256": "bcf1b99312a1efac49e4868871ef662d882972f72dc167907da55cb26cb95984",
+      "git_blob": "018d73554f1f1f2d8e66af9a1c74285eee5d9ee2"
+    },
+    {
+      "path": "src/lib/community/experience-guide-translation-provenance-v1.ts",
+      "bytes": 11335,
+      "sha256": "38404c40b5a6042c6d722b492bce75ae94cccb197267b33bce492a0877ababb5",
+      "git_blob": "eb81902fe14d7feb0e7f7dc8a997260a6edec455"
+    },
+    {
+      "path": "src/lib/core/airprop-companion-mapping-v1.ts",
+      "bytes": 2931,
+      "sha256": "9049c94a462c6e3955a5e7bb1ef3f9f21ffb572ce45aad59690f878d08c88e08",
+      "git_blob": "29da91ea442a758b046b8868747e5418bba37687"
+    },
+    {
+      "path": "src/lib/core/airprop-read-host-v1.ts",
+      "bytes": 16793,
+      "sha256": "4b13bfa4c920a68e7ec31b4a10f17a6e2bcf90721d255ccbc7e33eea34958c3c",
+      "git_blob": "47fde404a10ef6bfcf507fd01069b754eff4bbe8"
+    },
+    {
+      "path": "src/lib/core/authenticated-session-runtime-v1.ts",
+      "bytes": 6025,
+      "sha256": "dd1e8c34380a3f1d991462c9f8b62e8442984d130ea9ca8aa1b004df814b3ca8",
+      "git_blob": "00d3a455366b23c9653f6172775c88244b92acb8"
+    },
+    {
+      "path": "src/lib/core/ce012-combined-stored-relation-v1.ts",
+      "bytes": 9177,
+      "sha256": "2d775a6cc629c6b4bb2934345509421a461713cdcc1ba6309680947bc5f46938",
+      "git_blob": "db79cc649189c73d00692c023cbe59e9f21090cc"
+    },
+    {
+      "path": "src/lib/core/ce012-documents-joint-candidate-v1.ts",
+      "bytes": 3420,
+      "sha256": "cef58f74dc0096c2520edb6cf3f1077d822f5c870a9359962f9e009463626f3a",
+      "git_blob": "38b65bb50a2dec68a5b2a0d4788eb6fe9125e4d9"
+    },
+    {
+      "path": "src/lib/core/ce012-host-terminal-checkpoint-v1.ts",
+      "bytes": 2660,
+      "sha256": "4765e3d17fe12b41369a350afff7f62fc94bf03a3098d6c58c92ca63107bb29d",
+      "git_blob": "1d90f5c7badeaf14a3e922d788355ab90d14148b"
+    },
+    {
+      "path": "src/lib/core/ce012-replay-only-preflight-v1.ts",
+      "bytes": 2890,
+      "sha256": "a898905cc40118903f2d3f1c7cbc11631f8c0fc5fd8d99e97d940331fa14e459",
+      "git_blob": "ca9ca44cf7561e7df442200c47cff4a86fc59a82"
+    },
+    {
+      "path": "src/lib/core/ce012-stored-relation-v1.ts",
+      "bytes": 10032,
+      "sha256": "d6e8495f4f03c46076c3d4fb15c6174eccef8a4c161c644b5976ceeb2aed69f0",
+      "git_blob": "79456ecc7e5b372f01eb6422c48d0826e9512dab"
+    },
+    {
+      "path": "src/lib/core/ce012-terminal-authority-port-v1.ts",
+      "bytes": 16620,
+      "sha256": "c58e24ef2b00edb0524e43de145d8990ea4e6846b7d175399aaad7a9a7decf0a",
+      "git_blob": "1e89805d8b8565c0b0a5ea1e0857c6553d057a82"
+    },
+    {
+      "path": "src/lib/core/communication-request-receipt-v1.ts",
+      "bytes": 4283,
+      "sha256": "568d85cf313c8fc161caad39e8a619d0dfd54d7505e8f5f00851b72bbdd19b0f",
+      "git_blob": "f6455dc1210de036ab0d789eed8356cdceb0e079"
+    },
+    {
+      "path": "src/lib/core/communications-private-message-request-audience-provider-v1.ts",
+      "bytes": 6285,
+      "sha256": "487aa0fd69f3e5222870cfead3ab2e0a97bb239a9240099f0d6fe027934b96e2",
+      "git_blob": "f5cb4a496fc824e905361d13e7ba2921d8ffb0a3"
+    },
+    {
+      "path": "src/lib/core/communications-private-message-subject-provider-v1.ts",
+      "bytes": 7603,
+      "sha256": "832a9481232662e3411a67ff9b2b81f8a5a842af4795381a1837faa5a2cb6248",
+      "git_blob": "3b3d1be7009986bd08d7c476bcfa75d5c17d7601"
+    },
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "git_blob": "e67df2d947608f546dab42dba88b5bdc418cbffb"
+    },
+    {
+      "path": "src/lib/core/current-authority-transaction-port-v1.ts",
+      "bytes": 9496,
+      "sha256": "02e0b85d1dba7ca87ec0eddff5d3f3552bed518794888e9ee0f34c0de962c14f",
+      "git_blob": "3e70731254c06ec69a22ef5e2fa689b78ec22aa9"
+    },
+    {
+      "path": "src/lib/core/current-unit-property-selector-v1.ts",
+      "bytes": 14179,
+      "sha256": "cf8649d0196c4d87e6bb17a756ab24194faddd1cec382cde97e17c5466c55dcd",
+      "git_blob": "454e547a66aad25316e5c9232a0921ccbb874024"
+    },
+    {
+      "path": "src/lib/core/domain-command-identity-v1.ts",
+      "bytes": 1278,
+      "sha256": "25b6c025992823486f304bc6bd5e9b5fce0fe192fb862e7f122f3f3714e2e84f",
+      "git_blob": "eedabbe9e8e0f78b90c55c1038adf1d1cdd9b8e8"
+    },
+    {
+      "path": "src/lib/core/financial-proposal-receipt-v1.ts",
+      "bytes": 6082,
+      "sha256": "c6db34516ef22305a53894810cfac6c92a2072a34a943d146effb9b22bd62a05",
+      "git_blob": "fa45d5a7605cad36fac88d42f85e8322f6232b0e"
+    },
+    {
+      "path": "src/lib/core/functional-command-runtime-v1.ts",
+      "bytes": 28103,
+      "sha256": "e83e1351af12f5f1f88af94f2b317fc9509a888bb9d1ba975167fc9ecb705e41",
+      "git_blob": "7a7f3a6272c31df30b61835d5a8a3eeacc621139"
+    },
+    {
+      "path": "src/lib/core/functional-producers-v1.ts",
+      "bytes": 4260,
+      "sha256": "f44c68523edcb4c75589a7b040d6f380d5609788a6c12bb0fb661c74870ed887",
+      "git_blob": "2795ae040748018820e26aa827c174ac39cb7817"
+    },
+    {
+      "path": "src/lib/core/functional-read-queries-v1.json",
+      "bytes": 8718,
+      "sha256": "ef00194e555e28f9ce9601ae61435aba138f42999dcbd6f4bc9c62acac9d07c2",
+      "git_blob": "a1b4f673d5b4d491fe3abfa75dd62882b536f818"
+    },
+    {
+      "path": "src/lib/core/functional-request-auth-v1.ts",
+      "bytes": 1857,
+      "sha256": "50f3f913366cd93aa8342ce6d653a847ab3f2a90335777334b235bdf0a6c66e6",
+      "git_blob": "bb153cbe3eb2a440b7b5e374f2cdc907d075ef11"
+    },
+    {
+      "path": "src/lib/core/guide-request-binding-v1.ts",
+      "bytes": 8700,
+      "sha256": "1c0fd98df4b9bc45ebd9fb499db34e54cf9585819a733ac939fbfaa77971a2f9",
+      "git_blob": "e850728f49d2deb6ea209101ac48e3c307fef4bf"
+    },
+    {
+      "path": "src/lib/core/jurisdiction-domain-artifact-resolver-v1.ts",
+      "bytes": 30573,
+      "sha256": "285770357c485b8cd05121f30f9220d765d4d14ba017066c179b62745c348e69",
+      "git_blob": "d33303efdc2dfc85f473ad284c9adfbd10a3302d"
+    },
+    {
+      "path": "src/lib/core/jurisdiction-domain-artifact-transaction-evidence-v1.ts",
+      "bytes": 2008,
+      "sha256": "e30ced9821eb8f8cc99dac45b1ae1461d46d53e34f1a7cdae774c55d54281981",
+      "git_blob": "f9dc899ab0d3e42c2396b61880e3fcb69fa98161"
+    },
+    {
+      "path": "src/lib/core/jurisdiction-domain-artifact-v1.ts",
+      "bytes": 24377,
+      "sha256": "8ec7d8b4a0d0ef80ffdbb06f48b9c5cb65c0fc8fa5c8b0fd0f42cc0e746fd168",
+      "git_blob": "caf6c1394b684c93a7ca8b43aff49d6ed75e1aac"
+    },
+    {
+      "path": "src/lib/core/jurisdiction-profile-selector-v1.ts",
+      "bytes": 18629,
+      "sha256": "279c75fc6b0401836fbad5268fcc6ca5b51a16878b2d712f1502adda25b268ad",
+      "git_blob": "cbbb10f9945066b857bda26eb6b48bce5fe0e4ba"
+    },
+    {
+      "path": "src/lib/core/jurisdiction-profile-v1.ts",
+      "bytes": 3523,
+      "sha256": "70781991127452ce50f7b6974f6c68edd06508ab2ac13366001c162873438487",
+      "git_blob": "05a4251c100c85a16d0515054e26671d578c66c1"
+    },
+    {
+      "path": "src/lib/core/lease-handover-v1.ts",
+      "bytes": 2871,
+      "sha256": "c62aded55c07613566ef5b7abd099a7d25dadf1c5805e109455698c3635ae820",
+      "git_blob": "f10d659c407d9a62b485a7b0dec1d187d8dfe471"
+    },
+    {
+      "path": "src/lib/core/operations-execution-receipt-v1.ts",
+      "bytes": 5474,
+      "sha256": "f372097ede71c525d963e3ab6b9cd11d1a5ca117b95c8abb6cc47d84c40b9bc5",
+      "git_blob": "0f5faf23806ecd1ffb6ef499b8d7d26996097b89"
+    },
+    {
+      "path": "src/lib/core/owner-portfolio-projection-v1.ts",
+      "bytes": 7968,
+      "sha256": "8483628ad449a812ec7e413306b63afc9f201a6a14a0be02d93397b0b2530202",
+      "git_blob": "325f8082d8c2138a8a5abbf144f59756a3002b64"
+    },
+    {
+      "path": "src/lib/core/ownership-transfer-v1.ts",
+      "bytes": 1102,
+      "sha256": "868559d867c021a3d6b73d1c711dc7426ebcbd5867e1120b950c552a005d3c90",
+      "git_blob": "ec93e733bcab2bb96f6214edcd53048413fa74f9"
+    },
+    {
+      "path": "src/lib/core/platform-role-bound-pool-v1.ts",
+      "bytes": 10318,
+      "sha256": "3abeca26ee87ad647ed7af74eaababff9d2308ccc52b1543a2569e29d51ab128",
+      "git_blob": "278e7cde60876a7046b700794644bad33ca22da8"
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "bytes": 62680,
+      "sha256": "9436c082f8ce8a054d8300f55bd49ac4b6120240cf06fa6ca94190b5c6c1858a",
+      "git_blob": "9e1a0229b9676368dc1d49015cf95be13fac9908"
+    },
+    {
+      "path": "src/lib/core/private-service-development-binding-v1.ts",
+      "bytes": 4060,
+      "sha256": "543e6dbb4120497737d5957f665505529e6100cc09c3969ca01b034347f41253",
+      "git_blob": "55d0f65e7f10cb3db93887aa9d3b92742275bbb7"
+    },
+    {
+      "path": "src/lib/core/product-rights-v1.ts",
+      "bytes": 4542,
+      "sha256": "0a150e396c76ddff9d9757c2e06174b3177c11c60126ef525b2a46c084a70ae6",
+      "git_blob": "412ea21931f9c8fdc7e5b5706d60d92be391c763"
+    },
+    {
+      "path": "src/lib/core/read-authority-profile-v1.ts",
+      "bytes": 2215,
+      "sha256": "0b32914d66e743e4148882d88e9cc06bffee56686fbd355236eafd84aaa9c75d",
+      "git_blob": "6246a995bcbb263693033e5ae01e0f39d4860568"
+    },
+    {
+      "path": "src/lib/core/resource-authority-contract-v1.ts",
+      "bytes": 12058,
+      "sha256": "435841041ee5bc14e62eac44b2875ab7b700e2636ae3d580071db96932607eaf",
+      "git_blob": "455725edc026e20bccffed2c05ed3b675ad9f777"
+    },
+    {
+      "path": "src/lib/core/resource-contracts-v1.ts",
+      "bytes": 7849,
+      "sha256": "26ef73f7e8e9cc234b7fd2d8aac83ea3e69955f659bea57d5dba9337c821124d",
+      "git_blob": "3eedf8148bf2749621c21b064bd44880f5037cff"
+    },
+    {
+      "path": "src/lib/core/scoped-server-clock-v1.ts",
+      "bytes": 1120,
+      "sha256": "2753aee2dce0ed13e1dc8307eacfdb7f60f5bbacd90421968bcffe662f3a1823",
+      "git_blob": "d94ff4283f1920f643f23d860cbdca089a0303b2"
+    },
+    {
+      "path": "src/lib/core/service-app-read-v1.ts",
+      "bytes": 2925,
+      "sha256": "5a7741338c20281473154829632e4d27fa8251b2d5e14913cf524bbc9fca0607",
+      "git_blob": "25b25bf59fe653fe8055681443e73b08a114d862"
+    },
+    {
+      "path": "src/lib/core/service-authoring-identity-port-v1.ts",
+      "bytes": 1693,
+      "sha256": "f13a0eb99686a13b9fca4f88824b75df3dc3adede048fa8eb6428cd2776d27ac",
+      "git_blob": "2ba51a7d66d902c6e44861012bdaaddfd91079d9"
+    },
+    {
+      "path": "src/lib/core/service-functional-binding-v1.ts",
+      "bytes": 6450,
+      "sha256": "7951bb8f6f3a1507a8006fe3ff1d430a1f8b8be25c3e4793c3b1bcb498ba4ded",
+      "git_blob": "7c545113a92e12e8bac27bf9f87e4ebe6e7e872e"
+    },
+    {
+      "path": "src/lib/core/service-s01/errors-v1.ts",
+      "bytes": 301,
+      "sha256": "be1b63b6c9f62ae9d152a2ddda10d18508bd7426e5b66f2b9d3566d8f2b05e07",
+      "git_blob": "5d0408872fa2116bc49ca7ae5fa9b670030eb435"
+    },
+    {
+      "path": "src/lib/core/service-s01/offering-disclosure-policy-v1.ts",
+      "bytes": 7396,
+      "sha256": "3d57e846dd782a4443b637a4bf9fc8337fda471f36d56ad3ae5eaab0830c3df6",
+      "git_blob": "9cba2cc22501c0695837d2c800c00fa03d24f236"
+    },
+    {
+      "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "bytes": 19246,
+      "sha256": "977581d5c025287e7a88cc485a31d277fc412e8d7825087c871bfbdf2ecbeb8c",
+      "git_blob": "4080a96d003670068abbf435bb303f09e32cdc0d"
+    },
+    {
+      "path": "src/lib/core/shared-capacity-time-v1.ts",
+      "bytes": 6819,
+      "sha256": "5a6a830a2187302f2b8cb6a55f1dfb0a7282439eb652846c1e09b74b40f5635d",
+      "git_blob": "ae53c4a85fdb95d40b3cb36ebb46395ae531bbfa"
+    },
+    {
+      "path": "src/lib/core/transaction-provider-evidence-v1.ts",
+      "bytes": 2252,
+      "sha256": "515c173f1fa1aeed01ef1af465acf8cee6504cc09bbcf3d137549a8150f32d75",
+      "git_blob": "55843685128350c37b43ad0a12f183c7fb94ae1a"
+    },
+    {
+      "path": "src/lib/core/transaction-replay-provider-hook-v1.ts",
+      "bytes": 2688,
+      "sha256": "eb20fa622ba10b9cde6ea8d4d64f1ad9f9eea93f7fba354d03f6959156487dd4",
+      "git_blob": "bfec5bb136abad24a233544d3d63d00db1f8d678"
+    },
+    {
+      "path": "src/lib/core/workspace-authority-decision-v2.ts",
+      "bytes": 3440,
+      "sha256": "67f4c17fe9edd351b69aff8d400d88c3b71af98c6037a7b6378c1a7b9f47b927",
+      "git_blob": "de5d40c74b1ebd897e978f2576a7d19a3cca1dcb"
+    },
+    {
+      "path": "supabase/install/ce010-announcement-v2/00-preflight.sql",
+      "bytes": 6310,
+      "sha256": "460d80f9056df9a4f6f977a90341d7f3fe184033258fbe64961bbd35881970c7",
+      "git_blob": "6f3cb252dfffacc4c0be230899360895c655d3ea"
+    },
+    {
+      "path": "supabase/install/ce010-announcement-v2/20-verify.sql",
+      "bytes": 6307,
+      "sha256": "f1e8a459bfb2e7521ba3272eb4f368d37d7d7b3afac653418e5416def77b4e8d",
+      "git_blob": "0950b0be355c60cd19eb17237c0f5a7f66386e6b"
+    },
+    {
+      "path": "supabase/install/ce010-announcement-v2/30-recovery.sql",
+      "bytes": 6319,
+      "sha256": "3263161631d217464d3c75fe37f22c6306d9a08041ab91a370decafd7707e71c",
+      "git_blob": "e9c1c114fefbc5bf60f9a13691b915e6de1f860c"
+    },
+    {
+      "path": "supabase/install/ce010-announcement-v2/adaptation-plan.json",
+      "bytes": 1076,
+      "sha256": "7762b714643bde869bef8b857561e891f5b322dd2add200f51790cf6ec7f98e5",
+      "git_blob": "536e572876b750461d8db3723c4bf07ff934ed21"
+    },
+    {
+      "path": "supabase/install/ce010-announcement-v2/fresh-plan.json",
+      "bytes": 1838,
+      "sha256": "50266f2fe50c553f075e01ac620e11effd2e99433c2c885c3b1c51d4e5315897",
+      "git_blob": "e025975f7f511110d2f5c9f7a9ce464d457f43e2"
+    },
+    {
+      "path": "supabase/install/ce010-announcement-v2/inventory.json",
+      "bytes": 48319,
+      "sha256": "14f75647057ddf6668e4026b1a0b2260cca61c9ada3d3d39786c08b940874476",
+      "git_blob": "3a391f7910cf59d070f80357ac273b70db55c340"
+    },
+    {
+      "path": "supabase/install/ce010-announcement-v2/packet.json",
+      "bytes": 5911,
+      "sha256": "c6ec1478114e71bf45b5eab2ca3285b617ef540e4f50b74155e635981a4b042e",
+      "git_blob": "55f36d7e106e0b93e60a1b2b4efbb79a1d2010a9"
+    },
+    {
+      "path": "supabase/proposals/ce_011_attendance_projection_v1.sql",
+      "bytes": 4905,
+      "sha256": "2fb9f47f2a7afea45dbdd1c79acaa7bfc2080bfd15f6c1b05859559efeb0b9fa",
+      "git_blob": "6cf08fddfad1425b11ffc8aa9aa1bca4125b2abb"
+    },
+    {
+      "path": "supabase/proposals/ce_011_event_interest_operational_v1.sql",
+      "bytes": 29524,
+      "sha256": "5894363db4fa0fee49737371546e9cd1cbeddb2dcc44723a81cca396004feafc",
+      "git_blob": "3e6bad6abce2bc7a0ef06d4706810979c2052ba5"
+    },
+    {
+      "path": "supabase/proposals/ce_011_receipt_lookup_v1.sql",
+      "bytes": 7343,
+      "sha256": "2ff06952c92ee2fd0d7c00919b2af5bda0e9a58a76221c4a90e945cce5e0391f",
+      "git_blob": "6f9c8bc7be4d7f0b54bf3171fd3f20bbfcf6a76c"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 739,
+      "sha256": "9a5465ed302af1556cb72f0f5b98392f4b745761ba51f519c721f0ee49bb4226",
+      "git_blob": "7f9d7d66bf8228222565337be9438986ef09e72b"
+    }
+  ],
+  "before_after": [
+    {
+      "gap": "model cancellation",
+      "before": "draft cancellation accepted by model, rejected by canonical SQL/contract",
+      "after": "published-only; existing historical receipts not rewritten"
+    },
+    {
+      "gap": "currentness in SQL candidate",
+      "before": "statement-time domain eligibility and no final after-all-waits checkpoint",
+      "after": "separate guarded v2 function using same C03 persistence body/key/hash, fresh target audience/session/Context/permission at write/replay/result boundaries"
+    },
+    {
+      "gap": "API binding",
+      "before": "legacy direct RPC route retained",
+      "after": "new explicit command candidate route + original Request/session/scope binding; defaultNULL; no fallback or menu mount"
+    }
+  ],
+  "runtime": {
+    "entry": "POST /api/customer/v1/community/events/command",
+    "factory": "createCe011EventCommandHttpV2",
+    "adapter": "executeCe011EventCommandV2",
+    "binding": "CE011_EVENT_RUNTIME_V2.resolve",
+    "value": null,
+    "Core_port": "PROPOSED_CE_CONSUMER_ABI_NOT_EXISTING_OFFICIAL_FACTORY"
+  },
+  "Core_consumption_contract": "core-port-request.json",
+  "persistence": "existing C01/C03 SQL canonical ledger/CE receipt/audit/outbox; no new JS memory host or second generic TS host",
+  "SQL": {
+    "path": "supabase/proposals/ce011-basic-event-command-v2/command.sql",
+    "guard": "55000 before function DDL",
+    "functions": [
+      "app_private.ce011_audience_current_v2(uuid,uuid)",
+      "customer_api.command_ce_event_v2(jsonb)"
+    ],
+    "installation": "NOT_RUN",
+    "compile": "NOT_RUN_NOT_PASS",
+    "original_canonical_key_hash_lines": "IDENTICAL"
+  },
+  "evidence_receipt": "evidence-receipt.json",
+  "unique_groups_passed": 11,
+  "initial_failure_retained": true,
+  "full_harness_from_start_PASS_claim": false,
+  "composition_for_typecheck": {
+    "Core": "103ee9ad61c033a0745b2558b052912f16381ee2",
+    "CE_parent": "b5adc9bc392838dee384b1cd8c6e297084626659",
+    "common_ancestor": "62f3c4ea3280821d3df69cd5d0cfbd10fbf6cb6d",
+    "new_CE_TS_overlay": "inventory src paths",
+    "Core_source_changed": false,
+    "standalone_CE_typecheck": "NOT_CLAIMED_REQUIRES_OFFICIAL_CORE_DEPENDENCY"
+  },
+  "remaining_inputs": [
+    {
+      "owner": "Core",
+      "input": "official request-local CE011 fixed RPC/query/role/Auth/session/Context/module profile, same namespace/JSONB hash C03 admission, canonical revision/currentness/recursive helper closure",
+      "status": "NOT_READY_PORT_MISSING_ONLY_DEPENDENT_COUPLING_BLOCKED"
+    },
+    {
+      "owner": "Platform/App",
+      "input": "real dedicated private binding, canonical schema/new v2 routine install, exact owner/RLS/ACL/before-image/window/capacity/custody",
+      "status": "NULL_NOT_READY"
+    },
+    {
+      "owner": "QA/Platform",
+      "input": "SQL compile/PG/Auth/RLS/rollback/version/concurrency/replay/UNKNOWN/restart/native acceptance before menu mount",
+      "status": "NOT_RUN_NOT_PASS"
+    }
+  ],
+  "out_of_scope": [
+    "capacity/seat/resource Booking/BK01",
+    "payments/tickets/Commerce/Loyalty",
+    "external notifications",
+    "Core/Guide/CE010/shared Shell/Auth/package edits",
+    "target SQL/install/grant/build/restart/activation"
+  ],
+  "central_record": "Coordinator-owned; Viewer Page not edited",
+  "automation": "نیازمند بررسی؛ source/adapter checks repeatable, actual authority/install and native acceptance remain with Core/Platform/QA."
+}
