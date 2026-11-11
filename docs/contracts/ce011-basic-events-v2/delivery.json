@@ -1,7 +1,7 @@
 {
   "task": "CE011 / basic events source candidate v2",
   "worker": "CLADORA-CE-WORKER-01",
-  "parent": "b5adc9bc392838dee384b1cd8c6e297084626659",
+  "parent": "0f9eefd4759925daadfb816a88cac02358e9a717",
   "branch": "codex/ce011-basic-events-c03",
   "status": "SOURCE_CANDIDATE_DELIVERED_CORE_PORT_AND_NATIVE_OPEN",
   "assignment": {
@@ -69,9 +69,9 @@
       "before": null,
       "after": {
         "path": "scripts/build-ce011-basic-command-v2.mjs",
-        "bytes": 6712,
-        "sha256": "2ccaf95485b16eed280550b96ea81acd11c2a43a35c4b15f896124c3f220abd0",
-        "git_blob": "59c73e92aae6c2f329b5c757fd01966adcf184c0"
+        "bytes": 7255,
+        "sha256": "893e097e3d6155a626fecd19fcf668ebc3b6a656e964542f60d6ec9317ac3ca5",
+        "git_blob": "92d1481586e6c078b26fd87117224fdf72a78179"
       }
     },
     {
@@ -79,9 +79,9 @@
       "before": null,
       "after": {
         "path": "scripts/test-ce011-basic-events-v2.mjs",
-        "bytes": 14023,
-        "sha256": "3fc51584c1363836d35d37a7f0750ca334958740aea89e7e9b7cc1fe47d1414f",
-        "git_blob": "55da608d22134a8d4d451984974c773d169e052d"
+        "bytes": 14327,
+        "sha256": "70f21bee9cd7eb991c050bce7ac2935d6f7a62fcde2d497f99be2dbd947d5199",
+        "git_blob": "a203a80ab27b4cd04785a8319b5d2a5b9ef81202"
       }
     },
     {
@@ -89,9 +89,9 @@
       "before": null,
       "after": {
         "path": "supabase/proposals/ce011-basic-event-command-v2/command.sql",
-        "bytes": 27103,
-        "sha256": "a8c5cbbcd4436c6bd8597c22e00d4db57e2de1824264b0446125cb55f3954657",
-        "git_blob": "0070d1b75c4628ce13b8c452dd74deab4e1fc5b5"
+        "bytes": 27198,
+        "sha256": "8c50327189769c022fd3c9b13f1620d9abb8fc910fe01e670aa2ec12c304d1ce",
+        "git_blob": "597504af257999c5ae05775ca1d367a4a5c099ec"
       }
     },
     {
@@ -109,9 +109,9 @@
       "before": null,
       "after": {
         "path": "docs/contracts/ce011-basic-events-v2/README.md",
-        "bytes": 12939,
-        "sha256": "64b2bc43789dceb52264a1f677e70ab2e0ec226890b9ae5b4bf9224b31f4aeef",
-        "git_blob": "db95f411838f24bf9aef4c8ea394e27c1dac5692"
+        "bytes": 13319,
+        "sha256": "aee9650bd0e30bca3ecd10023ee337ac1098da236217b9ea9bb7b4bc8ffb2d6d",
+        "git_blob": "f2afbae9d5ef817b10be222ffd75f762eabdcc76"
       }
     },
     {
@@ -119,9 +119,9 @@
       "before": null,
       "after": {
         "path": "docs/contracts/ce011-basic-events-v2/evidence-receipt.json",
-        "bytes": 3225,
-        "sha256": "385bc5dd50826263b5efa548a6f67fe448e551461293f85a614fe84046a3a6b2",
-        "git_blob": "7f147d7e22ada5c7058c88837888893a6f16b1a9"
+        "bytes": 3378,
+        "sha256": "1236565bf45004e6c8d1354b1070aa7b7aaf1ba9368d14314e03766fb3d3c85a",
+        "git_blob": "042a5aa1e8a0acbb1eeea198ee3ef476e63a3c88"
       }
     }
   ],
@@ -779,6 +779,11 @@
       "gap": "API binding",
       "before": "legacy direct RPC route retained",
       "after": "new explicit command candidate route + original Request/session/scope binding; defaultNULL; no fallback or menu mount"
+    },
+    {
+      "gap": "specific audience role temporal window",
+      "before": "old role-code arm could use an expired/future role when another workspace role was live",
+      "after": "matching role itself must be current; inherited canonical validity columns, no new permission/role rule; static source witness only"
     }
   ],
   "runtime": {
@@ -839,5 +844,9 @@
     "target SQL/install/grant/build/restart/activation"
   ],
   "central_record": "Coordinator-owned; Viewer Page not edited",
-  "automation": "نیازمند بررسی؛ source/adapter checks repeatable, actual authority/install and native acceptance remain with Core/Platform/QA."
+  "automation": "نیازمند بررسی؛ source/adapter checks repeatable, actual authority/install and native acceptance remain with Core/Platform/QA.",
+  "base": "b5adc9bc392838dee384b1cd8c6e297084626659",
+  "inventory_before_ref": "b5adc9bc392838dee384b1cd8c6e297084626659",
+  "prior_source_checkpoint": "0f9eefd4759925daadfb816a88cac02358e9a717",
+  "artifact_scope": "Cumulative base b5..final Head, not only final corrective commit"
 }

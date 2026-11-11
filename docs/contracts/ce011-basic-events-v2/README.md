@@ -1,6 +1,6 @@
 # CE011 basic events — v2 source candidate
 
-Owner CE / CLADORA-CE-WORKER-01. Source parent
+Owner CE / CLADORA-CE-WORKER-01. Source base
 `b5adc9bc392838dee384b1cd8c6e297084626659`. Independent worktree/branch
 `codex/ce011-basic-events-c03`; CE010's branch/checkpoint is retained.
 Assignment: shared Page sequence87, CE card
@@ -105,6 +105,12 @@ change the accepted CE contract. An official Core request-local port must
 admit this exact C03 RPC family, not silently replace the key/hash. The v2
 function's namespace intentionally shares the v1 key/receipts, so it cannot
 create a second effect from the same original command merely by changing ABI.
+
+The new audience helper also closes a specific inherited temporal gap: the
+role-code arm now checks that the matching role itself has a current validity
+window. An unrelated live workspace role cannot make an expired/future matching
+role eligible. This source counterexample was checked statically and the SQL
+source/reproduction case was rerun; real DB execution remains NOT_RUN.
 
 Fresh guards consume existing Core `_at_v1` Context/permission and request-session
 primitives. They bind initial/current actor, tenant, membership and represented

@@ -83,6 +83,7 @@ await check('SQL source reuses exact canonical key/hash and atomic effects, adds
  for(const prefix of [' v_key:=',' v_hash:='])assert.equal(sql.split('\n').find(x=>x.startsWith(prefix)),old.split('\n').find(x=>x.startsWith(prefix)));
  assert.equal((sql.match(/insert into community\.event_command_receipts\(/g)||[]).length,1);assert.equal((sql.match(/insert into audit\.events\(/g)||[]).length,1);assert.equal((sql.match(/insert into platform\.outbox_events\(/g)||[]).length,1);
  assert.ok(sql.indexOf("RAISE EXCEPTION 'ce011_v2_source_only_no_admission'")<sql.indexOf('create function'));
+ assert.ok(sql.includes("and wr.lifecycle_status='published' and wr.valid_from<=clock_timestamp() and(wr.valid_to is null or wr.valid_to>clock_timestamp()) and exists(select 1 from community.event_audience_roles"),'specific audience role must itself be current; an unrelated live role is insufficient');
  assert.ok(!/\bGRANT\b/.test(sql));assert.ok(!/statement_timestamp\(\)/.test(sql));assert.ok(sql.includes('check_workspace_native_permission_v2_at_v1'));
  const at=sql.indexOf('return v_response;'),last=sql.lastIndexOf('ce_event_current_authority_denied',at);assert.ok(last>sql.indexOf('update platform.idempotency_keys'));
  const replay=sql.indexOf('return v_receipt.response_json'),prior=sql.lastIndexOf('ce_event_current_authority_denied',replay);assert.ok(prior>sql.indexOf('if v_idem.response_ref is not null'));

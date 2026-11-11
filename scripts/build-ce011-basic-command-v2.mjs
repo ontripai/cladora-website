@@ -8,6 +8,11 @@ const source=readFileSync(sourcePath,'utf8');assert.equal(createHash('sha256').u
 function span(start,end){const a=source.indexOf(start),b=source.indexOf(end,a)+end.length;assert.ok(a>=0&&b>a);return source.slice(a,b);}
 let audience=span('create function app_private.ce_event_audience_eligible_v1(','\n$$;')
  .replace('ce_event_audience_eligible_v1','ce011_audience_current_v2').replace('language sql stable','language sql volatile').replaceAll('statement_timestamp()','clock_timestamp()');
+// A specific role must itself be live, not merely accompanied by some other
+// live workspace role. Use the same canonical validity columns as the outer arm.
+const roleArm="and wr.lifecycle_status='published' and exists(select 1 from community.event_audience_roles";
+assert.equal(audience.split(roleArm).length-1,1);
+audience=audience.replace(roleArm,"and wr.lifecycle_status='published' and wr.valid_from<=clock_timestamp() and(wr.valid_to is null or wr.valid_to>clock_timestamp()) and exists(select 1 from community.event_audience_roles");
 let command=span('create function customer_api.command_ce_event_v1(','\nend$$;')
  .replace('command_ce_event_v1','command_ce_event_v2').replaceAll('app_private.ce_event_audience_eligible_v1','app_private.ce011_audience_current_v2')
  .replace('v_reason text;v_scope record;', 'v_reason text;v_scope record;v_initial record;v_current record;');

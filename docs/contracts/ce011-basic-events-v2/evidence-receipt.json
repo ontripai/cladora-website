@@ -76,6 +76,11 @@
     {
       "run": "single-case missing executable port regression",
       "result": "PASS"
+    },
+    {
+      "run": "SQL source case after adding specific-role validity window",
+      "result": "PASS_SOURCE_ONLY",
+      "SQL_execution": false
     }
   ],
   "full_suite_rerun_from_start": "NOT_RUN_NOT_CLAIMED",

@@ -20,7 +20,7 @@ returns boolean language sql volatile security definer set search_path=pg_catalo
      select 1 from platform.workspace_member_roles a join platform.workspace_roles wr on wr.id=a.workspace_role_id
       where a.membership_id=m.id and a.customer_workspace_id=e.workspace_id and a.tenant_id=e.tenant_id
       and a.valid_from<=clock_timestamp() and(a.valid_to is null or a.valid_to>clock_timestamp())
-      and wr.lifecycle_status='published' and exists(select 1 from community.event_audience_roles ar where ar.event_id=e.id and ar.role_code=wr.code)
+      and wr.lifecycle_status='published' and wr.valid_from<=clock_timestamp() and(wr.valid_to is null or wr.valid_to>clock_timestamp()) and exists(select 1 from community.event_audience_roles ar where ar.event_id=e.id and ar.role_code=wr.code)
    )))
  )
 $$;
