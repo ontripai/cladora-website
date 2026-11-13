@@ -1197,5 +1197,17 @@
     "actual_failure": "Application Foundation after unit suite: test-core-jurisdiction-domain-artifact-v1.mjs standalone loader cannot resolve server-only",
     "change": "Reuse unchanged Core15 native TS loader only; all original artifact assertions and product source retained",
     "local": "PASS14_WITH_FIVE_SYNTHETIC_COUNTRIES; LINT_AND_WHITESPACE_PASS; SQL_NATIVE_NOT_RUN"
+  },
+  "B2_marker_loader": {
+    "reviewed_parent": "57eb876d26436ecef258169e3f3d4ad2e09e51dd",
+    "path": "scripts/lib/airprop-b2-test-loader.mjs",
+    "bytes": 1690,
+    "sha256": "1741d8c3de1e1b9ec0cff0ddc784f739e3a9355a1f7afd8543d0f32aeb86bfe2",
+    "git_blob": "6ea1df667856e19d2b0e0fecc545ec83131cfdc0",
+    "change": "Resolve server-only using installed Next server empty marker after explicit mocks; rest of loader byte-identical",
+    "affected_local": "PASS_RUNTIME12_API6_RENDERED_UI5; LINT_WHITESPACE_PASS",
+    "assertions_guards_product": "UNCHANGED",
+    "parent_core_matrix": "PASS_REAL_NODE22.23.4_AND24.22.2_RUN43393706361",
+    "successor_CI": "PENDING_AUTOMATIC_EXACT_HEAD"
   }
 }

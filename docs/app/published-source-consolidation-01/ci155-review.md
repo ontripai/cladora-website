@@ -115,3 +115,9 @@ The last independent e157 CI findings were SERVICE offering-flow marker resoluti
 All five published heads remain ancestors. Product `src`, package/lock, every workflow except the exact approved Core17 proposal and APP Application Foundation source-check wiring, historical Core17 packet, its loader dependency, and immutable Checklist manifest are byte-for-byte unchanged from67. Core runtime remains blob `8ef53310edd2f7bac8f9c43b7bbf7925ad34db8f`. Original/private worktrees and current Gemini WIP are untouched.
 
 Independent QA acceptance, exact-head CI22/24, current hosted build and target/native remain separate gates. Operational bindings stay NULL and capabilities NOT_READY. No main merge, target install, SQL, role/RLS change, restart or activation was performed locally.
+
+## B2 marker loader after exact57eb CI
+
+Core17 run43393706361 passed actual Node22.23.4/job131779468889 and Node24.22.2/job131779468381 on57eb876d. Both logs were read; original historical62 sources/current73/operators18 and source-only/native-false boundaries remain intact. Application Foundation job131779468195 passed jurisdiction artifact14 and resolver7, then failed at the B2 shared loader's unresolved `server-only`.
+
+One line in `airprop-b2-test-loader.mjs` now resolves that marker to the installed Next server empty entry, after explicit test mocks and before external module loading. Cache, source resolution, compilation and every B2 assertion/SQL/product input remain unchanged. Only its affected runtime12, API/AP10 6 and rendered UI5 cases ran locally and passed, plus changed-file lint/whitespace. Previously passing B2 safety groups and full healthy suites were not repeated locally. Inventory records exact helper bytes/SHA/blob. Successor automatic CI remains a separate exact-head observation.
