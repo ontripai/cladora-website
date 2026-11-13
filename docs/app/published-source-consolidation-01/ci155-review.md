@@ -1,8 +1,8 @@
 # PR479 affected CI corrections
 
-Current correction source: `f15c71d708e3431a85f99cd5e658628709400d49`.
-Parent: `b2e807eb689c9aa46af70a4861f7d8e0f1948b20`.
-Tree: `c9144d698811e7ea72114890e418b951f0955fb2`.
+Current correction source: `2f6d371c687d721f352fcdfa431ffd9a83ac2b3a`.
+Parent: `3da06810fb4dee2927655bff140d7d3a0ce65864`.
+Tree: `26b3d0908279452f68ef20c37368a2fb6a19dfbd`.
 Initial correction source: `bec53e4301d539181ca564f8f87d9498875bc02b` on prior published head67.
 The following documentation-only successor records these results. Its exact SHA is available from PR479; tests are bound to the correction source above.
 
@@ -75,6 +75,12 @@ Documents closure now consumes the exact, hash-bound Core proposal profile rathe
 ## Preserved post-auth and B2 historical domains
 
 Atb2e807eb, Core17 matrix again passed both lanes, both SERVICE catalogue workflows and all AIRPROP/CE lanes passed; later Application Foundation stopped at the unchanged post-auth adoption seal and Database at a remaining nested writer loader. The latter now reuses the existing Core15 loader and its seven unchanged controls PASS. The source-domain distinction for post-auth and B2 is in [historical-source-domains.md](historical-source-domains.md). No original checker/manifest/sourceGate/admission function/B2 guard or product file changed. APP's workflow source-check wiring now runs the new bounded composition checks and their negatives; Node22, permissions and existing subsequent guards remain intact.
+
+## Historical admission fixture context
+
+At3da06810 Database static and PostgreSQL jobs pass. Application Foundation then reached the unchanged admission guard, which correctly rejected current package80947 against installed historical fd82 at test-core17-consumer-admission-v1:58. This is expected non-admission of the current successor, not a guard to relax. The original test/guard/manifest remain untouched. APP runner now executes those original positive/negative cases at exact historical main6cec source context in a task-owned detached worktree. Current source identity is still checked separately by the APP composition verifier, and current admission remains NOT_READY_NOT_GRANTED.
+
+Local runner check-only inspection authenticated immutable operator inputs, materialized every original pinned source and cleaned up its own worktree; original45 tests were NOT run locally. Existing CI executes those cases by default in the appropriate context. No fake current Coordinator admission, binding, native capability or pin update was created. Full details are in historical-source-domains.md.
 
 ## Open gates
 

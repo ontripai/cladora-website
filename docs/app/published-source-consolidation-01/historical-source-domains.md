@@ -10,7 +10,15 @@ The original manifest (SHA2564ae178ae), checker and `core17-exact-consumer-admis
 
 Current source is then checked separately: all six operator files retain original bytes/hash; all protected files retain original hashes except the four explicit transitions. Both package files must be byte-identical after exactly the approved root engine replacement. Runtime/host must match the exact Core-owned proposal profile (SHA09ad4bdd, reviewed67), including historical before SHA/blob and current after bytes/SHA/blob. No other exception or observed-HEAD pin is accepted. Native eligibility remains false, runtime_binding NULL; the original admission still requires explicit Coordinator identity and original binding.
 
-Local actual-checkout positive and six engine/runtime/operator/protected/native tamper controls PASS. They exercise only new source-composition cases; no Auth/SQL/native or the healthy45 admission cases were replayed locally. Application Foundation now invokes this APP source adapter and its new negatives while retaining all subsequent original admission/security tests.
+Local actual-checkout positive and six engine/runtime/operator/protected/native tamper controls PASS. They exercise only new source-composition cases; no Auth/SQL/native or the healthy45 admission cases were replayed locally. Application Foundation now invokes this APP source adapter and its new negatives while retaining all subsequent original admission/security assertions.
+
+### Original admission positive fixtures
+
+Actual3da CI reached the original positive admission test, which copies the working checkout's protected files into its fake consumer. The unchanged real guard correctly rejected current package80947 against installed historical fd82 (`CORE17_INSTALL_OR_AUTHORITY_SOURCE_DRIFT`). That guard remains correct and unchanged; current source compatibility does not authorize adopting the newer App.
+
+APP runner `run-app-core17-historical-admission-check-v1.mjs` preserves the complete original test, manifest and admission code. It verifies the immutable operator files against main6cec, creates a task-owned detached worktree at exactly6cec, and runs the original tests there. Finally it removes that exact temporary worktree. The current candidate is never checked out/reset or granted admission. A separate JSON result explicitly states HISTORICAL_ADMISSION_TESTS_ONLY and current_candidate_admission=NOT_READY_NOT_GRANTED. The current composition check runs independently before this runner.
+
+Local `--check-only` inspection passed source materialization/pin identity and cleanup without replaying the original45 cases. Remote CI's default runner executes those unchanged cases in their historical domain. This changes fixture context, not any native guard or expected success premise.
 
 ## AIRPROP B2 protected Core directory
 

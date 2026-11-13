@@ -1,8 +1,8 @@
 {
   "task": "APP-PUBLISHED-SOURCE-CONSOLIDATION-01",
   "base": "6cecfa15b00f445be68817e756d766fb0e6fe026",
-  "tested_source_head": "f15c71d708e3431a85f99cd5e658628709400d49",
-  "tested_source_tree": "c9144d698811e7ea72114890e418b951f0955fb2",
+  "tested_source_head": "2f6d371c687d721f352fcdfa431ffd9a83ac2b3a",
+  "tested_source_tree": "26b3d0908279452f68ef20c37368a2fb6a19dfbd",
   "branches": [
     {
       "branch": "codex/core-domain-ports-01",
@@ -702,9 +702,9 @@
   "current_correction_pins": [
     {
       "path": ".github/workflows/application-foundation.yml",
-      "bytes": 20242,
-      "sha256": "a7e33ecc3fc8e187e669f1513be59b48a62e32537381181634b9f854028ea733",
-      "git_blob": "85146a2c7f44eab48286eb7dd20239e29a52185b"
+      "bytes": 20387,
+      "sha256": "b31a074ee337912c204fdfc4bea91c514f5c516526e54009d4ec77049ee8c40d",
+      "git_blob": "9f0bcd272b1fa291d43077f2c207bc48f5be8c87"
     },
     {
       "path": ".github/workflows/core17-native-case-source.yml",
@@ -765,6 +765,12 @@
       "bytes": 1424,
       "sha256": "fb7f453c2b028212e669ee04274ac48c1366b4f499afd157e9d3bec0eda5f9b7",
       "git_blob": "d736e862254c62e5c0d0ff7485854c5d5509ac8f"
+    },
+    {
+      "path": "scripts/run-app-core17-historical-admission-check-v1.mjs",
+      "bytes": 1938,
+      "sha256": "0b2ffd4e14e9e912651424426d0e705508dd2451a535176f711e2018cc74ef79",
+      "git_blob": "1c8ca3d0685ae0c5b639d7c7c1a19519c4a57a97"
     },
     {
       "path": "scripts/test-airprop-b2-safety.mjs",
@@ -1050,10 +1056,10 @@
     }
   ],
   "current_status": {
-    "source_head": "f15c71d708e3431a85f99cd5e658628709400d49",
+    "source_head": "2f6d371c687d721f352fcdfa431ffd9a83ac2b3a",
     "core_proposal": "APPLIED_EXACT_FIVE_AFTERIMAGES; HISTORICAL_CHECKER_MANIFEST_SOURCEGATE_PRODUCT_RUNTIME_UNCHANGED",
     "Core17_CI22_24": "BOTH_PASS_AT_b2e807eb; FINAL_HISTORICAL_DOMAIN_ADAPTER_SUCCESSOR_CI_PENDING",
-    "last_independent_seams": "DOCUMENT_WRITER_PASS7; ADOPTION_HISTORY_CURRENT_POSITIVE_PLUS6_NEGATIVES; B2_EXACT_OFFICIAL_CORE78_PLUS3_NEGATIVES",
+    "last_independent_seams": "HISTORICAL_ADMISSION_POSITIVES_RUN_IN_ORIGINAL_SOURCE_CONTEXT; CURRENT_ADMISSION_REMAINS_NOT_READY",
     "native": "NOT_RUN_NOT_PASS",
     "runtime": null,
     "QA": "PENDING_INDEPENDENT_EXACT_HEAD_REVIEW"
@@ -1089,5 +1095,17 @@
     "native_execution_eligible": false,
     "runtime": null,
     "activation": null
+  },
+  "historical_admission_test_context": {
+    "source_head": "2f6d371c687d721f352fcdfa431ffd9a83ac2b3a",
+    "historical_source": "6cecfa15b00f445be68817e756d766fb0e6fe026",
+    "reason": "Actual3da CI guard correctly rejected current engine metadata against installed historical Core; original positive fixture copied working source",
+    "original_guard_checker_manifest_test": "UNCHANGED",
+    "runner": "scripts/run-app-core17-historical-admission-check-v1.mjs",
+    "local_inspection": "PASS_CHECK_ONLY_HISTORY_MATERIALIZATION_AND_ALL_ORIGINAL_PINNED_FILES; ORIGINAL45_NOT_RUN_LOCALLY",
+    "CI": "Default runner executes original cases at original checkpoint and removes only task-owned detached worktree; current-source check is separate",
+    "current_candidate_admission": "NOT_READY_NOT_GRANTED",
+    "native_execution_eligible": false,
+    "runtime_binding": null
   }
 }
