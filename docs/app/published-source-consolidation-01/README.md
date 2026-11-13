@@ -2,7 +2,7 @@
 
 This candidate combines current published Core, AIRPROP, CE011 (including its CE010 ancestry), and independent Guide discovery changes on main. The historical CE route could not resolve the Core CE010 binding when built alone; the real published supplier is present in this combined tree. Private successor adoption and operational activation remain separate work.
 
-The merges preserve each public branch's ancestry. CE010 is already an ancestor of CE011 and was not merged as a second independent delivery. The only authored product change is the approved two-field Node engine constraint `22.x || 24.x`; dependency objects, resolutions, integrities and CI workflows are unchanged.
+The merges preserve each public branch's ancestry. CE010 is already an ancestor of CE011 and was not merged as a second independent delivery. The authored product metadata change is the approved two-field Node engine constraint `22.x || 24.x`; dependency objects, resolutions and integrities remain unchanged. The later CI successor changes only harnesses and the single reviewed Core17 source-check workflow; its Node22/24 matrix is retained.
 
 ## Included and remaining branches
 
@@ -29,7 +29,7 @@ The resolution preserves Core's SERVICE final-wire/custody and Finance hooks whi
 
 ## CI harness successor
 
-The current CI correction source is `5513076845ebbc9dcc092d3bce0a228ef709bed2`, parent `c07c5928caacc29d0c01dabbdabe17a0a95ceba1`; it continues the first correction `bec53e4301d539181ca564f8f87d9498875bc02b` on prior published head67. The same PR retains every published ancestor and the exact Core runtime blob. See [ci155-review.md](ci155-review.md) for affected results, loader callgraphs, and the remaining Core17 seal gate. This successor changes scripts and review inventory only. Product UI, Auth/MFA guards, package/lock, workflows and historical Core17/native evidence remain unchanged.
+The current CI correction source is `4d21561862c20f56b9c4b81a59ca5e1f0a5d9e55`, parent `07dc064f4a2a56c83b627a3cf1b56b8b1a596029`; it continues the first correction `bec53e4301d539181ca564f8f87d9498875bc02b` on prior published head67. The same PR retains every published ancestor and the exact Core runtime blob. See [ci155-review.md](ci155-review.md) for affected results, loader callgraphs, and Core17 source-successor application. [core17-seal-application.json](core17-seal-application.json) records the exact five-path proposal and its affected local checks; real Node22/24 CI remains separate. This successor changes scripts, review inventory and only the proposed Core17 workflow. Product UI, Auth/MFA guards, package/lock and historical Core17/native evidence remain unchanged. The exact original historical validator runs against its original Git sources; a separate73-file profile checks the actual successor. Execution/native admission remains false.
 
 ## Earlier validation of the product combination
 

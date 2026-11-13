@@ -1,8 +1,8 @@
 # PR479 affected CI corrections
 
-Current correction source: `5513076845ebbc9dcc092d3bce0a228ef709bed2`.
-Parent: `c07c5928caacc29d0c01dabbdabe17a0a95ceba1`.
-Tree: `6084493a7c9343c4be1f69ea2b9757f914f65fdc`.
+Current correction source: `4d21561862c20f56b9c4b81a59ca5e1f0a5d9e55`.
+Parent: `07dc064f4a2a56c83b627a3cf1b56b8b1a596029`.
+Tree: `529ee080f0aa3a59e64cee25b4fcb11029525fa0`.
 Initial correction source: `bec53e4301d539181ca564f8f87d9498875bc02b` on prior published head67.
 The following documentation-only successor records these results. Its exact SHA is available from PR479; tests are bound to the correction source above.
 
@@ -68,8 +68,12 @@ ESLint on all22 changed scripts in this correction and whitespace checks PASS. A
 
 At prior head67 all 23 observed workflows completed: 13 failed and10 succeeded. Each failed job's log was read; the later AIRPROP/Database static failures share the Documents marker failure. Those historical results are not successor CI results. The successor's automatic workflow runs must be read separately; no old job was manually rerun.
 
-Core17 remains **INPUT_PENDING_OWNER_CORE_PROPOSAL**. Its historical seal expects24353 runtime bytes while the approved current Core runtime is39845. The original manifest, checker, operator evidence and native claims are unchanged. The historical native result is not attributed to the current combination. The user explicitly directed APP to leave only this seam waiting for Core's separate proposal. The runtime resolution from the earlier integration decision is already complete and is not pending again.
+Core17 proposal is now received and **APPLIED_EXACT_5_PATHS** in commit07dc064f on existing heade15757fc, preserving every independent correction. All supplied before/after bytes, SHA256 and Git blobs matched. [core17-seal-application.json](core17-seal-application.json) records the five paths and local receipts. The CLI validated the actual current checkout: original62-file historical validator, all18 operator files/helpers unchanged, and exactly73 reviewed successor product files. Seven new focused groups PASS on Node24.19.0: identity plus historical manifest tamper, same-size runtime tamper, extra dependency, extra operator, profile/native relabel and original native guard identity. Syntax/lint of the two new scripts PASS. Original54 controlled cases and healthy build/typecheck/supplier suites were not repeated locally.
 
-All five published heads remain ancestors. Product `src`, package/lock, workflows, historical Core17 packet, its loader dependency, and immutable Checklist manifest are byte-for-byte unchanged from67. Core runtime remains blob `8ef53310edd2f7bac8f9c43b7bbf7925ad34db8f`. Original/private worktrees and current Gemini WIP are untouched.
+The existing Core17 workflow alone now invokes this two-domain checker and its new negative tests; checkout depth0, Node22/24 matrix, npm ci, permissions, budgets, existing controlled/dry-run steps remain as proposed. No historical assertion is skipped: the exact original validate body executes against original pinned Git sources. The current successor profile is separately hash-bound; historical native evidence is not extended to current runtime. SourceGate, historical manifest/checker/operator and product runtime remain byte-identical. Actual automatic Node22/24 results must be read at the final published documentation SHA.
+
+The last independent e157 CI findings were SERVICE offering-flow marker resolution and the exported Documents reference-authority loader reused by its PostgreSQL harness. Both now use the unchanged Core15 loader. SERVICE flow12 and reference-authority7 checks PASS; the exported shared loader also loads the actual Core host/provider/port with stable cache identity, without SQL. Lint/whitespace PASS. At e157 all AIRPROP lanes, CE Community, Release safety and both SERVICE catalogue workflows passed; Database static passed and later PostgreSQL stopped at the shared loader. These are intermediate-head observations, not final-head blanket CI acceptance.
+
+All five published heads remain ancestors. Product `src`, package/lock, every workflow except the exact approved Core17 proposal, historical Core17 packet, its loader dependency, and immutable Checklist manifest are byte-for-byte unchanged from67. Core runtime remains blob `8ef53310edd2f7bac8f9c43b7bbf7925ad34db8f`. Original/private worktrees and current Gemini WIP are untouched.
 
 Independent QA acceptance, exact-head CI22/24, current hosted build and target/native remain separate gates. Operational bindings stay NULL and capabilities NOT_READY. No main merge, target install, SQL, role/RLS change, restart or activation was performed locally.
