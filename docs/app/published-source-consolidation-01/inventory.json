@@ -1,8 +1,8 @@
 {
   "task": "APP-PUBLISHED-SOURCE-CONSOLIDATION-01",
   "base": "6cecfa15b00f445be68817e756d766fb0e6fe026",
-  "tested_source_head": "b6bddb7b863c4b31c4f2047310d008f443c3c305",
-  "tested_source_tree": "4babe6796aa736a399d580780aae84a7b5e739c4",
+  "tested_source_head": "f15c71d708e3431a85f99cd5e658628709400d49",
+  "tested_source_tree": "c9144d698811e7ea72114890e418b951f0955fb2",
   "branches": [
     {
       "branch": "codex/core-domain-ports-01",
@@ -701,10 +701,22 @@
   },
   "current_correction_pins": [
     {
+      "path": ".github/workflows/application-foundation.yml",
+      "bytes": 20242,
+      "sha256": "a7e33ecc3fc8e187e669f1513be59b48a62e32537381181634b9f854028ea733",
+      "git_blob": "85146a2c7f44eab48286eb7dd20239e29a52185b"
+    },
+    {
       "path": ".github/workflows/core17-native-case-source.yml",
       "bytes": 2303,
       "sha256": "8b86c76210882bdbc69808377cfc68025deefb69826042feb325a39762ab5fe6",
       "git_blob": "0fb8047d70034c987233041245a3a27185d9b8c2"
+    },
+    {
+      "path": "scripts/check-app-core17-adoption-source-v1.mjs",
+      "bytes": 4776,
+      "sha256": "c062b888efa6e1ba20e61819f38be0adc6f1b05cfb892f8cd36dbe8b8d2dc93b",
+      "git_blob": "a847b9e284b08ba2f7b65274b657993db7d14c94"
     },
     {
       "path": "scripts/core17-native-source-successor-v1/README.md",
@@ -743,10 +755,22 @@
       "git_blob": "2dace6716d24659779ce51691b0b61d75ce08166"
     },
     {
+      "path": "scripts/lib/app-official-core-directory-v1.mjs",
+      "bytes": 3307,
+      "sha256": "93bb86bd7b144d6d4eeea8387489aef880a92166c8d8060417769a80e8c35a2f",
+      "git_blob": "47476c641eaf56614920847f1ff1f8b7fe165f29"
+    },
+    {
       "path": "scripts/lib/reviewed-core-host-source-pin-v1.mjs",
       "bytes": 1424,
       "sha256": "fb7f453c2b028212e669ee04274ac48c1366b4f499afd157e9d3bec0eda5f9b7",
       "git_blob": "d736e862254c62e5c0d0ff7485854c5d5509ac8f"
+    },
+    {
+      "path": "scripts/test-airprop-b2-safety.mjs",
+      "bytes": 22948,
+      "sha256": "e50649cacfb05d12928fd27d8693e15e3cd54d52899ecb36f14bb0147bef8918",
+      "git_blob": "3b7cf60a772ac269f116e7b58d53aefe58fa88fc"
     },
     {
       "path": "scripts/test-airprop-underwriting-ui-008.mjs",
@@ -755,10 +779,22 @@
       "git_blob": "c68fb3cff9d6f978e23fcf7c028713fb43dae1d5"
     },
     {
+      "path": "scripts/test-app-core17-adoption-source-v1.mjs",
+      "bytes": 1721,
+      "sha256": "47da785a71ee801086d8420b3d6e9f69bc0d3a968a3d3a46013a7121c8442060",
+      "git_blob": "a7e7c06a0255aa90b80b5956b5e3918f5c41e6c9"
+    },
+    {
       "path": "scripts/test-app-engine-source-transition.mjs",
       "bytes": 2216,
       "sha256": "b23df8bc4ad3545cd6e2e5b016241575cdb9dd5c7dd4925ae91848f1cea442c3",
       "git_blob": "5020f3051ae3905fc48c1f73c1cfed221dd325ca"
+    },
+    {
+      "path": "scripts/test-app-official-core-directory-v1.mjs",
+      "bytes": 1105,
+      "sha256": "8ae33da2ae7d128d1613f1c2856ad0fc0e5b5343e742dd122808cfbfabb5476a",
+      "git_blob": "340a94204bba487fb9a605988144511630ac1bcd"
     },
     {
       "path": "scripts/test-ce-010-community-page.mjs",
@@ -929,6 +965,12 @@
       "git_blob": "081f188b945bd7bc76658dbb883f8bafab3d6b73"
     },
     {
+      "path": "scripts/test-documents-workspace-binding-writer-v1.mjs",
+      "bytes": 13224,
+      "sha256": "2a1c9227652d107849387cc1cb47d954d996050be1dd3f90247ba9bbb9f3f661",
+      "git_blob": "6b5f917815c7d1d9eb77dbcff585da8cfd1d8180"
+    },
+    {
       "path": "scripts/test-owned-post-auth-boundaries-01.mjs",
       "bytes": 7171,
       "sha256": "c4cfe4a0a615263e771c491b341d38fe687040e5e972765ed6cc24a83375ebb9",
@@ -1008,10 +1050,10 @@
     }
   ],
   "current_status": {
-    "source_head": "b6bddb7b863c4b31c4f2047310d008f443c3c305",
+    "source_head": "f15c71d708e3431a85f99cd5e658628709400d49",
     "core_proposal": "APPLIED_EXACT_FIVE_AFTERIMAGES; HISTORICAL_CHECKER_MANIFEST_SOURCEGATE_PRODUCT_RUNTIME_UNCHANGED",
-    "Core17_CI22_24": "BOTH_PASS_AT_552ea91b; FINAL_SUCCESSOR_CI_PENDING",
-    "last_independent_seams": "S01_LOADER_PASS4; DOCUMENTS_REVIEWED_CORE_HOST_TRANSITION_PASS_WITH5_NEGATIVES",
+    "Core17_CI22_24": "BOTH_PASS_AT_b2e807eb; FINAL_HISTORICAL_DOMAIN_ADAPTER_SUCCESSOR_CI_PENDING",
+    "last_independent_seams": "DOCUMENT_WRITER_PASS7; ADOPTION_HISTORY_CURRENT_POSITIVE_PLUS6_NEGATIVES; B2_EXACT_OFFICIAL_CORE78_PLUS3_NEGATIVES",
     "native": "NOT_RUN_NOT_PASS",
     "runtime": null,
     "QA": "PENDING_INDEPENDENT_EXACT_HEAD_REVIEW"
@@ -1024,5 +1066,28 @@
     "host_transition": "Core owner profile sha09ad4bdd... authenticates historical9436c082 and official Core4b current6bcca1f3; entire current host bytes/SHA/Gitblob checked; profile/native/extra tamper and host tamper rejected",
     "no_SQL": "Local tests are source/controlled only",
     "Core17_current_workflow_22_24": "Already passed at552ea; new real exact-head CI follows publication; no historical receipt relabel"
+  },
+  "historical_source_domain_adapters": {
+    "source_head": "f15c71d708e3431a85f99cd5e658628709400d49",
+    "source_tree": "c9144d698811e7ea72114890e418b951f0955fb2",
+    "details": "historical-source-domains.md",
+    "historical_checkpoint": "6cecfa15b00f445be68817e756d766fb0e6fe026",
+    "official_current_Core": "4b3138f0ff0a27187d23d8a5b058d114ddcad773",
+    "official_Core_tree": "17e8ba3a78208dfbd2f674158117c8ddd5c7f3ee",
+    "official_Core_files": 78,
+    "checks": {
+      "historical_adoption_validator": "ORIGINAL_BODY_EXECUTED_WITH_EXACT_GIT_HISTORY",
+      "current_adoption": "EXACTLY4_AUTHORIZED_DIFFERENCES; ALL6_OPERATORS_AND_OTHER_PROTECTED_PINS_MATCH",
+      "adoption_new_controls": "PASS_POSITIVE_PLUS6_TAMPER_CONTROLS",
+      "B2_guard": "ORIGINAL_FUNCTION_AND_ALL_PIN_LITERALS_UNCHANGED; EXECUTED_IN_ORIGINAL_CORE_SOURCE_CONTEXT",
+      "B2_current_Core": "MATCH_ALL78_BLOBS_EXPLICIT_OFFICIAL_CORE4b_TREE; EXTRA_MISSING_TAMPER_REJECTED",
+      "B2_safety_case": "PASS_MIGRATION_GUARDS_AND_INACTIVE_API_UI_ASSERTIONS_PRESERVED",
+      "documents_workspace_writer": "PASS7_AFTER_EXISTING_LOADER_REUSE",
+      "lint_whitespace": "PASS6_CHANGED_NEW_SCRIPTS"
+    },
+    "source_only": true,
+    "native_execution_eligible": false,
+    "runtime": null,
+    "activation": null
   }
 }

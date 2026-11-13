@@ -1,8 +1,8 @@
 # PR479 affected CI corrections
 
-Current correction source: `b6bddb7b863c4b31c4f2047310d008f443c3c305`.
-Parent: `6d7c0bfd15c54bbb90091fcb53773ca45a28361a`.
-Tree: `4babe6796aa736a399d580780aae84a7b5e739c4`.
+Current correction source: `f15c71d708e3431a85f99cd5e658628709400d49`.
+Parent: `b2e807eb689c9aa46af70a4861f7d8e0f1948b20`.
+Tree: `c9144d698811e7ea72114890e418b951f0955fb2`.
 Initial correction source: `bec53e4301d539181ca564f8f87d9498875bc02b` on prior published head67.
 The following documentation-only successor records these results. Its exact SHA is available from PR479; tests are bound to the correction source above.
 
@@ -72,6 +72,10 @@ The same552ea CI then exposed two later seams: S01 consumer harness marker resol
 
 Documents closure now consumes the exact, hash-bound Core proposal profile rather than replacing its historical hash with the current hash. The unchanged expected historical host9436c082 is authenticated against the owner's historical→current record; the entire actual current host75138bytes/SHA6bcca1f3/Gitblob458576c1 must match that same record and current product inventory. The producer separately read official Core4b and matched its exact current host. The profile itself must have SHA09ad4bdd, reviewed67 head and native_execution_eligible=false/runtime_activation=null. Other migration/authority/writer pins and all prospective Workspace creation/insert-owner/no-legacy/no-backfill guards remain unchanged. Original closure checks PASS; the focused transition check rejects five host/profile/extra/native mutations. No SQL was run locally.
 
+## Preserved post-auth and B2 historical domains
+
+Atb2e807eb, Core17 matrix again passed both lanes, both SERVICE catalogue workflows and all AIRPROP/CE lanes passed; later Application Foundation stopped at the unchanged post-auth adoption seal and Database at a remaining nested writer loader. The latter now reuses the existing Core15 loader and its seven unchanged controls PASS. The source-domain distinction for post-auth and B2 is in [historical-source-domains.md](historical-source-domains.md). No original checker/manifest/sourceGate/admission function/B2 guard or product file changed. APP's workflow source-check wiring now runs the new bounded composition checks and their negatives; Node22, permissions and existing subsequent guards remain intact.
+
 ## Open gates
 
 At prior head67 all 23 observed workflows completed: 13 failed and10 succeeded. Each failed job's log was read; the later AIRPROP/Database static failures share the Documents marker failure. Those historical results are not successor CI results. The successor's automatic workflow runs must be read separately; no old job was manually rerun.
@@ -82,6 +86,6 @@ The existing Core17 workflow alone now invokes this two-domain checker and its n
 
 The last independent e157 CI findings were SERVICE offering-flow marker resolution and the exported Documents reference-authority loader reused by its PostgreSQL harness. Both now use the unchanged Core15 loader. SERVICE flow12 and reference-authority7 checks PASS; the exported shared loader also loads the actual Core host/provider/port with stable cache identity, without SQL. Lint/whitespace PASS. At e157 all AIRPROP lanes, CE Community, Release safety and both SERVICE catalogue workflows passed; Database static passed and later PostgreSQL stopped at the shared loader. These are intermediate-head observations, not final-head blanket CI acceptance.
 
-All five published heads remain ancestors. Product `src`, package/lock, every workflow except the exact approved Core17 proposal, historical Core17 packet, its loader dependency, and immutable Checklist manifest are byte-for-byte unchanged from67. Core runtime remains blob `8ef53310edd2f7bac8f9c43b7bbf7925ad34db8f`. Original/private worktrees and current Gemini WIP are untouched.
+All five published heads remain ancestors. Product `src`, package/lock, every workflow except the exact approved Core17 proposal and APP Application Foundation source-check wiring, historical Core17 packet, its loader dependency, and immutable Checklist manifest are byte-for-byte unchanged from67. Core runtime remains blob `8ef53310edd2f7bac8f9c43b7bbf7925ad34db8f`. Original/private worktrees and current Gemini WIP are untouched.
 
 Independent QA acceptance, exact-head CI22/24, current hosted build and target/native remain separate gates. Operational bindings stay NULL and capabilities NOT_READY. No main merge, target install, SQL, role/RLS change, restart or activation was performed locally.
