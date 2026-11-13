@@ -199,6 +199,61 @@ function publicPresentationSource(file, source = read(file)) {
       (text, [start, end]) => text.slice(0, start) + 'internal_scope_binding' + text.slice(end), source,
     );
   }
+  if (file === 'src/components/customer/CustomerExperienceGuidePage.tsx') {
+    const ast = ts.createSourceFile(file, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+    const internal = [];
+    function privateJsxUses(fn, name, tag, attribute, memberProps = {}) {
+      let safe = true;
+      const visit = node => {
+        if (ts.isIdentifier(node) && node.text === name) {
+          let expression = node.parent;
+          while (expression && expression !== fn && !ts.isJsxExpression(expression) && !ts.isJsxSpreadAttribute(expression)) expression = expression.parent;
+          if (expression && expression !== fn) {
+            const prop = expression.parent, component = prop?.parent?.parent;
+            const value = expression.expression;
+            const direct = ts.isIdentifier(value ?? {}) && value.text === name && prop?.name?.getText(ast) === attribute;
+            const member = ts.isPropertyAccessExpression(value ?? {}) && ts.isIdentifier(value.expression) && value.expression.text === name
+              && Object.hasOwn(memberProps, value.name.text) && prop?.name?.getText(ast) === memberProps[value.name.text];
+            if (!ts.isJsxExpression(expression) || (!direct && !member) || !ts.isJsxAttribute(prop)
+              || !component || !ts.isJsxSelfClosingElement(component) || component.tagName.getText(ast) !== tag) safe = false;
+          }
+        }
+        ts.forEachChild(node, visit);
+      };
+      visit(fn); return safe;
+    }
+    const visit = node => {
+      const fn = ts.findAncestor(node, ts.isFunctionDeclaration);
+      if (ts.isPropertySignature(node) && node.name.getText(ast) === 'membership_id'
+        && fn?.name?.text === 'CustomerExperienceGuideScope' && ts.isTypeLiteralNode(node.parent)
+        && node.parent.members.map(p => p.name?.getText(ast)).sort().join(',') === 'context_id,membership_id,workspace_id'
+        && node.parent.members.every(p => p.type?.kind === ts.SyntaxKind.StringKeyword)
+        && privateJsxUses(fn, 'scope', 'GuideWorkspace', undefined, { context_id: 'contextId', workspace_id: 'workspaceId' })) {
+        internal.push([node.name.getStart(ast), node.name.getEnd()]);
+      }
+      if (ts.isPropertyAssignment(node) && node.name.getText(ast) === 'membership_id'
+        && node.initializer.getText(ast) === 'active.membership_id'
+        && fn?.name?.text === 'CustomerExperienceGuidePage'
+        && ts.findAncestor(node, ts.isVariableDeclaration)?.name.getText(ast) === 'scope'
+        && privateJsxUses(fn, 'scope', 'CustomerExperienceGuideScope', 'scope')) {
+        internal.push([node.name.getStart(ast), node.name.getEnd()]);
+      }
+      if (ts.isPropertyAccessExpression(node) && node.getText(ast) === 'scope.membership_id'
+        && fn?.name?.text === 'CustomerExperienceGuideScope'
+        && ts.findAncestor(node, ts.isVariableDeclaration)?.name.getText(ast) === 'binding'
+        && privateJsxUses(fn, 'binding', 'GuideWorkspace', 'key')
+        && privateJsxUses(fn, 'scope', 'GuideWorkspace', undefined, { context_id: 'contextId', workspace_id: 'workspaceId' })) {
+        internal.push([node.getStart(ast), node.getEnd()]);
+      }
+      ts.forEachChild(node, visit);
+    };
+    visit(ast);
+    // Exact DTO type/owner-scope/cache-key positions only. Public JSX scope or
+    // binding use prevents the exception, including JSON serialization/spreads.
+    source = internal.sort((a, b) => b[0] - a[0]).reduce(
+      (text, [start, end]) => text.slice(0, start) + 'internal_scope_binding' + text.slice(end), source,
+    );
+  }
   if (![
     'src/components/customer/CustomerCommunityBasePage.tsx',
     'src/components/customer/CustomerEventInterestPage.tsx',
@@ -258,6 +313,20 @@ for (const source of [
 ]) {
   check(publicPresentationSource('src/components/customer/CustomerCommunityBasePage.tsx', source).includes('membership_id'),
     'scope-binding exception must never hide a displayed or unrelated component membership field');
+}
+
+const guideFile = 'src/components/customer/CustomerExperienceGuidePage.tsx';
+for (const source of [
+  'function CustomerExperienceGuidePage(){const scope={membership_id:active.membership_id};return <CustomerExperienceGuideScope scope={scope}/>;}',
+  'function CustomerExperienceGuideScope({scope}:{scope:{context_id:string;membership_id:string;workspace_id:string}}){const binding=`${scope.membership_id}`;return <GuideWorkspace key={binding}/>;}',
+]) check(!publicPresentationSource(guideFile, source).includes('membership_id'), 'exact private Guide DTO/cache bindings are not public copy');
+for (const view of ['<span>{scope.membership_id}</span>', '<div data-private={scope.membership_id}/>', '<OtherComponent scope={scope}/>', '<span>{JSON.stringify(scope)}</span>', '<div {...scope}/>']) {
+  const source = `function CustomerExperienceGuidePage(){const scope={membership_id:active.membership_id};return ${view};}`;
+  check(publicPresentationSource(guideFile, source).includes('membership_id'), 'Guide DTO exception must not hide public scope/DOM/serialized/unrelated props');
+}
+for (const view of ['<span>{binding}</span>', '<div data-private={binding}/>', '<OtherComponent key={binding}/>', '<span>{JSON.stringify(scope)}</span>', '<GuideWorkspace key={binding} payload={JSON.stringify(scope)}/>']) {
+  const source = `function CustomerExperienceGuideScope({scope}){const binding=\`\${scope.membership_id}\`;return ${view};}`;
+  check(publicPresentationSource(guideFile, source).includes('membership_id'), 'Guide cache exception must not hide public or unrelated binding use');
 }
 
 check(!/(?:localeConfig|getLocaleConfig)/.test(benefitPresentation),
