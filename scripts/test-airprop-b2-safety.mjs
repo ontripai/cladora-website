@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { validateProtectedDirectory } from './lib/airprop-b2-safety-guard.mjs';
+import { validateAppCoreProtectedDirectoryV1 } from './lib/app-official-core-directory-v1.mjs';
 
 const files = ['src/lib/airprop/artifact-b2-contract.ts', 'src/lib/airprop/artifact-b2-runtime.ts',
   'src/lib/airprop/artifact-b2-api.ts', 'src/lib/airprop/artifact-b2-portfolio.ts',
@@ -232,7 +233,7 @@ const migrationResult = validateProtectedDirectory({
   label: 'AIRPROP B2 migration baseline',
 });
 
-const coreResult = validateProtectedDirectory({
+const coreResult = validateAppCoreProtectedDirectoryV1({
   directory: 'src/lib/core',
   expectedProtectedCount: 13,
   expectedProtectedDigest: '7502bf811cb4959cd7f7c1ade651b8020b3e99cb0d76a0667caf7fbdedb2c3be',
@@ -421,10 +422,12 @@ const coreResult = validateProtectedDirectory({
   label: 'AIRPROP B2 Core baseline',
 });
 
-console.log('PASS B2 safety: canonical provider/host reuse and inactive production remain closed; protected migration/Core baselines are immutable; reviewed additions present:', {
+console.log('PASS B2 safety: canonical provider/host reuse and inactive production remain closed; migration baseline immutable; historical Core baseline retained; current Core official-source identity separate:', {
   migrations: migrationResult.reviewedAdditionsPresent,
   core: coreResult.reviewedAdditionsPresent,
   coreReplacements: coreResult.reviewedReplacementsPresent,
+  currentCoreSourceIdentity: coreResult.currentCoreSourceIdentity,
+  historicalCoreSource: coreResult.historical_source,
   historicalCoreBaseline: {
     count: coreResult.historicalProtectedCount,
     digest: coreResult.historicalProtectedDigest,

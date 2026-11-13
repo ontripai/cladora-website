@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import { readFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
+import { verifyOfficialCoreDirectoryV1 } from './lib/app-official-core-directory-v1.mjs';
+const actual = verifyOfficialCoreDirectoryV1(); assert.equal(actual.native_execution_eligible, false);
+const paths = readdirSync('src/lib/core', { recursive: true, withFileTypes: true }).filter(e => e.isFile()).map(e => join(e.parentPath, e.name).slice('src/lib/core/'.length)).sort();
+assert.throws(() => verifyOfficialCoreDirectoryV1({ listCurrent: () => [...paths, 'unreviewed.ts'] }), /OFFICIAL_CORE_PATH_SET/);
+assert.throws(() => verifyOfficialCoreDirectoryV1({ listCurrent: () => paths.slice(1) }), /OFFICIAL_CORE_PATH_SET/);
+assert.throws(() => verifyOfficialCoreDirectoryV1({ readCurrent: p => { const b = readFileSync(join('src/lib/core', p)); return p === 'functional-command-runtime-v1.ts' ? Buffer.concat([b, Buffer.from('\n')]) : b; } }), /OFFICIAL_CORE_BLOB/);
+console.log(JSON.stringify({ source_only: true, positive: actual, negative: 3, native: 'NOT_RUN_NOT_PASS' }));
