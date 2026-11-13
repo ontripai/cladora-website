@@ -1,0 +1,193 @@
+{
+  "contract": "core-domain-ports-01.r0.source.v1",
+  "source_base": "bfadc5042cb00841dd605862a2a72ddc0dbafb87",
+  "FullSHA": "CONTAINING_COMMIT",
+  "shared_main": "NOT_ANNOUNCED",
+  "scope": "Offering command identity preparation only; roadmap open",
+  "source_status": "SOURCE_READY_FOR_REVIEW",
+  "runtime_activation": null,
+  "inventory": [
+    {
+      "path": "src/lib/core/functional-command-runtime-v1.ts",
+      "before": {
+        "bytes": 24353,
+        "sha256": "c1461444af4baae11f40f62c03bcea86538bd6c91fe2846f300fc4511e0fded5",
+        "git_blob": "79c16e9c6e75ea218ab25f1ed19dd89d0a0eabd7"
+      },
+      "after": {
+        "bytes": 28103,
+        "sha256": "e83e1351af12f5f1f88af94f2b317fc9509a888bb9d1ba975167fc9ecb705e41",
+        "git_blob": "7a7f3a6272c31df30b61835d5a8a3eeacc621139"
+      }
+    },
+    {
+      "path": "src/lib/core/domain-command-identity-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 1278,
+        "sha256": "25b6c025992823486f304bc6bd5e9b5fce0fe192fb862e7f122f3f3714e2e84f",
+        "git_blob": "eedabbe9e8e0f78b90c55c1038adf1d1cdd9b8e8"
+      }
+    },
+    {
+      "path": "src/lib/core/service-authoring-identity-port-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 1693,
+        "sha256": "f13a0eb99686a13b9fca4f88824b75df3dc3adede048fa8eb6428cd2776d27ac",
+        "git_blob": "2ba51a7d66d902c6e44861012bdaaddfd91079d9"
+      }
+    },
+    {
+      "path": "scripts/test-core-domain-command-identity-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 7943,
+        "sha256": "5d6b5289e06b6fcf8fd5e85705007629e9346bfc48d5e690671f49ecdef3c70f",
+        "git_blob": "db230605a3c74270c28b1f8f85d2c5dd4c1ecde6"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/WORKLOG.md",
+      "before": null,
+      "after": {
+        "bytes": 1033,
+        "sha256": "af41524fb81894170cbf67881799e2253892d5bb473c7b8840e5c9218a554383",
+        "git_blob": "4c346ad26cc957e855dd85188c4476d4fcf82bd7"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/README.md",
+      "before": null,
+      "after": {
+        "bytes": 8118,
+        "sha256": "734cd5f1f9eb2fbe916e5d56a9ef36c2b6c4e7ac98b816636362f91c12be05a6",
+        "git_blob": "88f2cde32e278d5f05ba973c990d901293415933"
+      }
+    }
+  ],
+  "dependencies": [
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "source": "bfadc5042cb00841dd605862a2a72ddc0dbafb87",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "git_blob": "e67df2d947608f546dab42dba88b5bdc418cbffb",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "source": "bfadc5042cb00841dd605862a2a72ddc0dbafb87",
+      "bytes": 62680,
+      "sha256": "9436c082f8ce8a054d8300f55bd49ac4b6120240cf06fa6ca94190b5c6c1858a",
+      "git_blob": "9e1a0229b9676368dc1d49015cf95be13fac9908",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/core/functional-producers-v1.ts",
+      "source": "bfadc5042cb00841dd605862a2a72ddc0dbafb87",
+      "bytes": 4260,
+      "sha256": "f44c68523edcb4c75589a7b040d6f380d5609788a6c12bb0fb661c74870ed887",
+      "git_blob": "2795ae040748018820e26aa827c174ac39cb7817",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/core/functional-request-auth-v1.ts",
+      "source": "bfadc5042cb00841dd605862a2a72ddc0dbafb87",
+      "bytes": 1857,
+      "sha256": "50f3f913366cd93aa8342ce6d653a847ab3f2a90335777334b235bdf0a6c66e6",
+      "git_blob": "bb153cbe3eb2a440b7b5e374f2cdc907d075ef11",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/core/functional-read-queries-v1.json",
+      "source": "bfadc5042cb00841dd605862a2a72ddc0dbafb87",
+      "bytes": 8718,
+      "sha256": "ef00194e555e28f9ce9601ae61435aba138f42999dcbd6f4bc9c62acac9d07c2",
+      "git_blob": "a1b4f673d5b4d491fe3abfa75dd62882b536f818",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "source": "bfadc5042cb00841dd605862a2a72ddc0dbafb87",
+      "bytes": 19246,
+      "sha256": "977581d5c025287e7a88cc485a31d277fc412e8d7825087c871bfbdf2ecbeb8c",
+      "git_blob": "4080a96d003670068abbf435bb303f09e32cdc0d",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/offering-command.ts",
+      "source": "bfadc5042cb00841dd605862a2a72ddc0dbafb87",
+      "bytes": 4762,
+      "sha256": "5e3ffe48f7d3584c171c1064c559557269179ee1857e8fa171e6d017fee65044",
+      "git_blob": "344794ea61517539c8888a37cdfc7f030ba9b981",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/provider-binding.ts",
+      "source": "bfadc5042cb00841dd605862a2a72ddc0dbafb87",
+      "bytes": 17376,
+      "sha256": "cc758f83ce3f851f7a5e52cd04d5b5936142ca3e6fea1f470f3b2806d21a0ee0",
+      "git_blob": "80bf96b10f83588bee4f5e6c0e74d51b6c304be3",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/customer/service-quote-schema.ts",
+      "source": "bfadc5042cb00841dd605862a2a72ddc0dbafb87",
+      "bytes": 3034,
+      "sha256": "c81e84c4e9f42ac67f2d17da45a8be2e43a8fe88ba712a2e2230516d7f0fe322",
+      "git_blob": "5c2f0532ebfc616660b0390ab92999cbc3b7a07a",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/airprop/listing-runtime-binding-v1.ts",
+      "source": "bfadc5042cb00841dd605862a2a72ddc0dbafb87",
+      "bytes": 3377,
+      "sha256": "324a2432e01d259ed8e65bce4342517e5abe80b791f5bfb9e2cd1b85d2a4cd0c",
+      "git_blob": "37cdc9e5dbe6afc21ba8398e84036847001f6463",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/core/current-unit-property-selector-v1.ts",
+      "source": "bfadc5042cb00841dd605862a2a72ddc0dbafb87",
+      "bytes": 14179,
+      "sha256": "cf8649d0196c4d87e6bb17a756ab24194faddd1cec382cde97e17c5466c55dcd",
+      "git_blob": "454e547a66aad25316e5c9232a0921ccbb874024",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/community/experience-guide-create-writer-v1.ts",
+      "source": "bfadc5042cb00841dd605862a2a72ddc0dbafb87",
+      "bytes": 9330,
+      "sha256": "fad5c5897368780893f826ea7ae7f9f313a1e4a032bbe8b44825371eb50b1474",
+      "git_blob": "d7990ad830cadfdb11e98b06ffa1525a2be40e75",
+      "unchanged": true
+    },
+    {
+      "path": "src/lib/customer/documents-canonical-upload-ack-adapter-v1.ts",
+      "source": "bfadc5042cb00841dd605862a2a72ddc0dbafb87",
+      "bytes": 12709,
+      "sha256": "5459a03c72cc71085acf7a77edf84ba01e2baeae53ab980e70f8af024f42c1ff",
+      "git_blob": "6bcbf6d4369364092c105d8431b48cd63eda3adb",
+      "unchanged": true
+    },
+    {
+      "path": "scripts/test-core-functional-runtime-v1.mjs",
+      "source": "bfadc5042cb00841dd605862a2a72ddc0dbafb87",
+      "bytes": 20326,
+      "sha256": "4881b3895067cdcc1390ed566f5f92e4c7d4efe3467ff566d2b530b3d1c9e0a4",
+      "git_blob": "9163d22e82aeb1c3535f1f6d54c0d8ca8fe90b1d",
+      "unchanged": true
+    }
+  ],
+  "checks": {
+    "controlled_groups": 12,
+    "typecheck_ES5": "PASS",
+    "lint_limited": "PASS",
+    "syntax": "PASS",
+    "diff_check": "PASS"
+  },
+  "native": "NOT_RUN_NOT_PASS",
+  "accepted_Request": "PRESERVED_NOT_REPEATED",
+  "external_effects": 0
+}

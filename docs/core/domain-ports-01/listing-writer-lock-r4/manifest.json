@@ -1,0 +1,415 @@
+{
+  "contract": "core-listing-writer-lock.delta.v1",
+  "FullSHA": "CONTAINING_COMMIT",
+  "Parent": "51eaa511ff796703098f37fc759d38053d412c4a",
+  "branch": "codex/core-domain-ports-01",
+  "status": "NAMED_ENTRY_SOURCE_DELTA_READY_FOR_REVIEW_NOT_NATIVE",
+  "runtime": null,
+  "activation": null,
+  "target": null,
+  "inventory": [
+    {
+      "path": "docs/core/domain-ports-01/WORKLOG.md",
+      "before": {
+        "bytes": 13055,
+        "sha256": "22fdec89a3d45d13e62808ab4650d1b9674691cf3129fb53b06e3d18e2f8cac2",
+        "git_blob": "0daca8571c07e0ba9f25017a9b4f23521e04744a"
+      },
+      "after": {
+        "bytes": 14310,
+        "sha256": "7aa412a12a4c5959c9fe4b9d096732b1adf5c4935a13aa990dcbe6074dbab061",
+        "git_blob": "68cc379751e988f8e9c04757ec5f2c65003a1919"
+      }
+    },
+    {
+      "path": "scripts/prepare-core-listing-writer-lock-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 11616,
+        "sha256": "d5783bc3634bfd7c8c45f3a5a8ea340bec2803cd405f47d06b54c675c613003b",
+        "git_blob": "806aa7e74df57ef0daa7e3fd4b9b839069383178"
+      }
+    },
+    {
+      "path": "scripts/test-core-listing-writer-lock-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 6871,
+        "sha256": "31aaf9fe70225d43288fa7f3f132c3d9bf9878dbfb9ab940e35676fd3fe89c41",
+        "git_blob": "3180ae317bea4a6946aad8a8f678357ecc8721d5"
+      }
+    },
+    {
+      "path": "supabase/proposals/core-listing-writer-lock-v1/delta.sql",
+      "before": null,
+      "after": {
+        "bytes": 54640,
+        "sha256": "b5e785dfbf7defc8fcd00363b0948a9c528b01f56e56d4727536a408a4a2d7ea",
+        "git_blob": "ca9900eb3215b1f0e10bf09a114c0eb5bf1b6fef"
+      }
+    },
+    {
+      "path": "supabase/proposals/core-listing-writer-lock-v1/preflight.sql",
+      "before": null,
+      "after": {
+        "bytes": 3812,
+        "sha256": "51641571a69a0a6260d1a8f56827694ea05f812f565887f50cdbd991ba6a53cc",
+        "git_blob": "9a887c9f0e8f08ad6229dc2d23221f04447e7b17"
+      }
+    },
+    {
+      "path": "supabase/proposals/core-listing-writer-lock-v1/verify.sql",
+      "before": null,
+      "after": {
+        "bytes": 3812,
+        "sha256": "2ae93e0f7bf4a5d98a68965acf096456901908387d0aae365cf56a519a7ceef9",
+        "git_blob": "a851f00ad0e04b39fd4238c439d0fa0e3fc91cfa"
+      }
+    },
+    {
+      "path": "supabase/proposals/core-listing-writer-lock-v1/observe.sql",
+      "before": null,
+      "after": {
+        "bytes": 1705,
+        "sha256": "ad93721f490a4d69377c5c7c3e70623413619a2190ebe566d7f86116d7dfb19c",
+        "git_blob": "71f2597df6e154df6e185698e7921060a3c7dc15"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/listing-writer-lock-r4/README.md",
+      "before": null,
+      "after": {
+        "bytes": 11347,
+        "sha256": "a1e8fec9cc56c88984d0d6385762be86bf131cfd11a75d423f97e9a2bedd810c",
+        "git_blob": "bc19e49e85d2a9625a5d9b6a0f3a3b1c4312a2ee"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/listing-writer-lock-r4/recovery.md",
+      "before": null,
+      "after": {
+        "bytes": 3067,
+        "sha256": "dadbca82d5c897b87337bad06d48d1842b1198976d36758bbc95a5b2884e86a8",
+        "git_blob": "79be74cc5c635587fa2aad4bb9bb62bcdc2ed393"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/listing-writer-lock-r4/caseplan.json",
+      "before": null,
+      "after": {
+        "bytes": 4982,
+        "sha256": "8df5b07ac9d54066810e6f2c34b6b3c06e1224364c29e98f0e2ee7ea22da691f",
+        "git_blob": "8ed729d3ec35f8c80b19a92adc8026586c956d6c"
+      }
+    }
+  ],
+  "routines": [
+    {
+      "signature": "customer_api.claim_unit_invitation_v1(uuid,text)",
+      "path": "supabase/migrations/20260929065846_owner_portfolio_manager_invite.sql",
+      "line": 108,
+      "reason": "upstream invitation wrapper; invitation lock BEFORE core mapping writer",
+      "before_definition": {
+        "bytes": 3235,
+        "sha256": "5b6c527e596a024e87029d5b480a7b18c3eb8f4032f9f9b3320337d9951c1660",
+        "git_blob": "35a87ab7e873c028d6085a0ec24795b15d8fd1ed"
+      },
+      "after_definition": {
+        "bytes": 3619,
+        "sha256": "6fa486335172b8e059fb0ac8331e0d825ee7b5328ec56ac7a0bd719743abb9b5",
+        "git_blob": "8abd05f649904a743899c1e029812b568a885261"
+      },
+      "before_prosrc_sha256": "50ca5c4f3faf03cfac8306179f7eb43c2c7e8ac43872a70633038dd0ccabc437",
+      "after_prosrc_sha256": "bffb832c8923e42276f12152dc623dc0f6dbcb291ca99199aac92d742bfa58cb",
+      "owner_acl_metadata": null,
+      "presence": null
+    },
+    {
+      "signature": "customer_api.execute_verified_ownership_transfer_v1(uuid,uuid,uuid,uuid,uuid,uuid,uuid,date,numeric,text)",
+      "path": "supabase/migrations/20261007092932_lifecycle_verified_ownership_transfer.sql",
+      "line": 120,
+      "reason": "ownerships; Property->Unit->ownership locks",
+      "before_definition": {
+        "bytes": 8837,
+        "sha256": "0a859061c07c67990bba8e261145454aef2fac0c0b583206797283dc0a200898",
+        "git_blob": "526fe3a00e789ab71210f0eb22c24886bc459bad"
+      },
+      "after_definition": {
+        "bytes": 9221,
+        "sha256": "0adf8aa417358c5cf98acc7ebe21fecb564dfecaf44dc9b7a1f967543804d959",
+        "git_blob": "c80b71690a735a8c4274f79944114087ab244feb"
+      },
+      "before_prosrc_sha256": "cd59f8cb0b982055876208c07ba67e2cb8ea3491ef890a3c0dc5921806fef094",
+      "after_prosrc_sha256": "5437a455c8cfa211ac27d51013ac84627b1e74dcd3df711ad606a2822a792235",
+      "owner_acl_metadata": null,
+      "presence": null
+    },
+    {
+      "signature": "customer_api.register_unit_invite_relationship_v1(uuid,uuid,uuid,text,text,text,date,date)",
+      "path": "supabase/migrations/20260928130116_20260928113655_scoped_unit_invitations.sql",
+      "line": 119,
+      "reason": "Party/ownership INSERT; Unit lock",
+      "before_definition": {
+        "bytes": 2886,
+        "sha256": "8507d0667d39fab48a7dc46041f17c98c9cf4202a05209298cfa4aa6f4758d3f",
+        "git_blob": "999f619ab2fa9df9e2a44fd182cc4823b73bddc9"
+      },
+      "after_definition": {
+        "bytes": 3270,
+        "sha256": "84c81bf267ec52ad0efad559292510beed3d3f08e9bc32fff97a86af3321d10a",
+        "git_blob": "be89cc12da459009f2fda3df303f59a3bc838540"
+      },
+      "before_prosrc_sha256": "b59484b294f4db837f88a9d146e094e2196b39bd8604fe480795f4448bd06393",
+      "after_prosrc_sha256": "2548431b9d3c32b824866f94710ae9ec8965403fd4963737a427870ef1826ea4",
+      "owner_acl_metadata": null,
+      "presence": null
+    },
+    {
+      "signature": "app_private.onboarding_commit_residential_internal_v1(uuid,uuid)",
+      "path": "supabase/migrations/20260913063638_residential_pilot_import_completion.sql",
+      "line": 168,
+      "reason": "Party/ownership import; run/advisory/row locks",
+      "before_definition": {
+        "bytes": 12444,
+        "sha256": "78e3af06b526fcbb6f2c9c3f851201645c9d092b4ab7a218a7a8dcd65a76cf2d",
+        "git_blob": "5b8b60cbdfa19e3d00eb978275a6fde4b6b3a5f6"
+      },
+      "after_definition": {
+        "bytes": 12817,
+        "sha256": "c2f2293bb8e683b261b1d8a5d3b81c32f003f0babeecbe4a87ef935a8d3dc184",
+        "git_blob": "30c168cbb013e83e3cdc02178985b9e703ec4b0a"
+      },
+      "before_prosrc_sha256": "767a3fc6993a843ab56973247bf8aa3544da57e2e5df53b12df2151c95210f98",
+      "after_prosrc_sha256": "c44286bde2a7c3a1e2166e7915ddfe1a945fa013e3f2a245451db09cd3b55e48",
+      "owner_acl_metadata": null,
+      "presence": null
+    },
+    {
+      "signature": "app_private.onboarding_approve_import_commit_internal_v1(uuid,uuid)",
+      "path": "supabase/migrations/20260913063638_residential_pilot_import_completion.sql",
+      "line": 275,
+      "reason": "upstream approval; run lock BEFORE commit call",
+      "before_definition": {
+        "bytes": 1586,
+        "sha256": "bd593e76cb79d6f5cdace5d36b90e2765983731a7251b90fde6d878790a5f423",
+        "git_blob": "3cbe22b3aaead1c24a10d48322d38e851f5b0e6c"
+      },
+      "after_definition": {
+        "bytes": 1959,
+        "sha256": "f0323c248183d75206994eb0e3b7a29e72674b6aad11cc54deaaa5214e40f3d4",
+        "git_blob": "ef7eac6f1ba0a39d98ec82f1172b0ccc2cd6000d"
+      },
+      "before_prosrc_sha256": "bbbe914c9e5a3709e7295392133de92cbaddf582fdee9737550812e0dd1885ac",
+      "after_prosrc_sha256": "bd38dc429d45aa7a8f8e63c28c06669433856587bed629aac714fb64fee16d34",
+      "owner_acl_metadata": null,
+      "presence": null
+    },
+    {
+      "signature": "maintenance.register_contractor_v1(uuid,uuid,text,text)",
+      "path": "supabase/migrations/20261004093017_audited_contractor_registration.sql",
+      "line": 32,
+      "reason": "Party INSERT; vendor advisory lock",
+      "before_definition": {
+        "bytes": 1860,
+        "sha256": "0799c94c8d3175047082fdcd315fceaab15df5219697d4a53240a0de459329ff",
+        "git_blob": "aa5271669a1faf456f79e77c92ee67b566d9fc65"
+      },
+      "after_definition": {
+        "bytes": 2244,
+        "sha256": "edf488565ee2a1962abba2aca2f63a4995bae607ac05eefa3979ef798564b9a1",
+        "git_blob": "f9ca783cdc5984a08f7839a34ea2b219300f4bda"
+      },
+      "before_prosrc_sha256": "33159166ecb28bb65adbaf292a08973fa5d6d32a7cb70b38c535d98fced3b6c4",
+      "after_prosrc_sha256": "797ee8c505e91c21f0c56c57eb7e4fa0388e435a8f278c9899538f7480ace0b6",
+      "owner_acl_metadata": null,
+      "presence": null
+    },
+    {
+      "signature": "customer_api.register_service_self_person_v1(jsonb)",
+      "path": "supabase/migrations/20261004202244_20261004200732_service_request_self_person_v1.sql",
+      "line": 5,
+      "reason": "Party/member-party INSERT; C03/advisory/ledger waits",
+      "before_definition": {
+        "bytes": 5284,
+        "sha256": "785f388ba44a6dc11efd587144bfd2ce4d06618fe4b98ad62d7af0adb4bf4eea",
+        "git_blob": "d0b3fbf50537098b2108a73bdfb9b8ef0be9f19f"
+      },
+      "after_definition": {
+        "bytes": 5668,
+        "sha256": "08dc665a2fe65a10fe2fb63c8ccfaf27d4b7283d895cd5dfca9ecc669c19f05a",
+        "git_blob": "19e2398dea4d8e163230580a61f1cf79b32b9e71"
+      },
+      "before_prosrc_sha256": "810c77770a9cf8e68d8fe144fd50a505e83a8904462afd3f8c56ac624718d7cf",
+      "after_prosrc_sha256": "21714085b2d584d20258131555a9c66a255cfa921691b155bc53c8585e97966a",
+      "owner_acl_metadata": null,
+      "presence": null
+    },
+    {
+      "signature": "customer_api.claim_unit_invitation_core_v1(uuid,text)",
+      "path": "supabase/migrations/20260929082301_prevent_duplicate_active_unit_grants.sql",
+      "line": 3,
+      "reason": "member-party INSERT; invitation lock/membership DML",
+      "before_definition": {
+        "bytes": 4211,
+        "sha256": "fc970290a5ff68d8c712507a2cea39aded3ff393449a5910d4fae11dda8793f5",
+        "git_blob": "29beffc0eda74224fdd66db6a59fc321828332cb"
+      },
+      "after_definition": {
+        "bytes": 4584,
+        "sha256": "1fbfcd4c1591a50c76929f821a455a7fe2f8488aafa9f32916d4b00dfad136bd",
+        "git_blob": "33d810980d9507e0fb13b936f54fca9cf888dd67"
+      },
+      "before_prosrc_sha256": "2e9e73ed771c163d25525508d877a77d25d3da5dba2eccf9d1a24abc17721136",
+      "after_prosrc_sha256": "9a4449033c20761ab5c2db4e115218e5c6754afc9949ab1deaf4ffcc198209c0",
+      "owner_acl_metadata": null,
+      "presence": null
+    }
+  ],
+  "protected": [
+    {
+      "path": "supabase/proposals/core-listing-ownership-revision-v1.sql",
+      "bytes": 5771,
+      "sha256": "4e0a5647257da7fcb2a9975dbdbf749e6e692362e8cc8f3e51d0c5444c47f731",
+      "git_blob": "fb336f7bf191a2cafffb1196a6515e26cda2d807"
+    },
+    {
+      "path": "src/lib/core/current-unit-property-read-selector-v1.ts",
+      "bytes": 5747,
+      "sha256": "6be30696e2f75d94d62b105911f4e8df977383487baf8fe37bcfc8a574667844",
+      "git_blob": "d56d0509b797cd345cc18fd5c69c0b1f22de10ac"
+    },
+    {
+      "path": "src/lib/core/airprop-read-host-v1.ts",
+      "bytes": 20207,
+      "sha256": "52ba8a442a890a114349addf569a180ff6179adf7698ba6dbb4bed1a94c9a87f",
+      "git_blob": "ffcfec5c7310ed5018bf66590aee1f487a0f70a8"
+    },
+    {
+      "path": "src/lib/core/listing-command-binding-v1.ts",
+      "bytes": 3038,
+      "sha256": "cc89f17fb7b9f2fb20a5c384a9c3ab204040f683541a3a09aac13d85f1a34b6e",
+      "git_blob": "9631a43b09a6cd18280eb9dd4baaff9e5eb9a811"
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "bytes": 62680,
+      "sha256": "9436c082f8ce8a054d8300f55bd49ac4b6120240cf06fa6ca94190b5c6c1858a",
+      "git_blob": "9e1a0229b9676368dc1d49015cf95be13fac9908"
+    },
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "git_blob": "e67df2d947608f546dab42dba88b5bdc418cbffb"
+    },
+    {
+      "path": "supabase/migrations/20261007092932_lifecycle_verified_ownership_transfer.sql",
+      "bytes": 17137,
+      "sha256": "1fa881f2ebb6a064b8c101b782096bad70630b86ece19d8268700028d81288e1",
+      "git_blob": "f52959b7d5609641861d36baec94ce369c63bb20"
+    },
+    {
+      "path": "supabase/migrations/20260928130116_20260928113655_scoped_unit_invitations.sql",
+      "bytes": 23277,
+      "sha256": "6003e11254cddec879cc4ecc5059578d266053a94367740e6c811e969d8fe385",
+      "git_blob": "c6d262801549f386fca36eb30e96307e3bdf2da1"
+    },
+    {
+      "path": "supabase/migrations/20260913063638_residential_pilot_import_completion.sql",
+      "bytes": 27064,
+      "sha256": "64b4fcbb1741ccdc3a690b66eb33569d7b763a380ef08995d21be1562f62f099",
+      "git_blob": "7cdd26e8cf203b1d8a12b015fa56f7adbae5c273"
+    },
+    {
+      "path": "supabase/migrations/20261004093017_audited_contractor_registration.sql",
+      "bytes": 6850,
+      "sha256": "ca454e940d2a097ab7c1b2ccf12c051245245b94b746308a74a606dc63a75e46",
+      "git_blob": "6307f18f0655c461dbd5d65a539ae33fa3247c41"
+    },
+    {
+      "path": "supabase/migrations/20261004202244_20261004200732_service_request_self_person_v1.sql",
+      "bytes": 5756,
+      "sha256": "59ea589da6e912017334f6055ab7dff2d4473c16dbe4f666bb86247ce3e6c672",
+      "git_blob": "30e91ff008d24eb523660c554730ac66f90af107"
+    },
+    {
+      "path": "supabase/migrations/20260929082301_prevent_duplicate_active_unit_grants.sql",
+      "bytes": 4302,
+      "sha256": "3ee812ff744d550d3aecb187f80d13fb811de01d47048dd7e3450c7c776f4db8",
+      "git_blob": "93aa5f539248c7bba8384af7173e01175331132d"
+    },
+    {
+      "path": "supabase/migrations/20260929065846_owner_portfolio_manager_invite.sql",
+      "bytes": 10825,
+      "sha256": "b06e6a076b2dae6e6be43b23138c7d9557ed8e109c0391d0bc5d2b1bfb7c4084",
+      "git_blob": "f72be8c1408d52e568c09b4502fe814ef4355f0d"
+    },
+    {
+      "path": "supabase/migrations/20260912215541_controlled_residential_import_onboarding.sql",
+      "bytes": 33927,
+      "sha256": "b8d362c43bdd136079f7ad4f5a58c9127fc57a298429cb71d8d9ecafaf209c0c",
+      "git_blob": "e0aa35d34b027641a49c4455fce272341517ce08"
+    },
+    {
+      "path": "supabase/migrations/20260913055758_onboarding_rpc_security_boundary.sql",
+      "bytes": 7528,
+      "sha256": "cd28e253696d79f71f5581a546882931c614208a7ba8220f823b06c3d9760c57",
+      "git_blob": "67c8abfdc8bf2626e64e967bafd393980a09ad1c"
+    },
+    {
+      "path": "supabase/migrations/20261012190924_core_canonical_authority_revision_v1.sql",
+      "bytes": 10871,
+      "sha256": "f0bf04bb256985c507760de498be2c8d96546ebbd262d39161acd64d35566512",
+      "git_blob": "fa75f9eccd122aee3da022a7bc5ee1e77b482d4c"
+    }
+  ],
+  "checks": {
+    "new_source_model_controls": 28,
+    "syntax": "PASS",
+    "lint": "PASS",
+    "generation": "EXACT_BYTES_PASS",
+    "typescript": "NO_TS_CHANGE_NOT_RERUN",
+    "sql_parser_compile_pg": "NOT_RUN_NOT_PASS",
+    "old_suites": "NOT_RERUN"
+  },
+  "closure": {
+    "named_entries": 8,
+    "explicit_upstream_entries": [
+      "app_private.onboarding_approve_import_commit_internal_v1",
+      "customer_api.claim_unit_invitation_v1"
+    ],
+    "invalidators": [
+      "portfolio.ownerships",
+      "portfolio.parties",
+      "identity.membership_parties"
+    ],
+    "absent_domains": "STRICT_ABSENCE_PRESERVED_NO_CREATE",
+    "historical_null": "UNCHANGED_NOT_ADOPTED",
+    "source_graph_cycle": "REMOVED_FOR_DECLARED_ENTRY_MODEL_ONLY",
+    "global_writer_census": "NOT_CLOSED",
+    "DDL_TRUNCATE": "CALLER_EPOCH_BEFORE_RELATION_LOCK_OR_QUIESCENCE_REQUIRED"
+  },
+  "remaining": [
+    {
+      "owner": "Core/Platform",
+      "gate": "actual function-owner epoch ACL/RLS and bounded admitted call entry; no broad grant or owner fallback"
+    },
+    {
+      "owner": "Platform/Coordinator",
+      "gate": "private target binding, schema-change quiescence, native proof/request admission and unknown settlement reconciliation"
+    },
+    {
+      "owner": "Core",
+      "gate": "external/dynamic/prelocked callers, terminal current-session/expiry including statement-start-time predicates; not inferred from minimal body delta"
+    },
+    {
+      "owner": "AIRPROP/Coordinator",
+      "gate": "Party disclosure family; ownership/read is not manage; no fabricated canonical companion"
+    }
+  ],
+  "automation": "نیازمند بررسی",
+  "seal": {
+    "algorithm": "sha256_canonical_json_excluding_seal",
+    "digest": "8f14a1926951fc1269154fe282593f55bd0b16238bffad307db4d873af231aec"
+  }
+}

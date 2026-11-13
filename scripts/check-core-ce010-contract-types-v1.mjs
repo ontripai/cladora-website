@@ -1,0 +1,9 @@
+/** Actual CE989 runtime type + actual Core factory; virtual entry, no owner writes. */
+import ts from'typescript';import{resolve}from'node:path';import{fileURLToPath}from'node:url';import{execFileSync}from'node:child_process';
+const root=fileURLToPath(new URL('..',import.meta.url)),entry=resolve(root,'src/lib/core/__ce010_contract_typecheck__.ts'),owner=resolve(root,'src/lib/community/community-announcement-runtime-v1.ts');
+const config=ts.readConfigFile(resolve(root,'tsconfig.json'),ts.sys.readFile);if(config.error)throw Error(ts.flattenDiagnosticMessageText(config.error.messageText,'\n'));
+const parsed=ts.parseJsonConfigFileContent(config.config,ts.sys,root);const options={...parsed.options,noEmit:true,incremental:false};const host=ts.createCompilerHost(options),read=host.readFile.bind(host),exists=host.fileExists.bind(host);
+const source=`import type{Ce010RuntimeV1}from'../community/community-announcement-runtime-v1';import{createCoreCe010RequestRuntimeV1}from'./ce010-request-binding-v1';export function check(options:Parameters<typeof createCoreCe010RequestRuntimeV1>[0]):Ce010RuntimeV1{return createCoreCe010RequestRuntimeV1(options);}`;
+const ownerSource=execFileSync('git',['show','989e35a78363908357f65460011492e0472dc047:src/lib/community/community-announcement-runtime-v1.ts'],{cwd:root,encoding:'utf8'});
+host.fileExists=p=>resolve(p)===entry||resolve(p)===owner||exists(p);host.readFile=p=>resolve(p)===entry?source:resolve(p)===owner?ownerSource:read(p);
+const program=ts.createProgram([entry],options,host),diagnostics=ts.getPreEmitDiagnostics(program);if(diagnostics.length){console.error(ts.formatDiagnosticsWithColorAndContext(diagnostics,{getCurrentDirectory:()=>root,getCanonicalFileName:p=>p,getNewLine:()=> '\n'}));process.exitCode=1;}else console.log(JSON.stringify({actual_consumer:'989e35a78363908357f65460011492e0472dc047',factory_assignment:'PASS',target:ts.ScriptTarget[options.target],owner_files_written:0,SQL_executed:false}));

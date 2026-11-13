@@ -1,0 +1,175 @@
+{
+  "contract": "core-listing-companion-16.delivery.v1",
+  "FullSHA": "CONTAINING_COMMIT",
+  "Parent": "5eeaeecef756fb1827deeb198deac5ee4fe657dd",
+  "branch": "codex/core-domain-ports-01",
+  "status": "SOURCE_CANDIDATE_CONTROLLED_READ_COUPLING",
+  "runtime": null,
+  "activation": null,
+  "target_changed": false,
+  "consumer": {
+    "FullSHA": "6cd4a6a593058da57d0884a13579f6e62cc02afc",
+    "Tree": "0b802c82edc848c365c748783c0434416baf8581"
+  },
+  "owner_policy": "own-current-membership-Party + exact-Unit-ownership + independent-current-airprop.asset.read; minimum IDs/versions only; not manage/representation/publish",
+  "inventory": [
+    {
+      "path": "docs/core/domain-ports-01/WORKLOG.md",
+      "before": {
+        "bytes": 19773,
+        "sha256": "631be307e76339db67520714b46f0eb6920671975efcf65bdc6b5f582329acb3",
+        "git_blob": "3df2131fa78943f2f9e8e113a84af9e931c13934"
+      },
+      "after": {
+        "bytes": 21609,
+        "sha256": "7091c87fb67989c43e980774d6dfaf3366a98597a0d9515a949f608037831632",
+        "git_blob": "8dc0b249f24e6d813fe4be9d35612a3200043172"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/listing-companion-16/README.md",
+      "before": null,
+      "after": {
+        "bytes": 4569,
+        "sha256": "08fbfb6026ab1e62c1fa46bc016ea59e4024dfa47e8acbcdf68b03f5290043c4",
+        "git_blob": "c9989423302e90d2cc6e5c013ceb1cf43b91defb"
+      }
+    },
+    {
+      "path": "scripts/prepare-core-listing-companion-source-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 4066,
+        "sha256": "1c0df3a19edd227b78bbd9f9672b52563c3081d874dd2f482420f8de7585429a",
+        "git_blob": "7b8a96d470f47488e3a792ff67bf3e34d612e899"
+      }
+    },
+    {
+      "path": "scripts/test-core-listing-companion-packet-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 2385,
+        "sha256": "68b38b39032500a2cfffe7edb2a20330fc0e0cf4fdfd868aaf188d4e6ef3190a",
+        "git_blob": "6b63d4152bab82f968de47563747badf5ec55e0f"
+      }
+    },
+    {
+      "path": "scripts/test-core-listing-ownership-companion-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 8187,
+        "sha256": "725ef4c834357126c6ccfde653a537b097e7fb572d5e0423671c3f3c62900c16",
+        "git_blob": "a797e7df8a0ce92b0e92be2603eef264bda4028a"
+      }
+    },
+    {
+      "path": "src/lib/core/airprop-read-host-v1.ts",
+      "before": {
+        "bytes": 20207,
+        "sha256": "52ba8a442a890a114349addf569a180ff6179adf7698ba6dbb4bed1a94c9a87f",
+        "git_blob": "ffcfec5c7310ed5018bf66590aee1f487a0f70a8"
+      },
+      "after": {
+        "bytes": 20351,
+        "sha256": "bfe03bd3962fbf49c7628b4d316591a68e2335a7c676a1c91082aa2ff464717a",
+        "git_blob": "fe730b5db57544464e57414fedf95d45cc45eb92"
+      }
+    },
+    {
+      "path": "src/lib/core/listing-ownership-adoption-query-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 4149,
+        "sha256": "ff9c433f386e33ca7881df7744462930d74b846f567085c33502d14d801bfd4f",
+        "git_blob": "fd93da3402d217ef46fdd538dcff5f63b5762575"
+      }
+    },
+    {
+      "path": "src/lib/core/listing-ownership-companion-queries-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 3238,
+        "sha256": "e95f1ba5426a069b0b2f7a78de6da8b1b9e449ec7f282dedbff6ee0ee9598f8e",
+        "git_blob": "1a63af09d09a51eb445d4dbb47005fd5836d6516"
+      }
+    },
+    {
+      "path": "src/lib/core/listing-ownership-companion-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 9713,
+        "sha256": "96b36fcaddd59c5e12ade8f15386c277c86adb20966e57dc396871434f4c1420",
+        "git_blob": "8e426d7f00a247b0a78fc90a766b03b74dfcd11b"
+      }
+    },
+    {
+      "path": "supabase/proposals/core-listing-party-revision-v1/delta.sql",
+      "before": null,
+      "after": {
+        "bytes": 9251,
+        "sha256": "2e97473a686cc93cf4559f5c2d1757d0e470fea3e2264b4597e32e54d7f3de21",
+        "git_blob": "7991e0e9b133a9be410ea5bd02f408104bc9cea7"
+      }
+    },
+    {
+      "path": "supabase/proposals/core-listing-party-revision-v1/preflight.sql",
+      "before": null,
+      "after": {
+        "bytes": 2277,
+        "sha256": "272467e76dc42aa81399b7fb4316bffecc8d00807cee71be8c6f4344e20458e2",
+        "git_blob": "3f79952bb63a54bfefbbc2b826ac93de87c595b8"
+      }
+    },
+    {
+      "path": "supabase/proposals/core-listing-party-revision-v1/recovery.md",
+      "before": null,
+      "after": {
+        "bytes": 3692,
+        "sha256": "4fbedc7613d6917b0e6cfcf2b3d3f5fafb830dc58d715841c023790fb102683c",
+        "git_blob": "dae1e534ba92abaa50a911d3a894e54bb970e6d8"
+      }
+    },
+    {
+      "path": "supabase/proposals/core-listing-party-revision-v1/verify.sql",
+      "before": null,
+      "after": {
+        "bytes": 2362,
+        "sha256": "c3182f538b34e63012f7999826cbb83949757a70f447370ce9dc790157aae368",
+        "git_blob": "a74d8a77c72497de232dfebfe1c7cb3bd75b4b47"
+      }
+    },
+    {
+      "path": "supabase/proposals/core-listing-party-revision-v1/writer-pins.json",
+      "before": null,
+      "after": {
+        "bytes": 1650,
+        "sha256": "ad32d93401f95730f9e98968b58a2c2c0e7e441f3c7140ed0a0c08ca5454b638",
+        "git_blob": "299ac46c107f8feb7df078dca0b2ea626b7fc124"
+      }
+    }
+  ],
+  "self_excluded": true,
+  "evidence": {
+    "new_controlled_actual_Core_and_AIRPROP_groups": 13,
+    "exact_named_writer_roundtrips": 2,
+    "coherent_source_negatives": 2,
+    "full_ES5_typecheck": "PASS",
+    "focused_lint": "PASS",
+    "syntax": "PASS",
+    "diff": "PASS",
+    "scratch_apply_reverse": "see external delivery receipt",
+    "SQL_parser": "NOT_RUN",
+    "native": "NOT_RUN_NOT_PASS"
+  },
+  "open_gates": [
+    "complete actual writer/role/ACL/RLS census and adoption",
+    "native lock/concurrency/settlement/restart proof",
+    "AIRPROP command selection adoption of exact Party revision",
+    "non-UTC ownership date policy if required"
+  ],
+  "independent_deliveries": {
+    "Documents": "5eeaeecef756fb1827deeb198deac5ee4fe657dd",
+    "SERVICE": "separate increment"
+  },
+  "automation": "نیازمند بررسی"
+}

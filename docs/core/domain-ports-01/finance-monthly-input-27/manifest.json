@@ -1,0 +1,189 @@
+{
+  "task_id": "FIN-MONTHLY-E2E-01",
+  "owner": "Core / Operations / Utilities input handoff",
+  "contract_version": "monthly-source-reference-handoff.v1",
+  "parent": "8d64bc5b868567edb32494d187feaf65fc03382f",
+  "status": "REFERENCE_HANDOFF_ONLY_CANONICAL_CAMPAIGN_NOT_READY",
+  "binding": null,
+  "permit": null,
+  "target": null,
+  "task_attachment": {
+    "bytes": 24492,
+    "sha256": "70033eeae132efd6dc24b8175594ee0efa1d6dc24ad18b2e01a05e7800b45bd1"
+  },
+  "export": {
+    "path": "src/lib/core/monthly-source-handoff-v1.ts",
+    "name": "planMonthlySourceCaptureV1",
+    "effects": [],
+    "authority": "not_evaluated",
+    "proof": "strict request references only; canonical DB capture and current authority required separately"
+  },
+  "source_pins": [
+    {
+      "path": "src/lib/core/monthly-source-handoff-v1.ts",
+      "bytes": 2091,
+      "sha256": "70f084ce2c10a304b6b090486a417648eef122ee928342907c801ce834b0eaa5"
+    },
+    {
+      "path": "src/lib/core/financial-proposal-receipt-v1.ts",
+      "bytes": 6082,
+      "sha256": "c6db34516ef22305a53894810cfac6c92a2072a34a943d146effb9b22bd62a05"
+    },
+    {
+      "path": "src/lib/customer/monthly-cycle-schema.ts",
+      "bytes": 1227,
+      "sha256": "7bfd4da70cf14e50e70da037f80563fae4e15c5af7f30f5964a78e93af6589ce"
+    },
+    {
+      "path": "src/lib/customer/dashboard-schema.ts",
+      "bytes": 2278,
+      "sha256": "592236ef56b56bb393eba8e34d6c8b1e9d6c8fa5ee0de8ce31e23c98cbe57059"
+    },
+    {
+      "path": "src/lib/customer/access-matrix.ts",
+      "bytes": 17286,
+      "sha256": "3d1551b929cb5ce5cd351f80eacc246eb71565be8a8716dafa13139905969597"
+    },
+    {
+      "path": "src/lib/customer/monthly-cycle-api-helper.ts",
+      "bytes": 994,
+      "sha256": "ac4b9661ec1f16d372b618d45887bda98137b15e2170bbe3d62afe00638b1723"
+    },
+    {
+      "path": "src/lib/customer/maintenance-schema.ts",
+      "bytes": 6989,
+      "sha256": "2c6c9e70119af113ed5f81f8cc453edde1d5d94cfe7f3420411d86efb96512eb"
+    },
+    {
+      "path": "src/app/api/customer/v1/accounting/monthly-cycles/[id]/[action]/route.ts",
+      "bytes": 2964,
+      "sha256": "4a8b756d72846d21d9c9bea227f2e62e795e3db0eae4aceaa04b8685cf374a35"
+    },
+    {
+      "path": "src/app/api/customer/v1/work-orders/[id]/payable/route.ts",
+      "bytes": 2624,
+      "sha256": "f078a5527c96e9c47bd0067f6b34d5a5415ae735a708401e2125ec1e90595dd9"
+    },
+    {
+      "path": "src/app/api/customer/v1/utilities/readings/route.ts",
+      "bytes": 3921,
+      "sha256": "f337b829925144814fef5df6eae2f6c3cf4fd083c3c2ff8585b97d39807e6121"
+    },
+    {
+      "path": "src/app/api/customer/v1/utilities/readings/[id]/approve/route.ts",
+      "bytes": 2199,
+      "sha256": "2c761035f86e8e95de034c209ec23e62a377d316141d56697cb58646b4569d82"
+    },
+    {
+      "path": "supabase/migrations/20260825000900_utilities_contracts_invoices_ocr.sql",
+      "bytes": 11204,
+      "sha256": "b3891d58cd7109689cc9a6b1ffdce09874b0f0d60703c4cd2b2f38e88fd77c48"
+    },
+    {
+      "path": "supabase/migrations/20260908120000_utilities_metering_billing_slice.sql",
+      "bytes": 80420,
+      "sha256": "4e07591b91e32102c2e7ffc38a1272c51d79ab571fe6f902c40009a68d31d1b5"
+    },
+    {
+      "path": "supabase/migrations/20260908180000_maintenance_work_orders_procurement_slice.sql",
+      "bytes": 106035,
+      "sha256": "9440c97e45add07dfe813e5a0a68dca9cd5345649ecaca5095c4d70b2d3cfdea"
+    },
+    {
+      "path": "supabase/migrations/20260913082028_canonical_monthly_financial_cycle.sql",
+      "bytes": 27212,
+      "sha256": "8a0ceb38bd33e6c7b7f98f869ca950f40d98b32f9550c9a769987bbe03e0e159"
+    },
+    {
+      "path": "supabase/migrations/20261004130036_maintenance_payable_context_authority.sql",
+      "bytes": 11720,
+      "sha256": "a90f24af0c097912fdaf2f42774e0aad00a218a20bb6aed2fea1017b4848ba3f"
+    },
+    {
+      "path": "supabase/migrations/20261004114654_work_order_context_authority.sql",
+      "bytes": 15227,
+      "sha256": "096b3b893696869e2c5518b6580122fd614504220850cb173fc7a77cb8128361"
+    }
+  ],
+  "lineage": {
+    "kind": "repository source definitions; NOT an installed target observation",
+    "maintenance_payable_body": "supabase/migrations/20261004130036_maintenance_payable_context_authority.sql",
+    "maintenance_facade": "supabase/migrations/20260908180000_maintenance_work_orders_procurement_slice.sql",
+    "monthly_capture": "supabase/migrations/20260913082028_canonical_monthly_financial_cycle.sql"
+  },
+  "blocked_handoffs": [
+    {
+      "id": "FIN-INPUT-01",
+      "owner": "Finance with Operations source contract",
+      "reason": "monthly capture excludes maintenance.vendor_payables; canonical payable already posts journal and creates linked work_order_cost",
+      "required_source_ids": [
+        "vendor_payable_id",
+        "work_order_id",
+        "work_order_cost_id",
+        "journal_id",
+        "purchase_order_id (nullable)",
+        "vendor_id"
+      ],
+      "required_scope": [
+        "tenant_id",
+        "context_id",
+        "workspace_id from canonical resolver",
+        "property_id",
+        "accounting_period_id",
+        "currency"
+      ],
+      "required_provenance": [
+        "exact persisted source snapshot/hash, never fabricated version",
+        "actor and canonical current authority",
+        "original idempotency key and body when recoverable",
+        "posted journal reference and audit evidence"
+      ],
+      "required_effect": "capture immutable reference to existing payable/journal without reposting or provider_invoice relabel; preserve original IDs; one cost origin",
+      "closure": "Finance-owned versioned gateway and monthly source constraint/API adoption; authorized capture and repeat do not add journal/entries/payment; same tenant/property/period/currency and exact persisted source hash; current denial and unknown recovery"
+    },
+    {
+      "id": "FIN-INPUT-02",
+      "owner": "Utilities / Finance input campaign",
+      "reason": "provider invoice tables and approval triggers exist; discovered customer utilities routes do not supply an invoice create/approve gateway",
+      "closure": "pin approved canonical invoice ingestion/review gateway or deliver owner-specific minimal port; do not substitute direct SQL seed; register at least two distinct canonical costs and one validated reading with reviewed provenance"
+    },
+    {
+      "id": "FIN-INPUT-03",
+      "owner": "Finance",
+      "reason": "current capture predicate checks tenant/property/status but not source period/currency; conflict path returns computed hash without returning stored row",
+      "closure": "define and implement owner-specific scope/period/currency eligibility and persisted snapshot/hash readback, including repeat after source status change; do not infer source currentness from reference planner"
+    }
+  ],
+  "runtime_gates": [
+    "Finance-specific source/App/Tree and migration set",
+    "canonical context/workspace/actor/AAL/current-authority admission",
+    "two distinct approved cost sources and one validated reading, avoiding double charge",
+    "independent Platform target/role/session/observer/budget/window/custodian gates",
+    "PG/native concurrency, expiry/revoke and settlement evidence",
+    "ACC01-ACC22 independent technical/accountant acceptance"
+  ],
+  "not_run": [
+    "SQL/parser/PG/Auth",
+    "hosted schema or source data verification",
+    "source capture/ledger writes",
+    "new shared-host/Finance admission",
+    "UI or monthly E2E",
+    "installation/activation"
+  ],
+  "preserved": [
+    "Core26/SERVICE terminal/replay",
+    "FIN01 existing proposal/posting schema",
+    "all migrations, ledger, RLS, ACL, frontend, dependencies",
+    "SERVICE matrix28 and Finance072–076 prior proofs"
+  ],
+  "evidence": {
+    "new_groups": 11,
+    "actual_handler_controlled_sdk": "PASS",
+    "full_project_es5_typecheck": "PASS",
+    "focused_lint": "PASS",
+    "syntax": "PASS",
+    "source_pin_verification": "PASS",
+    "native": "NOT_RUN",
+    "accepted_suites_repeated": []
+  }
+}

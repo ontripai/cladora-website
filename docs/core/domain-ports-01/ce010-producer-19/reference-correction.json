@@ -1,0 +1,90 @@
+{
+  "contract": "core-ce010-source-reference-correction.v1",
+  "FullSHA": "CONTAINING_COMMIT",
+  "Parent": "6adb3e3f0ffc72f1f138a4990b23653a7c5b62cd",
+  "scope": "documentation/metadata only",
+  "inventory": [
+    {
+      "path": "docs/core/domain-ports-01/WORKLOG.md",
+      "before": {
+        "bytes": 31014,
+        "sha256": "4cfe995fa05e8ceb61dc52cc882e2389a71279ccea412d94cfffa41bdbc545fc",
+        "git_blob": "b692f2e39ed0a04e66420c0ba6d31f8f3b5b3eec"
+      },
+      "after": {
+        "bytes": 31684,
+        "sha256": "107f754fe7c9337b9736de90f700e499f41b05249a3f2b449836a1a23c410fa3",
+        "git_blob": "7cd1578b8ce13a7e5c3438c0bfce0340bcaba7bc"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/ce010-producer-19/README.md",
+      "before": {
+        "bytes": 5647,
+        "sha256": "fb87ecafbb1be314440185093cdf7706b0a5c4062d32d2b9d7cd625b2a3dffc1",
+        "git_blob": "2c9717dc6d7ae6571d1fd484d27d16ec668f4bcb"
+      },
+      "after": {
+        "bytes": 7254,
+        "sha256": "b231809721fb024f7b3b1099ea153957a861406de5b938dd0505e47881edba15",
+        "git_blob": "62e044c1088acaeee3ff942d046421f534cf2a12"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/ce010-producer-19/profile-contract.json",
+      "before": {
+        "bytes": 3216,
+        "sha256": "bd6a736548d3df4e9fcc1bbc5e97ba316505c4f92c836ac4558fa7928f18685d",
+        "git_blob": "02acf9d34e62e0f219f5ee29017f6ef5fccc53f3"
+      },
+      "after": {
+        "bytes": 4666,
+        "sha256": "75f139b554012956ae359dbb7547641a39908dac9a411cb4a6038368b42290b7",
+        "git_blob": "8496b60471305f59abc16a4263a4a1e132855b17"
+      }
+    }
+  ],
+  "self": "sealed by containing commit",
+  "source_references": [
+    {
+      "ref": "989e35a78363908357f65460011492e0472dc047",
+      "path": "docs/contracts/ce010-community-announcement-01/install-packet/dependencies.json",
+      "bytes": 17182,
+      "sha256": "e0001c6bff6678820f6f50e9d0711a856c7a85450cf1e9a68b690d892794c81c",
+      "git_blob": "ddc1ad023abc72ef0b768f14776bff527223a368",
+      "sections": [
+        "required_producer",
+        "shared_requirements_NOT_GRANTS",
+        "shared_routine_calls_NOT_NEW_ABI",
+        "schema_requirements_NOT_GRANTS",
+        "module_mapping",
+        "closure_boundary",
+        "closure_gates"
+      ]
+    },
+    {
+      "ref": "989e35a78363908357f65460011492e0472dc047",
+      "path": "supabase/install/ce010-announcement-v1/packet.json",
+      "bytes": 31870,
+      "sha256": "a1c7a2f357cd319d89e83d7a3fcb971fdfd223b47aa3b02e3ea1c7ac8bc9892a",
+      "git_blob": "1ee09925b730d1ef75091a446bc652579fdff92d",
+      "sections": [
+        "declarations",
+        "queries",
+        "columns",
+        "policies",
+        "files"
+      ]
+    }
+  ],
+  "checks": {
+    "JSON_parse": "PASS",
+    "exact_Git_bytes_SHA256_blob": "PASS",
+    "official_GitHub_JSON_matches_local_pinned_Git": "PASS",
+    "runtime_query_profile_pool_and_historical_manifest_unchanged": "PASS"
+  },
+  "old_suites_repeated": false,
+  "SQL_or_native": false,
+  "runtime": null,
+  "admission": "UNCHANGED_NOT_READY"
+}

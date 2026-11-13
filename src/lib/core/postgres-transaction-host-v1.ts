@@ -1,3 +1,5 @@
+import {expectCoreServiceReviseFinalWireV1,coreServiceReviseRawCommitAbortedV1,coreServiceReviseTransportPhaseV1} from './service-revise-transport-boundary-v1';
+import {isCoreDocumentsReplayProfileV1} from './documents-replay-only-v1';
 import { randomUUID, createHash } from 'node:crypto';
 import type { Pool, PoolClient, QueryResultRow } from 'pg';
 import type { CoreDocumentsJointCandidateV1 } from './ce012-documents-joint-candidate-v1';
@@ -260,6 +262,10 @@ function freezeTerminalResponse<T>(value: T): T {
   }
   return value;
 }
+export type CoreServiceReviseTerminalInfoV1=Readonly<{contract:'core-service-revise-terminal.v1';settlement:'committed'|'replay_rolled_back';attempt:number;backend_pid:number;database_transaction_id:string;evaluated_at:string;response_sha256:string;effect_sha256:string;receipt_hash:string;command_hash:string;observation_sha256:string;seal_sha256:string;current_authority:'as_of_terminal_observation';reusable:false}>;
+const serviceTerminalResults=new WeakMap<object,{info:CoreServiceReviseTerminalInfoV1;bytes:Buffer}>();
+export function coreServiceReviseTerminalInfoV1(result:unknown){return typeof result==='object'&&result!==null?serviceTerminalResults.get(result)?.info??null:null;}
+export function coreServiceReviseTerminalResponseMatchesV1(result:unknown,bytes:Uint8Array){return typeof result==='object'&&result!==null?serviceTerminalResults.get(result)?.bytes.equals(Buffer.from(bytes))??false:false;}
 class TerminalAttemptV1 {
   generation = 0;
   inFlight = 0;
@@ -321,6 +327,9 @@ export type CoreCe012ReplayOnlyResultV1 = {status:'exact_replay';receipt:CoreTra
 export interface CoreCe012ReplayOnlyHostV1 extends CoreTransactionHostV1 {
   /** Private trusted-server entry. No fresh fallback and no request replay flag. */
   executeReplayOnly(command: unknown, providers: CoreTransactionProvidersV2): Promise<CoreCe012ReplayOnlyResultV1>;
+}
+export interface CoreDocumentsReplayOnlyHostV1 extends CoreTransactionHostV1 {
+ executeDocumentsReplayOnly(command: unknown, providers: CoreTransactionProvidersV1): Promise<CoreTransactionResultV1>;
 }
 export const CORE_CE012_REPLAY_ONLY_V1 = 'core-ce012-replay-only.v1' as const;
 type CoreJointReplaySealV1 = Readonly<{contract: 'core-ce012-joint-replay-seal.v1'; status: 'not_ready';
@@ -420,12 +429,18 @@ export const CORE_SERVER_REPLAY_EXPIRY_SQL_V1 = `select expires_at>clock_timesta
 
 /** One backend connection, transaction, lock context and canonical ledger set. Unwired by default. */
 export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>, options?: Readonly<{replay_expiry: 'database_after_lock.v1'}>) {
-  const execute = async function(commandValue: unknown, providers: CoreTransactionProvidersV1 | CoreTransactionProvidersV2, replayOnly: boolean): Promise<CoreTransactionResult> {
+  const execute = async function(commandValue: unknown, providers: CoreTransactionProvidersV1 | CoreTransactionProvidersV2, replayOnly: boolean, documentsReplayOnly = false, serviceOriginal?:unknown): Promise<CoreTransactionResult> {
       const parsed = commandSchema.safeParse(commandValue);
       if (!parsed.success) return { status: 'denied', code: 'INVALID_COMMAND' };
       const command = parsed.data;
       const providerCode = command.contract_version === 'core-transaction-command.v2'
         ? (providers as CoreTransactionProvidersV2).provider_code : undefined;
+      const serviceEnabled=serviceOriginal!==undefined;
+      const serviceFamily=providerCode==='service_offering_revise'||command.evaluation_purpose==='service.revise_offering';
+      if(serviceFamily&&(!serviceEnabled||command.contract_version!=='core-transaction-command.v2'||providerCode!=='service_offering_revise'||command.permission_code!=='services.catalog.manage'||command.module_code!=='services_catalog'||command.aggregate_type!=='service_offering'||providers.terminal_checkpoint!==undefined))return{status:'denied',code:'PROVIDER_UNAVAILABLE'};
+      if(serviceEnabled&&!serviceFamily)return{status:'denied',code:'PROVIDER_UNAVAILABLE'};
+      let original:unknown;
+      if(serviceEnabled){try{original=freezeTerminalResponse(structuredClone(serviceOriginal));JSON.stringify(original);}catch{return{status:'denied',code:'INVALID_COMMAND'};}}
       const replayPolicy = providers.replay_policy ?? 'authority_only';
       const validateReplay = providers.validateReplay as ((
         replayScope: CoreTransactionScopeV1,
@@ -436,10 +451,12 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>,
       const replayProviderCode = command.contract_version === 'core-transaction-command.v2'
         ? providerCode
         : (providers as CoreTransactionProvidersV1).replay_provider_code;
-      if (replayOnly && (command.contract_version !== 'core-transaction-command.v2'
+      if (documentsReplayOnly && (command.contract_version !== 'core-transaction-command.v1'
+        || !isCoreDocumentsReplayProfileV1(command,providers as CoreTransactionProvidersV1))) return {status:'denied',code:'PROVIDER_UNAVAILABLE'};
+      if (replayOnly && !documentsReplayOnly && (command.contract_version !== 'core-transaction-command.v2'
         || providerCode !== 'documents-ce012-reference-provider.v1' || command.aggregate_type !== 'experience_guide'
         || (providers.terminal_checkpoint !== undefined && providers.terminal_checkpoint !== 'core-ce012-host-terminal.v1'))) return {status:'denied',code:'PROVIDER_UNAVAILABLE'};
-      const terminalPolicy = replayOnly ? 'core-ce012-host-terminal.v1' : providers.terminal_checkpoint;
+      const terminalPolicy = replayOnly && !documentsReplayOnly ? 'core-ce012-host-terminal.v1' : providers.terminal_checkpoint;
       if (terminalPolicy !== undefined && (terminalPolicy !== 'core-ce012-host-terminal.v1'
         || command.contract_version !== 'core-transaction-command.v2'
         || providerCode !== 'documents-ce012-reference-provider.v1'
@@ -484,9 +501,19 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>,
         let live = true;
         let commitAttempted = false;
         let rollbackFailed = false;
+        let documentsFirstFailure: unknown;
         const terminal = terminalPolicy ? new TerminalAttemptV1(attempt) : null;
         let backendError: ((error: Error) => void) | undefined;
+        let serviceGeneration=0,serviceInFlight=0,serviceFailed=false,serviceFirst:unknown,serviceReplaySettlementAttempted=false;
+        let serviceBackend:number|null=null,serviceDbtx:string|null=null;
+        let serviceSeal:{generation:number;response:CoreTransactionResult;bytes:Buffer;evaluated_at:string;effect_sha256:string;receipt_hash:string;observationHash:string;sealHash:string}|null=null;
+        let servicePublished:object|null=null;let serviceScopeGuard:typeof import('./service-revise-query-admission-v1')|undefined;
+        const invalidateService=()=>{if(serviceEnabled){serviceGeneration++;serviceSeal=null;}};
+        const failService=(error:unknown)=>{if(serviceEnabled&&!serviceFailed){serviceFailed=true;serviceFirst=error;}invalidateService();};
+        const assertServiceSeal=()=>{if(serviceFailed)throw serviceFirst;if(!serviceSeal||serviceSeal.generation!==serviceGeneration||serviceInFlight!==0||live)throw Error('service_terminal_seal_invalid');};
         const wire = async function<Row extends QueryResultRow = QueryResultRow>(text: string, values: unknown[] = [], settlement = false) {
+          if(serviceEnabled&&serviceFailed&&text.trim().toLowerCase()!=='rollback')throw serviceFirst;
+          if(serviceEnabled){if(settlement)assertServiceSeal();else invalidateService();serviceInFlight++;}
           if (terminal) {
             if (settlement) terminal.assertSealed();
             else terminal.invalidate();
@@ -495,17 +522,17 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>,
           try { return await client!.query<Row>(text, values); }
           catch (error) {
             if (terminal && settlement && text === 'commit' && (error as {code?: string})?.code === '40001') terminal.commitSerializationAbort = true;
-            terminal?.fail(error); throw error;
+            terminal?.fail(error); failService(error);throw serviceFailed?serviceFirst:error;
           }
-          finally { if (terminal) terminal.inFlight -= 1; }
+          finally { if (terminal) terminal.inFlight -= 1;if(serviceEnabled)serviceInFlight--; }
         }
         const failedResult = function(value: CoreTransactionResult): CoreTransactionResult {
           return terminal ? terminal.record(freezeTerminalResponse(value), false) : value;
         }
         try {
-          client = await pool.connect();
-          if (terminal) {
-            backendError = error => terminal.fail(error);
+          client = await pool.connect();if(serviceEnabled)coreServiceReviseTransportPhaseV1(client);
+          if (terminal||serviceEnabled) {
+            backendError = error => {terminal?.fail(error);failService(error);};
             client.on('error', backendError);
           }
           const begun = await wire('begin isolation level serializable');
@@ -519,6 +546,7 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>,
               || !/^[1-9][0-9]*$/.test(b.database_transaction_id) || b.isolation !== 'serializable') throw new Error('core_terminal_backend_invalid');
             terminal.backendPid = b.backend_pid; terminal.databaseTransactionId = b.database_transaction_id;
           }
+          if(serviceEnabled){const meta=await wire<{backend_pid:number;database_transaction_id:string;isolation:string}>("select pg_backend_pid() as backend_pid,txid_current()::text as database_transaction_id,current_setting('transaction_isolation') as isolation");const m=meta.rows[0];if(meta.rowCount!==1||!m||!Number.isSafeInteger(m.backend_pid)||m.isolation!=='serializable'||!/^[1-9][0-9]*$/.test(m.database_transaction_id))throw Error('service_terminal_backend_invalid');serviceBackend=m.backend_pid;serviceDbtx=m.database_transaction_id;}
           await wire("set local search_path = pg_catalog");
           await wire("set local lock_timeout = '5s'");
           await wire("set local statement_timeout = '10s'");
@@ -557,14 +585,15 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>,
             async query<Row extends QueryResultRow>(text: string, values: unknown[] = []) {
               // Transaction/session control and multi-statements belong exclusively to the host.
               // This is a trusted-provider boundary, not a SQL sandbox.
-              terminal?.invalidate();
+              terminal?.invalidate();invalidateService();
               if (!live || !/^\s*(select|insert|update|delete|with)\b/i.test(text) || text.includes(';')
                 || (phase === 'read' && !/^\s*select\b/i.test(text))) {
                 queryFailed = true;
                 const error = new Error('transaction_scope_unavailable');
-                terminal?.fail(error);
+                terminal?.fail(error);failService(error);
                 throw error;
               }
+              if(serviceEnabled){try{serviceScopeGuard!.assertCoreServiceReviseScopedQueryV1(scope,command as CoreTransactionCommandV2,original,phase,text,values);}catch(error){queryFailed=true;failService(error);throw error;}}
               const query = wire<Row>(text, values);
               pending.add(query);
               query.catch(() => { queryFailed = true; }).finally(() => pending.delete(query));
@@ -572,15 +601,36 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>,
             },
           });
           const invoke = async <T>(operation: () => Promise<T>) => {
-            terminal?.invalidate();
+            terminal?.invalidate();invalidateService();
             try {
               const value = await operation();
               await Promise.all(Array.from(pending));
-              if (terminal?.failed) throw terminal.first;
+              if (terminal?.failed) throw terminal.first;if(serviceFailed)throw serviceFirst;
               if (queryFailed) throw new Error('provider_query_failed');
               return value;
-            } finally { terminal?.invalidate(); }
+            } finally { terminal?.invalidate();invalidateService(); }
           };
+          const sealServiceResponse=async(receiptValue:CoreTransactionReceiptV1|CoreTransactionReceiptV2,status:'committed'|'exact_replay')=>{
+            if(!serviceEnabled||command.contract_version!=='core-transaction-command.v2'||receiptValue.contract_version!=='core-transaction-receipt.v2')throw Error('service_terminal_profile_invalid');
+            live=false;await Promise.all(Array.from(pending));if(queryFailed||serviceFailed)throw serviceFailed?serviceFirst:Error('provider_query_failed');
+            const checkpoint=await import('./service-revise-terminal-v1');let open=true;
+            const allowed=new Set<string>(Object.values(checkpoint.CORE_SERVICE_REVISE_TERMINAL_SQL_V1));
+            const checkpointScope:CoreTransactionScopeV1=Object.freeze({...scope,async query<Row extends QueryResultRow>(sql:string,args:unknown[]=[]){if(!open||!allowed.has(sql))throw Error('service_terminal_query_not_admitted');return wire<Row>(sql,args);}});
+            try{
+              const effect=await checkpoint.readCoreServiceReviseTerminalEffectV1(checkpointScope,command,original,receiptValue);
+              expectCoreServiceReviseFinalWireV1(client!);
+              const final=await checkpointScope.query(checkpoint.CORE_SERVICE_REVISE_TERMINAL_SQL_V1.final,[...effect.args]);
+              const observation=checkpoint.assertCoreServiceReviseFinalObservationV1(final,checkpointScope,command,serviceBackend!);
+              if(serviceDbtx!==scope.database_transaction_id||serviceInFlight!==0||serviceFailed)throw serviceFailed?serviceFirst:Error('service_terminal_scope_drift');
+              const response=freezeTerminalResponse(structuredClone({status,receipt:receiptValue})) as CoreTransactionResult,bytes=Buffer.from(JSON.stringify(response),'utf8');
+              const receiptHash=coreTransactionReplayReceiptHashV1(receiptValue),observationHash=createHash('sha256').update(JSON.stringify(observation)).digest('hex');
+              const sealHash=createHash('sha256').update(JSON.stringify({contract:'core-service-revise-terminal.v1',command_hash:requestHash,receipt_hash:receiptHash,effect_sha256:effect.effect_sha256,observation_sha256:observationHash,response_sha256:createHash('sha256').update(bytes).digest('hex'),transaction_id:scope.transaction_id,tenant_id:scope.tenant_id,actor_id:scope.actor_id,context_id:command.context_id,workspace_id:scope.workspace_id,backend_pid:serviceBackend,database_transaction_id:serviceDbtx,attempt,status})).digest('hex');
+              serviceSeal={generation:serviceGeneration,response,bytes,evaluated_at:observation.evaluated_at,effect_sha256:effect.effect_sha256,receipt_hash:receiptHash,observationHash,sealHash};
+              assertServiceSeal();return response;
+            }finally{open=false;}
+          };
+          const publishServiceResponse=(response:CoreTransactionResult,settlement:'committed'|'replay_rolled_back')=>{assertServiceSeal();if(serviceSeal!.response!==response||!serviceSeal!.bytes.equals(Buffer.from(JSON.stringify(response),'utf8')))throw Error('service_terminal_response_drift');const info:CoreServiceReviseTerminalInfoV1=Object.freeze({contract:'core-service-revise-terminal.v1',settlement,attempt,backend_pid:serviceBackend!,database_transaction_id:serviceDbtx!,evaluated_at:serviceSeal!.evaluated_at,response_sha256:createHash('sha256').update(serviceSeal!.bytes).digest('hex'),effect_sha256:serviceSeal!.effect_sha256,receipt_hash:serviceSeal!.receipt_hash,command_hash:requestHash,observation_sha256:serviceSeal!.observationHash,seal_sha256:serviceSeal!.sealHash,current_authority:'as_of_terminal_observation',reusable:false});serviceTerminalResults.set(response,{info,bytes:serviceSeal!.bytes});servicePublished=response;return response;};
+          if(serviceEnabled){serviceScopeGuard=await import('./service-revise-query-admission-v1');const guard=await import('./service-revise-admission-candidate-v1');try{guard.createCoreServiceReviseQueryCandidateV1({scope,core_command:command,original_command:original,provider_code:'service_offering_revise',phase:'replay'});}catch{throw new AbortTransaction({status:'denied',code:'INVALID_COMMAND'});}}
           const sealResponse = async function(receipt: CoreTransactionReceiptV1 | CoreTransactionReceiptV2, status: 'committed' | 'exact_replay') {
             if (!terminal || command.contract_version !== 'core-transaction-command.v2' || receipt.contract_version !== 'core-transaction-receipt.v2') throw new Error('core_terminal_policy_invalid');
             // Consumer raw scope closes permanently before imports/checkpoint waits.
@@ -632,11 +682,16 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>,
             return terminal!.record(response, true);
           }
           const requestHash = createHash('sha256').update(JSON.stringify(command)).digest('hex');
-          let existingReplay: CoreTransactionReceiptV2 | null = null;
+          let existingReplay: CoreTransactionReceiptV1 | CoreTransactionReceiptV2 | null = null;
           if (replayOnly) {
-            const preflight = await import('./ce012-replay-only-preflight-v1');
             terminal?.invalidate();
-            existingReplay = await preflight.readCoreCe012ReplayOnlyPreflightV1(scope, command as CoreTransactionCommandV2);
+            if (documentsReplayOnly) {
+              const preflight=await import('./documents-replay-only-v1');
+              existingReplay=await preflight.readCoreDocumentsReplayOnlyV1(scope,command as CoreTransactionCommandV1);
+            } else {
+              const preflight=await import('./ce012-replay-only-preflight-v1');
+              existingReplay=await preflight.readCoreCe012ReplayOnlyPreflightV1(scope,command as CoreTransactionCommandV2);
+            }
             if (terminal?.failed) throw terminal.first;
             if (!existingReplay) throw new AbortTransaction({status:'denied',code:'REPLAY_CONFLICT'});
           }
@@ -763,6 +818,7 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>,
                 throw new AbortTransaction({status:'denied',code:'REPLAY_CONFLICT'});
               }
             }
+            if(serviceEnabled){const response=await sealServiceResponse(prior.data,'exact_replay');serviceReplaySettlementAttempted=true;const ack=await wire('rollback',[],true);if(ack.command!=='ROLLBACK')throw Error('service_terminal_replay_ack_invalid');return publishServiceResponse(response,'replay_rolled_back');}
             if (terminal) {
               const response = await sealResponse(prior.data, 'exact_replay');
               const ack = await wire('rollback', [], true);
@@ -770,8 +826,15 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>,
               terminal.settlement = 'replay_rolled_back';
               return settledResponse(response);
             }
+            if (documentsReplayOnly) {
+              // Fresh clock after the final replay-provider wait, same lock/backend.
+              const preflight=await import('./documents-replay-only-v1');
+              const final=await preflight.readCoreDocumentsReplayOnlyV1(scope,command as CoreTransactionCommandV1);
+              if (!final || JSON.stringify(final)!==JSON.stringify(prior.data)) throw new AbortTransaction({status:'denied',code:'REPLAY_CONFLICT'});
+            }
             live = false;
-            await wire('rollback');
+            const rolled=await wire('rollback');
+            if (documentsReplayOnly && rolled.command!=='ROLLBACK') throw new Error('documents_replay_rollback_ack_unknown');
             return prior.data.contract_version === 'core-transaction-receipt.v2'
               ? { status: 'exact_replay', receipt: prior.data }
               : { status: 'exact_replay', receipt: prior.data };
@@ -928,6 +991,7 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>,
           });
           await wire(`update platform.idempotency_keys set response_ref=$3::jsonb,status_code=200
             where tenant_id=$1 and key=$2`, [tenantId, key, JSON.stringify(receipt)]);
+          if(serviceEnabled){const response=await sealServiceResponse(receipt,'committed');commitAttempted=true;const ack=await wire('commit',[],true);if(ack.command==='ROLLBACK'){commitAttempted=false;throw Error('service_terminal_commit_aborted');}if(ack.command!=='COMMIT')throw Error('service_terminal_commit_ack_invalid');return publishServiceResponse(response,'committed');}
           if (terminal) {
             const response = await sealResponse(receipt, 'committed');
             commitAttempted = true;
@@ -945,8 +1009,9 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>,
             : { status: 'committed', receipt };
         } catch (caught) {
           live = false;
-          const error = terminal?.failed ? terminal.first : caught;
-          terminal?.fail(error);
+          const error = terminal?.failed ? terminal.first : serviceFailed?serviceFirst:caught;
+          terminal?.fail(error);failService(error);
+          if (documentsReplayOnly) documentsFirstFailure=error;
           if (client) await wire('rollback').then(ack => {
             // A cleanup ACK cannot undo an attempted/unknown COMMIT.
             if (terminal && (!commitAttempted || terminal.commitSerializationAbort) && ack.command === 'ROLLBACK') terminal.settlement = 'rolled_back';
@@ -954,7 +1019,13 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>,
           // A failed COMMIT is uncertain unless PostgreSQL positively reports serialization abort.
           const sqlCode = (error as { code?: string })?.code;
           if (sqlCode === '40001' && attempt < 3
-            && (!terminal || !commitAttempted || (terminal.commitSerializationAbort && terminal.settlement !== 'committed'))) continue;
+            && (!terminal || !commitAttempted || (terminal.commitSerializationAbort && terminal.settlement !== 'committed'))
+            && (!serviceEnabled||(!rollbackFailed&&!serviceReplaySettlementAttempted&&(!commitAttempted||coreServiceReviseRawCommitAbortedV1(client!,error))))) continue;
+          if(serviceEnabled&&((commitAttempted&&!coreServiceReviseRawCommitAbortedV1(client!,error))||serviceReplaySettlementAttempted||rollbackFailed))return{status:'unknown_commit',code:'READBACK_REQUIRED'};
+          if(serviceEnabled){const typed=await import('./service-revise-terminal-v1');if(error instanceof typed.CoreServiceReviseTerminalFailureV1)return{status:'denied',code:error.reason};if(sqlCode==='42501')return{status:'denied',code:'AUTHORITY_DENIED'};}
+          if (documentsReplayOnly && sqlCode === '40001') throw error;
+          if (documentsReplayOnly && (rollbackFailed || (error instanceof Error && error.message === 'documents_replay_rollback_ack_unknown')))
+            return failedResult({status:'unknown_commit',code:'READBACK_REQUIRED'});
           if (commitAttempted && (sqlCode !== '40001' || (terminal && !terminal.commitSerializationAbort))
             && terminal?.settlement !== 'rolled_back') {
             if (terminal) terminal.settlement = 'unknown';
@@ -974,16 +1045,19 @@ export function createCorePostgresTransactionHostV1(pool: Pick<Pool, 'connect'>,
             client?.release(rollbackFailed || commitAttempted ? true : undefined);
             if (terminal?.failed && terminal.seal) terminal.invalidate();
           } catch (cleanup) {
+            if(servicePublished)serviceTerminalResults.delete(servicePublished);
             if (terminal?.publishedResult) { terminalResults.delete(terminal.publishedResult); jointResults.delete(terminal.publishedResult); }
             terminal?.fail(cleanup);
-            throw terminal?.failed ? terminal.first : cleanup;
-          } finally { if (terminal) { terminal.closed = true; terminal.invalidate(); } }
+            throw serviceFailed?serviceFirst:terminal?.failed ? terminal.first : documentsReplayOnly && documentsFirstFailure !== undefined ? documentsFirstFailure : cleanup;
+          } finally { invalidateService();if (terminal) { terminal.closed = true; terminal.invalidate(); } }
         }
       }
       return { status: 'denied', code: 'TRANSACTION_FAILED' };
   };
   return {
     execute(command: unknown, providers: CoreTransactionProvidersV1 | CoreTransactionProvidersV2) { return execute(command, providers, false); },
+    executeServiceOfferingReviseV1(command:unknown,providers:CoreTransactionProvidersV2,original:unknown){if(original===undefined)return Promise.resolve({status:'denied',code:'INVALID_COMMAND'} as CoreTransactionResultV2);return execute(command,providers,false,false,original);},
     executeReplayOnly(command: unknown, providers: CoreTransactionProvidersV2) { return execute(command, providers, true); },
-  } as CoreCe012ReplayOnlyHostV1;
+    executeDocumentsReplayOnly(command: unknown, providers: CoreTransactionProvidersV1) { return execute(command, providers, true, true); },
+  } as CoreCe012ReplayOnlyHostV1 & CoreDocumentsReplayOnlyHostV1 & {executeServiceOfferingReviseV1(command:unknown,providers:CoreTransactionProvidersV2,original:unknown):Promise<CoreTransactionResultV2>};
 }

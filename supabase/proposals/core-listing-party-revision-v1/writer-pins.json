@@ -1,0 +1,27 @@
+{
+  "contract": "core-listing-companion-writer-delta.v1",
+  "status": "SOURCE_PROPOSAL_NOT_INSTALLED",
+  "sourcePath": "supabase/migrations/20261006073930_lifecycle_core_evidence_workspace_provenance.sql",
+  "source_sha256": "18374c0924cefc3c26685c60c01d945f066f9975722b5d47aeb94b6970938713",
+  "revision_function_body_sha256": "9e8ca78101b96a01eb3f6eb1417533e40cf3ff8f45491896df78da60b1ed7394",
+  "routines": [
+    {
+      "name": "record_core_unit_specification_v1",
+      "source_path": "supabase/migrations/20261006073930_lifecycle_core_evidence_workspace_provenance.sql",
+      "before_definition_sha256": "32168710bac950ab179b9c8b9571ef1408aace6db7212f12dea9e2a052127949",
+      "after_definition_sha256": "a32dbbd207121e46a1ce6bb821a414b4b3f5bf6e4e862251a6d58443a821a503",
+      "before_body_sha256": "df462dd04b1d8d26dfc67f51b7688bcb601cd7d6b99ec99da426e00a2f0d66d6",
+      "after_body_sha256": "6b66d8fe76c7dc6fa81e860de623a43e3fb79eb57a4efebd02f95ddcba1e87d2"
+    },
+    {
+      "name": "record_core_unit_lineage_v1",
+      "source_path": "supabase/migrations/20261006073930_lifecycle_core_evidence_workspace_provenance.sql",
+      "before_definition_sha256": "f0f8c5b7e5786d0b47dd72f614149124311547a04d1793474d3a5cacb9703ec2",
+      "after_definition_sha256": "fb830295aeb59109bd18bf419524ad65826b695aa5744e057bc20ea0e9b90e43",
+      "before_body_sha256": "34069f3cdb532bc93a9e959f996fc979d4626ae48f0946ec7ba378b4e9a262c4",
+      "after_body_sha256": "603f9f1f6215e8fcebb199c9f1d8ccbf5bf23165473e8649c6b164add6756e2f"
+    }
+  ],
+  "global_writer_coverage": "NOT_PROVEN",
+  "named_predecessor": "97d7a81ea40db5f158fea10ed9ff9e679ca60949"
+}

@@ -1,0 +1,183 @@
+{
+  "contract": "core-service-authoring-custody-17.delivery.v1",
+  "FullSHA": "CONTAINING_COMMIT",
+  "Parent": "ae1f370049302bca2cd6c771739f03a967db91a2",
+  "branch": "codex/core-domain-ports-01",
+  "status": "SOURCE_PRODUCER_WITH_GUARDED_PLATFORM_ADOPTION_PROPOSAL",
+  "runtime": null,
+  "activation": null,
+  "target_changed": false,
+  "inputs": {
+    "consumer": {
+      "FullSHA": "8393c4a4c387aac2841e4f97813cf36990c105e7",
+      "Parent": "72049708e6b63de944dff941b8cceeaf264b656c",
+      "Tree": "de72a9f7b517908f384354c55586815d20f592fb",
+      "bundle_bytes": 8049,
+      "bundle_sha256": "017f0702937d5a9d0293d61cc94013deaa6a9cc80b71d7352a6c1ac62fcbd2c6",
+      "module_pins": [
+        {
+          "path": "src/lib/customer/service-offering-management-runtime-v1.ts",
+          "bytes": 12478,
+          "sha256": "673a30251c0427fd8f2a7d3fd8b3ce16f4eefd327b61d3c03b0565777fcddd46",
+          "git_blob": "57dc8c76fcb04b913ada3b2bd928f990024c4192"
+        },
+        {
+          "path": "src/lib/customer/service-offering-authoring-runtime-composition-v1.ts",
+          "bytes": 3003,
+          "sha256": "087a634242773496d843b36f746aab692fdbc9c45f5047fe61ce0d3ab0cb76e3",
+          "git_blob": "fe2ea10f4574768541b0d2319e767e22ef4ee778"
+        },
+        {
+          "path": "src/lib/customer/service-v14-execution/offering-authoring-composition-v1.ts",
+          "bytes": 4889,
+          "sha256": "39d557566aec38f95cb51a62cdc8f0824dcc64c055c5109f4dd988af3bd9b880",
+          "git_blob": "933c2d99c64cf47995ea1d3cdf1a64c1fdcb2407"
+        },
+        {
+          "path": "src/lib/customer/service-v14-execution/offering-command.ts",
+          "bytes": 4762,
+          "sha256": "5e3ffe48f7d3584c171c1064c559557269179ee1857e8fa171e6d017fee65044",
+          "git_blob": "344794ea61517539c8888a37cdfc7f030ba9b981"
+        },
+        {
+          "path": "src/lib/customer/service-offering-v14-schema.ts",
+          "bytes": 12019,
+          "sha256": "90f45dcbac9d4756aef7ff242d02f693489cae7d26ca76d98ec9ab97a9543e30",
+          "git_blob": "5749e8dab5f592cf916dce9b663c8ec0863c3f5d"
+        },
+        {
+          "path": "src/lib/customer/service-catalog-schema.ts",
+          "bytes": 4333,
+          "sha256": "c5f26e512b43c8584937da461a3ee2927caf966cd966fad079666fd39a531bc5",
+          "git_blob": "c82e90d5fa40601c2225c3cb54ebe3b2585a8eda"
+        }
+      ]
+    },
+    "ABI_text": {
+      "bytes": 2564,
+      "sha256": "f2d3c659630886519c501b50395269b7c99a09e85f6162a7b169ca9975e68782"
+    },
+    "input_verification": "8303 ZIP and bundle + 7204 Git blob identity +8393 bundle verified/imported; no checkout change"
+  },
+  "inventory": [
+    {
+      "path": "docs/core/domain-ports-01/WORKLOG.md",
+      "before": {
+        "bytes": 21609,
+        "sha256": "7091c87fb67989c43e980774d6dfaf3366a98597a0d9515a949f608037831632",
+        "git_blob": "8dc0b249f24e6d813fe4be9d35612a3200043172"
+      },
+      "after": {
+        "bytes": 23099,
+        "sha256": "284a70ac4abc0e2608e2d3a2e8e36374808499a0f1c5199b16cb0be8a69f2c8a",
+        "git_blob": "7bc20aa9b23bfba0198b6f6a9048fb3d0dd930e7"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/service-custody-17/README.md",
+      "before": null,
+      "after": {
+        "bytes": 4610,
+        "sha256": "4cd79157ff0ca580611d4d245608f35d16307e953322d80f76213e45796cfe04",
+        "git_blob": "742590fdaa7def34cf4b108acd3aa774aa91f8a3"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/service-custody-17/revise-contract.json",
+      "before": null,
+      "after": {
+        "bytes": 2312,
+        "sha256": "3aa5b30c41bcc74edb5f59b23b6bcb188f4f1bd69cc1e35d71f3add14dcb5748",
+        "git_blob": "6c7fc944a45d6a32558c1b01e5070291355cdc49"
+      }
+    },
+    {
+      "path": "scripts/test-core-service-authoring-custody-packet-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 2157,
+        "sha256": "5f32be58d2c7e4442824580ee5e23655b3d276d4d4afded10d86720ce813d81a",
+        "git_blob": "b2fb4adedd4bf5a2b8b45a497e604de58e38cb77"
+      }
+    },
+    {
+      "path": "scripts/test-core-service-authoring-custody-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 12366,
+        "sha256": "7faf7005a9f23e31a7c5a337e8db0e002f0faa3ec397af95342a86266855219c",
+        "git_blob": "87afbbd741d638e2746867b94dd527c90d77ca65"
+      }
+    },
+    {
+      "path": "src/lib/core/service-offering-authoring-custody-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 6590,
+        "sha256": "8ca0a476aa08a761d6aa1ccbcc274a02ab78e831b11b1dc966dabb5d21610d7d",
+        "git_blob": "924fb87d7a13f22027eca9905599aaf4e0b0a4c3"
+      }
+    },
+    {
+      "path": "supabase/proposals/core-service-authoring-custody-v1/delta.sql",
+      "before": null,
+      "after": {
+        "bytes": 8732,
+        "sha256": "974201341d320004d4b7ad9402da958a27744b3f27a88552de27344d56810caf",
+        "git_blob": "47b469392102de2b7d4f12f7d4ec106a7d79d981"
+      }
+    },
+    {
+      "path": "supabase/proposals/core-service-authoring-custody-v1/preflight.sql",
+      "before": null,
+      "after": {
+        "bytes": 1688,
+        "sha256": "e8283452dc27f09d3ad9371b806e8c657a792da8d282853f979b2ca9ab487950",
+        "git_blob": "f0f985e80927e35f444f07ac67908ba8e375a3fd"
+      }
+    },
+    {
+      "path": "supabase/proposals/core-service-authoring-custody-v1/recovery.md",
+      "before": null,
+      "after": {
+        "bytes": 3194,
+        "sha256": "49539bc84549a50dd41bdfdc1362447bfa39a465f2e8882047f11327bb039ab0",
+        "git_blob": "bb237d1c39f94a15408f3ae687bec444ce1b2a3b"
+      }
+    },
+    {
+      "path": "supabase/proposals/core-service-authoring-custody-v1/verify.sql",
+      "before": null,
+      "after": {
+        "bytes": 1089,
+        "sha256": "56c4fe5d9e9de147d568f7da01a5045d8698d57d0362f968364d8be579752ece",
+        "git_blob": "5bbacf4fea917cfc888d287a4a5e5f9d8fb0fa36"
+      }
+    }
+  ],
+  "self_excluded": true,
+  "evidence": {
+    "new_controlled_groups": 12,
+    "composition_coupling": "actual SERVICE resolveTransition -> real Core identity/custody -> actual C03 session denial before writes",
+    "source_groups": 3,
+    "coherent_source_negatives": 4,
+    "full_ES5_typecheck": "PASS",
+    "lint": "PASS",
+    "syntax": "PASS",
+    "diff": "PASS",
+    "scratch_apply_reverse": "external delivery receipt",
+    "SQL_parser": "NOT_RUN",
+    "SQL_compile": "NOT_RUN",
+    "DB_Auth_Storage": "NOT_RUN_NOT_PASS",
+    "native_custody_and_full_SERVICE_C03": "NOT_RUN_NOT_PASS"
+  },
+  "fixed_facade": "platform_dev.prepare_service_offering_authoring_v1(jsonb)",
+  "custody_ledger_role": "pre-dispatch immutable preparation only; no business receipt/effect ledger",
+  "open_gates": [
+    "Platform exact owner/role/ACL/RLS/adoption/private binding",
+    "native same-key/concurrency/rollback/UNKNOWN/restart proof",
+    "existing C03 may deny original authority7 under current8; no historical tuple rewrite; dual-binding ABI not implemented",
+    "revise_offering exact SERVICE domain plan/writer and source port per separate proposal"
+  ],
+  "automation": "نیازمند بررسی"
+}

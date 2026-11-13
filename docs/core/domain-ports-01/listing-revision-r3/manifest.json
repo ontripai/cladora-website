@@ -1,0 +1,160 @@
+{
+  "contract": "core-listing-ownership-revision.source-proposal.v1",
+  "FullSHA": "CONTAINING_COMMIT",
+  "Parent": "34753cb4c92e3c5ea2100404e3096b7eb379de04",
+  "runtime": null,
+  "status": "CANONICAL_PRODUCER_NOT_READY",
+  "source_scope": "INACTIVE_ADDITIVE_SAME_CANONICAL_TABLE_PROPOSAL_ONLY",
+  "consumer": "dc3fcceaf1439e7bf91fb257d449b2b4e1ace4b0",
+  "inventory": [
+    {
+      "path": "docs/core/domain-ports-01/WORKLOG.md",
+      "before": {
+        "bytes": 12303,
+        "sha256": "b29c8d12c7b1890c8bd923d978507a724ae04978772195a03bef71ff52dcb66f",
+        "git_blob": "3de2f5630547cc4397ceaadd1093d82ea738a4b5"
+      },
+      "after": {
+        "bytes": 13055,
+        "sha256": "22fdec89a3d45d13e62808ab4650d1b9674691cf3129fb53b06e3d18e2f8cac2",
+        "git_blob": "0daca8571c07e0ba9f25017a9b4f23521e04744a"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/listing-revision-r3/README.md",
+      "before": null,
+      "after": {
+        "bytes": 7272,
+        "sha256": "f6916c5efe120ec8c2a6002c28830a5290a6b728ca404628ed54736ba45f0c95",
+        "git_blob": "68b27a60bb99f5d66b71c2bbe5484c638cb6c865"
+      }
+    },
+    {
+      "path": "scripts/test-core-listing-ownership-revision-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 3107,
+        "sha256": "323e8b21b63eb54ecf4312de068e3983e9a86c833e360b62d8f068256f96848f",
+        "git_blob": "a7da861defb82abba6335ef44881bf144efe489c"
+      }
+    },
+    {
+      "path": "supabase/proposals/core-listing-ownership-revision-v1.sql",
+      "before": null,
+      "after": {
+        "bytes": 5771,
+        "sha256": "4e0a5647257da7fcb2a9975dbdbf749e6e692362e8cc8f3e51d0c5444c47f731",
+        "git_blob": "fb336f7bf191a2cafffb1196a6515e26cda2d807"
+      }
+    }
+  ],
+  "protected": [
+    {
+      "path": "supabase/migrations/20260825000300_portfolio_properties_buildings_units.sql",
+      "bytes": 7862,
+      "sha256": "53e3f36a9656a2a16b686ee8eb830cfae49f6297f14820b5199630db97cf65a4",
+      "git_blob": "e4ab67394613f0be3d645b27f71bbd8807ff12ca"
+    },
+    {
+      "path": "supabase/migrations/20260829005200_customer_occupancy_parties_ownership_lease_registry.sql",
+      "bytes": 26722,
+      "sha256": "1b78c4f78f1ee9d5aae4a8d8001d1056a6c97b4d642d26165f754680e9c38b56",
+      "git_blob": "d4ff9ec2822100cd94414ac2d7a7f6f2143f1c17"
+    },
+    {
+      "path": "supabase/migrations/20260928130116_20260928113655_scoped_unit_invitations.sql",
+      "bytes": 23277,
+      "sha256": "6003e11254cddec879cc4ecc5059578d266053a94367740e6c811e969d8fe385",
+      "git_blob": "c6d262801549f386fca36eb30e96307e3bdf2da1"
+    },
+    {
+      "path": "supabase/migrations/20260913063638_residential_pilot_import_completion.sql",
+      "bytes": 27064,
+      "sha256": "64b4fcbb1741ccdc3a690b66eb33569d7b763a380ef08995d21be1562f62f099",
+      "git_blob": "7cdd26e8cf203b1d8a12b015fa56f7adbae5c273"
+    },
+    {
+      "path": "supabase/migrations/20261007092932_lifecycle_verified_ownership_transfer.sql",
+      "bytes": 17137,
+      "sha256": "1fa881f2ebb6a064b8c101b782096bad70630b86ece19d8268700028d81288e1",
+      "git_blob": "f52959b7d5609641861d36baec94ce369c63bb20"
+    },
+    {
+      "path": "supabase/migrations/20261012190924_core_canonical_authority_revision_v1.sql",
+      "bytes": 10871,
+      "sha256": "f0bf04bb256985c507760de498be2c8d96546ebbd262d39161acd64d35566512",
+      "git_blob": "fa75f9eccd122aee3da022a7bc5ee1e77b482d4c"
+    },
+    {
+      "path": "supabase/migrations/20261019193000_pf01_owner_portfolio_projection_v1.sql",
+      "bytes": 8994,
+      "sha256": "abad17b3ee8aa4783247dac60b0eb24b71782794617743d22a569b19f82b6aba",
+      "git_blob": "b869b2156311403fca91bc83de025ed174bfbae3"
+    },
+    {
+      "path": "src/lib/core/airprop-read-host-v1.ts",
+      "bytes": 20207,
+      "sha256": "52ba8a442a890a114349addf569a180ff6179adf7698ba6dbb4bed1a94c9a87f",
+      "git_blob": "ffcfec5c7310ed5018bf66590aee1f487a0f70a8"
+    },
+    {
+      "path": "src/lib/core/current-unit-property-read-selector-v1.ts",
+      "bytes": 5747,
+      "sha256": "6be30696e2f75d94d62b105911f4e8df977383487baf8fe37bcfc8a574667844",
+      "git_blob": "d56d0509b797cd345cc18fd5c69c0b1f22de10ac"
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "bytes": 62680,
+      "sha256": "9436c082f8ce8a054d8300f55bd49ac4b6120240cf06fa6ca94190b5c6c1858a",
+      "git_blob": "9e1a0229b9676368dc1d49015cf95be13fac9908"
+    }
+  ],
+  "source_fields": {
+    "existing": "portfolio.ownerships(id,tenant_id,unit_id,party_id,share,valid_from,valid_to,evidence_id,finalized_at)",
+    "proposed": "portfolio.ownerships.native_revision_v1",
+    "existing_rows": "NULL_NOT_READY_NO_BACKFILL",
+    "new_real_inserts": "TRIGGER_ASSIGNED_FIRST_RECORDED_REVISION",
+    "invalidators": [
+      "portfolio.ownerships",
+      "portfolio.parties",
+      "identity.membership_parties"
+    ],
+    "canonical_barrier": "app_private.bump_canonical_authority_revision_v1()",
+    "before_statement_not_whole_writer_order": true
+  },
+  "remaining": [
+    {
+      "owner": "Core lifecycle",
+      "gap": "execute_verified_ownership_transfer_v1 prelocks Property/Unit/ownership before epoch; called-helper participation not closed"
+    },
+    {
+      "owner": "Core/communications",
+      "gap": "register_unit_invite_relationship_v1 locks Unit before Party/ownership DML"
+    },
+    {
+      "owner": "Core onboarding",
+      "gap": "onboarding_commit_residential_internal_v1 multi-source import entry/approval barrier closure"
+    },
+    {
+      "owner": "AIRPROP/Coordinator",
+      "gap": "explicit own-party ownership disclosure policy; other-party management/representation not inferred"
+    },
+    {
+      "owner": "Core/Platform",
+      "gap": "complete invalidator/writer census; real two-session lock/revoke/rollback proof and exact target adoption"
+    }
+  ],
+  "checks": {
+    "source_controls": 10,
+    "syntax": "PASS",
+    "limited_lint": "PASS",
+    "sql_parser_compile_pg": "NOT_RUN_NOT_PASS",
+    "native_companion": "NOT_READY"
+  },
+  "activation": null,
+  "seal": {
+    "algorithm": "sha256_canonical_json_excluding_seal",
+    "digest": "89cbba005fea7b8f8fd252aae8d1335848cefc18ada120cdeab971d566d4479b"
+  }
+}

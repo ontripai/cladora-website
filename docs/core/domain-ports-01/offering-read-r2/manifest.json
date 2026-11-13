@@ -1,0 +1,114 @@
+{
+  "FullSHA": "CONTAINING_COMMIT",
+  "Parent": "62f3c4ea3280821d3df69cd5d0cfbd10fbf6cb6d",
+  "main_reference": "6cecfa15b00f445be68817e756d766fb0e6fe026",
+  "native": "NOT_RUN_NOT_PASS",
+  "activation": null,
+  "target_calls": 0,
+  "automation": "نیازمند بررسی",
+  "contract": "core-offering-read-r2.source.v1",
+  "status": "INDEPENDENT_READ_DEFINITIONS_SOURCE_READY",
+  "inventory": [
+    {
+      "path": "src/lib/core/functional-command-runtime-v1.ts",
+      "before": {
+        "bytes": 28103,
+        "sha256": "e83e1351af12f5f1f88af94f2b317fc9509a888bb9d1ba975167fc9ecb705e41",
+        "git_blob": "7a7f3a6272c31df30b61835d5a8a3eeacc621139"
+      },
+      "after": {
+        "bytes": 28304,
+        "sha256": "ac745c7afefdfcaea7e26a610b566845668d01900af7e88a063b75621b1293ed",
+        "git_blob": "7e4e45596f122c309a618186a7c1117c865b125e"
+      }
+    },
+    {
+      "path": "src/lib/core/service-offering-read-binding-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 2093,
+        "sha256": "9b476da02cfa64e1c390643cb16ff885074ba312bada4f3bd0b57e756b20e8c2",
+        "git_blob": "a8332baa289c2aa5612179f49dd0f9664ed9a7c0"
+      }
+    },
+    {
+      "path": "scripts/test-core-offering-read-binding-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 4843,
+        "sha256": "26879c62112f92437f5f538c3260733bb880c26a4060ea2e703fec73e04bf21c",
+        "git_blob": "98c88149fc80b9b730d6a2ca41aa7d9c7546f21b"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/offering-read-r2/README.md",
+      "before": null,
+      "after": {
+        "bytes": 2680,
+        "sha256": "03acbf1f801cdb3dd0bbdf29371aa3b21699bdea1c6033774ebb70d0f79e16a4",
+        "git_blob": "8df03a597ffbaca004d5645318a89d20e1b9b547"
+      }
+    }
+  ],
+  "consumer": [
+    {
+      "path": "src/lib/customer/service-offering-management-runtime-v1.ts",
+      "source": "cf3d1e3349298c4cc4cf8f6f771c78179cc2bc52",
+      "bytes": 3833,
+      "sha256": "b87b20e2a999acc00b281fdf440db8c8bf945b7d5513dc6f1ca92093271929d8",
+      "git_blob": "6c837e4b2904734e5786cec90878aeb4b9155f7d"
+    },
+    {
+      "path": "src/app/api/customer/v1/services/catalog/definitions/route.ts",
+      "source": "cf3d1e3349298c4cc4cf8f6f771c78179cc2bc52",
+      "bytes": 4668,
+      "sha256": "8708b8ee0acbeb83de1a2c0989db2f06e90ed5d1f5714b2b71cb9c7e9b442253",
+      "git_blob": "d293e1a35da0a886d2563ab2fe86689ef5ad82c6"
+    },
+    {
+      "path": "src/lib/customer/service-quote-runtime-binding-v1.ts",
+      "source": "cf3d1e3349298c4cc4cf8f6f771c78179cc2bc52",
+      "bytes": 598,
+      "sha256": "1c190d39131124f070b91257ab4d1fabb2a938ba31a5ee9ad775c60a245dc8a8",
+      "git_blob": "1e92f42a7795a109bd12baab035e51a8bfa9598e"
+    },
+    {
+      "path": "src/lib/customer/service-quote-http-v1.ts",
+      "source": "cf3d1e3349298c4cc4cf8f6f771c78179cc2bc52",
+      "bytes": 5362,
+      "sha256": "3643351418e7df90e3930cd8fdfd332f9c5a93286615e5b4dfdf120181b15426",
+      "git_blob": "6694fb8e9d717ae20f48cedc8d9256225ef2b921"
+    }
+  ],
+  "canonical_RPC": [
+    {
+      "path": "supabase/migrations/20261003200220_20261003144507_service_catalog_definition_command_v1.sql",
+      "source": "62f3c4ea3280821d3df69cd5d0cfbd10fbf6cb6d",
+      "bytes": 4047,
+      "sha256": "07135cc357d7b1333d4a448695a9ccd1be41decc1358729b1af7fcbb7e246207",
+      "git_blob": "67287272a16e1ea0872830b314f71f258ed60087"
+    }
+  ],
+  "ABI": {
+    "factory": "createCoreServiceOfferingReadBindingV1",
+    "contract": "core-offering-read-binding.v1",
+    "method": "readDefinitions",
+    "permission": "services.catalog.manage",
+    "module": "services_catalog",
+    "other_optional_methods": "ABSENT_NOT_FAKE_IMPLEMENTATIONS"
+  },
+  "checks": {
+    "new_controlled_groups": 6,
+    "SQL_Auth_DB": "NOT_RUN",
+    "full_ES5_typecheck": "PASS",
+    "limited_lint": "PASS",
+    "JS_syntax": "PASS",
+    "SQL_parse_compile_execute": "NOT_RUN"
+  },
+  "remaining": [
+    "exact runtime role/EXECUTE/RLS admission and native query evidence",
+    "SERVICE resolver/UI consumption",
+    "independent create/update/mutateOffering/S01 authoring disclosure",
+    "Quote actual canonical read/create provider"
+  ]
+}

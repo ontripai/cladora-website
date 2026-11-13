@@ -1,0 +1,193 @@
+{
+  "contract": "core-custody-fresh-time-helper-pins.v1",
+  "source": {
+    "path": "supabase/hosted-building-slice/building-setup-command-receipts-v1.sql",
+    "sha256": "254e17c9e5f21ce4e50786d3325c2cc84759097b16cb53028602d1e8db5e02e3"
+  },
+  "roots": [
+    "app_private.resolve_workspace_native_context_v2_at_v1",
+    "app_private.check_workspace_native_permission_v2_at_v1",
+    "app_private.require_request_session_current_at_v1"
+  ],
+  "helpers": [
+    {
+      "signature": "app_private.check_direct_effective_permission_v2_at_v1(uuid,uuid,text,text,text,uuid,uuid,timestamptz)",
+      "source_definition_sha256": "550ee2fe91a2fae4eb5adafce8f7b88b940f4ca0d1ff929c1cd22a8ead9a55d9",
+      "prosrc_sha256": "9e7df1887c7ce41f4e7de1b9b701a6e4b56ffff949a22b3c726ea274fa74489b",
+      "dependencies": [
+        "app_private.native_workspace_scope_for_membership_v2_at_v1",
+        "app_private.workspace_member_role_authority_active_v1_at_v1"
+      ],
+      "statement_clock_in_body": false,
+      "security_definer": true,
+      "volatility": "s",
+      "search_path": [
+        "search_path=pg_catalog"
+      ]
+    },
+    {
+      "signature": "app_private.check_effective_permission_v2_at_v1(uuid,text,text,text,uuid,uuid,timestamptz)",
+      "source_definition_sha256": "5549d89feadc019b43ae8eb469e3e4d52907df88aa31b94bb40cc4e57e6caeb1",
+      "prosrc_sha256": "c24b1a4d049d3466d86d693f0d9a19ded0bdd85296384e17fc44fca0ff0b4d63",
+      "dependencies": [
+        "app_private.check_direct_effective_permission_v2_at_v1",
+        "app_private.resolve_workspace_from_customer_context_v1_at_v1",
+        "app_private.resolve_workspace_native_context_v2_at_v1",
+        "app_private.workspace_member_role_authority_active_v1_at_v1"
+      ],
+      "statement_clock_in_body": false,
+      "security_definer": true,
+      "volatility": "s",
+      "search_path": [
+        "search_path=pg_catalog"
+      ]
+    },
+    {
+      "signature": "app_private.check_workspace_native_permission_v2_at_v1(uuid,uuid,text,text,timestamptz)",
+      "source_definition_sha256": "369ecfd04317aca3ec12bde1160cbd81a432daddaffb36bad53b2706f1d9e207",
+      "prosrc_sha256": "18bed745a9685ed0c9389f6c657df6f711eef525efce87b29808efc26c1d11d7",
+      "dependencies": [
+        "app_private.check_effective_permission_v2_at_v1"
+      ],
+      "statement_clock_in_body": false,
+      "security_definer": true,
+      "volatility": "s",
+      "search_path": [
+        "search_path=pg_catalog"
+      ]
+    },
+    {
+      "signature": "app_private.customer_mfa_required_at_v1(timestamptz)",
+      "source_definition_sha256": "dd6b2cde0b6a588917e28c403a4e6929e942bcd6e733fac0a701dccfdfa74d37",
+      "prosrc_sha256": "3e364543c4860bd9b55abd2e2df99d6351c552a1ccad0e65dfcafedda96c41db",
+      "dependencies": [],
+      "statement_clock_in_body": false,
+      "security_definer": true,
+      "volatility": "s",
+      "search_path": [
+        "search_path=pg_catalog"
+      ]
+    },
+    {
+      "signature": "app_private.native_workspace_scope_for_membership_v2_at_v1(uuid,uuid,uuid,timestamptz)",
+      "source_definition_sha256": "aa49b9c4cca2964a8ae6147461ebb6d994c66d0ece6f5919192f53fa7e3129a4",
+      "prosrc_sha256": "d7ecb5d5a38af056d65d015d8d9f570d49794acff36a964227bb938b3abd9b3f",
+      "dependencies": [
+        "app_private.workspace_member_role_authority_active_v1_at_v1"
+      ],
+      "statement_clock_in_body": false,
+      "security_definer": true,
+      "volatility": "s",
+      "search_path": [
+        "search_path=pg_catalog"
+      ]
+    },
+    {
+      "signature": "app_private.require_request_session_current_at_v1(timestamptz)",
+      "source_definition_sha256": "e8ce81dd11e55a66c74ccab8a871a81ac165f547e3aa7110a78a22d5e780d50e",
+      "prosrc_sha256": "12d502678ce3eb760a064c4d8af3a01f1330580a3944048a7d87733f1a7aaa7c",
+      "dependencies": [],
+      "statement_clock_in_body": false,
+      "security_definer": true,
+      "volatility": "s",
+      "search_path": [
+        "search_path=pg_catalog"
+      ]
+    },
+    {
+      "signature": "app_private.resolve_workspace_from_customer_context_v1_at_v1(uuid,boolean,timestamptz)",
+      "source_definition_sha256": "615afd0d4d07dec55723e53f5800fefcb900f60add72afa49d8e641a8f12adc3",
+      "prosrc_sha256": "8489a85003cbb2e814c5eb749cc9ec13c31fea67a012d0239248792fe245a14c",
+      "dependencies": [],
+      "statement_clock_in_body": false,
+      "security_definer": true,
+      "volatility": "s",
+      "search_path": [
+        "search_path=pg_catalog"
+      ]
+    },
+    {
+      "signature": "app_private.resolve_workspace_native_context_v2_at_v1(uuid,uuid,timestamptz)",
+      "source_definition_sha256": "83e0d91f5768f44fe68ad604a082af15ad8e6829ae6a471db825443a1d952497",
+      "prosrc_sha256": "ce7c3391383b32e7a30c464edfc34962020bd47cdf704e8ef534144ad6b5511f",
+      "dependencies": [
+        "app_private.customer_mfa_required_at_v1",
+        "app_private.native_workspace_scope_for_membership_v2_at_v1"
+      ],
+      "statement_clock_in_body": false,
+      "security_definer": true,
+      "volatility": "s",
+      "search_path": [
+        "search_path=pg_catalog"
+      ]
+    },
+    {
+      "signature": "app_private.workspace_context_covers_role_scope_v1_at_v1(uuid,uuid,text,uuid,timestamptz)",
+      "source_definition_sha256": "878f90d79711170d615b77465e0793a3cfd81239c40ade286604f849ad08e0d2",
+      "prosrc_sha256": "5f60bb3c24d48a03c679bd7224696feb2c2f5040158b9d2e3333987954fe662e",
+      "dependencies": [],
+      "statement_clock_in_body": false,
+      "security_definer": true,
+      "volatility": "s",
+      "search_path": [
+        "search_path=pg_catalog"
+      ]
+    },
+    {
+      "signature": "app_private.workspace_member_role_authority_active_v1_at_v1(uuid,uuid,uuid,text,uuid,uuid[],timestamptz)",
+      "source_definition_sha256": "f4468bc75b1c547d704ecdf6af7c9abd84c7d1f7f049e40900650218357b75e3",
+      "prosrc_sha256": "8b50fb008031e95bd99d5660777c5868b90fee7e5e69c445bded6c7328676c38",
+      "dependencies": [
+        "app_private.workspace_context_covers_role_scope_v1_at_v1",
+        "app_private.workspace_member_role_authority_active_v1_at_v1",
+        "app_private.workspace_role_identity_source_current_v1_at_v1"
+      ],
+      "statement_clock_in_body": false,
+      "security_definer": true,
+      "volatility": "s",
+      "search_path": [
+        "search_path=pg_catalog"
+      ]
+    },
+    {
+      "signature": "app_private.workspace_role_identity_source_current_v1_at_v1(uuid,uuid,uuid,uuid,uuid,uuid,uuid,text,uuid,timestamptz)",
+      "source_definition_sha256": "04a030f42f5deb27e40584566824a862013a11edf7ba7ca7e895afcca3c464d8",
+      "prosrc_sha256": "01f6a216814ad9902a68e9c922574ccbb61c26b01db9a2e159d813cae035a886",
+      "dependencies": [
+        "app_private.workspace_context_covers_role_scope_v1_at_v1"
+      ],
+      "statement_clock_in_body": false,
+      "security_definer": true,
+      "volatility": "s",
+      "search_path": [
+        "search_path=pg_catalog"
+      ]
+    },
+    {
+      "signature": "app_private.workspace_role_scope_contains_v1(text,uuid,uuid,uuid,text,uuid,uuid,uuid)",
+      "source_definition_sha256": "c4a89b8f924432a3d66803d93f0e5ed8afea03be06a4266173c0072af2137795",
+      "prosrc_sha256": "ebd3ac9d0052b960b6e0257ea4f423c3461441bd2f29671fd0df61f09e0eb125",
+      "dependencies": [],
+      "statement_clock_in_body": false,
+      "scope_only_non_temporal_dependency": true,
+      "security_definer": false,
+      "volatility": "i",
+      "search_path": [
+        "search_path=pg_catalog"
+      ]
+    },
+    {
+      "signature": "app_private.workspace_role_scope_overlaps_v1(text,uuid,uuid,uuid,text,uuid,uuid,uuid)",
+      "source_definition_sha256": "9f9b417663e0cd419c9b3fc469f9690a0cdbe1fc39f26c3da0ce00811c12cc08",
+      "prosrc_sha256": "1a92d34a89f3885dcbf7e48f1101807efbb679441ef378b2067b94fc3b7a83ca",
+      "dependencies": [],
+      "statement_clock_in_body": false,
+      "scope_only_non_temporal_dependency": true,
+      "security_definer": false,
+      "volatility": "i",
+      "search_path": [
+        "search_path=pg_catalog"
+      ]
+    }
+  ]
+}

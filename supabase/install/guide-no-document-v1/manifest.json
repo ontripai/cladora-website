@@ -1,0 +1,58 @@
+{
+  "contract": "core-guide-no-document-install.packet.v1",
+  "Parent": "ae1fe67187b0b09bcc3fc5b8d22d55d08a7139e6",
+  "units": [
+    {
+      "name": "preflight.sql",
+      "path": "supabase/install/guide-no-document-v1/preflight.sql",
+      "bytes": 5535,
+      "sha256": "176f2282efbd37af62c261858417d516efa607fa7389cc28312bcf1046e6dd27",
+      "git_blob": "c67d20d36d02e74c505a3675518697ff7db61d74"
+    },
+    {
+      "name": "00-fixed-roles.sql",
+      "path": "supabase/install/guide-no-document-v1/00-fixed-roles.sql",
+      "bytes": 2248,
+      "sha256": "b235e566631ccb52b6a20d8ea2fdaa7c9d6e45de1e4652768c9b24ece3f1815d",
+      "git_blob": "90d0f19784fbb327685ce7c997226fda0c6d1273"
+    },
+    {
+      "name": "05-owner-delegations.sql",
+      "path": "supabase/install/guide-no-document-v1/05-owner-delegations.sql",
+      "bytes": 3509,
+      "sha256": "b3718be17f30122773ce4a5f4b84056c3a4ccc9f10180cb14d6013ec93e6effe",
+      "git_blob": "f47799a236cfc083ec553d770a26b105d29acd49"
+    },
+    {
+      "name": "08-audience-dependency.sql",
+      "path": "supabase/install/guide-no-document-v1/08-audience-dependency.sql",
+      "bytes": 16514,
+      "sha256": "62b9d3243b381928fbae019b9f9275da9e0bf73ad2db510e9ae4ff670387a444",
+      "git_blob": "4ff9217da75e32ba76d695469a9df135b02013a1"
+    },
+    {
+      "name": "10-guide-core.sql",
+      "path": "supabase/install/guide-no-document-v1/10-guide-core.sql",
+      "bytes": 34136,
+      "sha256": "6812a04f54ab9bde5b1661a40bb78740c43147588e2d00c9af1e28ddee0e85b9",
+      "git_blob": "97803fd30dfa5257db790b421b42c54293c8a8c3"
+    },
+    {
+      "name": "20-save-relation.sql",
+      "path": "supabase/install/guide-no-document-v1/20-save-relation.sql",
+      "bytes": 16598,
+      "sha256": "9eb6fc9454d47fdacebd8b5a077a3fec9bc20e62f4a7c2873c18dfe99fe33e4a",
+      "git_blob": "dd4c5ac945d513078604127e8d23091c6feb6865"
+    },
+    {
+      "name": "verify.sql",
+      "path": "supabase/install/guide-no-document-v1/verify.sql",
+      "bytes": 4209,
+      "sha256": "1bbc5d7c72c61ee929bd1879d8a5cbc29549241442bc9b9f1706c4e572df4271",
+      "git_blob": "4a2c46d1f6d4d47e8a8c3890252f5234b7c30ad7"
+    }
+  ],
+  "activation": null,
+  "shared_target_execution": "NOT_RUN",
+  "native_lab_evidence": "docs/core/domain-ports-01/guide-install-r3/native-pg17.receipt.json"
+}

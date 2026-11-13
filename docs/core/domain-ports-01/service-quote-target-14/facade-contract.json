@@ -1,0 +1,63 @@
+{
+  "contract": "core-service-quote-platform-dev-facades.v1",
+  "status": "SOURCE_ONLY_NOT_ACTIVATED",
+  "runtime_binding": null,
+  "schema": "platform_dev",
+  "caller_role": "authenticated",
+  "permission": "services.quotes.manage",
+  "module": "services_orders",
+  "aal": "aal2",
+  "owner": "cladora_service_quote_store_owner",
+  "security": "DEFINER",
+  "search_path": "pg_catalog",
+  "caller_selectable_sql_schema_role_target": false,
+  "functions": [
+    {
+      "signature": "platform_dev.reserve_service_quote_command_v1(jsonb)",
+      "arguments": {
+        "p_request": "canonical R10 strict command/command_sha256/current_identity envelope"
+      },
+      "delegates_only": "customer_api.reserve_service_quote_command_v1(jsonb)",
+      "meaning": "immutable reserve/recover command identity; NOT commercial mutation or C03 receipt"
+    },
+    {
+      "signature": "platform_dev.read_service_quote_history_v1(uuid,uuid)",
+      "arguments": {
+        "p_context_id": "uuid selector, not authority",
+        "p_workspace_id": "uuid selector, not authority"
+      },
+      "delegates_only": "customer_api.read_service_quote_history_v1(uuid,uuid)",
+      "meaning": "canonical current-authority history; unresolved reservation is not committed history"
+    }
+  ],
+  "wire": "PostgREST RPC exact named args; JSONB return unchanged",
+  "sqlstate": {
+    "40001": "same original error to trusted transaction host; no new retry",
+    "23505": "REPLAY_CONFLICT",
+    "42501/P0002": "SCOPE_DENIED",
+    "22023/22P02": "INVALID_REQUEST",
+    "other": "SOURCE_UNAVAILABLE per existing SERVICE mapping"
+  },
+  "no_new": [
+    "customer_api exposure",
+    "authenticated customer_api USAGE or EXECUTE",
+    "provider Auth ACL/owner change",
+    "authority evaluator",
+    "command ledger",
+    "receipt generator",
+    "runtime activation"
+  ],
+  "SERVICE_adoption": {
+    "source_FullSHA": "bd6b9033cc6ca8a4f882cc6efa209a9c8b584f63",
+    "path": "src/lib/customer/service-quote-canonical-store-v1.ts",
+    "owner": "SERVICE",
+    "proposed_fixed_schema_literal": "platform_dev",
+    "status": "REQUIRED_NOT_IMPLEMENTED_BY_CORE"
+  },
+  "open_gates": [
+    "actual target/custodian/profile and six helper identity admission",
+    "SERVICE transport adoption and affected coupling",
+    "Platform source review and separate execution authorization",
+    "native installer/Auth/RLS/C03/concurrency/currentness/settlement/restart proof"
+  ]
+}

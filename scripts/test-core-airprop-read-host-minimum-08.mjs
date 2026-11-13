@@ -48,6 +48,7 @@ function fixture(){
    if(text==='commit'){if(state.commitBarrier)await state.commitBarrier;return result([],state.commitTag??'COMMIT');}
    if(text==='rollback')return result([],'ROLLBACK');
    if(text===sql.identity){const claims=JSON.parse(params[0]);assert.equal(claims.sub,ids.actor);assert.equal(claims.session_id,ids.session);assert.equal(claims.role,'authenticated');assert.equal(Object.hasOwn(claims,'user_metadata'),false);return result([{}]);}
+   if(text===sql.session)return result([{}]); // Controlled response to the real C01 session-barrier call.
    if(text===sql.revision)return result([{revision:'9'}]);
    if(text===sql.resolve){assert.deepEqual(params,[requested.context_id,requested.workspace_id]);return result([{tenant_id:ids.tenant,workspace_id:ids.workspace,membership_id:ids.membership,...state.resolvePatch}]);}
    if(text===sql.lock){if(state.lockBarrier)await state.lockBarrier;return result([{...requested,tenant_id:ids.tenant,membership_id:ids.membership,actor_id:ids.actor,...state.lockPatch}]);}

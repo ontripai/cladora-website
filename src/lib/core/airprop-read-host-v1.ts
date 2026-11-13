@@ -4,6 +4,25 @@ import {z} from 'zod';
 import type {Pool,PoolClient,QueryResult,QueryResultRow} from 'pg';
 import {createClient} from '../supabase/server';
 import type {CoreTransactionScopeV1} from './postgres-transaction-host-v1';
+import {admitCoreListingOwnershipQueryV1} from './listing-ownership-companion-queries-v1';
+import {admitCoreAirpropReadSelectorQueryV1} from './airprop-read-selector-queries-v1';
+
+declare const liveReadObservation:unique symbol;
+export type CoreAirpropReadObservationV1=Readonly<{contract:'core-airprop-read-observation.v1';[liveReadObservation]:true}>;
+type ReadObservationInfo=Readonly<{context_id:string;workspace_id:string;tenant_id:string;membership_id:string;actor_id:string;
+ database_transaction_id:string;backend_pid:number;authority_revision:string;checked_at:string;scope_expires_at:string;
+ permission:'airprop.asset.read';module:'airprop_commercial';purpose:'airprop.portfolio.read'}>;
+const observations=new WeakMap<object,{scope:CoreTransactionScopeV1;sequence:number;info:ReadObservationInfo}>();
+const liveReads=new WeakMap<CoreTransactionScopeV1,{checkpoint:()=>Promise<CoreAirpropReadObservationV1>;current:(n:number)=>boolean}>();
+/** Only the actual host scope can acquire a real checkpoint. No JSON/allow input. */
+export async function checkpointCoreAirpropReadScopeV1(scope:CoreTransactionScopeV1){
+ const port=liveReads.get(scope);if(!port)throw new CoreReadHostUnavailableV1('READ_SCOPE_NOT_HOST_ISSUED');return port.checkpoint();
+}
+/** Read-only historical matching within the still-live query generation. */
+export function inspectCoreAirpropReadObservationV1(scope:CoreTransactionScopeV1,value:unknown):ReadObservationInfo|null{
+ if(!value||typeof value!=='object')return null;const record=observations.get(value);
+ return record&&record.scope===scope&&liveReads.get(scope)?.current(record.sequence)?record.info:null;
+}
 
 export const CORE_AIRPROP_READ_HOST_V1='core-airprop-read-host.v1' as const;
 export const CORE_AIRPROP_READ_HOST_RUNTIME_BINDING=null;
@@ -40,6 +59,7 @@ export const CORE_READ_HOST_SQL=Object.freeze({
   identity:`select set_config('request.jwt.claims',$1,true),set_config('request.jwt.claim.sub',$2,true),
     set_config('request.jwt.claim.aal',$3,true),set_config('request.jwt.claim.role','authenticated',true),
     set_config('request.cladora.context_id',$4,true),set_config('request.cladora.workspace_id',$5,true)`,
+  session:'select app_private.lock_core_request_session_v1()',
   revision:'select revision::text from app_private.canonical_authority_revision_v1 where singleton for share',
   resolve:`select workspace_id::text,tenant_id::text,membership_id::text
     from app_private.resolve_workspace_native_context_v2($1::uuid,$2::uuid)`,
@@ -126,6 +146,9 @@ export function createCoreAirpropReadHostV1(options:Readonly<{
    beginAttempted=true;settlement='unknown';const begun=await wire('begin isolation level serializable');if(begun.command!=='BEGIN')fail('BEGIN_ACK_INVALID');
    await wire("set local search_path = pg_catalog");
    await wire(CORE_READ_HOST_SQL.identity,[JSON.stringify(claims),claims.sub,claims.aal,requested.context_id,requested.workspace_id]);
+   // Reuse the existing C01 managed-session row barrier; no synthetic lease or
+   // new session evaluator. Missing helper/EXECUTE/profile compatibility denies.
+   await wire(CORE_READ_HOST_SQL.session);
    stage='scope';const revision=await wire(CORE_READ_HOST_SQL.revision);
    const epoch=z.string().regex(/^[1-9][0-9]*$/).parse(revision.rows[0]?.revision);if(revision.rowCount!==1)fail('AUTHORITY_UNAVAILABLE');
    const resolved=await wire(CORE_READ_HOST_SQL.resolve,[requested.context_id,requested.workspace_id]);
@@ -139,17 +162,38 @@ export function createCoreAirpropReadHostV1(options:Readonly<{
    if(initial.rowCount!==1)fail('SCOPE_DENIED');check(current);
    const tx=current.database_transaction_id,backend=current.backend_pid,readId=randomUUID();
    const server:CoreReadServerScopeV1=Object.freeze({context_id:bound.context_id,workspace_id:bound.workspace_id,actor_id:bound.actor_id,tenant_id:bound.tenant_id});
+   let sequence=0,checkpointPending=false;
    const scope:CoreTransactionScopeV1=Object.freeze({transaction_id:readId,database_transaction_id:tx,workspace_id:bound.workspace_id,tenant_id:bound.tenant_id,actor_id:bound.actor_id,attempt:1,
     async query<Row extends QueryResultRow>(this:CoreTransactionScopeV1,text:string,values:unknown[]=[]){
      try{
-      if(!live||this!==scope)fail('READ_SCOPE_CLOSED');
+      if(!live||this!==scope||checkpointPending)fail('READ_SCOPE_CLOSED');
       const hash=createHash('sha256').update(text).digest('hex');let args:unknown[];
       if(hash===pageHash){args=pageParams.parse(structuredClone(values));if(args[0]!==bound.tenant_id||args[1]!==bound.workspace_id)fail('READ_SCOPE_FOREIGN');}
       else if(hash===clockHash){if(values.length!==0)fail('READ_QUERY_NOT_ADMITTED');args=[];}
-      else fail('READ_QUERY_NOT_ADMITTED');
+      else {const admitted=admitCoreAirpropReadSelectorQueryV1(text,values,bound)??admitCoreListingOwnershipQueryV1(text,values,bound);if(admitted===null)fail('READ_QUERY_NOT_ADMITTED');args=admitted;}
+      sequence++;
       const q=wire<Row>(text,args);pending.add(q);q.then(()=>pending.delete(q),error=>{note(error,'callback');pending.delete(q);});return await q;
      }catch(error){note(error,'callback');throw error;}
     }});
+   liveReads.set(scope,{
+    current:n=>live&&!hasFirst&&!checkpointPending&&pending.size===0&&n===sequence,
+    checkpoint:()=>{
+     if(!live||hasFirst||checkpointPending||pending.size!==0){
+      const error=new CoreReadHostUnavailableV1('READ_CHECKPOINT_UNAVAILABLE');note(error,'callback');return Promise.reject(error);
+     }
+     checkpointPending=true;sequence++;
+     const operation=(async()=>{try{
+      const result=await wire(CORE_READ_HOST_SQL.guard,params),row=observed.parse(result.rows[0]);
+      if(result.rowCount!==1||row.database_transaction_id!==tx||row.backend_pid!==backend)fail('TRANSACTION_BINDING_MISMATCH');check(row);current=row;
+      if(hasFirst)throw first;if(!live)fail('READ_SCOPE_CLOSED');
+      const token=Object.freeze({contract:'core-airprop-read-observation.v1'}) as CoreAirpropReadObservationV1;
+      observations.set(token,{scope,sequence,info:Object.freeze({...bound,database_transaction_id:tx,backend_pid:backend,authority_revision:epoch,
+       checked_at:row.checked_at,scope_expires_at:row.scope_expires_at,permission:'airprop.asset.read',module:'airprop_commercial',purpose:'airprop.portfolio.read'})});
+      return token;
+     }catch(error){note(error,'callback');throw error;}finally{checkpointPending=false;}})();
+     pending.add(operation);operation.then(()=>pending.delete(operation),()=>pending.delete(operation));return operation;
+    },
+   });
    stage='callback';live=true;
    try{value=await bounded(read(scope,server),CORE_READ_HOST_BUDGETS.callback_ms);}finally{live=false;}
    await bounded(Promise.allSettled(Array.from(pending)),CORE_READ_HOST_BUDGETS.wire_ms);if(hasFirst)throw first;

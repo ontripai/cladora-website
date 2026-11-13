@@ -1,0 +1,31 @@
+{
+  "contract": "core-service-revise-offering-source-proposal.v1",
+  "status": "PROPOSED_NOT_READY",
+  "runtime": null,
+  "consumer": "8393c4a4c387aac2841e4f97813cf36990c105e7",
+  "canonical_source": {
+    "head": "service_catalog.offerings",
+    "revision": "service_catalog.revisions",
+    "exact_bindings": ["tenant_id", "workspace_id", "offering_id", "old_revision_id", "expected_offering_lock_version", "expected_revision_version", "provider_party_id", "provider_agreement_id", "provider_agreement_version"],
+    "source_port_proposal": "readCurrentOfferingRevisionForAuthoringV1(scope, expected)",
+    "returns": ["exact current head/version", "exact old immutable revision/provider/agreement/version", "source state and currentness", "postwait canonical observation"],
+    "not_proof": ["client revision JSON", "published read permission", "head ID only", "old receipt"]
+  },
+  "command": {
+    "permission": "services.catalog.manage",
+    "module": "services_catalog",
+    "purpose_proposed": "service.revise_offering",
+    "host": "existing C03 only",
+    "identity": "original key/body/actor/authority/transaction/command IDs immutable through UNKNOWN",
+    "mutation_owner": "SERVICE domain provider/writer",
+    "mutation_proposal": "insert a new immutable revision, optimistic exact head lock/version check, atomic canonical effect/receipt/audit/outbox; never overwrite historical revision",
+    "publication": "existing explicit transition only; no implicit publish"
+  },
+  "dependencies": [
+    {"owner": "SERVICE", "required": "exact revise domain plan, expected old head/revision and new revision body/ID schema, SQL writer ABI and error mapping"},
+    {"owner": "Core", "required": "versioned source-port implementation and closed authoring-host admission after exact SERVICE ABI; current permission and S01 authoring disclosure after waits"},
+    {"owner": "Platform", "required": "exact fixed facade/role/RLS/row-lock/install binding; no customer_api exposure change"}
+  ],
+  "closure": ["actual Core source port + real SERVICE provider coupling", "same-key one effect and changed-body conflict", "revoke/expiry after wait", "old/new revision mismatch rejected", "same40001 and UNKNOWN original recovery", "native install/concurrency separately admitted"],
+  "installed_or_approved": false
+}
