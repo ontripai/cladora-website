@@ -1,8 +1,8 @@
 {
   "task": "APP-PUBLISHED-SOURCE-CONSOLIDATION-01",
   "base": "6cecfa15b00f445be68817e756d766fb0e6fe026",
-  "tested_source_head": "bec53e4301d539181ca564f8f87d9498875bc02b",
-  "tested_source_tree": "e5b0eac4b93b1016f069782c3198820a7464ab70",
+  "tested_source_head": "b2513eeab79f7281e955ebed48b84c3a2481595f",
+  "tested_source_tree": "3de34c115fa266492f7a1d481f234e29cfc13763",
   "branches": [
     {
       "branch": "codex/core-domain-ports-01",
@@ -352,5 +352,66 @@
       "activation": null
     },
     "details": "ci155-review.md"
+  },
+  "ci155_followup": {
+    "source_head": "b2513eeab79f7281e955ebed48b84c3a2481595f",
+    "parent": "0c5182b6d8333006930eadd9304607ba85f2356b",
+    "source_tree": "3de34c115fa266492f7a1d481f234e29cfc13763",
+    "reason": "Actual successor CI passed initial failing steps and exposed downstream loader failures plus shallow Git checkout inventory precondition",
+    "checks": [
+      {
+        "script": "test-ce-010-community-page.mjs",
+        "result": "PASS_MOUNTED_BASELINE_PLUS_48_DRAFT_AND_45_SELECTION_GROUPS",
+        "change": "Existing in-memory application loader replaces generated ESM files; no UI edit"
+      },
+      {
+        "script": "test-ce-012-route.mjs",
+        "result": "PASS_55",
+        "change": "Early cache, JSON/default interop and Next marker resolution"
+      },
+      {
+        "script": "test-post-auth-compat-01.mjs",
+        "result": "PASS_133",
+        "change": "Resolve real alias/relative module graph while retaining explicit test mocks and per-load cache"
+      },
+      {
+        "script": "test-service-request-subject-link-http-v1.mjs",
+        "result": "PASS_10",
+        "change": "Reuse unchanged Core15 source loader"
+      },
+      {
+        "script": "test-service-catalog-route-002.mjs",
+        "result": "PASS_53",
+        "change": "Publish CJS cache before evaluation"
+      },
+      {
+        "script": "test-documents-replacement-promotion-after-clean-v1.mjs",
+        "result": "PASS_4",
+        "change": "Reuse unchanged Core15 source loader"
+      },
+      {
+        "script": "test-core-jurisdiction-profile-selector-v1.mjs",
+        "result": "PASS_6",
+        "change": "Reuse unchanged Core15 source loader"
+      },
+      {
+        "script": "test-app-engine-source-transition.mjs",
+        "result": "PASS_2_POSITIVE_10_NEGATIVE"
+      },
+      {
+        "script": "test-release-checklist-composition.mjs --match manifest-identities; GIT_DIR explicitly absent",
+        "result": "PASS_85_ASSERTIONS_WITHOUT_GIT_HISTORY",
+        "change": "Authenticate restored exact preimage against original historical bytes/SHA256/Gitblob; dependencies/whitespace cannot change"
+      },
+      {
+        "script": "test-ce-011-route.mjs",
+        "result": "PASS_EXISTING_CHECKS_NO_CHANGE_REQUIRED"
+      },
+      {
+        "script": "ESLint eight follow-up scripts and git diff --check",
+        "result": "PASS"
+      }
+    ],
+    "ci_at_0c5182": "Initial MFA/SERVICE/CE010/authority and underwriting failure steps cleared; later blockers were read and corrected here. Core17 remains INPUT_PENDING_OWNER_CORE_PROPOSAL; final SHA automatic CI results must be read separately."
   }
 }
