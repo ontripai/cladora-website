@@ -1,8 +1,8 @@
 # PR479 affected CI corrections
 
-Current correction source: `b2513eeab79f7281e955ebed48b84c3a2481595f`.
-Parent: `0c5182b6d8333006930eadd9304607ba85f2356b`.
-Tree: `3de34c115fa266492f7a1d481f234e29cfc13763`.
+Current correction source: `5513076845ebbc9dcc092d3bce0a228ef709bed2`.
+Parent: `c07c5928caacc29d0c01dabbdabe17a0a95ceba1`.
+Tree: `6084493a7c9343c4be1f69ea2b9757f914f65fdc`.
 Initial correction source: `bec53e4301d539181ca564f8f87d9498875bc02b` on prior published head67.
 The following documentation-only successor records these results. Its exact SHA is available from PR479; tests are bound to the correction source above.
 
@@ -51,6 +51,18 @@ The automatic CI at0c5182 passed the initially failing CE010/MFA/subject-link/au
 | Package transition/Checklist inventory | Ten rejected mutations remain PASS; the affected85 assertions also PASS with GIT_DIR pointing to an absent directory, proving no dependency on a deep checkout |
 
 The existing CE011 route checks were inspected/run for the newly reached pipeline seam and pass unchanged; no edit was needed. ESLint on eight follow-up scripts and whitespace checks pass. Full healthy suites/builds were not replayed locally. Later CI steps are separate from these local source/controlled results.
+
+## Further standalone consumer graph checks
+
+CI atc07c5928 passed Release safety boundaries, both SERVICE catalogue workflows and mounted underwriting. It then exposed the remaining owned-layout alias loader, Vault download marker, Guide delegate identity assertion and jurisdiction PostgreSQL loader. These were read from the actual logs. The three remaining offline Documents/Communications writer/gate loaders in the same blocked static sequence reproduced the same marker failure locally and were corrected, rather than replaying the healthy parts of that sequence.
+
+Only loader functions were extracted for the downstream PostgreSQL harness inspection: eleven further marker failures and one recursive loader failure reproduced without evaluating any target guard, connection or SQL body. All thirteen affected PostgreSQL harnesses now use the unchanged Core15 loader. Their49 actual source-root loads and module cache identity checks PASS. AST comparison with c07c5928 proves every target guard, SQL statement and test assertion outside loader/import declarations identical. [postgres-loader-review.json](postgres-loader-review.json) lists the exact paths/roots; this is not PostgreSQL execution or native evidence.
+
+Owned-layout boundary checks now resolve the actual Guide provider graph while retaining each fixture's isolated process/window and Auth mocks:99 cases, zero failures. Vault download5, private-conversation writer5, attachment gate5, retention gate, jurisdiction artifact resolver7, country retention resolution11 and operation integration8 PASS. The operation harness retains its existing per-module overrides; they were not lost in the loader correction. Existing Documents reference-authority controls pass without any source change.
+
+The Guide factory now intentionally wraps its CE delegates with fresh-check custody. The obsolete direct-function-identity checks are replaced with explicit controlled delegate observations around the real factory: exact Core authority supplier identity, original arguments, validation/replay dispatch, fresh-check order before/after mutation, consumed-once staging, denied validation/replay without staging, and rejection of missing/changed command custody. These wiring observations temporarily replace only the delegate exports and fresh-check transport, then restore them in finally; they do not establish real authority or native settlement. The same HTTP harness uses the actual SSR authenticator with controlled getClaims/getUser/getSession/assurance fixtures and verifies the verified session_id carrier. Six additional negatives reject mismatched subject, missing session_id, expiry mismatch, wrong role/AAL, and claims error. All11 original HTTP groups pass; product guards and UI are unchanged.
+
+ESLint on all22 changed scripts in this correction and whitespace checks PASS. All correction script blobs are pinned separately in inventory.ci155_current.source_pins. The originally accepted product pins remain unchanged.
 
 ## Open gates
 

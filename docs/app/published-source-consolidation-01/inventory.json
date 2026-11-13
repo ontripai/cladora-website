@@ -1,8 +1,8 @@
 {
   "task": "APP-PUBLISHED-SOURCE-CONSOLIDATION-01",
   "base": "6cecfa15b00f445be68817e756d766fb0e6fe026",
-  "tested_source_head": "b2513eeab79f7281e955ebed48b84c3a2481595f",
-  "tested_source_tree": "3de34c115fa266492f7a1d481f234e29cfc13763",
+  "tested_source_head": "5513076845ebbc9dcc092d3bce0a228ef709bed2",
+  "tested_source_tree": "6084493a7c9343c4be1f69ea2b9757f914f65fdc",
   "branches": [
     {
       "branch": "codex/core-domain-ports-01",
@@ -413,5 +413,271 @@
       }
     ],
     "ci_at_0c5182": "Initial MFA/SERVICE/CE010/authority and underwriting failure steps cleared; later blockers were read and corrected here. Core17 remains INPUT_PENDING_OWNER_CORE_PROPOSAL; final SHA automatic CI results must be read separately."
+  },
+  "ci155_current": {
+    "source_head": "5513076845ebbc9dcc092d3bce0a228ef709bed2",
+    "parent": "c07c5928caacc29d0c01dabbdabe17a0a95ceba1",
+    "source_tree": "6084493a7c9343c4be1f69ea2b9757f914f65fdc",
+    "scope": "Only further standalone loader seams and Guide/owned-layout test contract alignment; no product/package/workflow/native packet change",
+    "new_affected_controls": {
+      "owned_post_auth_boundaries": "PASS_99_FAILED_0",
+      "documents_vault_download": "PASS_5",
+      "communications_private_conversation": "PASS_5",
+      "communications_attachment_gate": "PASS_5",
+      "documents_retention_lifecycle_gate": "PASS",
+      "core_jurisdiction_artifact_resolver": "PASS_7",
+      "documents_country_retention_resolution": "PASS_11",
+      "documents_country_retention_operation": "PASS_8",
+      "ce_guide_inactive_http": "PASS_11_WITH_DELEGATE_CUSTODY_AND_6_ADDED_CLAIMS_NEGATIVES",
+      "postgres_loader_only": "PASS_13_HARNESSES_49_ACTUAL_ROOT_LOADS_AND_CACHE_IDENTITY_SQL_NOT_RUN",
+      "postgres_body_preservation": "AST_IDENTICAL_TO_C07_13_HARNESSES_INCLUDING_TARGET_GUARDS_SQL_AND_ASSERTIONS",
+      "lint_whitespace": "PASS_22_CHANGED_SCRIPTS"
+    },
+    "postgres_evidence": "postgres-loader-review.json",
+    "native": "NOT_RUN_NOT_PASS",
+    "core17_historical_seal": "INPUT_PENDING_OWNER_CORE_PROPOSAL",
+    "automatic_ci": "READ_SEPARATELY_AT_FINAL_DOCUMENTATION_HEAD",
+    "source_pins": [
+      {
+        "path": "scripts/lib/app-engine-source-transition.mjs",
+        "bytes": 2439,
+        "sha256": "add207a8014f7a28040c25f5b85acc83884a3b41e5bb65d8e1e6cd7fb59be317",
+        "git_blob": "6c8e466896031606102dc6d123522dc5f509ec85"
+      },
+      {
+        "path": "scripts/lib/app-layout-mfa-composition.mjs",
+        "bytes": 5057,
+        "sha256": "e59ec13fb15a4ca9ffdcd0da68b5530e301963efc7ec282d064b8ddf7ead2f84",
+        "git_blob": "2dace6716d24659779ce51691b0b61d75ce08166"
+      },
+      {
+        "path": "scripts/test-airprop-underwriting-ui-008.mjs",
+        "bytes": 15006,
+        "sha256": "6c8c08166a55b4cac0957114cdc00d459d54a6c1b2ed0c4243f8b44780a496e9",
+        "git_blob": "c68fb3cff9d6f978e23fcf7c028713fb43dae1d5"
+      },
+      {
+        "path": "scripts/test-app-engine-source-transition.mjs",
+        "bytes": 2216,
+        "sha256": "b23df8bc4ad3545cd6e2e5b016241575cdb9dd5c7dd4925ae91848f1cea442c3",
+        "git_blob": "5020f3051ae3905fc48c1f73c1cfed221dd325ca"
+      },
+      {
+        "path": "scripts/test-ce-010-community-page.mjs",
+        "bytes": 41978,
+        "sha256": "bbad6d09fe8b385fad8138e9695d1541bd7796d34b2b8df5a25e993239039a2e",
+        "git_blob": "27915d5896befc9ca28a990a929d8ee894a68f77"
+      },
+      {
+        "path": "scripts/test-ce-010-route.mjs",
+        "bytes": 6191,
+        "sha256": "517c5422ec2a32bfae401946bdabe8f20b46d470242bc66083ce2a5f0521f14c",
+        "git_blob": "77b66eff794b5951bfd314ba0d1b26c996cd1ff0"
+      },
+      {
+        "path": "scripts/test-ce-012-route.mjs",
+        "bytes": 6530,
+        "sha256": "41c36197901c0a6ea3fdab245d2e098db32d51cfa850f1a7af194448c1ac0b34",
+        "git_blob": "89a7e98765a824a72368750409000cb8e6ed53aa"
+      },
+      {
+        "path": "scripts/test-ce-guide-lifecycle-http-v1.mjs",
+        "bytes": 21171,
+        "sha256": "83042490febf7ef3bce0b4d86651df54a7cc27d9611472cbf483d2920969dee4",
+        "git_blob": "c4186ca8f2c1114368b3357ac007f76b08fe4bf9"
+      },
+      {
+        "path": "scripts/test-communications-document-attachment-workspace-gate-v2.mjs",
+        "bytes": 9315,
+        "sha256": "743afe3e61df2c63f297d6ff7fa8623cba73513a450305ee3fd47a6561b48e67",
+        "git_blob": "cbb1da2ca3b95c2d6b4347ab5930bf328058eab5"
+      },
+      {
+        "path": "scripts/test-communications-private-conversation-workspace-v1.mjs",
+        "bytes": 7946,
+        "sha256": "365c9e458584f33cb474fb8b8b5f585d808c53ecfaf9784379902f12772cb069",
+        "git_blob": "b3e474039b36d8da04512cceb860d5b23cf825e1"
+      },
+      {
+        "path": "scripts/test-communications-private-message-provider-postgres-v1.mjs",
+        "bytes": 16013,
+        "sha256": "16c47d75eaf7c0bc59c7c2f206416a071d64b911f3d57ab09b5eb4e1e67c6ac2",
+        "git_blob": "06d801edcabf2ad2c5836d829a156b79fc73030b"
+      },
+      {
+        "path": "scripts/test-communications-private-message-request-audience-postgres-v1.mjs",
+        "bytes": 28350,
+        "sha256": "907b7ff4814d6f6b80f121ef3f2980be0c6e66b38d1a9603054e0400057ac2b3",
+        "git_blob": "98622046943ea6a7156e4c4a8c01cd2157d8789c"
+      },
+      {
+        "path": "scripts/test-core-authority-revision-postgres-v1.mjs",
+        "bytes": 20492,
+        "sha256": "ab563eeae28cd3b5fc030167f4395a1c810c6f242a3a19b24df1e1d9716e3eda",
+        "git_blob": "668749399564c2300bed9660f2196397fc9aaa7f"
+      },
+      {
+        "path": "scripts/test-core-jurisdiction-domain-artifact-resolver-postgres-v1.mjs",
+        "bytes": 45051,
+        "sha256": "2bd9b40ef727de50594074a8a02a82d826fa2acf33506c0b55242c7e96951dc3",
+        "git_blob": "058da421daa6d31e6064174e5dfc08cbc3b8267f"
+      },
+      {
+        "path": "scripts/test-core-jurisdiction-domain-artifact-resolver-v1.mjs",
+        "bytes": 18825,
+        "sha256": "f0a1e9bfe0d524863e5652890f1f0384dcb2a2f16041ccb8322ac7afca6dd0c9",
+        "git_blob": "94486decf03ff1496389ca9a6d18ce9fbd74d4a0"
+      },
+      {
+        "path": "scripts/test-core-jurisdiction-profile-selector-postgres-v1.mjs",
+        "bytes": 15295,
+        "sha256": "648f32fd4b3693601f84190d23229f67290fca3f7ac0bdb3a22ff0d45243bf38",
+        "git_blob": "bfa5fa7d3a67f0201e7b868e548f8899bb4244e4"
+      },
+      {
+        "path": "scripts/test-core-jurisdiction-profile-selector-v1.mjs",
+        "bytes": 10079,
+        "sha256": "20481d28aea0f0b3984b9380d499e08ed8f09644038cd999ccd0972da80bcc2b",
+        "git_blob": "a5daa217df6e7fbd0c60220cdd3bc7d2092a9b8a"
+      },
+      {
+        "path": "scripts/test-core-transaction-host-postgres-v1.mjs",
+        "bytes": 16288,
+        "sha256": "3227489c79238070f9a2a116f681ab0d9b571e38ad3f370b2aa61662c7a74daf",
+        "git_blob": "cb68e40321078aeba3b8040339e932fbbbc663c1"
+      },
+      {
+        "path": "scripts/test-core-transaction-replay-provider-hook-postgres-v1.mjs",
+        "bytes": 17481,
+        "sha256": "abb8746b186f4a3b33042af22ccbf85439514ab0cd6eefb95c7d6ffcd3d50000",
+        "git_blob": "d089ca210beea47d3f2a418d1235b899936898ff"
+      },
+      {
+        "path": "scripts/test-core-tx-provider-evidence-postgres-v1.mjs",
+        "bytes": 12551,
+        "sha256": "7fa38ddc4a1ae7f9a2ffd0debdc67c8815efb97e346837dcdf3fb156be5833c6",
+        "git_blob": "0863715b2e76431f4c9145dda71bbd91ffc44eef"
+      },
+      {
+        "path": "scripts/test-documents-country-retention-operation-integration-postgres-v1.mjs",
+        "bytes": 28446,
+        "sha256": "55abc4a762dd2ec08d6d9b4a44be9b338eb6f7983b4bebb6b7816f3dc196a9a0",
+        "git_blob": "16dd1e6aaf1560ee0f00899b5abd03d2a6e08063"
+      },
+      {
+        "path": "scripts/test-documents-country-retention-operation-integration-v1.mjs",
+        "bytes": 18529,
+        "sha256": "3bc1356cf73408f336d4aee4660f3d8edf881014893a1764e101a4bf40a1b3bc",
+        "git_blob": "0d9501d7a45977860cfed39c33929f051b15e173"
+      },
+      {
+        "path": "scripts/test-documents-country-retention-resolution-postgres-v1.mjs",
+        "bytes": 25955,
+        "sha256": "f9ecefa9409de837c3c87fa3ec5c81b0191d4f532202a9a19e963d646a675416",
+        "git_blob": "1e11ddab40e2bb27bf54e7ef7e155f18f1e2f8db"
+      },
+      {
+        "path": "scripts/test-documents-country-retention-resolution-v1.mjs",
+        "bytes": 19566,
+        "sha256": "8697a63bd14a2d9b7ec0993a5287e1587c1ffa93255daf04b67de1d5ed97fb00",
+        "git_blob": "8255d0fd60402a4954bbd86a15be614804fe5eba"
+      },
+      {
+        "path": "scripts/test-documents-replacement-promotion-after-clean-v1.mjs",
+        "bytes": 9532,
+        "sha256": "c33b7ec704b94163a4f757ed41a5bf429081f64d1bf3da43c8f2ef056f1789e4",
+        "git_blob": "7b8d5632f6ed3cee685bccd526b66883459b6ac5"
+      },
+      {
+        "path": "scripts/test-documents-replacement-workspace-writer-v1.mjs",
+        "bytes": 9792,
+        "sha256": "8c0b5043fdd909afebf5142d7e3a2a5fe83535ce2ff1087c2b7d26ce53a90911",
+        "git_blob": "a4f0a1a5798723381383fbe0adb15fc4f519df29"
+      },
+      {
+        "path": "scripts/test-documents-retention-lifecycle-workspace-gate-v2.mjs",
+        "bytes": 4583,
+        "sha256": "f2796071a87252c60965a5f8f68afec92791273901165063fd5afd38a036da65",
+        "git_blob": "8a3ce88e89e771a0d5120c7f488a0c664c2f922c"
+      },
+      {
+        "path": "scripts/test-documents-vault-download-exact-workspace-v2.mjs",
+        "bytes": 8692,
+        "sha256": "2cb73bf9be6bebdae94f6f1d13d758a08b3621c36bbdaeacda5809170ef2200f",
+        "git_blob": "a60ff57e24d5724abbcaf38fa19a73483b19ce13"
+      },
+      {
+        "path": "scripts/test-documents-workspace-binding-writer-postgres-v1.mjs",
+        "bytes": 57278,
+        "sha256": "be45c807f4e170ec89f6e472bbced855415ff99f0fee1bb29042567145237891",
+        "git_blob": "081f188b945bd7bc76658dbb883f8bafab3d6b73"
+      },
+      {
+        "path": "scripts/test-owned-post-auth-boundaries-01.mjs",
+        "bytes": 7171,
+        "sha256": "c4cfe4a0a615263e771c491b341d38fe687040e5e972765ed6cc24a83375ebb9",
+        "git_blob": "6251cde6d0420f2af185752a93e9bc4de97f07b7"
+      },
+      {
+        "path": "scripts/test-post-auth-compat-01.mjs",
+        "bytes": 32786,
+        "sha256": "6ad830a9605094b429fd29a6f5109dfdd23a85c7fda92672b4bc2f2e65e06ae6",
+        "git_blob": "148be52ff1074537ac47e0e687c041d51b413dd4"
+      },
+      {
+        "path": "scripts/test-real-authenticated-service-08.mjs",
+        "bytes": 77203,
+        "sha256": "c0db2e601115250319b771be94237cae0abe93bb0e3983c7daab59ec25ef5c3a",
+        "git_blob": "5c97246c293fdf5c617c0779c5c4e44a331cf876"
+      },
+      {
+        "path": "scripts/test-release-checklist-composition.mjs",
+        "bytes": 53243,
+        "sha256": "2977cddebc106619866b6657e7583c9c2cf812547f6721ade761d184d472bc84",
+        "git_blob": "849a3e2d0a98bae9b0bd8dc16ca329beaf112f69"
+      },
+      {
+        "path": "scripts/test-service-catalog-route-002.mjs",
+        "bytes": 14868,
+        "sha256": "ac6067525d606692d5ede2917e41d8bea4bdecc3851229fd8808056178b5add3",
+        "git_blob": "af88d9332bb794626ecfa935c4d34bf4d6e13b46"
+      },
+      {
+        "path": "scripts/test-service-request-route-010.mjs",
+        "bytes": 9444,
+        "sha256": "1e4948d98dcdab22bff9cb6b3da1082cb7207996602e8bd3e2925aef77e28a9b",
+        "git_blob": "b854f4323313a9ebe004bfbc96151bfd12ed5cb7"
+      },
+      {
+        "path": "scripts/test-service-request-subject-link-http-postgres-v1.mjs",
+        "bytes": 76374,
+        "sha256": "857215b4a704d690ee26ed6309a4542293db4d25fa505cc6ad7eeded4b10c0d5",
+        "git_blob": "7a1c0a7360536c0e87e7b112e4502f95a0eff14e"
+      },
+      {
+        "path": "scripts/test-service-request-subject-link-http-v1.mjs",
+        "bytes": 8704,
+        "sha256": "3f4880148f16d6a3b050d401c034d1b7b2a6bb2a8de40490a4c3d512949231ca",
+        "git_blob": "af5ad96a29e92fdd074849c89dd8224afe8ebdc8"
+      },
+      {
+        "path": "scripts/test-service-request-subject-link-postgres-v1.mjs",
+        "bytes": 47234,
+        "sha256": "07a11092fbd24658da502dceebe790f3c1daf726b90e19020354cf885477cef3",
+        "git_blob": "6a402eaf56caf14695d4a4236279668bb1116d8f"
+      },
+      {
+        "path": "scripts/test-service-request-subject-link-v1.mjs",
+        "bytes": 10161,
+        "sha256": "cad2da589b627a3a1bb6aa76594418188d02cc25013051883f8c1e8531f23b8c",
+        "git_blob": "fcbdd275d23ae3acf6db97ee50ca44d0930eeef6"
+      },
+      {
+        "path": "scripts/test-service-request-subject-provider-postgres-v2.mjs",
+        "bytes": 19589,
+        "sha256": "feb645464d87d13abbe91758910294f1d08147cab76aa24c7bf378b1363c421b",
+        "git_blob": "d4d6f90168ab72f8033ccdb3096dbe0bdd19fcfb"
+      }
+    ]
   }
 }

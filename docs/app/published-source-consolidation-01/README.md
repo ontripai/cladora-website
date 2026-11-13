@@ -29,7 +29,7 @@ The resolution preserves Core's SERVICE final-wire/custody and Finance hooks whi
 
 ## CI harness successor
 
-The current CI correction source is `b2513eeab79f7281e955ebed48b84c3a2481595f`, parent `0c5182b6d8333006930eadd9304607ba85f2356b`; it continues the first correction `bec53e4301d539181ca564f8f87d9498875bc02b` on prior published head67. The same PR retains every published ancestor and the exact Core runtime blob. See [ci155-review.md](ci155-review.md) for affected results, loader callgraphs, and the remaining Core17 seal gate. This successor changes scripts and review inventory only. Product UI, Auth/MFA guards, package/lock, workflows and historical Core17/native evidence remain unchanged.
+The current CI correction source is `5513076845ebbc9dcc092d3bce0a228ef709bed2`, parent `c07c5928caacc29d0c01dabbdabe17a0a95ceba1`; it continues the first correction `bec53e4301d539181ca564f8f87d9498875bc02b` on prior published head67. The same PR retains every published ancestor and the exact Core runtime blob. See [ci155-review.md](ci155-review.md) for affected results, loader callgraphs, and the remaining Core17 seal gate. This successor changes scripts and review inventory only. Product UI, Auth/MFA guards, package/lock, workflows and historical Core17/native evidence remain unchanged.
 
 ## Earlier validation of the product combination
 
