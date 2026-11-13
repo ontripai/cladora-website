@@ -1,8 +1,8 @@
 {
   "task": "APP-PUBLISHED-SOURCE-CONSOLIDATION-01",
   "base": "6cecfa15b00f445be68817e756d766fb0e6fe026",
-  "tested_source_head": "a067e8a52dd2ed5e2ffdd61f40cf13716b90e2cd",
-  "tested_source_tree": "6d86d10a9f676df37dd13d29aa386c0b01e9e18e",
+  "tested_source_head": "bc53e490d88e0ba001f2669ce3509d829094dcc8",
+  "tested_source_tree": "d344ef1ad36d606ed95e9fe69d785f5abbcee84a",
   "branches": [
     {
       "branch": "codex/core-domain-ports-01",
@@ -702,9 +702,9 @@
   "current_correction_pins": [
     {
       "path": ".github/workflows/application-foundation.yml",
-      "bytes": 20710,
-      "sha256": "fe72df3d250aabf2a042ce751a805bc27bdebd89f6aa94fc354b5d347c4f7981",
-      "git_blob": "0c4e17e3d7f1ca026dd36c32bcab9e1c60467a7b"
+      "bytes": 21188,
+      "sha256": "00280e90740a0bcc947abc1dc0348c62b19f298f801bef06f45cfbd43b47508e",
+      "git_blob": "b395fd209a4134e78ccb3d437c4221e715bbd0bc"
     },
     {
       "path": ".github/workflows/core17-native-case-source.yml",
@@ -741,6 +741,12 @@
       "bytes": 3850,
       "sha256": "34c654f5a25f99c5242d8f7e4897caa0481c0724e34227f0ac8dbc9a4b1a5abc",
       "git_blob": "a12287b57caf8314460ea08aa5d079fb50230e9d"
+    },
+    {
+      "path": "scripts/lib/app-ce-guide-source-transition-v1.mjs",
+      "bytes": 2418,
+      "sha256": "deca27e36950800e3966264a71a0135ab8094ed10055e35cc73f4fe5029a9e57",
+      "git_blob": "77605edf3f0116e1ea421b7827ee2c9c3dc07a52"
     },
     {
       "path": "scripts/lib/app-engine-source-transition.mjs",
@@ -791,6 +797,12 @@
       "git_blob": "c68fb3cff9d6f978e23fcf7c028713fb43dae1d5"
     },
     {
+      "path": "scripts/test-app-ce-guide-source-transition-v1.mjs",
+      "bytes": 1530,
+      "sha256": "f3b7257826b11140c446abf0cd3de7880b1042baccf3176df91e219302e37547",
+      "git_blob": "ca452c332007b935454124360ad005f8946eff76"
+    },
+    {
       "path": "scripts/test-app-core17-adoption-source-v1.mjs",
       "bytes": 1721,
       "sha256": "47da785a71ee801086d8420b3d6e9f69bc0d3a968a3d3a46013a7121c8442060",
@@ -825,6 +837,12 @@
       "bytes": 6530,
       "sha256": "41c36197901c0a6ea3fdab245d2e098db32d51cfa850f1a7af194448c1ac0b34",
       "git_blob": "89a7e98765a824a72368750409000cb8e6ed53aa"
+    },
+    {
+      "path": "scripts/test-ce-benefit-presentation-service-handoff-v1.mjs",
+      "bytes": 21665,
+      "sha256": "351007e4cbebe6512517fa0b9cf8aa1fad34f8421fb40334b22c187aa6685d24",
+      "git_blob": "0f18e29f548f5545e71891fbe85721e976ab0550"
     },
     {
       "path": "scripts/test-ce-guide-lifecycle-http-v1.mjs",
@@ -1080,10 +1098,10 @@
     }
   ],
   "current_status": {
-    "source_head": "a067e8a52dd2ed5e2ffdd61f40cf13716b90e2cd",
+    "source_head": "bc53e490d88e0ba001f2669ce3509d829094dcc8",
     "core_proposal": "APPLIED_EXACT_FIVE_AFTERIMAGES; HISTORICAL_CHECKER_MANIFEST_SOURCEGATE_PRODUCT_RUNTIME_UNCHANGED",
     "Core17_CI22_24": "BOTH_PASS_AT_b2e807eb; FINAL_HISTORICAL_DOMAIN_ADAPTER_SUCCESSOR_CI_PENDING",
-    "last_independent_seams": "TERMINOLOGY_PASS4850_WITH_NEW_DTO_PUBLIC_EXPOSURE_NEGATIVES; OWNED_POOL_TEARDOWN_ONE_EXPECTED_PLUS7_NEGATIVES",
+    "last_independent_seams": "CE_HANDOFF_PASS314_WITH_FROZEN23_ENTRY_INVENTORY; FOUR_EXACT_PUBLISHED_SOURCES_AND10_NEGATIVES",
     "native": "NOT_RUN_NOT_PASS",
     "runtime": null,
     "QA": "PENDING_INDEPENDENT_EXACT_HEAD_REVIEW"
@@ -1148,6 +1166,22 @@
       "scope": "Only after pool.end and immediately before own isolated DB drop; exact client DB and code57P01; no retry or product pool handler",
       "SQL_local": "NOT_RUN"
     },
+    "lint_whitespace": "PASS_CHANGED_SCRIPTS"
+  },
+  "CE_handoff_published_successor": {
+    "source_head": "bc53e490d88e0ba001f2669ce3509d829094dcc8",
+    "profile": "ce-guide-source-transition.json",
+    "profile_sha256": "336a64d734f6800a63db0c70b3c2497540d364fb8c5f5f22c6e61512ffaad7d0",
+    "old_inventory_and_overlays": "BYTE_IDENTICAL",
+    "paths": 4,
+    "owner_heads": [
+      "7d5ec54a4718bdac600b6a668453d51818f22a4e",
+      "c32002bbf93f0dd9b8c5a2097a2afea7503ef3d4"
+    ],
+    "proof": "Actual owner Git bytes/blobs and exact main6cec predecessor verified; only four paths supersede original overlay/inventory pins",
+    "checks": "PASS_FOUR_POSITIVES_TEN_NEGATIVES; PASS314_HANDOFF_ASSERTIONS_AND_23_ENTRIES",
+    "classification_counts": "UNCHANGED_ACCEPTED10_INACTIVE9_INTERNAL4",
+    "UI_and_runtime": "UNCHANGED; runtimeNULL; native_execution_eligible=false; QA_PENDING",
     "lint_whitespace": "PASS_CHANGED_SCRIPTS"
   }
 }

@@ -1,8 +1,8 @@
 # PR479 affected CI corrections
 
-Current correction source: `a067e8a52dd2ed5e2ffdd61f40cf13716b90e2cd`.
-Parent: `357b0806852e91ad6ca21da4374339ec74d33fe3`.
-Tree: `6d86d10a9f676df37dd13d29aa386c0b01e9e18e`.
+Current correction source: `bc53e490d88e0ba001f2669ce3509d829094dcc8`.
+Parent: `ab45aa97a1eaadc1e7aa34d194fb7baf075cc150`.
+Tree: `d344ef1ad36d606ed95e9fe69d785f5abbcee84a`.
 Initial correction source: `bec53e4301d539181ca564f8f87d9498875bc02b` on prior published head67.
 The following documentation-only successor records these results. Its exact SHA is available from PR479; tests are bound to the correction source above.
 
@@ -87,6 +87,14 @@ Local runner check-only inspection authenticated immutable operator inputs, mate
 CI5f953d9f passed the historical/current Core section and reached the terminology audit. One newly imported Core comment says write-free read transaction; the exact path/phrase is added to the existing technical allowlist, retaining count and phrase assertions. The subsequent local failure identified only internal Guide DTO/cache bindings: typed scope membership_id, a private scope property and a private cache key. No UI source was changed. The auditor now classifies only those exact AST positions and prevents the exception if scope/binding flows into public text, DOM attributes, unrelated components, JSON serialization or spreads. Existing privacy/price/locale/RO-EN-FA/RTL assertions remain; safe private bindings plus new leak counterexamples run by default. The full previously failing audit now PASS4850 assertions. Lint/whitespace PASS.
 
 In the same5f Database job all six Communications currentness assertions passed, then its data pool emitted late SQLSTATE57P01 as the harness force-dropped its own isolated database. The error was an unhandled idle pool event during cleanup, not a failed currentness assertion. A test-only listener now consumes only exact57P01 for the exact self-created database after pool.end and explicit beginOwnDrop. Active-phase, different/missing database,40001, ordinary and unowned errors still throw the same error object; one expected event plus seven rejection controls PASS with the actual EventEmitter transport. All SQL calls/arguments and original assertions are AST-identical to5f. No SQL/role/RLS/target change or retry was introduced; no SQL was run locally. Actual PostgreSQL acceptance remains bound to the next remote CI job.
+
+## Exact published CE/Guide handoff successors
+
+Atab45aa97 the terminology audit passes and Application Foundation reached the old CE handoff inventory. Four current files differ from the preceding frozen inventory/overlay chain: Guide route, Guide component, Guide page, and Community page. Their bytes match the explicit published Guide7d5ec54a or CE011c32002bb heads exactly. The original23-entry inventory and all three existing overlays remain unchanged.
+
+New ce-guide-source-transition.json records only these four paths, exact main6cec before bytes/SHA/blob and exact owner commit/after bytes/SHA/blob. Its hash is fixed in the source verifier. The existing handoff check retains all preceding chain/provenance assertions and uses the bounded transition for those four paths only; every other covered byte remains unchanged. The complete source must equal actual owner Git bytes and its exact predecessor pin; missing/extra/unreviewed paths and native relabel fail. Existing classification counts remain10accepted/9inactive/4internal; QA/native remain pending and runtimeNULL.
+
+Four owner-source positives and ten predecessor/current-byte/extra/native negatives PASS. The affected handoff contract PASS314 reported checks across its original23 entries, retaining inactive runtime, explicit Guide edit gates, absence of automatic SERVICE mutation, separate command identities/receipts, benefit/locale boundaries and RTL. UI files were not edited. The new verification runs from Application Foundation with explicit trigger paths. Lint/whitespace PASS. Database static and PostgreSQL jobs atab45aa97 both pass after the bounded teardown fix; their result is scoped to that head.
 
 ## Open gates
 
