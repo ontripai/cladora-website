@@ -1,8 +1,8 @@
 {
   "task": "APP-PUBLISHED-SOURCE-CONSOLIDATION-01",
   "base": "6cecfa15b00f445be68817e756d766fb0e6fe026",
-  "tested_source_head": "a8e19c358345bc5fc75fd96dea3c3032a80cef0e",
-  "tested_source_tree": "faf3c9667b9ebfb88d7870b24450a36287b145f1",
+  "tested_source_head": "b46965f929497b78d4b4b63685c9405b1fbef6d8",
+  "tested_source_tree": "8c3177ad319a07213a13aa25ae6bd59516be5229",
   "branches": [
     {
       "branch": "codex/core-domain-ports-01",
@@ -31,8 +31,8 @@
     {
       "branch": "codex/airprop-listing-native-01",
       "head": "e20d6fb3715f52977b13305b650abf635b1f20da",
-      "included_ancestor": false,
-      "disposition": "DEFERRED_CORE_OWNED_RUNTIME_RECONCILIATION"
+      "included_ancestor": true,
+      "disposition": "MERGED_PRESERVING_HISTORY_WITH_APPROVED_SINGLE_FILE_CORE_BLOB_RESOLUTION"
     }
   ],
   "engine_delta": "Only the two root engines.node fields;22.x ||24.x; original lock dependencies/integrities and workflows unchanged",
@@ -46,40 +46,75 @@
     "airprop_blob": "5c34552afe4323298730e7a622b2f437df1f874b",
     "merge_tree_content_conflict_hunks": 3,
     "candidate_blob": "8ef53310edd2f7bac8f9c43b7bbf7925ad34db8f",
-    "candidate_decision": "Preserve official Core byte-for-byte; AIRPROP not yet merged; do not apply comparison diffs as product patches",
+    "candidate_decision": "RESOLVED: only functional-command-runtime-v1.ts selected byte-for-byte from official Core4b3138; all other AIRPROP merge paths retained; no branch-wide ours/theirs",
     "owner": "Core: CORE-AIRPROP-MERGE-COMPAT-01",
-    "resume": "Receive owner-reviewed reconciliation or proof that exact existing source covers AIRPROP while preserving SERVICE/Finance/custody; then merge AIRPROP ancestry and verify affected combined boundary"
+    "resolution_source": "Explicit owner approval of this one path and exact Core blob",
+    "resolved": true,
+    "merge_commit": "b46965f929497b78d4b4b63685c9405b1fbef6d8",
+    "merge_parents": [
+      "3cae66e4f51a093fd112f1cf5aca9c2f4eff4002",
+      "e20d6fb3715f52977b13305b650abf635b1f20da"
+    ]
   },
   "source_inventory": {
-    "included": "Existing published Core, CE011/CE010 and Guide histories; adopted two-field engines change",
+    "included": "All five published branches covered by ancestry: Core, AIRPROP, CE011, CE010 through CE011, independent Guide; approved two-field engines constraint retained",
     "excluded": "Latest private APP/Finance/CE successors and current Gemini UI/WIP are not imported or published; public snapshots are not represented as those successors",
-    "operational_binding": "NULL; no admission/target activation"
+    "operational_binding": "NULL; no admission/target activation",
+    "remaining_published_branches": []
   },
   "checks": {
     "typecheck": {
       "command": "npm run typecheck",
       "result": "PASS",
-      "scope": "Full repository tsconfig, strict true; no diagnostic filter"
+      "scope": "Full repository tsconfig, strict true; no diagnostic filter",
+      "source_head": "b46965f929497b78d4b4b63685c9405b1fbef6d8"
     },
     "lint": {
       "command": "npm run lint",
       "result": "PASS",
-      "scope": "Repository ESLint configuration, max-warnings0"
+      "scope": "Repository ESLint configuration, max-warnings0",
+      "source_head": "b46965f929497b78d4b4b63685c9405b1fbef6d8"
     },
     "build": {
       "command": "NEXT_TELEMETRY_DISABLED=1 npm run build",
-      "result": "PASS",
+      "result": "PASS_ON_FULL_COMBINATION",
       "scope": "Isolated local Next16.4.1 production build; no hosted deployment or product runtime",
-      "initial_failure": "Turbopack rejected node_modules symlink outside its filesystem root; original failure retained outside source",
-      "recovery": "Copied exact existing installed dependencies into isolated candidate; no install/config/lock edit; build then passed"
+      "initial_failure": "Earlier partial candidate initial attempt hit symlink root restriction; retained in prior run evidence. Full combined candidate uses the existing local dependency copy and passes directly.",
+      "recovery": "Copied exact existing installed dependencies into isolated candidate; no install/config/lock edit; build then passed",
+      "source_head": "b46965f929497b78d4b4b63685c9405b1fbef6d8"
     },
     "affected_coupling": {
       "command": "node scripts/test-ce010-core6adb-route-coupling.mjs",
-      "result": "PASS_6_GROUPS",
+      "result": "PRIOR_COMBINED_HEAD_PASS_6_GROUPS_PRESERVED_UNCHANGED_INPUTS",
       "scope": "Actual merged route/Core factory/CE provider/C03 with controlled SDK/Auth/Pool/C01 transport; no live DB/native",
-      "fixture_note": "Script historical Core/CE constants supply fixture definitions; product modules are read from the current candidate. These are new combined-head results, not historical standalone PASS claims"
+      "fixture_note": "Script historical Core/CE constants supply fixture definitions; product modules are read from the current candidate. These are new combined-head results, not historical standalone PASS claims",
+      "rerun_after_airprop": false,
+      "unchanged_inputs": "AIRPROP merge changes none of src/lib/core,src/lib/community,src/lib/app,CE/Guide API routes,package/lock,tsconfig/Next config or workflows relative to prior combined head. Earlier controlled CE result remains scoped to that run; not counted as a new run."
     },
-    "source_check": "Public Core ce010-request-binding module exists in candidate and historical unresolved-import path compiles; original Request and fail-closed NULL binding preserved"
+    "source_check": "Public Core ce010-request-binding module exists in candidate and historical unresolved-import path compiles; original Request and fail-closed NULL binding preserved",
+    "affected_airprop_coupling": {
+      "result": "PASS_4_SELECTED_GROUPS",
+      "script": "scripts/test-airprop-core-auth-mfa-consumption-v1.mjs",
+      "filters": [
+        {
+          "case": "official verified AAL1",
+          "integration_only": false
+        },
+        {
+          "case": "verified assurance drop after bind",
+          "integration_only": false
+        },
+        {
+          "case": "actual request-local bridge",
+          "integration_only": true
+        },
+        {
+          "case": "message/JSON/lookalike",
+          "integration_only": true
+        }
+      ],
+      "scope": "Actual merged Listing route/resolver and official Core runtime/binder, controlled SDK/SQL transport; AAL1 denial, post-bind assurance drop/original wire, typed error authenticity, raw40001 and lost COMMIT ACK uncertainty. No live Auth/DB/native or mounted UI suite."
+    }
   },
   "toolchain": {
     "node": "24.19.0",
@@ -185,9 +220,33 @@
       "git_blob": "af9f6a0ecf24131362749300caec11fcb12470cf",
       "bytes": 4052,
       "sha256": "a426743cadeb5bea53478c579dc31fc40f46f49e26c37f772f76b0a6b7869888"
+    },
+    {
+      "path": "src/lib/airprop/listing-runtime-binding-v1.ts",
+      "git_blob": "5c767d63441e13a30bcfd405a0f8866aa93c3ea9",
+      "bytes": 8362,
+      "sha256": "ec3a86f36fc2e24ba0751e6ce35451b26f2ccd32fb7e21564912775d437195da"
+    },
+    {
+      "path": "src/lib/airprop/listing-flow-api-v1.ts",
+      "git_blob": "694308f3e4b73446cec3fe93e4d489122ad3b932",
+      "bytes": 9082,
+      "sha256": "c75b61422b556c7b3c7dae093709af33b206d940a3f413dc70f21945cbc206c9"
+    },
+    {
+      "path": "src/lib/core/listing-command-binding-v1.ts",
+      "git_blob": "9631a43b09a6cd18280eb9dd4baaff9e5eb9a811",
+      "bytes": 3038,
+      "sha256": "cc89f17fb7b9f2fb20a5c384a9c3ab204040f683541a3a09aac13d85f1a34b6e"
+    },
+    {
+      "path": "src/lib/core/domain-command-identity-v1.ts",
+      "git_blob": "21fd4ff4cb31885d540a4479ff0d02a4d401799a",
+      "bytes": 1920,
+      "sha256": "6e31298e18708c5d1833d97a5142740f506d19544eaf0a15459df9d69448ae5b"
     }
   ],
-  "qa_review": "INPUT_PENDING until actual candidate is handed off; no independent QA result claimed",
+  "qa_review": "PENDING_INDEPENDENT_QA_ON_ACTUAL_FULL_COMBINATION",
   "not_performed": [
     "main merge",
     "force push/rebase/reset",
@@ -196,5 +255,35 @@
     "Auth/RLS/role changes",
     "runtime restart/activation",
     "production promotion/deployment"
+  ],
+  "integration_lineage": [
+    {
+      "commit": "b46965f929497b78d4b4b63685c9405b1fbef6d8",
+      "parents": [
+        "3cae66e4f51a093fd112f1cf5aca9c2f4eff4002",
+        "e20d6fb3715f52977b13305b650abf635b1f20da"
+      ]
+    },
+    {
+      "commit": "3e7bb9590d3270ad15423251ea419df551eda4c3",
+      "parents": [
+        "d066389ff69b396f8b38155094b00a78a8fc1974",
+        "7d5ec54a4718bdac600b6a668453d51818f22a4e"
+      ]
+    },
+    {
+      "commit": "d066389ff69b396f8b38155094b00a78a8fc1974",
+      "parents": [
+        "4f67ec65ccde140b3ae2fcf1eba23c108b07a576",
+        "c32002bbf93f0dd9b8c5a2097a2afea7503ef3d4"
+      ]
+    },
+    {
+      "commit": "4f67ec65ccde140b3ae2fcf1eba23c108b07a576",
+      "parents": [
+        "6cecfa15b00f445be68817e756d766fb0e6fe026",
+        "4b3138f0ff0a27187d23d8a5b058d114ddcad773"
+      ]
+    }
   ]
 }
