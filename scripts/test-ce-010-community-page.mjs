@@ -1,9 +1,8 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import path from 'node:path';
 import React, { act } from 'react';
 import { JSDOM } from 'jsdom';
-import ts from 'typescript';
+import { createApplicationTestModuleLoader } from './lib/load-application-test-module.mjs';
 import { classifyCommunityResponse, communityReadResponseSchema, toCommunityViews } from '../src/lib/community/community-base-client.ts';
 import { CANONICAL_ROLES, isRouteAllowedForPersona } from '../src/lib/customer/access-matrix.ts';
 import { classifyCustomerRoute } from '../src/lib/customer/route-classifier.ts';
@@ -37,25 +36,11 @@ const shellSource = fs.readFileSync('src/components/customer/CustomerAppShell.ts
 assert.match(pageSource, /dashboard\.workspace_id/); assert.match(pageSource, /cache: 'no-store'/); assert.match(pageSource, /credentials: 'same-origin'/); assert.match(fs.readFileSync('src/lib/community/community-command-session.ts','utf8'), /method:'POST'/);
 assert.match(shellSource, /hasEnt\("module\.community_basic"\) && hasPerm\("community\.community\.read"\)/);
 
-const runtimeFiles = [];
-function compile(sourceName, runtimeName, replacements = []) {
-  let source = fs.readFileSync(path.join('src/components/customer', sourceName), 'utf8');
-  for (const [from, to] of replacements) source = source.replaceAll(from, to);
-  const target = path.join('scripts', runtimeName);
-  fs.writeFileSync(target, ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText);
-  runtimeFiles.push(target); return `./${runtimeName}`;
-}
-const transportRuntime = path.join('scripts', '.ce010-dashboard-transport-runtime.mjs');
-fs.writeFileSync(transportRuntime, "import{createContext,useContext}from'react';const C=createContext(globalThis.fetch);export const DashboardTransportProvider=C.Provider;export function useDashboardFetch(){return useContext(C)}export function useDashboardPreview(){return true}");
-runtimeFiles.push(transportRuntime);
-await import(compile('CustomerCommunityBase.tsx', '.ce010-community-runtime.mjs'));
-const contextModule = await import(compile('CustomerContextProvider.tsx', '.ce010-context-runtime.mjs', [["@/components/dashboard-lab/DashboardTransport", './.ce010-dashboard-transport-runtime.mjs']]));
-const pageModule = await import(compile('CustomerCommunityBasePage.tsx', '.ce010-page-runtime.mjs', [
-  ["@/components/dashboard-lab/DashboardTransport", './.ce010-dashboard-transport-runtime.mjs'], ['./CustomerContextProvider', './.ce010-context-runtime.mjs'],
-  ['./CustomerCommunityBase', './.ce010-community-runtime.mjs'], ["@/lib/community/community-base-client", '../src/lib/community/community-base-client.ts'], ["@/lib/community/community-command-session", '../src/lib/community/community-command-session.ts'],
-]));
-const { DashboardTransportProvider } = await import('./.ce010-dashboard-transport-runtime.mjs');
-const { CustomerContextProvider, useCustomerContext } = contextModule; const { CustomerCommunityBasePage } = pageModule;
+// Load the actual graph with source aliases and extensionless TS imports resolved.
+const load = createApplicationTestModuleLoader();
+const { DashboardTransportProvider } = load(new URL('../src/components/dashboard-lab/DashboardTransport.tsx', import.meta.url));
+const { CustomerContextProvider, useCustomerContext } = load(new URL('../src/components/customer/CustomerContextProvider.tsx', import.meta.url));
+const { CustomerCommunityBasePage } = load(new URL('../src/components/customer/CustomerCommunityBasePage.tsx', import.meta.url));
 const dom = new JSDOM('<!doctype html><html><body><div id="root"></div></body></html>', { url: 'http://localhost/en/app/community' });
 globalThis.window = dom.window; globalThis.document = dom.window.document; globalThis.sessionStorage = dom.window.sessionStorage;
 Object.defineProperty(globalThis, 'navigator', { value: dom.window.navigator, configurable: true }); globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -569,6 +554,5 @@ for (const [lang, t] of Object.entries(selectionCopy)) {
 selectionCommunities = null;
 console.log(`CE-COMMUNITY-SELECTION-GUARD-01 passed: ${selectionScenarios} mounted selection/accessibility scenarios across RO/EN/FA; actual Page/dialog/Provider, no shell UI claim.`);
 
-for (const file of runtimeFiles) fs.rmSync(file, { force: true });
 
 console.log('CE-010 mounted Community page acceptance passed: strict named projection, exact versioned commands, no UUID display, capability routing, input-preserving refresh recovery, actionable 503 state, and RO/EN/FA mapping.');

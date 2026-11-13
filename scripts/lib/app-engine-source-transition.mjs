@@ -2,7 +2,6 @@
 // root engine metadata transition. Never re-seal the historical packet.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 const sha = bytes => createHash('sha256').update(bytes).digest('hex');
@@ -22,13 +21,16 @@ export function verifyPublishedEngineTransition(root, packetPin) {
   assert.deepEqual(record.files.map(f => f.path).sort(), ['package-lock.json', 'package.json']);
   const pin = record.files.find(f => f.path === packetPin.path);
   assert.ok(pin, 'transition must name an approved package path');
-  const git = spec => execFileSync('git', ['show', spec], { cwd: root, maxBuffer: 2 * 1024 * 1024 });
-  const before = git(`${record.before_commit}:${pin.path}`), approved = git(`${record.approved_commit}:${pin.path}`);
+  // CI checkouts may be shallow. Restore only the authorized literal, then
+  // authenticate that entire preimage against the unchanged historical packet.
+  // This is not a fallback accepting unpinned bytes or a new dependency snapshot.
+  const approved = readFileSync(path.join(root, pin.path));
+  const before = Buffer.from(approved.toString().replace('"node": "22.x || 24.x"', '"node": ">=22.0.0"'));
   assert.deepEqual(identity(before), { bytes: packetPin.bytes, sha256: packetPin.sha256 });
   assert.deepEqual(identity(before), pin.before);
+  const blob = createHash('sha1').update(`blob ${before.length}\0`).update(before).digest('hex');
+  assert.equal(blob, packetPin.git_blob, 'restored preimage must be the original Git blob');
   assert.deepEqual(identity(approved), pin.after);
-  assert.equal(execFileSync('git', ['rev-parse', `${record.before_commit}:${pin.path}`], { cwd: root, encoding: 'utf8' }).trim(), packetPin.git_blob);
   verifyEngineMetadataOnly(pin.path, before, approved);
-  verifyEngineMetadataOnly(pin.path, before, readFileSync(path.join(root, pin.path)));
   return true;
 }

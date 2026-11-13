@@ -12,18 +12,23 @@ let calls = [];
 let checks = 0;
 function load(file) {
   if (cache.has(file.href)) return cache.get(file.href);
+  if (file.pathname.endsWith('.json')) {
+    const value = JSON.parse(readFileSync(file, 'utf8'));
+    cache.set(file.href, value); return value;
+  }
   const mod = new Module(fileURLToPath(file));
+  cache.set(file.href, mod.exports);
   // This Node harness executes the server module; the build-only marker is not an SDK mock.
-  mod.require = (name) => name === 'server-only' ? {} : name === '@/lib/supabase/server' ? { createClient: async () => ({
+  mod.require = (name) => name === 'server-only' ? require('next/dist/compiled/server-only/empty') : name === '@/lib/supabase/server' ? { createClient: async () => ({
     auth: { getClaims: async () => ({ data: { claims: authenticated ? { sub: id(1) } : {} }, error: null }) },
     schema: (schema) => {
       assert.equal(schema, 'customer_api');
       return { rpc: async (name, args) => { calls.push({ name, args }); return result; } };
     },
   }) } : name.startsWith('@/') ? load(new URL(`../src/${name.slice(2)}.ts`, import.meta.url))
-    : name.startsWith('.') ? load(new URL(name.endsWith('.ts') ? name : `${name}.ts`, file)) : require(name);
+    : name.startsWith('.') ? load(new URL(/\.(?:json|[cm]?[jt]sx?)$/.test(name) ? name : `${name}.ts`, file)) : require(name);
   mod._compile(ts.transpileModule(readFileSync(file, 'utf8'), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
+    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true },
   }).outputText, fileURLToPath(file));
   cache.set(file.href, mod.exports);
   return mod.exports;

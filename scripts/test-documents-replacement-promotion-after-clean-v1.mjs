@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
-import ts from 'typescript';
+import { fileURLToPath } from 'node:url';
+import { createCore15NativeLoader } from './lib/core15-native-ts-loader.mjs';
 
 const migration = readFileSync(
   'supabase/migrations/20261018130000_documents_replacement_promotion_after_clean_v1.sql', 'utf8');
@@ -20,18 +20,8 @@ assert.match(providerSource, /for share of v/);
 assert.match(providerSource, /for share of a/);
 assert.match(providerSource, /provider_current_state_required/);
 
-const require = createRequire(import.meta.url), cache = new Map();
-function load(url) {
-  if (cache.has(url.href)) return cache.get(url.href);
-  const compiled = ts.transpileModule(readFileSync(url, 'utf8'), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
-  });
-  const mod = { exports: {} }; cache.set(url.href, mod.exports);
-  new Function('require', 'module', 'exports', compiled.outputText)(name => name.startsWith('.')
-    ? load(new URL(name.endsWith('.ts') ? name : `${name}.ts`, url)) : require(name), mod, mod.exports);
-  return mod.exports;
-}
-
+const { load: loadSource } = createCore15NativeLoader(fileURLToPath(new URL('../', import.meta.url)));
+const load = url => loadSource(fileURLToPath(url));
 const api = load(new URL('../src/lib/customer/documents-replacement-promotion-after-clean-v1.ts', import.meta.url));
 const storageApi = load(new URL('../src/lib/customer/documents-workspace-binding-writer-v1.ts', import.meta.url));
 const id = value => `77000000-0000-4000-8000-${String(value).padStart(12, '0')}`;

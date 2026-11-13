@@ -25,8 +25,9 @@ function load(file) {
   }
   const filename = fileURLToPath(file);
   const mod = new Module(filename);
+  cache.set(file.href, mod.exports);
   // Retain the real Core bridge while resolving Next's server-only build marker.
-  mod.require = name => name === 'server-only' ? {} : name === '@/lib/supabase/server' ? { createClient: async () => ({
+  mod.require = name => name === 'server-only' ? require('next/dist/compiled/server-only/empty') : name === '@/lib/supabase/server' ? { createClient: async () => ({
     auth: { getClaims: async () => auth }, schema: name => { assert.equal(name, 'customer_api'); return { rpc: async (name, args) => {
       calls.push({ name, args });
       return name === 'get_product_capability_decision_v1' ? projectionResult : result;
