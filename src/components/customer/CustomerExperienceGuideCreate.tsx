@@ -23,7 +23,7 @@ export function CustomerExperienceGuideCreate({lang,commands,onCreated}:{lang:La
  function change(key:keyof GuideCreateInput,value:string){setDraft(v=>({...v,[key]:value}));}
  return <form dir={lang==='fa'?'rtl':'ltr'} aria-labelledby={heading} aria-describedby={status} className="min-w-0 space-y-3 rounded-2xl border bg-white p-5" onSubmit={e=>{e.preventDefault();void submit();}}>
   <h2 id={heading} className="font-bold">{t.heading}</h2><p className="text-sm">{t.scope}</p>
-  <p id={status} role="status" aria-live="polite">{busy?t.sending:''}</p>{error?<p role="alert">{error}</p>:null}
+  <p id={status} role="status" aria-live="polite">{busy?t.sending:''}</p>{unknown&&!busy?<p role="alert">{t.unknown}</p>:error?<p role="alert">{error}</p>:null}
   <fieldset disabled={busy||unknown} aria-busy={busy} className="min-w-0 space-y-3">
    <label className="block">{t.title}<input required minLength={2} maxLength={160} value={draft.title} onChange={e=>change('title',e.target.value)} className="block w-full min-w-0 rounded-lg border p-2"/></label>
    <label className="block">{t.step}<input required maxLength={160} value={draft.step_title} onChange={e=>change('step_title',e.target.value)} className="block w-full min-w-0 rounded-lg border p-2"/></label>

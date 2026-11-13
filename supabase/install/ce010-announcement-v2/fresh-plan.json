@@ -1,0 +1,31 @@
+{
+  "contract": "ce010-fresh-review-plan.v2",
+  "path": "fresh",
+  "source_only": true,
+  "domain_unit": {
+    "scope": "legacy",
+    "ref": "989e35a78363908357f65460011492e0472dc047",
+    "path": "supabase/install/ce010-announcement-v1/10-domain-candidate.sql",
+    "bytes": 26294,
+    "sha256": "91e97be48b473852b16d41fa1437bd6ec7e0f8343cdb1a1df7ba80ea194fa5dd",
+    "git_blob": "0d8ae6cd3622389ec83bece8a03335dc7159917d"
+  },
+  "ce_objects": "inventory.json#canonical_CE_declarations",
+  "guard_preserved": true,
+  "precondition": "All seven canonical CE tables/routines explicitly inventoried as absent; absence of inventory is UNKNOWN, not fresh.",
+  "order": [
+    "Platform/custodian exact target/window and protected before-image; Core recursive dependency/admission closure",
+    "Platform real safety implementations, full graph/owner/ACL/RLS/source and held lease proof; private Pool/target/model",
+    "Existing admitted temporary CREATE/owner lane; CE-only canonical fresh unit retains own single transaction",
+    "Exact bounded full postimage including definitions/ACL/RLS/policies/constraints/defaults/triggers and protected role/defaultACL comparison inside admitted wrapper before ACK",
+    "Private App binding only after actual capability admission; native Platform/QA tests under independent window"
+  ],
+  "blocked": [
+    "target and source-specific prestate",
+    "helper implementation/owner/ACL and real exclusion/invalidation capability",
+    "Core recursive closure and full postimage",
+    "private runtime binding and operational window"
+  ],
+  "warning": "Historical unit is a CE declaration/column/policy source reference, not a current Core install recipe. Do not run it, strip its guard or reseal it as admitted. No all-chain outer BEGIN, guessed ownership lane or shared grants.",
+  "runnable": false
+}

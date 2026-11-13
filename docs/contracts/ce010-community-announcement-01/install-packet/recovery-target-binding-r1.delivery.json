@@ -1,0 +1,121 @@
+{
+  "task": "CE010-COMMUNITY-ANNOUNCEMENT-01 / QFW-CE284-01",
+  "worker": "CLADORA-CE-WORKER-01",
+  "parent": "284a4640b8f4eaed919f7ba69c881673fbeb26bf",
+  "branch": "codex/ce010-community-announcement-01",
+  "finding": "SOURCE_FIXED_CONTROLLED_PROOF_ONLY",
+  "change": "Empty-preimage fallback additionally requires pre.target === expected.target; TARGET_MISMATCH remains UNKNOWN_NO_ACK_NO_MUTATION.",
+  "cases_actually_run": [
+    {
+      "case": "expected target incompatible",
+      "result": "PASS",
+      "outcome": "UNKNOWN_NO_ACK_NO_MUTATION",
+      "reason": "TARGET_MISMATCH"
+    },
+    {
+      "case": "empty preimage, correct target",
+      "result": "PASS",
+      "outcome": "PREIMAGE_MATCH_REVIEWABLE_RETRY",
+      "automatic_retry": false
+    },
+    {
+      "case": "missing seal",
+      "result": "PASS",
+      "outcome": "UNKNOWN_NO_ACK_NO_MUTATION",
+      "reason": "BLOCKED_CORE_SEALS"
+    }
+  ],
+  "command": "node scripts/test-ce010-recovery-target-binding.mjs",
+  "static_checks": {
+    "node_check_both_changed_MJS": "PASS",
+    "eslint_both_changed_MJS_max_warnings_0": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "not_run": [
+    "previous 23 controls",
+    "packet regeneration",
+    "provider/Guide/product suites",
+    "SQL/PG/Auth/native",
+    "installation/activation"
+  ],
+  "toolchain": {
+    "node": "24.19.0",
+    "typescript": "5.9.3",
+    "next": "16.4.1",
+    "zod": "4.6.6",
+    "install": "NONE"
+  },
+  "inventory_excluding_self": [
+    {
+      "path": "scripts/lib/ce010-install-packet.mjs",
+      "before_sha256": "1c85b34b2985c56c051fcd11899b8982727d0dbf725053dfd8434f4fe6dccf0e",
+      "after_sha256": "76a4e164b415ed8dd261381f95a762fd21252db723fe5e2f5b23b467713ba434",
+      "bytes": 18901
+    },
+    {
+      "path": "scripts/test-ce010-recovery-target-binding.mjs",
+      "before_sha256": null,
+      "after_sha256": "998ed1ddc5f22cba943e268da4ff39d8cc0a052a754124dacb10f331374bdbbc",
+      "bytes": 1192
+    }
+  ],
+  "preserved_bytes": [
+    {
+      "path": "src/lib/community/community-announcement-provider-v1.ts",
+      "sha256": "b34f8cdcd332a9336ba4da11655722d21364dd411879cdaa31cf88ae8bb7dd56",
+      "comparison": "BYTE_IDENTICAL_TO_PARENT"
+    },
+    {
+      "path": "src/lib/community/community-announcement-http-v1.ts",
+      "sha256": "d3b50b33dd0189a53a584cd494d64ff883b7c089e339c50bbb8d76a9279a5765",
+      "comparison": "BYTE_IDENTICAL_TO_PARENT"
+    },
+    {
+      "path": "src/lib/community/community-announcement-runtime-v1.ts",
+      "sha256": "fd9f1ffe4ce21e54588508c51a1d7f66284a9fdc61159c3bb7d60b0f93f48279",
+      "comparison": "BYTE_IDENTICAL_TO_PARENT"
+    },
+    {
+      "path": "scripts/test-ce010-install-packet.mjs",
+      "sha256": "cda52bcd963dce9de04f0e22221f826a1982a16733a5034b7463a2b7d1b0df19",
+      "comparison": "BYTE_IDENTICAL_TO_PARENT"
+    },
+    {
+      "path": "supabase/install/ce010-announcement-v1/00-preflight.sql",
+      "sha256": "364509e859568524f66cdd74d443e4c2f0bd0e548de9ead8b962feb6bf897609",
+      "comparison": "BYTE_IDENTICAL_TO_PARENT"
+    },
+    {
+      "path": "supabase/install/ce010-announcement-v1/10-domain-candidate.sql",
+      "sha256": "91e97be48b473852b16d41fa1437bd6ec7e0f8343cdb1a1df7ba80ea194fa5dd",
+      "comparison": "BYTE_IDENTICAL_TO_PARENT"
+    },
+    {
+      "path": "supabase/install/ce010-announcement-v1/20-verify.sql",
+      "sha256": "364509e859568524f66cdd74d443e4c2f0bd0e548de9ead8b962feb6bf897609",
+      "comparison": "BYTE_IDENTICAL_TO_PARENT"
+    },
+    {
+      "path": "supabase/install/ce010-announcement-v1/30-recovery.sql",
+      "sha256": "37ed6aaac4981be3110f3aae261eb7de06d7cc14e95ca83cc41c1e8f97d0b356",
+      "comparison": "BYTE_IDENTICAL_TO_PARENT"
+    },
+    {
+      "path": "supabase/install/ce010-announcement-v1/packet.json",
+      "sha256": "a1c7a2f357cd319d89e83d7a3fcb971fdfd223b47aa3b02e3ea1c7ac8bc9892a",
+      "comparison": "BYTE_IDENTICAL_TO_PARENT"
+    },
+    {
+      "path": "docs/contracts/ce010-community-announcement-01/install-packet/delivery.json",
+      "sha256": "a7fa635b54ca5d0b24f73cdc0cb6da930c3e73314073ec2c3101b501d301850d",
+      "comparison": "BYTE_IDENTICAL_TO_PARENT"
+    }
+  ],
+  "preserved_guide_head": "7d5ec54a4718bdac600b6a668453d51818f22a4e",
+  "prior_manifest": "delivery.json remains historical; this successor supplements its helper inventory, not the guarded SQL packet",
+  "self_hash": "Reported externally; excluded from recursive inventory",
+  "runtime": "NULL / NOT_READY_CORE_PRODUCER_MISSING",
+  "native": "NOT_RUN_NOT_PASS",
+  "authority": "Offline metadata consistency only; no seal authentication or execution permit. No ACK/mutation path added.",
+  "central_record": "Coordinator-owned; no Viewer Page edit"
+}

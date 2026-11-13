@@ -1,0 +1,103 @@
+{
+  "task": "CE010-COMMUNITY-ANNOUNCEMENT-01",
+  "base": "c84f13ffeb97a8365385243c7712216d47a04c4e",
+  "status": "CE_CONSUMER_REQUIREMENTS_NOT_ACCEPTED_CORE_PLATFORM_ABI",
+  "runtime": null,
+  "attachment": {
+    "path": "src/lib/community/community-announcement-runtime-v1.ts",
+    "symbol": "CE010_ANNOUNCEMENT_RUNTIME_V1.resolve",
+    "call": "resolve(originalRequest,{context_id,workspace_id})",
+    "output": {
+      "contract": "ce010-request-binding.v1",
+      "request": "identical original Request object",
+      "actor_id": "current issuer-verified actor",
+      "session_id": "current issuer-verified SID",
+      "request_pool": "Core-owned Pick<pg.Pool,connect>; no public caller injection"
+    },
+    "server_only": true
+  },
+  "closure": [
+    {
+      "owner": "Core",
+      "boundary": "request-local identity/pool",
+      "needed": "Original Request issuer verification; physical target and ordinary runtime principal; exclusive role-safe lease; verified SID/exp/AAL2 and exact Context/Workspace installed transaction-locally after EVERY BEGIN; scrub/destroy on settlement/error. CE verifies SDK/DB actor+SID+exp agreement on probe. Guide/SERVICE pool is NOT a substitute.",
+      "closure": "Accepted exact factory/ABI/FullSHA consumed in this resolver; target/principal/session mismatch negative; no owner/service_role/superuser/BYPASSRLS path."
+    },
+    {
+      "owner": "Core",
+      "boundary": "mapping/currentness",
+      "needed": {
+        "module": "community_basic",
+        "entitlement": "module.community_basic",
+        "read": "community.community.read",
+        "writer": "community.announcement.publish",
+        "purpose": "community.announcement.command"
+      },
+      "classification": "existing proposed CE names; purpose is CE consumer proposal, no registration/activation performed",
+      "closure": "Core confirms exact C01/module/permission/purpose mapping and current-time helper semantics. Social membership never yields organizational authority. Native V2 provider evidence requires current community read AND announcement publish; neither implies or grants the other. Confirm this conservative native readability ceiling before adoption."
+    },
+    {
+      "owner": "Core/Platform",
+      "boundary": "canonical schema/read/helpers",
+      "needed": [
+        "community.communities",
+        "community.announcements",
+        "customer_api.read_ce_community_v1(uuid,uuid)",
+        "app_private.ce_community_audience_valid_v1(jsonb,uuid,uuid)",
+        "app_private.ce_community_audience_allows_v1(uuid,uuid,jsonb)",
+        "app_private.resolve_workspace_native_context_v2_at_v1(uuid,uuid,timestamptz)",
+        "app_private.check_workspace_native_permission_v2_at_v1(uuid,uuid,text,text,timestamptz)",
+        "app_private.require_request_session_current_at_v1(timestamptz)",
+        "app_private.canonical_authority_revision_v1"
+      ],
+      "closure": "Ordered exact reviewed installation and typed SELECT/INSERT/UPDATE/EXECUTE inventory with scoped RLS/ACL/owners and helper metadata. Proposal presence is not installation. No broad migration replay or historical proposal executed by CE."
+    },
+    {
+      "owner": "Core/Platform",
+      "boundary": "C03",
+      "needed": "Existing createCorePostgresTransactionHostV1 and canonical platform.idempotency_keys/audit.events/platform.outbox_events plus canonical resolver dependencies; exact Core key/hash/expiry/replay policy",
+      "closure": "Real Core reservation/domain mutation/receipt/audit/outbox share one transaction; post-wait denial, serialization, concurrent same-key and lost-COMMIT tests on selected source. No new receipt engine/table."
+    },
+    {
+      "owner": "App/Core",
+      "boundary": "entry/Context",
+      "needed": "Existing /[lang]/app/community consumer with a genuine actor/membership/Context/Workspace projection and CE read permission. Review current CustomerAppShell/CustomerContextProvider/dashboard profile so a SERVICE-only gate is not mistaken for CE authority.",
+      "closure": "Real permitted CE user can enter/select exact scope without borrowed SERVICE permission or fabricated dashboard. No shared shell/Auth/evaluator change in this package; controlled Context is NOT real discovery proof."
+    },
+    {
+      "owner": "Platform",
+      "boundary": "fixture/native/observer",
+      "needed": "Owned isolated target, pre-existing canonical Community/version/audience, synthetic issued accounts with manager/eligible/ineligible scopes; bounded observer and admitted restart/fault/concurrency operators",
+      "closure": "Real create draft -> publish -> eligible/ineligible read -> cancel; same id/version data survive restart; current denial/revoke/expiry after waits, race/replay/UNKNOWN checked with one-effect observer. No real messages/attachments/payment/Event."
+    },
+    {
+      "owner": "QA/Coordinator",
+      "boundary": "acceptance",
+      "needed": "Exact integrated SHA/tree/build+installed recipe and Platform native evidence",
+      "closure": "Independent per-case acceptance; source/model results never close Auth/PG/RLS/restart/native gates."
+    }
+  ],
+  "interfaces": {
+    "prepare": {
+      "method": "POST /api/customer/v1/community/base",
+      "body": "{op:prepare_announcement,command:existing CE010 command}",
+      "response": "ce010-prepared-announcement.v1 + unchanged parsed command + Core V2 command"
+    },
+    "execute": {
+      "method": "same POST",
+      "body": "{op:execute_announcement,command,core_command}; frozen for explicit retry",
+      "response": "existing strict five fields entity_type/entity_id/version/command/replayed"
+    },
+    "read": {
+      "method": "GET same route?context_id&workspace_id",
+      "schema": "unchanged communityReadResponseSchema",
+      "marker": "X-Cladora-Community-Read: core-announcement-v1",
+      "authority": "current authorized observation, not settlement or command authority"
+    }
+  },
+  "protocol_fence": "Absent resolver keeps existing accepted legacy route semantics. Explicit new envelopes return503 if missing. Selected resolver missing/invalid/401/403 never falls back; selected native mode rejects raw announcement POST. Pending native wire never silently becomes legacy on a later read.",
+  "canonical_storage": "Create uses existing community.announcements with draft/version1 and parent Community expected version. Publish/cancel conditional version/state UPDATE on same id; read uses existing bounded canonical RPC. No parallel table/receipt/state ledger. Legacy receipt rows are not adopted or rewritten.",
+  "retention": "Native path consumes existing Core key/hash/expiry (no custom TTL); expired/missing historical result does not authorize new-key automatic resend. This package adds no reload journal or lookup.",
+  "sql_execution": "NOT_RUN_NOT_PASS",
+  "install_grant_activation": "NOT_PERFORMED"
+}

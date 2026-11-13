@@ -413,10 +413,14 @@ function Shell({
 export function CustomerAppShell({
   children,
   lang,
+  guideNativeSelected=false,
 }: {
   children: React.ReactNode;
   lang: Language;
+  guideNativeSelected?: boolean;
 }) {
+  const pathname=usePathname();
+  if(guideNativeSelected&&pathname===`/${lang}/app/experience/guides`)return <main dir={lang==='fa'?'rtl':'ltr'} className="mx-auto min-h-screen max-w-6xl space-y-5 p-4 sm:p-6">{children}</main>;
   return (
     <CustomerContextProvider>
       <Shell lang={lang}>{children}</Shell>

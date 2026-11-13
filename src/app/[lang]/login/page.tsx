@@ -43,6 +43,7 @@ export default async function LoginPage(props: {
           ownerPortfolioRequested={safeNextKey === 'owner-portfolio'}
           accountRequested={safeNextKey === 'account'}
           invitationRequested={safeNextKey === 'invitation-continuation'}
+          guideRequested={safeNextKey === 'app/experience/guides'}
         />
       </div>
     </main>

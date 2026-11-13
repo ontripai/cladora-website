@@ -1,0 +1,164 @@
+{
+  "task": "CE010-COMMUNITY-ANNOUNCEMENT-01 / INSTALL-DEPENDENCY-PACKET",
+  "worker": "CLADORA-CE-WORKER-01",
+  "base_parent": "d23346a88253290d8842dfa0780a67c00c250390",
+  "branch": "codex/ce010-community-announcement-01",
+  "status": "LOCAL_SOURCE_READY_NATIVE_BLOCKED",
+  "source_input": {
+    "page": "https://chatgpt.com/space/page_9e19234d21b88191b17ef6685d75f153",
+    "card_block": "4ecd6781-5ef1-4ad0-8ed4-196306f700e4",
+    "card_sha256": "37bf127e1ce0ecd71e75d467b25cd0cfd8aca5d7aa9c9116437dc3acbf74be94",
+    "common_sha256": "27616956b30fb79a00e97b418f4e54ebbdeccc4de0be97066ac3d79345b67f6e",
+    "read_sequence": 29,
+    "rechecked_sequence": 31,
+    "access": "VIEWER_NO_CENTRAL_WRITE"
+  },
+  "skills_applied": [
+    "cloud-environment-runtime",
+    "supabase 0.1.2",
+    "supabase-postgres-best-practices 1.1.1"
+  ],
+  "toolchain": {
+    "node": "24.19.0",
+    "next": "16.4.1",
+    "zod": "4.6.6",
+    "typescript": "5.9.3",
+    "installation": "EXISTING_NO_INSTALL_OR_REPAIR"
+  },
+  "checks_actually_run": [
+    {
+      "command": "node scripts/test-ce010-install-packet.mjs",
+      "result": "PASS",
+      "cases": 23,
+      "evidence_class": "SOURCE_BYTES_AND_SYNTHETIC_CATALOG_ONLY"
+    },
+    {
+      "command": "node --check (all 3 added MJS)",
+      "result": "PASS"
+    },
+    {
+      "command": "eslint (all 3 added MJS) --max-warnings=0",
+      "result": "PASS"
+    },
+    {
+      "command": "tsc --noEmit --incremental false",
+      "result": "PASS"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "not_run": [
+    "previous successful CE010/Guide/QFW suites",
+    "SQL parser",
+    "PostgreSQL/SQL/ACL/installation",
+    "real Auth/session/target/pool",
+    "native API/browser",
+    "activation/deployment"
+  ],
+  "preserved_readonly_sources": [
+    {
+      "path": "supabase/proposals/ce_010_community_operational_v1.sql",
+      "sha256": "53d999c351b36b62f253f0f13349bd154da2cac7b7900ff2a2146bc1ab660bf3"
+    },
+    {
+      "path": "src/lib/community/community-announcement-provider-v1.ts",
+      "sha256": "b34f8cdcd332a9336ba4da11655722d21364dd411879cdaa31cf88ae8bb7dd56"
+    },
+    {
+      "path": "src/lib/community/community-announcement-http-v1.ts",
+      "sha256": "d3b50b33dd0189a53a584cd494d64ff883b7c089e339c50bbb8d76a9279a5765"
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "sha256": "9436c082f8ce8a054d8300f55bd49ac4b6120240cf06fa6ca94190b5c6c1858a"
+    },
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a"
+    }
+  ],
+  "preserved_guide_head": "7d5ec54a4718bdac600b6a668453d51818f22a4e",
+  "runtime": {
+    "CE010_ANNOUNCEMENT_RUNTIME_V1.resolve": null,
+    "Core_producer": "NOT_READY_MISSING_OFFICIAL_CE010_ABI",
+    "roles": null,
+    "target": null,
+    "seals": null,
+    "native": "NOT_RUN_NOT_PASS"
+  },
+  "inventory": [
+    {
+      "path": "scripts/lib/ce010-install-packet.mjs",
+      "change": "ADDED",
+      "bytes": 18871,
+      "sha256": "1c85b34b2985c56c051fcd11899b8982727d0dbf725053dfd8434f4fe6dccf0e"
+    },
+    {
+      "path": "scripts/build-ce010-install-packet.mjs",
+      "change": "ADDED",
+      "bytes": 1281,
+      "sha256": "7c102a4dd45716a16dd38649db36fa8bf95e1ddffb5f3f4d2f6f235667e99192"
+    },
+    {
+      "path": "scripts/test-ce010-install-packet.mjs",
+      "change": "ADDED",
+      "bytes": 7309,
+      "sha256": "cda52bcd963dce9de04f0e22221f826a1982a16733a5034b7463a2b7d1b0df19"
+    },
+    {
+      "path": "supabase/install/ce010-announcement-v1/00-preflight.sql",
+      "change": "ADDED",
+      "bytes": 4239,
+      "sha256": "364509e859568524f66cdd74d443e4c2f0bd0e548de9ead8b962feb6bf897609"
+    },
+    {
+      "path": "supabase/install/ce010-announcement-v1/10-domain-candidate.sql",
+      "change": "ADDED",
+      "bytes": 26294,
+      "sha256": "91e97be48b473852b16d41fa1437bd6ec7e0f8343cdb1a1df7ba80ea194fa5dd"
+    },
+    {
+      "path": "supabase/install/ce010-announcement-v1/20-verify.sql",
+      "change": "ADDED",
+      "bytes": 4239,
+      "sha256": "364509e859568524f66cdd74d443e4c2f0bd0e548de9ead8b962feb6bf897609"
+    },
+    {
+      "path": "supabase/install/ce010-announcement-v1/30-recovery.sql",
+      "change": "ADDED",
+      "bytes": 4338,
+      "sha256": "37ed6aaac4981be3110f3aae261eb7de06d7cc14e95ca83cc41c1e8f97d0b356"
+    },
+    {
+      "path": "supabase/install/ce010-announcement-v1/packet.json",
+      "change": "ADDED",
+      "bytes": 31870,
+      "sha256": "a1c7a2f357cd319d89e83d7a3fcb971fdfd223b47aa3b02e3ea1c7ac8bc9892a"
+    },
+    {
+      "path": "docs/contracts/ce010-community-announcement-01/install-packet/README.md",
+      "change": "ADDED",
+      "bytes": 7961,
+      "sha256": "007c51fb5f36a3a1ad0add7fe509693d8182248a69844741d7a4561a6f149c37"
+    },
+    {
+      "path": "docs/contracts/ce010-community-announcement-01/install-packet/dependencies.json",
+      "change": "ADDED",
+      "bytes": 17182,
+      "sha256": "e0001c6bff6678820f6f50e9d0711a856c7a85450cf1e9a68b690d892794c81c"
+    }
+  ],
+  "manifest_self": "Excluded from recursive inventory; its hash and committed Head/Parent/Tree appear in external delivery record. No self-hash claim.",
+  "limitations": [
+    "All SQL files deliberately abort with 55000 before catalog/DDL; source review only",
+    "Full postimage, shared dependency and transitive role/ACL seals belong to Core/Platform and remain NULL",
+    "UPDATE(version) lock-only RLS proposal requires actual PostgreSQL acceptance",
+    "Domain owner retains DDL/admin power; no actual role authority granted",
+    "Offline catalog comparator is not seal authentication, native proof or an execution permit"
+  ],
+  "dependency_contract": "dependencies.json",
+  "central_reporting": "Coordinator-owned; no Page/Issue write performed in this Viewer wave",
+  "automation": "نیازمند بررسی؛ بازتولید آفلاین قابل تکرار است؛ admission و اجرا به Core/Platform و پذیرش QA وابسته است."
+}

@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/client';
 import { isSupabaseConfigured } from '@/lib/supabase/env';
 import { TurnstileWidget } from '@/components/auth/TurnstileWidget';
 import { CladoraBrand } from '@/components/brand/CladoraBrand';
-import { resolvePostAuthRoute, getCustomerServicesRoute, isServiceAssemblyProfile } from '@/lib/auth/post-auth-route';
+import { resolvePostAuthRoute, resolveGuidePostAuthRouteV1, getCustomerServicesRoute, isServiceAssemblyProfile } from '@/lib/auth/post-auth-route';
 import { loginErrorMessage } from '@/lib/auth/login-error';
 
 interface LoginFormProps {
@@ -21,6 +21,7 @@ interface LoginFormProps {
   ownerPortfolioRequested?: boolean;
   accountRequested?: boolean;
   invitationRequested?: boolean;
+  guideRequested?: boolean;
 }
 
 const APPROVED_REASON_MESSAGES: Record<string, Record<Language, string>> = {
@@ -41,7 +42,7 @@ const APPROVED_REASON_MESSAGES: Record<string, Record<Language, string>> = {
   },
 };
 
-export const LoginForm: React.FC<LoginFormProps> = ({ lang, reason, captchaRequired, captchaSiteKey, workspaceAccessRequested = false, caseAccessRequested = false, ownerPortfolioRequested = false, accountRequested = false, invitationRequested = false }) => {
+export const LoginForm: React.FC<LoginFormProps> = ({ lang, reason, captchaRequired, captchaSiteKey, workspaceAccessRequested = false, caseAccessRequested = false, ownerPortfolioRequested = false, accountRequested = false, invitationRequested = false, guideRequested = false }) => {
   const reasonMessage = reason && APPROVED_REASON_MESSAGES[reason]
     ? (APPROVED_REASON_MESSAGES[reason][lang] ?? APPROVED_REASON_MESSAGES[reason].en)
     : null;
@@ -111,7 +112,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ lang, reason, captchaRequi
 
       let destination: string;
       try {
-        destination = await resolvePostAuthRoute(supabase, lang);
+        destination = guideRequested?await resolveGuidePostAuthRouteV1(supabase,lang):await resolvePostAuthRoute(supabase, lang);
         if (workspaceAccessRequested && !destination.includes('/platform/')) {
           destination = destination.includes('/mfa')
             ? `${destination}${destination.includes('?') ? '&' : '?'}next=workspace-access`

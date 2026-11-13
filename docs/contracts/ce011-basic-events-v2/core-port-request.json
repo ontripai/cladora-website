@@ -1,0 +1,64 @@
+{
+  "contract": "ce011-core-port-request.v2",
+  "status": "CE_CONSUMER_REQUIREMENTS_NOT_OFFICIAL_CORE_PROFILE",
+  "base": "b5adc9bc392838dee384b1cd8c6e297084626659",
+  "owner": {
+    "request_auth_target_scope_role_lease": "Core",
+    "private_binding_and_install": "Platform/App",
+    "event_rules_and_RPC": "CE"
+  },
+  "resolver": "resolve(originalRequest: Request, {context_id,workspace_id,permission_code,module_code:'community_events'}): Promise<Ce011EventBindingV2|null>",
+  "binding": {
+    "contract": "ce011-request-rpc-binding.v2",
+    "request": "same original Request",
+    "actor_id": "issuer verified",
+    "session_id": "issuer verified SID",
+    "context_id": "canonical selected Context",
+    "workspace_id": "canonical selected Workspace",
+    "expires_at": "verified issuer exp",
+    "command_rpc": "rpc('command_ce_event_v2',{p_request: original validated EventCommand})"
+  },
+  "query": "select customer_api.command_ce_event_v2($1::jsonb)",
+  "args": [
+    "p_request: existing eventCommandSchema command, no actor/tenant/hash/permission proof fields"
+  ],
+  "result": "existing strict five fields entity_type/entity_id/version/command/replayed, parsed with parseEventCommandResult",
+  "mapping": {
+    "module": "community_events",
+    "entitlement": "module.community_events",
+    "read": "events.event.read",
+    "publish": "events.event.publish",
+    "cancel": "events.event.cancel",
+    "self_interest": "events.interest.manage_self",
+    "attendance_record": "events.attendance.record",
+    "attendance_correct": "events.attendance.correct"
+  },
+  "atomicity": "Existing CE011 C03 SQL command body, platform.idempotency_keys + community.event_command_receipts + audit.events + platform.outbox_events in the one RPC transaction; never wrap it in another Core host/idempotency engine",
+  "identity": "Existing ce.event.<command>.v1/workspace/command_id/client_key and exact existing PostgreSQL JSONB hash expression; do not replace with core-tx.v1 namespace or JSON.stringify hash",
+  "source_dependencies": [
+    "existing CE011 canonical tables and accepted lifecycle/receipt shape",
+    "existing canonical C01 resolve/check *_at_v1 and require_request_session_current_at_v1",
+    "Core-controlled recursive role/RLS/helper/source/currentness and query admission"
+  ],
+  "runtime": null,
+  "native": "NOT_RUN_NOT_PASS",
+  "forbidden": [
+    "CE010/Guide/SERVICE pool or grant substitution",
+    "runtime memory state as persistence",
+    "new permission seed or live grant",
+    "new receipt/ledger/audit engine",
+    "new wire/key on UNKNOWN",
+    "menu mount before API/persistence acceptance"
+  ],
+  "request_body_state": "Already consumed by the bounded parser. Original Request is used for verified identity and lifetime; do not clone/tee or reread body. The immutable validated p_request arrives at the fixed RPC call and must be bound to the resolved tuple.",
+  "permission_vocabulary_source": "docs/contracts/CLADORA-CE-011-CORE-CONTRACTS-C01-C03-v1.0.md and event-interest-schema.ts; vocabulary/proposal, not observed active permissions",
+  "errors": {
+    "400": "validation",
+    "401": "issuer/session",
+    "403": "canonical denial",
+    "404": "canonical P0002 missing row",
+    "409": "23505/23514/40001 rolled-back conflict",
+    "503": "missing port/schema/function or not-ready capability",
+    "202": "UNKNOWN after lost reply/malformed success/unclassified post-dispatch error; no auto-resend"
+  }
+}
