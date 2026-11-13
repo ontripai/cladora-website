@@ -1,0 +1,197 @@
+{
+  "contract": "core-guide-alias-adoption-and-discovery.delivery.v1",
+  "FullSHA": "CONTAINING_COMMIT",
+  "Parent": "9811a9074c802d77d677b1387f9a01f14090172a",
+  "branch": "codex/core-domain-ports-01",
+  "state": "OPERATIONAL_SOURCE_ADOPTED_WITH_CONTROLLED_COUPLING_NATIVE_NOT_RUN",
+  "runtime_activation": null,
+  "inventory": [
+    {
+      "path": "src/lib/core/platform-role-bound-pool-v1.ts",
+      "before": {
+        "bytes": 10318,
+        "sha256": "3abeca26ee87ad647ed7af74eaababff9d2308ccc52b1543a2569e29d51ab128",
+        "git_blob": "278e7cde60876a7046b700794644bad33ca22da8"
+      },
+      "after": {
+        "bytes": 11101,
+        "sha256": "d0a1a3d7f32e1ac4f53cd15cc5fb67ecbbe196128b7fc82733a2f5fceceee37d",
+        "git_blob": "d07e93ff658dcac28f1665c459054584e7669f1d"
+      }
+    },
+    {
+      "path": "scripts/test-core-guide-alias-adoption-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 5839,
+        "sha256": "8ece91d05987ee9089c1a7e92a77edd9dc3eb98ba6da4c4174cca6faba5da4b1",
+        "git_blob": "ba97ed6406f1715d56d7a53617f8a460271b0630"
+      }
+    },
+    {
+      "path": "scripts/test-core-guide-discovery-consumption-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 7002,
+        "sha256": "de29b4efddee6d136e7ba033de7e5df238d0ccacf4ae438079ce2d513e6590d1",
+        "git_blob": "16c1b382d6b078b81c6025a10991859765bc2b02"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/WORKLOG.md",
+      "before": {
+        "bytes": 15161,
+        "sha256": "aea04bb1d8f6b5d22f9023c68344d303f035a7dc93fb1c3a9a99688ab5a49f8b",
+        "git_blob": "104da5c9d0241578017a10235182c2e364480de6"
+      },
+      "after": {
+        "bytes": 15768,
+        "sha256": "c40de204b2d84e09b19cc96d742fcbb6a06ce20f2da0d9938067fe08f5624a0e",
+        "git_blob": "031b9ed38b5c1b350da3091df179246decccfa63"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/guide-alias-adoption-12/README.md",
+      "before": null,
+      "after": {
+        "bytes": 6969,
+        "sha256": "5de7ca837fa283d9097401edb5b28fdddaf0ebe5781c797e464389e4b54e798c",
+        "git_blob": "a7f839db531ee9bce2fa0ae61e1efb8e6fcb1486"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/guide-alias-adoption-12/discovery-admission.json",
+      "before": null,
+      "after": {
+        "bytes": 7297,
+        "sha256": "057eec1e22be83cad9f9a4772b6f11065ce97b4b9fc513096732d582e55730aa",
+        "git_blob": "878a61972df9fc0cb644c9a50a91f93cb6f2b128"
+      }
+    }
+  ],
+  "protected": [
+    {
+      "path": "supabase/install/guide-no-document-v1/05-owner-delegations.sql",
+      "bytes": 3509,
+      "sha256": "b3718be17f30122773ce4a5f4b84056c3a4ccc9f10180cb14d6013ec93e6effe",
+      "git_blob": "f47799a236cfc083ec553d770a26b105d29acd49"
+    },
+    {
+      "path": "supabase/install/guide-no-document-v1/00-fixed-roles.sql",
+      "bytes": 2248,
+      "sha256": "b235e566631ccb52b6a20d8ea2fdaa7c9d6e45de1e4652768c9b24ece3f1815d",
+      "git_blob": "90d0f19784fbb327685ce7c997226fda0c6d1273"
+    },
+    {
+      "path": "supabase/install/guide-no-document-v1/10-guide-core.sql",
+      "bytes": 34136,
+      "sha256": "6812a04f54ab9bde5b1661a40bb78740c43147588e2d00c9af1e28ddee0e85b9",
+      "git_blob": "97803fd30dfa5257db790b421b42c54293c8a8c3"
+    },
+    {
+      "path": "supabase/install/guide-no-document-v1/20-save-relation.sql",
+      "bytes": 16598,
+      "sha256": "9eb6fc9454d47fdacebd8b5a077a3fec9bc20e62f4a7c2873c18dfe99fe33e4a",
+      "git_blob": "dd4c5ac945d513078604127e8d23091c6feb6865"
+    },
+    {
+      "path": "src/lib/core/guide-request-binding-v1.ts",
+      "bytes": 8700,
+      "sha256": "1c0fd98df4b9bc45ebd9fb499db34e54cf9585819a733ac939fbfaa77971a2f9",
+      "git_blob": "e850728f49d2deb6ea209101ac48e3c307fef4bf"
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "bytes": 62680,
+      "sha256": "9436c082f8ce8a054d8300f55bd49ac4b6120240cf06fa6ca94190b5c6c1858a",
+      "git_blob": "9e1a0229b9676368dc1d49015cf95be13fac9908"
+    },
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "git_blob": "e67df2d947608f546dab42dba88b5bdc418cbffb"
+    },
+    {
+      "path": "docs/core/domain-ports-01/unit05-auth-scope-11/manifest.json",
+      "bytes": 6909,
+      "sha256": "258bdca3ae957566097cacaf287affc2672d0879b7efa84c6a781d26fde05050",
+      "git_blob": "efdc38afd7fcbb5eb26bc6b494d99a95538cbf76"
+    },
+    {
+      "path": "docs/core/domain-ports-01/unit05-auth-scope-11/successor-proposal.patch",
+      "bytes": 1910,
+      "sha256": "2409d144f88f0fe410a44ea5b89087919532cc99c662c6d2bc70c2af7c7b009f",
+      "git_blob": "824780f5e15b96ba9013f991e89b6226dad9a249"
+    }
+  ],
+  "CE": {
+    "FullSHA": "7d5ec54a4718bdac600b6a668453d51818f22a4e",
+    "Parent": "c84f13ffeb97a8365385243c7712216d47a04c4e",
+    "Tree": "74e75c4512943739632443fda4e0ce3538aca480",
+    "owner_files_edited": false,
+    "files": [
+      {
+        "path": "src/lib/community/experience-guide-discovery-v1.ts",
+        "bytes": 5790,
+        "sha256": "fd0530e071c2ab88d6f865ce0c232ce472b871fdaecbeebfbdf3efd61b61d673",
+        "git_blob": "d16b3d319d8ec96e21ed49068dc45ddbdf0d2ac3"
+      },
+      {
+        "path": "src/lib/community/experience-guide-lifecycle-http-v1.ts",
+        "bytes": 22363,
+        "sha256": "94d5583349e77a5dcc549b7234739f66d8e20dc2735d2bd86e1d8a89fbbb6e3f",
+        "git_blob": "1941995c4987a90ac3899277edfba4bdeecb5700"
+      },
+      {
+        "path": "src/lib/community/experience-guide-functional-http-v1.ts",
+        "bytes": 16808,
+        "sha256": "b2d2214d16a6439b77d042560be09b6a534b8779ad15ef3508b76c5fefa664a4",
+        "git_blob": "bcd24b96221941ccbc2cc4270d5a928f5be9c57f"
+      },
+      {
+        "path": "src/app/api/customer/v1/experience/guides/discovery/route.ts",
+        "bytes": 232,
+        "sha256": "639d9fa23f952abdfbc38d62ca533ed21793948c23d666f888066bfd02faf584",
+        "git_blob": "f4fefa38c779575bd35fed5ac234deac747b3664"
+      },
+      {
+        "path": "docs/contracts/ce-guide-native-01/discovery-postwait-bounds/core-sql-pins.json",
+        "bytes": 5539,
+        "sha256": "792597c4093cfc2d33e5217dc96afeaf322e900ffbfa78d4d8b4fa0d5a0bc0a2",
+        "git_blob": "bd059328763a57de761978d88cdb27239e1e2d61"
+      }
+    ]
+  },
+  "discovery": {
+    "decision": "CORE_SOURCE_QUERY_ACCEPTED_EXACT_CE7D_NO_INSTALLER_ACL_DELTA",
+    "bytes": 1269,
+    "sha256": "4fbe16a342af4bfdcb42dffb1b3ac8b8dc6ddf3095b3f75027a6ada7386a5f9c",
+    "new_columns_or_grants": false,
+    "Platform_profile_changed": false,
+    "pins_contract": "discovery-admission.json",
+    "native_builtin_ACL_types_encoding_CASE": "NOT_RUN_NOT_PASS"
+  },
+  "checks": {
+    "direct_groups": 8,
+    "real_owner_route_couplings": 3,
+    "pin_positive_and_negative": "PASS",
+    "full_typecheck_ES5": "PASS_CURRENT_CORE_TREE_NOT_MERGED_APP",
+    "lint": "PASS",
+    "syntax": "PASS",
+    "diff": "PASS",
+    "proof": "CONTROLLED_SQL_SDK_POOL_NOT_NATIVE",
+    "unrelated_suites": "NOT_RERUN",
+    "target_calls": 0,
+    "Auth_invocations": 0
+  },
+  "native_gates": [
+    "Platform exact integrated App/Core/CE/profile rebind, existing builtin/SELECT/lock/RLS/encoding verification",
+    "native currentness/CASE/wire/settlement and normal target execution authority"
+  ],
+  "automation": "نیازمند بررسی",
+  "seal": {
+    "algorithm": "sha256_canonical_json_excluding_seal",
+    "digest": "e7f007cf94ecbd908d1f5c1a985e434d4d744d4e6edbbc30ad32b254989a3815"
+  }
+}

@@ -1,9 +1,8 @@
+import { createCore15NativeLoader } from './lib/core15-native-ts-loader.mjs';
+import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import pg from 'pg';
-import ts from 'typescript';
 import { createAp10CoreAuthorityDriver } from './lib/ap10-core-authority-driver.mjs';
 
 const connectionString = process.env.CORE_TX_HOST_TEST_DATABASE_URL;
@@ -15,19 +14,10 @@ if (!['localhost','127.0.0.1','[::1]'].includes(target.hostname)
   || !['/core_tx_host_test','/postgres'].includes(target.pathname)) {
   throw new Error('Local disposable PostgreSQL only');
 }
-const require = createRequire(import.meta.url);
-const cache = new Map();
-function load(url) {
-  if (cache.has(url.href)) return cache.get(url.href);
-  const compiled = ts.transpileModule(readFileSync(url,'utf8'), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
-  });
-  const mod = { exports: {} };
-  new Function('require','module','exports',compiled.outputText)(name => name.startsWith('.')
-    ? load(new URL(name.endsWith('.ts') ? name : `${name}.ts`,url)) : require(name), mod, mod.exports);
-  cache.set(url.href,mod.exports);
-  return mod.exports;
-}
+
+
+const { load: loadSource } = createCore15NativeLoader(fileURLToPath(new URL('../', import.meta.url)));
+const load = url => loadSource(fileURLToPath(url));
 const { createCorePostgresTransactionHostV1 } = load(new URL('../src/lib/core/postgres-transaction-host-v1.ts',import.meta.url));
 const pool = new pg.Pool({ connectionString, max: 12 });
 const host = createCorePostgresTransactionHostV1(pool);

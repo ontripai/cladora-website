@@ -1,0 +1,561 @@
+{
+  "task": "CE010-COMMUNITY-ANNOUNCEMENT-01 / CORE6ADB-ROUTE-COUPLING",
+  "worker": "CLADORA-CE-WORKER-01",
+  "parent": "989e35a78363908357f65460011492e0472dc047",
+  "branch": "codex/ce010-community-announcement-01",
+  "status": "SOURCE_COUPLED_PRIVATE_BINDING_AND_NATIVE_NOT_READY",
+  "source_input": {
+    "Page_sequence": 44,
+    "CE_card": "abddc921-425e-4880-bd38-f1067f4fdda6",
+    "CE_card_hash": "0686b1ed2cfe8cefdee03821338eb641cc46c5661c70e714537a90c14043974d",
+    "access": "VIEWER_NO_WRITE"
+  },
+  "official_Core": {
+    "FullSHA": "6adb3e3f0ffc72f1f138a4990b23653a7c5b62cd",
+    "Parent": "7e80988a99a9bfc02214db87a01ac6821ce8dc13",
+    "Tree": "599da1c4585ce31f79c5fdf187694eebe477c5c0",
+    "manifest": "docs/core/domain-ports-01/ce010-producer-19/manifest.json",
+    "manifest_sha256": "e0e21f0a8d3a735f635c81b128226e44e6015cd2ac3261b7d23351e9486ab3ec",
+    "inventory_9_payload_bytes_SHA256_Git_identities": "MATCH",
+    "factory": "src/lib/core/ce010-request-binding-v1.ts#createCoreCe010RequestRuntimeV1"
+  },
+  "composition": {
+    "strategy": "Exact Core6adb snapshot + full CE common-ancestor..successor overlay; Core-owned source never edited or copied into CE branch",
+    "common_ancestor": "62f3c4ea3280821d3df69cd5d0cfbd10fbf6cb6d",
+    "before_overlay": "CE989 apply --check and apply PASS",
+    "Guide_paths_verified_identical_to_CE989": 39,
+    "Core_source_paths_verified_identical_to_Core6adb": 69,
+    "Core_source_identity_inventory": [
+      {
+        "path": "src/lib/core/airprop-companion-mapping-v1.ts",
+        "sha256": "9049c94a462c6e3955a5e7bb1ef3f9f21ffb572ce45aad59690f878d08c88e08",
+        "git_blob": "29da91ea442a758b046b8868747e5418bba37687"
+      },
+      {
+        "path": "src/lib/core/airprop-read-host-v1.ts",
+        "sha256": "bfe03bd3962fbf49c7628b4d316591a68e2335a7c676a1c91082aa2ff464717a",
+        "git_blob": "fe730b5db57544464e57414fedf95d45cc45eb92"
+      },
+      {
+        "path": "src/lib/core/airprop-read-selector-queries-v1.ts",
+        "sha256": "93e30ce9a1e8f55da4f26e3e2a8a0d7fb8bdc0213d61ad592beb4e86d4492cd1",
+        "git_blob": "06a4935c3a2e80d921e8c669c746cb4d3a9b342a"
+      },
+      {
+        "path": "src/lib/core/authenticated-session-runtime-v1.ts",
+        "sha256": "dd1e8c34380a3f1d991462c9f8b62e8442984d130ea9ca8aa1b004df814b3ca8",
+        "git_blob": "00d3a455366b23c9653f6172775c88244b92acb8"
+      },
+      {
+        "path": "src/lib/core/ce010-query-profile-v1.json",
+        "sha256": "0069780e3f14a056800f6923b251b47a5d303d1ab2dfbb40ea448f7ada751839",
+        "git_blob": "8f76d65962deb52967d615d3bec53631fcff5b08"
+      },
+      {
+        "path": "src/lib/core/ce010-request-binding-v1.ts",
+        "sha256": "18c6a299465f9e6838b2ad8cebd92f5785877a28352d310f788f22d349a67d84",
+        "git_blob": "844abbececc0263c42e42a8359bdeef65e390408"
+      },
+      {
+        "path": "src/lib/core/ce012-combined-stored-relation-v1.ts",
+        "sha256": "2d775a6cc629c6b4bb2934345509421a461713cdcc1ba6309680947bc5f46938",
+        "git_blob": "db79cc649189c73d00692c023cbe59e9f21090cc"
+      },
+      {
+        "path": "src/lib/core/ce012-documents-joint-candidate-v1.ts",
+        "sha256": "cef58f74dc0096c2520edb6cf3f1077d822f5c870a9359962f9e009463626f3a",
+        "git_blob": "38b65bb50a2dec68a5b2a0d4788eb6fe9125e4d9"
+      },
+      {
+        "path": "src/lib/core/ce012-host-terminal-checkpoint-v1.ts",
+        "sha256": "4765e3d17fe12b41369a350afff7f62fc94bf03a3098d6c58c92ca63107bb29d",
+        "git_blob": "1d90f5c7badeaf14a3e922d788355ab90d14148b"
+      },
+      {
+        "path": "src/lib/core/ce012-replay-only-preflight-v1.ts",
+        "sha256": "a898905cc40118903f2d3f1c7cbc11631f8c0fc5fd8d99e97d940331fa14e459",
+        "git_blob": "ca9ca44cf7561e7df442200c47cff4a86fc59a82"
+      },
+      {
+        "path": "src/lib/core/ce012-stored-relation-v1.ts",
+        "sha256": "d6e8495f4f03c46076c3d4fb15c6174eccef8a4c161c644b5976ceeb2aed69f0",
+        "git_blob": "79456ecc7e5b372f01eb6422c48d0826e9512dab"
+      },
+      {
+        "path": "src/lib/core/ce012-terminal-authority-port-v1.ts",
+        "sha256": "c58e24ef2b00edb0524e43de145d8990ea4e6846b7d175399aaad7a9a7decf0a",
+        "git_blob": "1e89805d8b8565c0b0a5ea1e0857c6553d057a82"
+      },
+      {
+        "path": "src/lib/core/communication-request-receipt-v1.ts",
+        "sha256": "568d85cf313c8fc161caad39e8a619d0dfd54d7505e8f5f00851b72bbdd19b0f",
+        "git_blob": "f6455dc1210de036ab0d789eed8356cdceb0e079"
+      },
+      {
+        "path": "src/lib/core/communications-private-message-request-audience-provider-v1.ts",
+        "sha256": "487aa0fd69f3e5222870cfead3ab2e0a97bb239a9240099f0d6fe027934b96e2",
+        "git_blob": "f5cb4a496fc824e905361d13e7ba2921d8ffb0a3"
+      },
+      {
+        "path": "src/lib/core/communications-private-message-subject-provider-v1.ts",
+        "sha256": "832a9481232662e3411a67ff9b2b81f8a5a842af4795381a1837faa5a2cb6248",
+        "git_blob": "3b3d1be7009986bd08d7c476bcfa75d5c17d7601"
+      },
+      {
+        "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+        "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+        "git_blob": "e67df2d947608f546dab42dba88b5bdc418cbffb"
+      },
+      {
+        "path": "src/lib/core/current-authority-transaction-port-v1.ts",
+        "sha256": "02e0b85d1dba7ca87ec0eddff5d3f3552bed518794888e9ee0f34c0de962c14f",
+        "git_blob": "3e70731254c06ec69a22ef5e2fa689b78ec22aa9"
+      },
+      {
+        "path": "src/lib/core/current-unit-property-read-selector-v1.ts",
+        "sha256": "6be30696e2f75d94d62b105911f4e8df977383487baf8fe37bcfc8a574667844",
+        "git_blob": "d56d0509b797cd345cc18fd5c69c0b1f22de10ac"
+      },
+      {
+        "path": "src/lib/core/current-unit-property-selector-v1.ts",
+        "sha256": "cf8649d0196c4d87e6bb17a756ab24194faddd1cec382cde97e17c5466c55dcd",
+        "git_blob": "454e547a66aad25316e5c9232a0921ccbb874024"
+      },
+      {
+        "path": "src/lib/core/documents-command-binding-v1.ts",
+        "sha256": "830a55fe90049cc1d5653fb72787087c79867fbfee2ca7c57ed35267b9a7503b",
+        "git_blob": "715a775f8984ec984364fda1e187afc14f97c4e1"
+      },
+      {
+        "path": "src/lib/core/documents-download-recheck-v1.ts",
+        "sha256": "577bc510e90ef8cf7f81d9b8cd074f1a52c23fdff16b41ed696ccb37daf68fea",
+        "git_blob": "a95a5a44afdbefdb8fd135692b83c56e926b2bea"
+      },
+      {
+        "path": "src/lib/core/documents-intent-replay-provider-v1.ts",
+        "sha256": "c5eae8e8b9d226901f51f998fed67c69124205a09a22f7eed3bbe7a95f14bb28",
+        "git_blob": "4f9d4f27367a1a8257fd5ca232972881aa105340"
+      },
+      {
+        "path": "src/lib/core/documents-replay-only-v1.ts",
+        "sha256": "d90d063d71f75326dc3744b6a2f358bc7441454fefc00bcccec6bb882796d844",
+        "git_blob": "cd83d8bd435366e5a079ab76c8aaefafb1079f17"
+      },
+      {
+        "path": "src/lib/core/documents-upload-custody-v1.ts",
+        "sha256": "35990c6f571ed2957854a3d535f83ab2c2793a4aa9fda058837737f01f79c428",
+        "git_blob": "831956439161283674b8ffeac32da4a609289a28"
+      },
+      {
+        "path": "src/lib/core/domain-command-identity-v1.ts",
+        "sha256": "6e31298e18708c5d1833d97a5142740f506d19544eaf0a15459df9d69448ae5b",
+        "git_blob": "21fd4ff4cb31885d540a4479ff0d02a4d401799a"
+      },
+      {
+        "path": "src/lib/core/financial-proposal-receipt-v1.ts",
+        "sha256": "c6db34516ef22305a53894810cfac6c92a2072a34a943d146effb9b22bd62a05",
+        "git_blob": "fa45d5a7605cad36fac88d42f85e8322f6232b0e"
+      },
+      {
+        "path": "src/lib/core/functional-command-runtime-v1.ts",
+        "sha256": "f282bbde661a8b4f46aee772f194c44bd96f0278028c85e3ddef61ab8a94eb1e",
+        "git_blob": "ad8f0d72c22a97e6f01881c0339cc2e3ea4be34b"
+      },
+      {
+        "path": "src/lib/core/functional-producers-v1.ts",
+        "sha256": "c62e4603453ef7ec74834c197630623ed8cbc2c4d12451db68d6f31a705f05e7",
+        "git_blob": "4e86555da8c6d20c0a3f85a7c22fa8bfcad8fa96"
+      },
+      {
+        "path": "src/lib/core/functional-read-queries-v1.json",
+        "sha256": "ef00194e555e28f9ce9601ae61435aba138f42999dcbd6f4bc9c62acac9d07c2",
+        "git_blob": "a1b4f673d5b4d491fe3abfa75dd62882b536f818"
+      },
+      {
+        "path": "src/lib/core/functional-request-auth-v1.ts",
+        "sha256": "50f3f913366cd93aa8342ce6d653a847ab3f2a90335777334b235bdf0a6c66e6",
+        "git_blob": "bb153cbe3eb2a440b7b5e374f2cdc907d075ef11"
+      },
+      {
+        "path": "src/lib/core/guide-request-binding-v1.ts",
+        "sha256": "1c0fd98df4b9bc45ebd9fb499db34e54cf9585819a733ac939fbfaa77971a2f9",
+        "git_blob": "e850728f49d2deb6ea209101ac48e3c307fef4bf"
+      },
+      {
+        "path": "src/lib/core/jurisdiction-domain-artifact-resolver-v1.ts",
+        "sha256": "285770357c485b8cd05121f30f9220d765d4d14ba017066c179b62745c348e69",
+        "git_blob": "d33303efdc2dfc85f473ad284c9adfbd10a3302d"
+      },
+      {
+        "path": "src/lib/core/jurisdiction-domain-artifact-transaction-evidence-v1.ts",
+        "sha256": "e30ced9821eb8f8cc99dac45b1ae1461d46d53e34f1a7cdae774c55d54281981",
+        "git_blob": "f9dc899ab0d3e42c2396b61880e3fcb69fa98161"
+      },
+      {
+        "path": "src/lib/core/jurisdiction-domain-artifact-v1.ts",
+        "sha256": "8ec7d8b4a0d0ef80ffdbb06f48b9c5cb65c0fc8fa5c8b0fd0f42cc0e746fd168",
+        "git_blob": "caf6c1394b684c93a7ca8b43aff49d6ed75e1aac"
+      },
+      {
+        "path": "src/lib/core/jurisdiction-profile-selector-v1.ts",
+        "sha256": "279c75fc6b0401836fbad5268fcc6ca5b51a16878b2d712f1502adda25b268ad",
+        "git_blob": "cbbb10f9945066b857bda26eb6b48bce5fe0e4ba"
+      },
+      {
+        "path": "src/lib/core/jurisdiction-profile-v1.ts",
+        "sha256": "70781991127452ce50f7b6974f6c68edd06508ab2ac13366001c162873438487",
+        "git_blob": "05a4251c100c85a16d0515054e26671d578c66c1"
+      },
+      {
+        "path": "src/lib/core/lease-handover-v1.ts",
+        "sha256": "c62aded55c07613566ef5b7abd099a7d25dadf1c5805e109455698c3635ae820",
+        "git_blob": "f10d659c407d9a62b485a7b0dec1d187d8dfe471"
+      },
+      {
+        "path": "src/lib/core/listing-command-binding-v1.ts",
+        "sha256": "cc89f17fb7b9f2fb20a5c384a9c3ab204040f683541a3a09aac13d85f1a34b6e",
+        "git_blob": "9631a43b09a6cd18280eb9dd4baaff9e5eb9a811"
+      },
+      {
+        "path": "src/lib/core/listing-ownership-adoption-query-v1.ts",
+        "sha256": "ff9c433f386e33ca7881df7744462930d74b846f567085c33502d14d801bfd4f",
+        "git_blob": "fd93da3402d217ef46fdd538dcff5f63b5762575"
+      },
+      {
+        "path": "src/lib/core/listing-ownership-companion-queries-v1.ts",
+        "sha256": "e95f1ba5426a069b0b2f7a78de6da8b1b9e449ec7f282dedbff6ee0ee9598f8e",
+        "git_blob": "1a63af09d09a51eb445d4dbb47005fd5836d6516"
+      },
+      {
+        "path": "src/lib/core/listing-ownership-companion-v1.ts",
+        "sha256": "96b36fcaddd59c5e12ade8f15386c277c86adb20966e57dc396871434f4c1420",
+        "git_blob": "8e426d7f00a247b0a78fc90a766b03b74dfcd11b"
+      },
+      {
+        "path": "src/lib/core/operations-execution-receipt-v1.ts",
+        "sha256": "f372097ede71c525d963e3ab6b9cd11d1a5ca117b95c8abb6cc47d84c40b9bc5",
+        "git_blob": "0f5faf23806ecd1ffb6ef499b8d7d26996097b89"
+      },
+      {
+        "path": "src/lib/core/owner-portfolio-projection-v1.ts",
+        "sha256": "8483628ad449a812ec7e413306b63afc9f201a6a14a0be02d93397b0b2530202",
+        "git_blob": "325f8082d8c2138a8a5abbf144f59756a3002b64"
+      },
+      {
+        "path": "src/lib/core/ownership-transfer-v1.ts",
+        "sha256": "868559d867c021a3d6b73d1c711dc7426ebcbd5867e1120b950c552a005d3c90",
+        "git_blob": "ec93e733bcab2bb96f6214edcd53048413fa74f9"
+      },
+      {
+        "path": "src/lib/core/platform-role-bound-pool-v1.ts",
+        "sha256": "a09a91da3d89f785a49559999482db6994a7607b375faa38aa0f994701522e17",
+        "git_blob": "2e91086349247b00c461d83c3cdf4ce5be6026be"
+      },
+      {
+        "path": "src/lib/core/postgres-transaction-host-v1.ts",
+        "sha256": "e269802f7b4b5b376eb3910d9f1b55f42eb8abc87d1cf75fd9d019a0ffd2297a",
+        "git_blob": "8a2c5e97f929af3b52c66656046143fbf7fcbba1"
+      },
+      {
+        "path": "src/lib/core/private-service-development-binding-v1.ts",
+        "sha256": "543e6dbb4120497737d5957f665505529e6100cc09c3969ca01b034347f41253",
+        "git_blob": "55d0f65e7f10cb3db93887aa9d3b92742275bbb7"
+      },
+      {
+        "path": "src/lib/core/product-rights-v1.ts",
+        "sha256": "0a150e396c76ddff9d9757c2e06174b3177c11c60126ef525b2a46c084a70ae6",
+        "git_blob": "412ea21931f9c8fdc7e5b5706d60d92be391c763"
+      },
+      {
+        "path": "src/lib/core/read-authority-profile-v1.ts",
+        "sha256": "0b32914d66e743e4148882d88e9cc06bffee56686fbd355236eafd84aaa9c75d",
+        "git_blob": "6246a995bcbb263693033e5ae01e0f39d4860568"
+      },
+      {
+        "path": "src/lib/core/resource-authority-contract-v1.ts",
+        "sha256": "435841041ee5bc14e62eac44b2875ab7b700e2636ae3d580071db96932607eaf",
+        "git_blob": "455725edc026e20bccffed2c05ed3b675ad9f777"
+      },
+      {
+        "path": "src/lib/core/resource-contracts-v1.ts",
+        "sha256": "26ef73f7e8e9cc234b7fd2d8aac83ea3e69955f659bea57d5dba9337c821124d",
+        "git_blob": "3eedf8148bf2749621c21b064bd44880f5037cff"
+      },
+      {
+        "path": "src/lib/core/scoped-server-clock-v1.ts",
+        "sha256": "2753aee2dce0ed13e1dc8307eacfdb7f60f5bbacd90421968bcffe662f3a1823",
+        "git_blob": "d94ff4283f1920f643f23d860cbdca089a0303b2"
+      },
+      {
+        "path": "src/lib/core/service-app-read-v1.ts",
+        "sha256": "5a7741338c20281473154829632e4d27fa8251b2d5e14913cf524bbc9fca0607",
+        "git_blob": "25b25bf59fe653fe8055681443e73b08a114d862"
+      },
+      {
+        "path": "src/lib/core/service-authoring-agreement-runtime-v2.ts",
+        "sha256": "8bdbc5d29347378ff6835864b337a887a0e6d88e97e8bd2e5e25e7683fcb8335",
+        "git_blob": "7d6f8156d6255079b7a5339647442e28e47e24e5"
+      },
+      {
+        "path": "src/lib/core/service-authoring-identity-port-v1.ts",
+        "sha256": "f13a0eb99686a13b9fca4f88824b75df3dc3adede048fa8eb6428cd2776d27ac",
+        "git_blob": "2ba51a7d66d902c6e44861012bdaaddfd91079d9"
+      },
+      {
+        "path": "src/lib/core/service-functional-binding-v1.ts",
+        "sha256": "7951bb8f6f3a1507a8006fe3ff1d430a1f8b8be25c3e4793c3b1bcb498ba4ded",
+        "git_blob": "7c545113a92e12e8bac27bf9f87e4ebe6e7e872e"
+      },
+      {
+        "path": "src/lib/core/service-offering-authoring-custody-v1.ts",
+        "sha256": "8ca0a476aa08a761d6aa1ccbcc274a02ab78e831b11b1dc966dabb5d21610d7d",
+        "git_blob": "924fb87d7a13f22027eca9905599aaf4e0b0a4c3"
+      },
+      {
+        "path": "src/lib/core/service-offering-read-binding-v1.ts",
+        "sha256": "9b476da02cfa64e1c390643cb16ff885074ba312bada4f3bd0b57e756b20e8c2",
+        "git_blob": "a8332baa289c2aa5612179f49dd0f9664ed9a7c0"
+      },
+      {
+        "path": "src/lib/core/service-offering-revise-source-port-v1.ts",
+        "sha256": "354da01e744a342e19cd837496e874b429604adc498c26033c9f0e500c93885d",
+        "git_blob": "b0c0e753ee5b382014c0b1deffd1891b70458c8a"
+      },
+      {
+        "path": "src/lib/core/service-offering-revision-source-v1.ts",
+        "sha256": "d5b251e1b1515ff0524af10322f16eabf890d65d4eefbb21dc423d1585e396ea",
+        "git_blob": "7df35d153c9fda60e989a048d8c0b26bd18fab76"
+      },
+      {
+        "path": "src/lib/core/service-original-current-boundary-v1.ts",
+        "sha256": "ee39953aff550eae0f093480629488efcd3a5fa7dc425e2e459e41c5d3570d97",
+        "git_blob": "4d8eae9f2cc3a817ed67d5e71d9759b10068fca0"
+      },
+      {
+        "path": "src/lib/core/service-quote-command-binding-v1.ts",
+        "sha256": "cf7e44210df9ebb89e5a855d5adb1a97d531bb820eb741e8a08f6d97b8aec2eb",
+        "git_blob": "cf24162672b1751643b93050409f777ec7cde5dd"
+      },
+      {
+        "path": "src/lib/core/service-s01/errors-v1.ts",
+        "sha256": "be1b63b6c9f62ae9d152a2ddda10d18508bd7426e5b66f2b9d3566d8f2b05e07",
+        "git_blob": "5d0408872fa2116bc49ca7ae5fa9b670030eb435"
+      },
+      {
+        "path": "src/lib/core/service-s01/offering-disclosure-policy-v1.ts",
+        "sha256": "3d57e846dd782a4443b637a4bf9fc8337fda471f36d56ad3ae5eaab0830c3df6",
+        "git_blob": "9cba2cc22501c0695837d2c800c00fa03d24f236"
+      },
+      {
+        "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+        "sha256": "76855adaf81aa5446839754d3414b99761d0c60674e6f337b06ebf89eaadf326",
+        "git_blob": "e23f0c62eec6d258cf29975bbe3c20ff5eef2707"
+      },
+      {
+        "path": "src/lib/core/shared-capacity-time-v1.ts",
+        "sha256": "5a6a830a2187302f2b8cb6a55f1dfb0a7282439eb652846c1e09b74b40f5635d",
+        "git_blob": "ae53c4a85fdb95d40b3cb36ebb46395ae531bbfa"
+      },
+      {
+        "path": "src/lib/core/transaction-provider-evidence-v1.ts",
+        "sha256": "515c173f1fa1aeed01ef1af465acf8cee6504cc09bbcf3d137549a8150f32d75",
+        "git_blob": "55843685128350c37b43ad0a12f183c7fb94ae1a"
+      },
+      {
+        "path": "src/lib/core/transaction-replay-provider-hook-v1.ts",
+        "sha256": "eb20fa622ba10b9cde6ea8d4d64f1ad9f9eea93f7fba354d03f6959156487dd4",
+        "git_blob": "bfec5bb136abad24a233544d3d63d00db1f8d678"
+      },
+      {
+        "path": "src/lib/core/workspace-authority-decision-v2.ts",
+        "sha256": "67f4c17fe9edd351b69aff8d400d88c3b71af98c6037a7b6378c1a7b9f47b927",
+        "git_blob": "de5d40c74b1ebd897e978f2576a7d19a3cca1dcb"
+      }
+    ],
+    "composed_Tree": "EXTERNAL_FINAL_DELIVERY_RECORD_AVOIDS_SELF_HASH_CYCLE",
+    "standalone_CE_branch": "Requires official Core6adb before compilation; only composed candidate was typechecked",
+    "recipe": "README.md"
+  },
+  "inventory_excluding_self": [
+    {
+      "path": "src/app/api/customer/v1/community/base/route.ts",
+      "before": {
+        "bytes": 4384,
+        "sha256": "3a46730bab724714c413802a7da512c6f836374afc00b405a98bb4d0f8460606"
+      },
+      "after": {
+        "bytes": 5131,
+        "sha256": "2192521ed308093379df9031eb4839d2193818456b61ebc17318e9a9bcd48d4d",
+        "git_blob": "e485e4d5954110a47d6bf7e5cb06293f22432657"
+      }
+    },
+    {
+      "path": "src/lib/community/community-announcement-platform-provider-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 623,
+        "sha256": "5136a195edb2afada122c0fbb2d08f84df2ee9bb89a619ce1dff7787106c7163",
+        "git_blob": "d49899970ce1abcecb35f37626530980470273ac"
+      }
+    },
+    {
+      "path": "scripts/test-ce010-core6adb-route-coupling.mjs",
+      "before": null,
+      "after": {
+        "bytes": 7450,
+        "sha256": "8d49e0b57c574109dbc484c1996e7121b50870a6a41b87488a6c24b810931b87",
+        "git_blob": "afba3b70bb8c439f49cb690598772951f3c6309d"
+      }
+    },
+    {
+      "path": "docs/contracts/ce010-community-announcement-01/core6adb-coupling/README.md",
+      "before": null,
+      "after": {
+        "bytes": 6199,
+        "sha256": "ce5988d4d2684059a7f538a9a2ce47c989ae31a989f2d5219d7c986b215bf3c1",
+        "git_blob": "0aa87568d3818feaabe5a604631260dc6b0b4634"
+      }
+    }
+  ],
+  "preserved": [
+    {
+      "path": "src/lib/community/community-announcement-http-v1.ts",
+      "sha256": "d3b50b33dd0189a53a584cd494d64ff883b7c089e339c50bbb8d76a9279a5765",
+      "status": "IDENTICAL_TO_CE989_IN_SOURCE_AND_COMPOSITION"
+    },
+    {
+      "path": "src/lib/community/community-announcement-provider-v1.ts",
+      "sha256": "b34f8cdcd332a9336ba4da11655722d21364dd411879cdaa31cf88ae8bb7dd56",
+      "status": "IDENTICAL_TO_CE989_IN_SOURCE_AND_COMPOSITION"
+    },
+    {
+      "path": "src/lib/community/community-announcement-runtime-v1.ts",
+      "sha256": "fd9f1ffe4ce21e54588508c51a1d7f66284a9fdc61159c3bb7d60b0f93f48279",
+      "status": "IDENTICAL_TO_CE989_IN_SOURCE_AND_COMPOSITION"
+    },
+    {
+      "path": "src/lib/community/community-command-session.ts",
+      "sha256": "7f2b4652a4c978e0175e6fe15ae399b2d69504f2a90f6a4cad0e0dddef3c16ed",
+      "status": "IDENTICAL_TO_CE989_IN_SOURCE_AND_COMPOSITION"
+    },
+    {
+      "path": "scripts/lib/ce010-install-packet.mjs",
+      "sha256": "76a4e164b415ed8dd261381f95a762fd21252db723fe5e2f5b23b467713ba434",
+      "status": "IDENTICAL_TO_CE989_IN_SOURCE_AND_COMPOSITION"
+    },
+    {
+      "path": "scripts/test-ce010-recovery-target-binding.mjs",
+      "sha256": "998ed1ddc5f22cba943e268da4ff39d8cc0a052a754124dacb10f331374bdbbc",
+      "status": "IDENTICAL_TO_CE989_IN_SOURCE_AND_COMPOSITION"
+    },
+    {
+      "path": "supabase/install/ce010-announcement-v1/30-recovery.sql",
+      "sha256": "37ed6aaac4981be3110f3aae261eb7de06d7cc14e95ca83cc41c1e8f97d0b356",
+      "status": "IDENTICAL_TO_CE989_IN_SOURCE_AND_COMPOSITION"
+    },
+    {
+      "path": "supabase/install/ce010-announcement-v1/10-domain-candidate.sql",
+      "sha256": "91e97be48b473852b16d41fa1437bd6ec7e0f8343cdb1a1df7ba80ea194fa5dd",
+      "status": "IDENTICAL_TO_CE989_IN_SOURCE_AND_COMPOSITION"
+    },
+    {
+      "path": "supabase/install/ce010-announcement-v1/20-verify.sql",
+      "sha256": "364509e859568524f66cdd74d443e4c2f0bd0e548de9ead8b962feb6bf897609",
+      "status": "IDENTICAL_TO_CE989_IN_SOURCE_AND_COMPOSITION"
+    },
+    {
+      "path": "supabase/install/ce010-announcement-v1/00-preflight.sql",
+      "sha256": "364509e859568524f66cdd74d443e4c2f0bd0e548de9ead8b962feb6bf897609",
+      "status": "IDENTICAL_TO_CE989_IN_SOURCE_AND_COMPOSITION"
+    },
+    {
+      "path": "supabase/install/ce010-announcement-v1/packet.json",
+      "sha256": "a1c7a2f357cd319d89e83d7a3fcb971fdfd223b47aa3b02e3ea1c7ac8bc9892a",
+      "status": "IDENTICAL_TO_CE989_IN_SOURCE_AND_COMPOSITION"
+    }
+  ],
+  "cases_actually_run": [
+    {
+      "case": "actual GET original Request/official factory; publish denied/read allowed",
+      "result": "PASS"
+    },
+    {
+      "case": "actual POST prepare/execute UNKNOWN + explicit original same-wire replay, one effect",
+      "result": "PASS"
+    },
+    {
+      "case": "NULL provider preserves reader and blocks native envelope",
+      "result": "PASS"
+    },
+    {
+      "case": "selected invalid Guide/SERVICE target503 without fallback",
+      "result": "PASS"
+    },
+    {
+      "case": "either real safety helper missing stops before consumer SQL",
+      "result": "PASS"
+    },
+    {
+      "case": "Auth401 and revoke403 after wait without legacy fallback",
+      "result": "PASS"
+    }
+  ],
+  "command": "node scripts/test-ce010-core6adb-route-coupling.mjs (IN_COMPOSED_CANDIDATE)",
+  "evidence_class": "ACTUAL_ROUTE_CORE_FACTORY_CE_HTTP_PROVIDER_C03_WITH_CONTROLLED_SDK_AND_PG_ONLY",
+  "static_checks": {
+    "ES5_typecheck_composed_candidate": "PASS",
+    "focused_ESLint_max_warnings_0": "PASS",
+    "new_MJS_node_check": "PASS",
+    "git_diff_check": "PASS"
+  },
+  "toolchain": {
+    "Node": "v24.19.0",
+    "Next": "16.4.1",
+    "Zod": "4.6.6",
+    "TypeScript": "5.9.3",
+    "install_or_package_config_changes": "NONE"
+  },
+  "not_run": [
+    "previous14 Core producer suite",
+    "previous23 packet suite",
+    "previous3 recovery suite",
+    "old CE/Guide suites",
+    "SQL/parser/PG/real Auth",
+    "roles/ACL/install/target/activation",
+    "native API/browser/restart"
+  ],
+  "runtime_slot": {
+    "path": "src/lib/community/community-announcement-platform-provider-v1.ts",
+    "symbol": "CE010_PLATFORM_PROVIDER_V1",
+    "value": null,
+    "input_type": "Parameters<typeof createCoreCe010RequestRuntimeV1>[0]",
+    "factory_input": [
+      "runtime_pool",
+      "target",
+      "connection_model"
+    ],
+    "no_fallback_after_selection": true
+  },
+  "remaining_gates": [
+    {
+      "owner": "Platform + Core",
+      "input": "real assert_ce010_role_safety_v1() and acquire_ce010_role_safety_lease_v1() implementations, helper owner/body/ACL and role-catalog lease through settlement",
+      "status": "NOT_READY_NOT_PROVEN"
+    },
+    {
+      "owner": "Platform + App",
+      "input": "private server-only CE010 Pool/target/connection_model; actual role/column ACL/RLS/owner/defaultACL/SET graph, exact target and query admission",
+      "status": "NULL_NOT_READY"
+    },
+    {
+      "owner": "Platform + QA",
+      "input": "destroy-on-release capacity, real Auth/currentness/denial/concurrency/UNKNOWN/restart/native acceptance",
+      "status": "NOT_RUN_NOT_PASS"
+    }
+  ],
+  "closed_gate": "BLOCKED_ON_CORE_SOURCE no longer applies to source coupling",
+  "native": "NOT_RUN_NOT_PASS",
+  "central_record": "Coordinator-owned; no Page or Issue write",
+  "automation": "نیازمند بررسی؛ coupling سورس قابل تکرار است، admission و اجرای واقعی با Platform و پذیرش QA.",
+  "historical_packet_binding": "Old packet retains earlier Core source pins; not regenerated, not installation-admitted for Core6adb. Core/Platform must reconcile pins/query/role/postimage before any separately authorized installation."
+}

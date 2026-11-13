@@ -1,0 +1,19 @@
+/** New seal/version-boundary cases only; no native/operator/business suites. */
+import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
+import {readFileSync} from 'node:fs';
+import {validateSourceSuccessorV1,HISTORY,REVIEWED} from './check.mjs';
+const root=process.env.CORE17_SEAL_TEST_REPO??process.cwd();
+const git=(...args)=>execFileSync('git',args,{cwd:root,stdio:['ignore','pipe','pipe'],maxBuffer:12*1024*1024});
+const readGit=(ref,path)=>git('show',ref+':'+path),listGit=(ref,path)=>git('ls-tree','--name-only',ref+':'+path).toString().trim().split('\n');
+const options=()=>({root,readGit,listGit,readCurrent:path=>readGit(REVIEWED,path),listCurrent:path=>listGit(REVIEWED,path)});
+const results=[];
+async function check(name,run){await run();results.push({name,result:'PASS'});console.log('PASS '+name);}
+await check('positive exact PR479 source; original 62-file historical validator plus current 73-file identity',async()=>{const result=await validateSourceSuccessorV1(options());assert.equal(result.historical_product_sources,62);assert.equal(result.current_product_sources,73);assert.equal(result.native_execution_eligible,false);assert.equal(result.native,'NOT_RUN_NOT_PASS');});
+await check('tampered historical manifest cannot relabel old runtime/evidence',async()=>{const o=options(),original=o.readCurrent;o.readCurrent=path=>{const b=original(path);if(path.endsWith('/manifest.json')){const m=JSON.parse(b);m.product_sources.find(p=>p.path.endsWith('/functional-command-runtime-v1.ts')).bytes=39845;return Buffer.from(JSON.stringify(m));}return b;};await assert.rejects(validateSourceSuccessorV1(o),/HISTORICAL_MANIFEST_MUST_NOT_BE_RESEALED/);});
+await check('same-size changed current runtime rejected',async()=>{const o=options(),original=o.readCurrent;o.readCurrent=path=>{const b=Buffer.from(original(path));if(path==='src/lib/core/functional-command-runtime-v1.ts')b[b.length-2]=32;return b;};await assert.rejects(validateSourceSuccessorV1(o),/CURRENT_PRODUCT_SOURCE_DRIFT/);});
+await check('extra imported product dependency rejected even when otherwise valid source',async()=>{const o=options(),original=o.readCurrent;o.readCurrent=path=>path==='src/lib/core/unreviewed-seal-extra.ts'?Buffer.from('export const extra=1;\n'):path==='src/lib/core/functional-command-runtime-v1.ts'?Buffer.concat([original(path),Buffer.from("\nimport './unreviewed-seal-extra';\n")]):original(path);await assert.rejects(validateSourceSuccessorV1(o),/UNREVIEWED_PRODUCT_DEPENDENCY/);});
+await check('extra historical operator file rejected',async()=>{const o=options();o.listCurrent=path=>[...listGit(REVIEWED,path),'unreviewed.mjs'];await assert.rejects(validateSourceSuccessorV1(o),/EXTRA_OR_MISSING_OPERATOR_SOURCE/);});
+await check('unreviewed successor pin/native relabel rejected',async()=>{const o=options(),profile=JSON.parse(readFileSync(new URL('./source-successor.json',import.meta.url)));profile.native_execution_eligible=true;o.profileBytes=Buffer.from(JSON.stringify(profile));await assert.rejects(validateSourceSuccessorV1(o),/EXACT_REVIEWED_SUCCESSOR_PROFILE/);});
+await check('native execution guard remains original and fail-closed for new App',async()=>{const operator=readGit(HISTORY,'scripts/core17-native-cases-v3/operator.mjs');assert.deepEqual(readGit(REVIEWED,'scripts/core17-native-cases-v3/operator.mjs'),operator);assert.match(operator.toString(),/FD7_APP_MUST_STAY_FIXED/);assert.match(operator.toString(),/FD7_RUNTIME_COMPATIBILITY/);assert.deepEqual(readGit(REVIEWED,'scripts/core17-native-cases-v3/manifest.json'),readGit(HISTORY,'scripts/core17-native-cases-v3/manifest.json'));});
+console.log(JSON.stringify({contract:'core17.source-successor-negative-receipt.v1',reviewed:REVIEWED,groups:results,node:process.version,SQL_Auth_native:false,old_controlled_54:'NOT_REPEATED'}));

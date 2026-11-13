@@ -34,6 +34,11 @@ export function sourceRow() {
     current_authority_recheck_required: true, reusable_as_command_authority: false,
     decision: 'allowed', reason_codes: ['current_effective_permission_allowed'] };
   return { ...scope, tenant_id: id(6), listing_id: id(30), listing_version: 1, property_id: id(8), unit_id: id(9), status: 'published',
+    // SYNTHETIC stored binding for focused tests; never native persistence proof.
+    selected_binding: { state: 'record', value: { ...scope, tenant_id: id(6), spec_version: 4, selection: {
+      listing_id: id(30), listing_version: 1, property_id: id(8), unit_id: id(9), resource_id: id(9), resource_version: 4,
+      resource_type: 'unit', party_id: id(7), party_kind: 'person', relationship_id: id(4), relationship_version: 2, relationship_kind: 'ownership',
+    } } },
     available_from: '2026-11-02T10:00:00Z', available_until: null,
     core: {
       request: { contract_version: 'core-resource-authority.v1', evaluation_time: time,
@@ -60,13 +65,13 @@ export function actionProjection(row, actor, selection, action, allowed = true) 
 }
 export function fixture() {
   const load = loader(), contract = load('src/lib/airprop/listing-flow-contract-v1.ts');
-  const { readListingFlow } = load('src/lib/airprop/listing-flow-read-v1.ts');
+  const { readListingFlow, ListingSourceReadUnavailable } = load('src/lib/airprop/listing-flow-read-v1.ts');
   const { createListingFlowApi } = load('src/lib/airprop/listing-flow-api-v1.ts');
   const state = { row: sourceRow(), actor: id(3), aal: 'aal2', manage: true, readDenied: false, writes: 0, bridgeCalls: 0,
     ledger: new Map(), malformed: false, mode: 'normal' };
   const read = async (actor, selectedScope) => {
     assert.equal(actor, state.actor);
-    if (state.readDenied || selectedScope.context_id !== state.row.context_id || selectedScope.workspace_id !== state.row.workspace_id) throw Error('SYNTHETIC_DENIAL');
+    if (state.readDenied || selectedScope.context_id !== state.row.context_id || selectedScope.workspace_id !== state.row.workspace_id) throw new ListingSourceReadUnavailable('SCOPE_DENIED');
     const row = structuredClone(state.row);
     if (!Object.hasOwn(row, 'action_projections')) {
       const selection = (await readListingFlow(async () => [row], actor, selectedScope))[0].selection;
@@ -87,6 +92,7 @@ export function fixture() {
     if (c.expected_version !== state.row.listing_version || state.row.status === 'reserved'
       || (c.action === 'republish_listing' ? state.row.status !== 'withdrawn' : state.row.status !== 'published')) return { status: 'conflict' };
     state.writes++; state.row.listing_version++;
+    if (state.row.selected_binding?.state === 'record') state.row.selected_binding.value.selection.listing_version = state.row.listing_version;
     state.row.status = c.action === 'withdraw_listing' ? 'withdrawn' : 'published';
     if (c.action !== 'withdraw_listing') { state.row.available_from = c.available_from; state.row.available_until = c.available_until; }
     const value = { version: 1, ...scope, command_key: c.idempotency_key, selection: request.selection, core_receipt_id: id(100 + state.writes),

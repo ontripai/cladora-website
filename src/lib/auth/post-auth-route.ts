@@ -26,6 +26,7 @@ const ALLOWED_NEXT_KEYS = new Set([
   'pilot-reviewer',
   'services',
   'app/services',
+  'app/experience/guides',
   'account',
 ]);
 
@@ -61,6 +62,7 @@ export function sanitizeAllowedNextRoute(
 
   // This assembly contains the SERVICE journey; other destinations retain
   // their own legacy producers only in standard profiles.
+  if(cleanKey==='app/experience/guides')return `/${lang}/app/experience/guides`;
   if (isAssembly) {
     return getCustomerServicesRoute(lang);
   }
@@ -160,4 +162,14 @@ export async function resolvePostAuthRoute(
   }
 
   return destination;
+}
+
+/** Explicit Guide intent uses Auth only, never SERVICE/bootstrap/Platform access. */
+export async function resolveGuidePostAuthRouteV1(supabase:SupabaseClient<Database>,lang:Language):Promise<string>{
+ const [factors,assurance]=await Promise.all([supabase.auth.mfa.listFactors(),supabase.auth.mfa.getAuthenticatorAssuranceLevel()]);
+ if(factors.error)throw factors.error;if(assurance.error)throw assurance.error;
+ const next='app%2Fexperience%2Fguides';
+ if(!(factors.data?.totp??[]).some(f=>f.status==='verified'))return `/${lang}/mfa/setup?reason=customer_required&next=${next}`;
+ if(assurance.data.currentLevel!=='aal2')return `/${lang}/mfa?next=${next}`;
+ return `/${lang}/app/experience/guides`;
 }

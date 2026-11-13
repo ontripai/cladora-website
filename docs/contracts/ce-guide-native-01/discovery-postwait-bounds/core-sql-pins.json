@@ -1,0 +1,94 @@
+{
+  "task": "CE-GUIDE-NATIVE-01",
+  "worker": "CLADORA-CE-WORKER-01",
+  "base_parent": "c84f13ffeb97a8365385243c7712216d47a04c4e",
+  "review_owner": "Core",
+  "status": "REVIEW_REQUEST_NOT_ADMITTED_NOT_EXECUTED",
+  "source_path": "src/lib/community/experience-guide-discovery-v1.ts",
+  "symbol": "CE_GUIDE_DISCOVERY_CANDIDATES_SQL_V1",
+  "previous_query": {
+    "bytes": 766,
+    "sha256": "38e105274f5d7fd1dab49b86f93a99b2beafd11af91134b965fac8b15f1fa72d",
+    "sql": "select g.id::text as context_id,m.id::text as membership_id,\n m.tenant_id::text as tenant_id,w.id::text as workspace_id,t.legal_name as tenant_name,r.name as role_name\n from identity.context_grants g join identity.memberships m on m.id=g.membership_id and m.tenant_id=g.tenant_id\n join platform.tenants t on t.id=m.tenant_id join identity.roles r on r.id=m.role_id\n join platform.customer_workspaces w on w.tenant_id=m.tenant_id\n where m.user_id=auth.uid() and m.status='active' and w.archived_at is null and w.lifecycle_status='ACTIVE'\n and m.starts_at<=clock_timestamp() and (m.ends_at is null or m.ends_at>clock_timestamp())\n and g.starts_at<=clock_timestamp() and (g.ends_at is null or g.ends_at>clock_timestamp())\n order by g.id,w.id limit 51 for share of g,m,w"
+  },
+  "candidate_query": {
+    "bytes": 1269,
+    "sha256": "4fbe16a342af4bfdcb42dffb1b3ac8b8dc6ddf3095b3f75027a6ada7386a5f9c",
+    "sql": "select g.id::text as context_id,m.id::text as membership_id,\n m.tenant_id::text as tenant_id,w.id::text as workspace_id,\n case when pg_catalog.octet_length(t.legal_name) between 1 and 1024 and pg_catalog.char_length(t.legal_name)<=256\n  then t.legal_name else null end as tenant_name,\n case when pg_catalog.octet_length(r.name) between 1 and 1024 and pg_catalog.char_length(r.name)<=256\n  then r.name else null end as role_name,\n coalesce(pg_catalog.octet_length(t.legal_name) between 1 and 1024 and pg_catalog.char_length(t.legal_name)<=256\n  and pg_catalog.octet_length(r.name) between 1 and 1024 and pg_catalog.char_length(r.name)<=256,false) as transfer_bounds_valid\n from identity.context_grants g join identity.memberships m on m.id=g.membership_id and m.tenant_id=g.tenant_id\n join platform.tenants t on t.id=m.tenant_id join identity.roles r on r.id=m.role_id\n join platform.customer_workspaces w on w.tenant_id=m.tenant_id\n where m.user_id=auth.uid() and m.status='active' and w.archived_at is null and w.lifecycle_status='ACTIVE'\n and m.starts_at<=clock_timestamp() and (m.ends_at is null or m.ends_at>clock_timestamp())\n and g.starts_at<=clock_timestamp() and (g.ends_at is null or g.ends_at>clock_timestamp())\n order by g.id,w.id limit 51 for share of g,m,w"
+  },
+  "result_private_delta": {
+    "added": "transfer_bounds_valid:boolean, MUST be true; NULL/false/missing fails closed",
+    "tenant_name": "complete original text or SQL NULL on invalid bounds",
+    "role_name": "complete original text or SQL NULL on invalid bounds",
+    "public_response": "unchanged ce-guide-discovery.v1; marker/tenant_id stripped"
+  },
+  "bounds": {
+    "rows_fetched_max": 51,
+    "rows_returned_max": 50,
+    "per_label_characters_max": 256,
+    "per_label_utf8_octets_max": 1024,
+    "per_row_label_utf8_octets_max": 2048,
+    "fetched_label_utf8_octets_max": 104448,
+    "invalid_or_overflow": "whole response unavailable; no dropped row/shortened label/partial success",
+    "scope": "label text wire contribution; not a claim about total memory/framing/driver limits"
+  },
+  "rights_to_review": {
+    "unchanged_relation_columns": {
+      "identity.context_grants": [
+        "id",
+        "membership_id",
+        "tenant_id",
+        "starts_at",
+        "ends_at"
+      ],
+      "identity.memberships": [
+        "id",
+        "tenant_id",
+        "role_id",
+        "user_id",
+        "status",
+        "starts_at",
+        "ends_at"
+      ],
+      "platform.tenants": [
+        "id",
+        "legal_name"
+      ],
+      "identity.roles": [
+        "id",
+        "name"
+      ],
+      "platform.customer_workspaces": [
+        "id",
+        "tenant_id",
+        "archived_at",
+        "lifecycle_status"
+      ]
+    },
+    "unchanged_row_locks": [
+      "identity.context_grants",
+      "identity.memberships",
+      "platform.customer_workspaces"
+    ],
+    "new_builtin_calls": [
+      "pg_catalog.octet_length(text)",
+      "pg_catalog.char_length(text)"
+    ],
+    "checks": [
+      "Verify actual label column types and overload resolution, installed PostgreSQL/driver text encoding (UTF-8), SELECT/lock privileges and RLS under the admitted ordinary runtime/executor roles.",
+      "Verify built-in EXECUTE availability under existing ACL ceiling; do not grant/choose a role or infer PUBLIC/default ACLs.",
+      "Rotate/review only the exact CE candidate SELECT/source pin in the actual Core/Platform closed admission if accepted; no broad allowlist/regex change.",
+      "Confirm role safety/lease plus canonical revision/current-time context/read/session guards remain valid through the final read guard and settlement.",
+      "Actual projection CASE execution, missing/fake marker, oversize Unicode,51row overflow and post-SDK revoke need native review/proof on the admitted target."
+    ]
+  },
+  "not_changed": [
+    "Core source/evaluator/Auth",
+    "Guide platform provider slot NULL",
+    "public discovery schema/client/UI",
+    "Guide command wire/receipt/UNKNOWN",
+    "CE010/QFW-CE010-01 closure",
+    "SQL objects/owners/ACL/RLS/grants/config/package/lock"
+  ],
+  "no_SQL_native_runtime": "NOT_RUN_NOT_PASS"
+}

@@ -1,0 +1,274 @@
+{
+  "contract": "core-documents-producer-15.delivery.v1",
+  "FullSHA": "CONTAINING_COMMIT",
+  "Parent": "a14a6b5b752852d27192529158cac3eaed20c35b",
+  "branch": "codex/core-domain-ports-01",
+  "status": "SOURCE_CANDIDATE_CONTROLLED_COUPLING",
+  "runtime": null,
+  "activation": null,
+  "target_changed": false,
+  "inputs": {
+    "Documents": {
+      "FullSHA": "738a0a12804419af65d4807419b5e22ad56acb64",
+      "Parent": "d50e2351f13c15d543307bdf9bebd87fb5b05705",
+      "Tree": "7dd50e5779b5a9ec4749a734e5babbedcc58ca86",
+      "ZIP": {
+        "bytes": 36088,
+        "sha256": "33d7651b0d4ea16f1256fb2ead87d25acf6d1aec9c08543100d73c539a57375c"
+      },
+      "sole_prerequisite": "6cecfa15b00f445be68817e756d766fb0e6fe026",
+      "producer_inputs": {
+        "bytes": 5417,
+        "sha256": "4f3821e2a0df28085d592f09da91cf4efff9e0af97f67044a166d5e62a376d0d"
+      },
+      "direct_Page_file_readback": "MATCH",
+      "bundle_verify_import": "PASS"
+    },
+    "owner_authority": "explicit reply in same chat: canonical pre-dispatch custody extension permitted"
+  },
+  "inventory": [
+    {
+      "path": "docs/core/domain-ports-01/WORKLOG.md",
+      "before": {
+        "bytes": 17586,
+        "sha256": "68871b152c3581485582db1eeecb5b1c0ce18395a3d8b417007bf8d95a8ce786",
+        "git_blob": "cdaf81f71ab0471d1ebaea67775266048e7366c4"
+      },
+      "after": {
+        "bytes": 19773,
+        "sha256": "631be307e76339db67520714b46f0eb6920671975efcf65bdc6b5f582329acb3",
+        "git_blob": "3df2131fa78943f2f9e8e113a84af9e931c13934"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/documents-producer-15/README.md",
+      "before": null,
+      "after": {
+        "bytes": 8042,
+        "sha256": "9ae104b28c0cce9f60e84d2ae3a44191db8f5ceaf773a7adb843a0c281320374",
+        "git_blob": "00bc2d7f5c62fd9053e7512217e0c762bfd31daa"
+      }
+    },
+    {
+      "path": "src/lib/core/documents-command-binding-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 2931,
+        "sha256": "830a55fe90049cc1d5653fb72787087c79867fbfee2ca7c57ed35267b9a7503b",
+        "git_blob": "715a775f8984ec984364fda1e187afc14f97c4e1"
+      }
+    },
+    {
+      "path": "src/lib/core/documents-download-recheck-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 1789,
+        "sha256": "577bc510e90ef8cf7f81d9b8cd074f1a52c23fdff16b41ed696ccb37daf68fea",
+        "git_blob": "a95a5a44afdbefdb8fd135692b83c56e926b2bea"
+      }
+    },
+    {
+      "path": "src/lib/core/documents-intent-replay-provider-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 5412,
+        "sha256": "c5eae8e8b9d226901f51f998fed67c69124205a09a22f7eed3bbe7a95f14bb28",
+        "git_blob": "4f9d4f27367a1a8257fd5ca232972881aa105340"
+      }
+    },
+    {
+      "path": "src/lib/core/documents-replay-only-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 5176,
+        "sha256": "d90d063d71f75326dc3744b6a2f358bc7441454fefc00bcccec6bb882796d844",
+        "git_blob": "cd83d8bd435366e5a079ab76c8aaefafb1079f17"
+      }
+    },
+    {
+      "path": "src/lib/core/documents-upload-custody-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 12155,
+        "sha256": "35990c6f571ed2957854a3d535f83ab2c2793a4aa9fda058837737f01f79c428",
+        "git_blob": "831956439161283674b8ffeac32da4a609289a28"
+      }
+    },
+    {
+      "path": "src/lib/core/functional-command-runtime-v1.ts",
+      "before": {
+        "bytes": 28792,
+        "sha256": "2733b390aed572f6751a209841ddf1e6429ead6859bc68c6e56ed46a9bef7152",
+        "git_blob": "c0504b734fb77d5d992a7e576d402728d30c2279"
+      },
+      "after": {
+        "bytes": 29684,
+        "sha256": "664e6527b5def43b0208c76341e995e74055c5eee3102b13d32e3d9500123232",
+        "git_blob": "2efcc11705a6005f03485af5d73abba205f89e64"
+      }
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "before": {
+        "bytes": 62680,
+        "sha256": "9436c082f8ce8a054d8300f55bd49ac4b6120240cf06fa6ca94190b5c6c1858a",
+        "git_blob": "9e1a0229b9676368dc1d49015cf95be13fac9908"
+      },
+      "after": {
+        "bytes": 64851,
+        "sha256": "e269802f7b4b5b376eb3910d9f1b55f42eb8abc87d1cf75fd9d019a0ffd2297a",
+        "git_blob": "8a2c5e97f929af3b52c66656046143fbf7fcbba1"
+      }
+    },
+    {
+      "path": "scripts/prepare-core-documents-custody-packet-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 2076,
+        "sha256": "9b4d60b3d7639c32d754c7926027d627f35aaf886cf95ac5304de6bd73a80506",
+        "git_blob": "8a327c7ab968aa06bac176b5c14ab8027c5bfc96"
+      }
+    },
+    {
+      "path": "scripts/test-core-documents-custody-packet-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 2287,
+        "sha256": "607c1eaf15948d2359af8fbcf4631ab9abc2a7ee801edec24b8d109475d593be",
+        "git_blob": "c76f6782165beff7fcfbc257d0d8c0fe437e02b9"
+      }
+    },
+    {
+      "path": "scripts/test-core-documents-replay-only-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 23303,
+        "sha256": "163330d3feda9094609e37aecf9e4b04f1cbc16e4ea534e68fab19706fcff8cb",
+        "git_blob": "c7a9cd859bc97ae3d5ca7dfed69546aa11616c74"
+      }
+    },
+    {
+      "path": "scripts/test-core-documents-shared-host-regressions-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 1904,
+        "sha256": "5d87aa946c6e5380000a550a0f54effab7e7ebdc7fd9dd2a6030ac90b22c4e2f",
+        "git_blob": "1383db1582f0e21ddc2da9370cdf835a0b87d9a0"
+      }
+    },
+    {
+      "path": "supabase/install/documents-upload-custody-v1/preflight.sql",
+      "before": null,
+      "after": {
+        "bytes": 2261,
+        "sha256": "89d1378b0d57e51b133aef1a97cf767f841809cd2308f26c20776c3b5ed5b30c",
+        "git_blob": "c7163802c470260852c686f09785002f577668d1"
+      }
+    },
+    {
+      "path": "supabase/install/documents-upload-custody-v1/install.sql",
+      "before": null,
+      "after": {
+        "bytes": 20946,
+        "sha256": "4ebd5a5f2ec81740f4eb23fac467b56884ce2053e2a158871615717f1709e923",
+        "git_blob": "b321d65ae597be78ecc620eb5e0d4d925229eeb3"
+      }
+    },
+    {
+      "path": "supabase/install/documents-upload-custody-v1/verify.sql",
+      "before": null,
+      "after": {
+        "bytes": 2459,
+        "sha256": "feae01dd857341d890e0aaea0b548f569e155939f7f0357ebe765c2d6acc004a",
+        "git_blob": "e17f7a052f8be866bbde99237ffd5cb02a734cf4"
+      }
+    },
+    {
+      "path": "supabase/install/documents-upload-custody-v1/recovery.md",
+      "before": null,
+      "after": {
+        "bytes": 4178,
+        "sha256": "73be6049d52c4a467d51258d6b00fad73f74e83b3c250a88fce2b362064bb91d",
+        "git_blob": "8e2bf7cd41d6ff217eb4d5595a1f9e003f82d853"
+      }
+    }
+  ],
+  "manifest_self_excluded": true,
+  "emitted": {
+    "sql": {
+      "filename": "CORE-DOCUMENTS-CUSTODY-15.sql.sql",
+      "bytes": 26395,
+      "sha256": "25589d359406606dbdf8d913f180226881b56673e66a1b3d7b1ec174a316adfb",
+      "git_blob": "6dcebd0bd538fc7a0aef577e7637ea4c17fbb319",
+      "executed": false
+    },
+    "preflight": {
+      "filename": "CORE-DOCUMENTS-CUSTODY-15.preflight.sql",
+      "bytes": 2387,
+      "sha256": "06dcd0596019e0fd8b3a37189ab3746473bde372c4f2c29dc08699ca8e7271ad",
+      "git_blob": "e78778adeff8225fb077215a27c3f53ef1a26f73",
+      "executed": false
+    },
+    "verify": {
+      "filename": "CORE-DOCUMENTS-CUSTODY-15.verify.sql",
+      "bytes": 3198,
+      "sha256": "d2543668ef45e5995b9db1293cae9c8f445aa19351df1f02bf62eece340533c3",
+      "git_blob": "4d58fbda665eb2c0a2b8156b367cb6845db37ba5",
+      "executed": false
+    }
+  },
+  "ABI": {
+    "command": "createCoreDocumentsCommandBindingV1",
+    "custody": "createCoreDocumentsUploadCustodyV1 -> adapter + custody.{prepareIntent,retainIssued,takeFreshUpload,resumeFinalization}",
+    "download": "createCoreDocumentsDownloadRecheckV1.recheckAfterStorage",
+    "shared_host": "executeDocumentsReplayOnly",
+    "RPC": "platform_dev.document_upload_custody_v1(text,jsonb)",
+    "preparation_source": "platform.document_upload_custody_v1",
+    "receipt_source": "platform.idempotency_keys (existing C03 only)"
+  },
+  "phase_order": [
+    "prepared original plan and IDs",
+    "sealed exact issue wire/hash",
+    "durably admit dispatch once",
+    "existing C03 effect/receipt/audit/outbox",
+    "retain actual persisted C03 reference",
+    "claim stream once and bind final key",
+    "seal exact measured final command wire before C03",
+    "finalization/replay by original existing C03 writer"
+  ],
+  "tests": {
+    "coupling_groups": 17,
+    "coupling": "PASS_REAL_CORE_AND_DOCUMENTS_WITH_CONTROLLED_RPC_SDK_PG",
+    "shared_engine_controls": 3,
+    "shared": "PASS_DEFAULT_FRESH_CE012_AND_FAMILY_DENIAL",
+    "packet_source_invariants": "PASS_5_COHERENT_NEGATIVES",
+    "ES5_typecheck": "PASS",
+    "focused_lint": "PASS",
+    "JS_syntax": "PASS",
+    "SQL_parser": "NOT_RUN",
+    "SQL_compile": "NOT_RUN",
+    "native_PG_Auth_Storage_RLS_restart": "NOT_RUN_NOT_PASS",
+    "unrelated_successful_suites": "NOT_RERUN"
+  },
+  "limits": [
+    "process cache is actual-handle reference optimization, never admission/proof; cold/evicted handle cannot stream; recover existing object or safe hold",
+    "initial intent independent of scanner; no fabricated clean or outward download projection",
+    "download positive real Storage/scan/release coupling remains separate native gate",
+    "historical authority and full wires immutable; current canonical denial/revision mismatch does not mint replacement"
+  ],
+  "install_gates": [
+    "Platform exact owned target/principal/window/backup and actual helper owner/ACL pins",
+    "role/closed ACL/FORCE RLS/row-lock semantics reviewed and proved natively",
+    "consumer738 integration + real restricted Storage verifier/binding",
+    "native concurrency/expiry/revoke/40001/lostACK/restart/settlement/residue acceptance"
+  ],
+  "automation": {
+    "classification": "نیازمند بررسی",
+    "input": "pinned sources + actual owned target admission",
+    "automated": "offline compose/hash/source invariants",
+    "human": "Platform target/SQL lane; Coordinator/QA acceptance",
+    "exception": "UNKNOWN or mismatch safe hold + same original identity",
+    "dependency": "C01/C03 + Documents738 + Platform Storage/installation",
+    "value": "deterministic reviewable recovery without replacement commands"
+  }
+}

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { verifyReviewedCoreHostSourcePinV1 } from './lib/reviewed-core-host-source-pin-v1.mjs';
 import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -28,7 +29,11 @@ assert.equal(sha256('src/lib/core/transaction-replay-provider-hook-v1.ts'),
 // Core15 session checkpoint a0a37f3c573558d14be2e62ba27e6e5475b9c4fe
 // supersedes Core14 3e9593af25433dcf32042f624731f514d09ec35b (cc0d8eb09dde1fae9c736820a66c984cc0a7bd66c1de29f8996496b7f7f74cb8).
 // Historical host pin: 5ae0d49cde0850c3d8b2c55bc2398d685e1c833d2e9a9e176ee8eab8d1cdce06.
-assert.equal(sha256('src/lib/core/postgres-transaction-host-v1.ts'),
+// The exact Core-owned successor profile preserves this historical host pin
+// and authenticates the current official host; no other source pin is relaxed.
+assert.equal(verifyReviewedCoreHostSourcePinV1(
+  readFileSync('src/lib/core/postgres-transaction-host-v1.ts'),
+  readFileSync('scripts/core17-native-source-successor-v1/source-successor.json')),
   '9436c082f8ce8a054d8300f55bd49ac4b6120240cf06fa6ca94190b5c6c1858a');
 
 assert.match(migration, /before insert on documents\.upload_intents/i);

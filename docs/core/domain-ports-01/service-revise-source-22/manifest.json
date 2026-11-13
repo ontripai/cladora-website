@@ -1,0 +1,170 @@
+{
+  "contract": "core-service-revise-authoring-current-22.delivery.v1",
+  "FullSHA": "CONTAINING_COMMIT",
+  "Parent": "0b73eb0754f6f3e0025b452123e309c4bb2ca1d7",
+  "branch": "codex/core-domain-ports-01",
+  "source_policy": "CLOSED_OWNER_POLICY_REVISE_DRAFT_SUBMITTED",
+  "runtime": null,
+  "operation_admitted": false,
+  "target_changed": false,
+  "consumer": "5eadb64ca9848dc433582fe3f718b661d12548b4",
+  "inventory": [
+    {
+      "path": "docs/core/domain-ports-01/WORKLOG.md",
+      "before": {
+        "bytes": 28447,
+        "sha256": "7d7a498f58305c5fb81ef1e2c64d4196b9b7f3b66dfff52e5273a0ffe4499eeb",
+        "git_blob": "c5d20ef92d5421016f37cfeba6bcdba22faa2b3e"
+      },
+      "after": {
+        "bytes": 29574,
+        "sha256": "cd08588a4c6fc6596342be17e8303bb44a8a623999919a3c00d943f58a321ef3",
+        "git_blob": "172b9da6371cd5070f0f0d6ff34634017ccb6384"
+      }
+    },
+    {
+      "path": "src/lib/core/service-offering-revision-source-v1.ts",
+      "before": {
+        "bytes": 6844,
+        "sha256": "d64f64e8919409f03f075355d53a310a2b62c38643383d465aa2925ed210561a",
+        "git_blob": "7e711c8118088d605f865b3091f85cc3650f0a6e"
+      },
+      "after": {
+        "bytes": 6921,
+        "sha256": "d5b251e1b1515ff0524af10322f16eabf890d65d4eefbb21dc423d1585e396ea",
+        "git_blob": "7df35d153c9fda60e989a048d8c0b26bd18fab76"
+      }
+    },
+    {
+      "path": "scripts/test-core-service-original-current-v1.mjs",
+      "before": {
+        "bytes": 13125,
+        "sha256": "423ed612cfbd1bb23101e240af2ceec5095aded19f75bee71247916fb8112ab9",
+        "git_blob": "bcd7bbc275ce967153c4157ec8245f492d2bdb27"
+      },
+      "after": {
+        "bytes": 13132,
+        "sha256": "8c4138daf0f4c65ae6402c6918953fdc5a2cc28e31baa5e0cd878f3d5674aafe",
+        "git_blob": "6bea59f86012beabcdff15e3c9183099b30f1cad"
+      }
+    },
+    {
+      "path": "scripts/test-core-service-revise-authoring-current-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 4319,
+        "sha256": "dae37897456820c8fcd2bac882ebb9fb2ac704b7c5319ab5cc64f5989dbe4e41",
+        "git_blob": "74fd3a2570b13c4de1b88c5cc0382c88e6023558"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/service-revise-source-22/README.md",
+      "before": null,
+      "after": {
+        "bytes": 2717,
+        "sha256": "b017178ea4c417b2fc1b55698f7d2b2a9cf36881ae650034b4b733bc53bf424f",
+        "git_blob": "ad246df341f912b916542f789920422cc8ebda85"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/service-revise-source-22/admission.json",
+      "before": null,
+      "after": {
+        "bytes": 2631,
+        "sha256": "a254cff53f97415e12a102203f434d9cd096707cf97fe1c18e9e8ae86c84389a",
+        "git_blob": "411a810ce4a9d71c3e128846cbbd4f9a1a361288"
+      }
+    }
+  ],
+  "protected_pins": [
+    {
+      "path": "src/lib/customer/service-offering-disclosure-source-v1.ts",
+      "bytes": 18347,
+      "sha256": "f8667b1d69809d3880e477c5cd7b875db27cf7dd5a78a2fcd0feec796d06bf5b",
+      "git_blob": "89e771414eb3193fb93d2df6c2178a95ffa48b6f",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "src/lib/customer/service-offering-time-precision-v1.ts",
+      "bytes": 2332,
+      "sha256": "a14d38abb83b15a39d82d928e1e8e03fbce9939b195cbfea3883aeaa5ed851a2",
+      "git_blob": "bd758c5f53cb26dbc266f54672cef979549ccc8f",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "src/lib/customer/service-catalog-schema.ts",
+      "bytes": 4333,
+      "sha256": "c5f26e512b43c8584937da461a3ee2927caf966cd966fad079666fd39a531bc5",
+      "git_blob": "c82e90d5fa40601c2225c3cb54ebe3b2585a8eda",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "bytes": 22276,
+      "sha256": "76855adaf81aa5446839754d3414b99761d0c60674e6f337b06ebf89eaadf326",
+      "git_blob": "e23f0c62eec6d258cf29975bbe3c20ff5eef2707",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "src/lib/core/service-offering-revise-source-port-v1.ts",
+      "bytes": 6166,
+      "sha256": "354da01e744a342e19cd837496e874b429604adc498c26033c9f0e500c93885d",
+      "git_blob": "b0c0e753ee5b382014c0b1deffd1891b70458c8a",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "bytes": 64851,
+      "sha256": "e269802f7b4b5b376eb3910d9f1b55f42eb8abc87d1cf75fd9d019a0ffd2297a",
+      "git_blob": "8a2c5e97f929af3b52c66656046143fbf7fcbba1",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "supabase/install/documents-upload-custody-v1/install.sql",
+      "bytes": 22836,
+      "sha256": "3c0fc0f235a2568d3736ccbed9394769d76cdd6ca68ca0db4eba79e764542c5a",
+      "git_blob": "529b57040b7eaa9527d4340acef6ebcb8995cf06",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "supabase/install/documents-upload-custody-v1/preflight.sql",
+      "bytes": 5903,
+      "sha256": "1b58a4a180ddb9f61c18678bd872e7e50fb84aaf54280b5b583a2e63f6d66301",
+      "git_blob": "bb714c4af5ab156aeb944bd0dacf9cdffcebadd4",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "supabase/install/documents-upload-custody-v1/verify.sql",
+      "bytes": 7069,
+      "sha256": "c4778ebc7a3919df0389c60dd6f76ab28c8a2d97473f117ef95f58806469bab2",
+      "git_blob": "37b2fef7dc8759048f9705f820a3eda7bc69877c",
+      "unchanged_from_Parent": true
+    }
+  ],
+  "self_excluded": true,
+  "semantics": {
+    "source_current": "exact current head and old revision/version",
+    "old_expired_or_future_commercial_window": "not a source blocker in this revise-only port",
+    "data_validity_current_authority_S01_scope_new_terms": "unchanged",
+    "other_read_publish": "unchanged"
+  },
+  "evidence": {
+    "new_policy_groups": 7,
+    "affected_old_policy_group": 1,
+    "proof": "CONTROLLED_REAL_CORE_C01_C03_S01_AND_SERVICE_SCHEMA",
+    "new_effects_and_writer_calls": 0,
+    "ES5_typecheck": "PASS",
+    "focused_lint": "PASS",
+    "syntax_diff": "PASS",
+    "scratch_apply_reverse": "external delivery receipt",
+    "clock20_checks_repeated": false,
+    "native": "NOT_RUN_NOT_PASS"
+  },
+  "gates": [
+    "actual SERVICE writer/provider/replay implementation",
+    "specific operation admission after exact writer",
+    "Platform/native install and authority proof",
+    "existing SERVICE commercial_terms precision limitation"
+  ],
+  "automation": "نیازمند بررسی"
+}

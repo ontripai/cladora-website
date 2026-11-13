@@ -1,0 +1,83 @@
+{
+  "contract": "airprop-binding-storage-v2.seal.v1",
+  "base": "067464d07cb08629adf59490febf6222f5c0d878",
+  "inventory": [
+    {
+      "path": "supabase/proposals/airprop_listing_selected_bindings_v1.sql",
+      "bytes": 8891,
+      "sha256": "124fc20a2dfb63d7da13290a1e1aaefc49655287d0e490c82d3dda85ab1640c1"
+    },
+    {
+      "path": "supabase/proposals/airprop_listing_selected_bindings_v2.sql",
+      "bytes": 9967,
+      "sha256": "305831d860e25c61c0ccb18e1433ec1e9d5c1fcc03290210a689360a90e22387"
+    },
+    {
+      "path": "src/lib/airprop/listing-selected-binding-v1.ts",
+      "bytes": 12360,
+      "sha256": "0cab6d8a8b3ccdc32f749bc43afba33b90a0ab3823d4c1426dbeb611bb807027"
+    },
+    {
+      "path": "src/lib/airprop/listing-runtime-binding-v1.ts",
+      "bytes": 8362,
+      "sha256": "ec3a86f36fc2e24ba0751e6ce35451b26f2ccd32fb7e21564912775d437195da"
+    },
+    {
+      "path": "src/lib/airprop/listing-flow-contract-v1.ts",
+      "bytes": 9572,
+      "sha256": "cfa7c903e799cb48f02824ff93169b9a41226a371df25b619aa42344aaa88057"
+    }
+  ],
+  "units": [
+    {
+      "name": "preflight-fresh.sql",
+      "bytes": 8232,
+      "sha256": "7d6fe7934d3deae48a341c76ccdb260dff23cc5afaba364096d9709200636be9",
+      "git_blob": "29bed59be61c78116f52c7755a77896bf2199ff7"
+    },
+    {
+      "name": "preflight-adapt.sql",
+      "bytes": 9074,
+      "sha256": "a929325220e35bc66f3ba93a43fee2c1d591182bbed6aca68886c345afe9de66",
+      "git_blob": "5dbd175415eb14f1f06e7a9076c206527387b64d"
+    },
+    {
+      "name": "fresh.sql",
+      "bytes": 26119,
+      "sha256": "6cb8d22c0c60fa549ec4b4bb6794debbfcdf0f01358e19e8e31bf4dc7562f6fb",
+      "git_blob": "38289663d50e98e3188b650e25de71018c385049"
+    },
+    {
+      "name": "adapt-v1.sql",
+      "bytes": 30823,
+      "sha256": "83f3ca0851b2a95fe15d75a49fa34f5763b3a21b25b9f5ae2f2eafe1f8b29c7f",
+      "git_blob": "8344186ce036bd5f432fd1b149fdf41a05427bd2"
+    },
+    {
+      "name": "verify-fresh.sql",
+      "bytes": 7686,
+      "sha256": "6dc84625a0d392a8439d8a8cd7f64c062aeccc5c29d36b2fbd8a8ba5040e7d55",
+      "git_blob": "e602d1936c925cf2f8e7330fca3f4d36c479ed7b"
+    },
+    {
+      "name": "verify-adapt.sql",
+      "bytes": 8484,
+      "sha256": "dae0a39d041e19fd2cfc1ed8752e79228c4a37e7e977ac4e7cc7f4f308e60968",
+      "git_blob": "96f7b426ccd47fd4f57ffe9ffad079224d44f775"
+    },
+    {
+      "name": "recovery.sql",
+      "bytes": 5876,
+      "sha256": "914d8b8d810b8308f8c27a38a93b02fd0ab06304eb0c218ac72ca69125ac172c",
+      "git_blob": "8d84267c3b880a965059e57db1c5fba289abbaf6"
+    },
+    {
+      "name": "private-plan.template.json",
+      "bytes": 634,
+      "sha256": "8ad4dc0050820bbee5dcf0cfbf99ed7a0cb0835b3b35f3d9db7ba9d7d6b23694",
+      "git_blob": "5e109eeda34c21d2496d527975e3830f6f433792"
+    }
+  ],
+  "sql_compiled": "NOT_RUN_NOT_PASS",
+  "activation": null
+}

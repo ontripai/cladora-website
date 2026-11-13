@@ -1,0 +1,73 @@
+{
+  "task": "AIRPROP-LISTING-NATIVE-01",
+  "slice": "selected-binding-source.v1",
+  "parent": "64399b44d6504ef6ae10bb704ee7e22adbefecb3",
+  "main_base": "6cecfa15b00f445be68817e756d766fb0e6fe026",
+  "head": "CONTAINING_COMMIT",
+  "status": "SOURCE_IMPLEMENTED_INACTIVE_ADOPTION_AND_NATIVE_OPEN",
+  "inventory": [
+    {
+      "path": "src/lib/airprop/listing-selected-binding-v1.ts",
+      "bytes": 11202,
+      "sha256": "d10f1dcbfb0b4169a1e00465f7125c7534c4a75216e965e6189ac03b4f29d665",
+      "git_blob": "377d5f7ada6bf1b5be6497135a972811c4d3ac87"
+    },
+    {
+      "path": "supabase/proposals/airprop_listing_selected_bindings_v1.sql",
+      "bytes": 8891,
+      "sha256": "124fc20a2dfb63d7da13290a1e1aaefc49655287d0e490c82d3dda85ab1640c1",
+      "git_blob": "59adc65cf4a0f181a113212f8e9a29d54cbae97b"
+    },
+    {
+      "path": "scripts/test-airprop-listing-selected-binding-v1.mjs",
+      "bytes": 13908,
+      "sha256": "8a6a5c3405b0d77eec2a0772253f18153dd1ba68b9614d8c565f24bd602d8df3",
+      "git_blob": "e2a24b0adb3908357bd44eec3e0fe30d1bb385a0"
+    },
+    {
+      "path": "docs/airprop/AIRPROP-LISTING-SELECTED-BINDING-01.md",
+      "bytes": 10974,
+      "sha256": "18aef8f70b2da454197d835b9c19bfc7409296f08b8f1fabf99055e2ff33f63f",
+      "git_blob": "9a5a882edd6ec1a4c2ee96bd5554a0c9367359dc"
+    },
+    {
+      "path": "docs/airprop/AIRPROP-LISTING-NATIVE-01.md",
+      "bytes": 7327,
+      "sha256": "76400d93717b7f96aa14c6b497196e322810d2cbdab2f9f3db55154a6e4a4fe6",
+      "git_blob": "75ac3cc01f2038558385fcb8ab899732a82aee15"
+    },
+    {
+      "path": "docs/airprop/AIRPROP-LISTING-NATIVE-01-core-port-request.json",
+      "bytes": 11683,
+      "sha256": "72b0960601a85726d28567d000f1ff794edcbb0fcb797cb8ca4a81b758c21d1d",
+      "git_blob": "e397258cd708c1d1ca0211952dca3942f580ee4c"
+    }
+  ],
+  "tests": {
+    "controlled_domain_sql_model": {
+      "groups": 15,
+      "result": "PASS",
+      "real_core_host_execution": "NOT_RUN_NOT_PASS"
+    },
+    "typescript": "PASS",
+    "scoped_eslint": "PASS",
+    "syntax": "PASS",
+    "sql_parse_compile": "NOT_RUN_NOT_PASS_DEFAULT_PYTHON_PGLAST_ABSENT",
+    "real_database_auth_rls_acl": "NOT_RUN_NOT_PASS",
+    "browser": "BLOCKED_TOOL_EXISTING_SETSOCKOPT_EPERM",
+    "exact_target_versions": "NOT_RUN_NOT_PASS_CACHE_NEXT16.3.8_ZOD4.4.3"
+  },
+  "safety": {
+    "sql_executed": false,
+    "installed": false,
+    "route_activation": false,
+    "core_shared_guide_ui_changed": false,
+    "historical_backfill": false
+  },
+  "open_inputs": [
+    "Core actual Listing same-request selector/current canonical producer/command identity and accepted aggregate/source/fingerprint/replay mapping",
+    "Platform independently reviewed guarded storage adoption and exact limited-role/RLS/ACL/SQL admission",
+    "Platform one real target-bound UI/API/DB/reload/restart/receipt proof with independent QA"
+  ],
+  "automation": "نیازمند بررسی"
+}

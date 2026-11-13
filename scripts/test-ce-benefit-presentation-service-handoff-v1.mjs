@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { APP_CE_GUIDE_TRANSITION_PATHS, verifyPublishedCeGuideSourceTransitionV1 } from './lib/app-ce-guide-source-transition-v1.mjs';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -145,6 +146,14 @@ assert.deepEqual(actualPaths, expectedPaths, 'inventory paths must exactly cover
 check(new Set(actualPaths).size === actualPaths.length, 'inventory paths must be unique');
 
 const computedCounts = { accepted: 0, inactive: 0, internal_only: 0 };
+const appliedPublishedTransitions = new Set();
+function coveredSourceMatches(file, previousSha, previousBytes) {
+  if (APP_CE_GUIDE_TRANSITION_PATHS.includes(file)) {
+    appliedPublishedTransitions.add(file);
+    return verifyPublishedCeGuideSourceTransitionV1(root, file, previousSha, bytes(file));
+  }
+  return (previousBytes === undefined || bytes(file).length === previousBytes) && sha256(bytes(file)) === previousSha;
+}
 for (const entry of inventory.entries) {
   check(existsSync(path.join(root, entry.path)), `inventory path must exist: ${entry.path}`);
   check(['canonical_contract', 'ce_presentation_surface', 'service_handoff_surface', 'localization_infrastructure'].includes(entry.kind),
@@ -176,12 +185,13 @@ for (const entry of inventory.entries) {
       custodyChanges.delete(entry.path);
     }
     const current = custodyChange ?? serviceChange ?? successor;
-    check(bytes(entry.path).length === current.after_bytes && sha256(bytes(entry.path)) === current.after_sha256,
+    check(coveredSourceMatches(entry.path, current.after_sha256, current.after_bytes),
       `covered file bytes must match the reviewed owner successor: ${entry.path}`);
     changes.delete(entry.path);
-  } else check(sha256(bytes(entry.path)) === entry.sha256, `covered file bytes must match the reviewed inventory: ${entry.path}`);
+  } else check(coveredSourceMatches(entry.path, entry.sha256), `covered file bytes must match the reviewed inventory: ${entry.path}`);
   computedCounts[entry.classification] += 1;
 }
+assert.deepEqual([...appliedPublishedTransitions].sort(), [...APP_CE_GUIDE_TRANSITION_PATHS].sort(), 'only the exact four published CE/Guide sources extend the frozen inventories');
 check(changes.size === 0, 'no unrelated source may enter the integration overlay');
 check(serviceChanges.size === 0, 'every SERVICE successor must extend a reviewed inventory entry');
 check(custodyChanges.size === 0, 'every pending-custody successor must extend the preceding SERVICE entry');

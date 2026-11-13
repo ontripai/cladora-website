@@ -1,0 +1,234 @@
+{
+  "task": "CE-GUIDE-NATIVE-01",
+  "programme": "CLADORA-INTEGRATED-DELIVERY-ROADMAP-AFTER-REQUEST-01",
+  "cycle": "R0/R1",
+  "worker": "CLADORA-CE-WORKER-01",
+  "source_base": "bfadc5042cb00841dd605862a2a72ddc0dbafb87",
+  "parent": "bfadc5042cb00841dd605862a2a72ddc0dbafb87",
+  "checkout": "independent_detached",
+  "historical_CE_head_preserved": "1a28c1cb724d24738483801784b8a594b9f6572f",
+  "accepted_request_app_preserved": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119",
+  "status": "LOCAL_SOURCE_CHECKPOINT_NATIVE_TASK_OPEN",
+  "source": [
+    {
+      "path": "src/components/customer/CustomerExperienceGuidePage.tsx",
+      "bytes": 11871,
+      "sha256": "4a15877ee1199e18a0394a92d016c5e37ea5fdb2e43b630146ad341411fc64c8",
+      "git_blob": "ac9b3437e2c14515a3e6dccca69543a27e45334c"
+    },
+    {
+      "path": "src/components/customer/CustomerExperienceGuideActions.tsx",
+      "bytes": 4270,
+      "sha256": "fee2fff1fe8489c4ff71f446486cecbe42cfc7bb0099741680835eebe452e769",
+      "git_blob": "98182a8b57d41b11dbc0ae28ec0e69d1b8c1e45d"
+    },
+    {
+      "path": "src/lib/community/experience-guide-actions-client.ts",
+      "bytes": 5001,
+      "sha256": "8b5f0587e3a61af4092afe2a9bd4232126029a49ceb1876e5d55bc0058d29980",
+      "git_blob": "ba0b59378b1a59d818173ba83dc47a468ac2d353"
+    },
+    {
+      "path": "src/lib/community/experience-guide-functional-http-v1.ts",
+      "bytes": 16808,
+      "sha256": "b2d2214d16a6439b77d042560be09b6a534b8779ad15ef3508b76c5fefa664a4",
+      "git_blob": "bcd24b96221941ccbc2cc4270d5a928f5be9c57f"
+    },
+    {
+      "path": "src/lib/community/experience-guide-lifecycle-http-v1.ts",
+      "bytes": 22363,
+      "sha256": "94d5583349e77a5dcc549b7234739f66d8e20dc2735d2bd86e1d8a89fbbb6e3f",
+      "git_blob": "1941995c4987a90ac3899277edfba4bdeecb5700"
+    },
+    {
+      "path": "src/lib/community/experience-guide-lifecycle-provider-v1.ts",
+      "bytes": 21944,
+      "sha256": "4971b7e235088c524e5e5a3242fe8606fe8723dabe0802d23fb561a9ffe66d0c",
+      "git_blob": "1d610a4cc3a7b341b2ebf3a646341dec184feab4"
+    },
+    {
+      "path": "src/lib/community/experience-guide-create-writer-v1.ts",
+      "bytes": 9471,
+      "sha256": "75711664a2dcef9ab5ec123861678f09f7c7f96fdf2e36a5cee4380603bb792c",
+      "git_blob": "839950405f531ff5c7a3eafc50908a7413d4d80e"
+    },
+    {
+      "path": "scripts/test-ce-guide-native-journey.mjs",
+      "bytes": 12554,
+      "sha256": "b37bab0ea9aeb832c73e0ac6a9e0bc036b62bf5277320af7290c9abbdd96c4b7",
+      "git_blob": "beaaa551e8a78df712c283a315661ece69cc0e60"
+    },
+    {
+      "path": "scripts/test-ce-guide-native-session-carrier.mjs",
+      "bytes": 7392,
+      "sha256": "d5f701d0be846dc3f7d7a6c5033456577fc972b8fa1a102bfeeb77021ac09f20",
+      "git_blob": "8295d236c48c3e484946bc5db6d1c8dcbc6b7c3b"
+    },
+    {
+      "path": "docs/contracts/ce-guide-native-01/README.md",
+      "bytes": 13178,
+      "sha256": "55b5bce47a68b4218a0365dff53195384cb16a55d20580427b2520908dd7f374",
+      "git_blob": "fcb33f0e4eb02015868a68bca78c0268a99dde96"
+    }
+  ],
+  "manifest_self": "excluded; final local Git tree/external patch binds bytes",
+  "inventory_seal": "2af79f9ceedf6c7a8a637794dc13232c917acc3bce413d19da503cad8434adef",
+  "observed_main": {
+    "sha": "6cecfa15b00f445be68817e756d766fb0e6fe026",
+    "pr": 478,
+    "merged": true,
+    "source_tree_equals_base": "ff8a0aeda835cc9e9dcc2a19cae74ab73ce1d5b1",
+    "method": "complete Git tree equality; no rebase/reset or suite replay"
+  },
+  "changes": [
+    "verified issuer session_id/exp carried through existing CE request pool; legacy modeled carrier is non-native",
+    "actual Guide Page prepare/execute lifecycle, frozen wire and explicit same-key retry",
+    "existing domain cancel_guide reason and draft/published -> cancelled version rule",
+    "existing lifecycle providers + existing canonical Core authority checkpoint before/after mutation and after replay",
+    "existing Core database_after_lock.v1 expiry option for Guide functional host",
+    "dirty draft and UNKNOWN gate on lifecycle/editor; no GET settlement"
+  ],
+  "unchanged": [
+    "Core/evaluator/Docs/Service/AIRPROP/CE010/CE011",
+    "canonical receipt engine, save fingerprint/golden/schema",
+    "SQL/migrations/roles/RLS/ACL/storage/config/credentials",
+    "package/lock/Request/public website",
+    "accepted read cutover and NULL binding"
+  ],
+  "consumer_abi": {
+    "entry": "/{lang}/app/experience/guides",
+    "api": "/api/customer/v1/experience/guides/draft",
+    "read": "/api/customer/v1/experience/guides",
+    "composition": "Ce012FunctionalDependenciesV1:role_bound_pool:CorePlatformRoleBoundPoolV1|null,authenticate?:ExperienceGuideLifecycleAuthenticationV1",
+    "session": "source=supabase_verified_session, actor_id, assurance_level, expires_at, session_id issuer-verified by actual SSR; SID optional only for legacy modeled consumers",
+    "create": "prepare_create/execute_create; existing create_guide expected_version0 one step without reference -> Core version1",
+    "edit": "prepare/execute; existing save_draft positive expected_guide_version -> n+1",
+    "lifecycle": "prepare_lifecycle/execute_lifecycle; exact request+CoreTransactionCommandV2, positive expected_version; publish/cancel UI, existing unpublish retained; cancellation reason5..500 required via existing domain schema",
+    "provider": "createExperienceGuideLifecycleCoreProvidersV1 / existing ce-guide-lifecycle-provider.v1",
+    "receipt": "bounded actual Core receipt ID, command/Guide/operation, previous/result version,key/fingerprint,outcome; no fabricated receipt",
+    "readback": "strict existing guideReadResponseSchema, same Guide/version; no optimistic row or GET-as-command-proof",
+    "errors": "invalid400, current auth/permission401/403, NOT_READY503; unresolved execution202/network/malformed/conflict/denial -> UNKNOWN exact wire/key; no fallback"
+  },
+  "runtime": {
+    "binding": null,
+    "native_app_auth_pg_browser_restart": "NOT_RUN_NOT_PASS",
+    "missing_producer": "Coordinator explicitly confirms no accepted native Guide producer/binding handoff",
+    "core_need": "executable request-local C01/C03/DW02 Guide producer + current authority/host custody; existing generic factory is not native admission",
+    "platform_need": "limited installed canonical relations/helpers and CE runtime/executor role safety lease; valid owned issued Auth, target/restart/observer/capacity recipe",
+    "save_projection": "experience.guide_save_receipts_v1 review-only55000 proposal must be adopted by accepted installer, never executed directly",
+    "AAL": "existing lifecycle AAL2 remains; no AAL1 relabeling",
+    "QA": "criteria blob7ff67c04841dce3e4f8884c9d2e5ca16968bd2a0 read; native independent acceptance not claimed"
+  },
+  "tests": {
+    "carrier_groups": 7,
+    "journey_groups": 7,
+    "result": "PASS_CONTROLLED_SOURCE_ONLY",
+    "execution": "scoped invocations; source/fixture fixes retested only where affected; initial fixture initialization/stale-row assertions corrected, not counted as success",
+    "sdk_pg_boundary": "MODELED; actual product Page/handlers/providers/Core host; no SDK/PG connection or fake JWT",
+    "typecheck": "PASS full unchanged ES5 config final source",
+    "lint": "PASS scoped7 product TS/TSX +2 new MJS max-warnings0",
+    "syntax_diff": "PASS",
+    "old_successful_suites": "NOT_RERUN",
+    "toolchain": {
+      "node": "24.19.0",
+      "next": "16.4.1",
+      "zod": "4.6.6",
+      "typescript": "5.9.3",
+      "install": "NONE; existing exact isolated toolchain reused"
+    }
+  },
+  "evidence": {
+    "carrier-after.txt": {
+      "path": "/workspace/work/ce-guide-native-01-evidence/carrier-after.txt",
+      "bytes": 1006,
+      "sha256": "d5a0fab587c6537088cd3ea7cae8930d168d8213aae3177d0d86a9a55b98dfeb",
+      "git_blob": "ada7f6efb1278d3cae0128c3c0cda131f487d05f"
+    },
+    "carrier-expiry.txt": {
+      "path": "/workspace/work/ce-guide-native-01-evidence/carrier-expiry.txt",
+      "bytes": 340,
+      "sha256": "8e9602e366d5db7eb0eb301f9cdcbda8c1b2729c72438e86fa583bb563f035aa",
+      "git_blob": "64fb7468fdb233ca9ff2329ecfc8fffe46427fe7"
+    },
+    "carrier-compat.txt": {
+      "path": "/workspace/work/ce-guide-native-01-evidence/carrier-compat.txt",
+      "bytes": 355,
+      "sha256": "45f4667df9954ab2a52657cff3e4928cee6842154b3adea9fbbe3ac1f3e7b78a",
+      "git_blob": "551d616d276b834a052384496fa4eac041a1e855"
+    },
+    "invalid-lease.txt": {
+      "path": "/workspace/work/ce-guide-native-01-evidence/invalid-lease.txt",
+      "bytes": 346,
+      "sha256": "5eb84f8a5f604d89a5a6d7fefd1a86858332b021ff99f3df0601929d4fa2c75c",
+      "git_blob": "191cb04b9cdbad67b12337cb903d0ebd1398a27e"
+    },
+    "journey.txt": {
+      "path": "/workspace/work/ce-guide-native-01-evidence/journey.txt",
+      "bytes": 588,
+      "sha256": "9894633a4378dfd5a08c874dae456724fc61ea91df01c37617d343a8939afe75",
+      "git_blob": "c1447d0b4686c7c6317d4ec66e024fefb6e8190b"
+    },
+    "journey-reason.txt": {
+      "path": "/workspace/work/ce-guide-native-01-evidence/journey-reason.txt",
+      "bytes": 256,
+      "sha256": "dbb8d6e0d63f2c3a08abef80aaf4a4f318b82fe16a8972abd8850416c509ac49",
+      "git_blob": "8a3b374ff6c90cb615bb34f3516ce5b3f650b2e8"
+    },
+    "cancel-reason.txt": {
+      "path": "/workspace/work/ce-guide-native-01-evidence/cancel-reason.txt",
+      "bytes": 235,
+      "sha256": "5d1307f7d82f7d2cf22341719b06140a1bcdcea3bdd006af72fa6c696e5d7df9",
+      "git_blob": "1d214369725256b1fb2da8644cf883662fd77ae6"
+    },
+    "domain-reason-final.txt": {
+      "path": "/workspace/work/ce-guide-native-01-evidence/domain-reason-final.txt",
+      "bytes": 253,
+      "sha256": "13d7c181180221371c62e6939a9a952cb2e928ed2ac1d15a233ffccf901483e0",
+      "git_blob": "9b6020bcdf3839233915981454d0ed477eddf217"
+    },
+    "replay-db-clock.txt": {
+      "path": "/workspace/work/ce-guide-native-01-evidence/replay-db-clock.txt",
+      "bytes": 242,
+      "sha256": "566c9e1d4394d386d7340d2e0c60aad651ace0a435305699327ad4599e243ffd",
+      "git_blob": "059be83f895cfa1b91a92aad33192b82a9ecf0a0"
+    },
+    "replay-db-expiry-final.txt": {
+      "path": "/workspace/work/ce-guide-native-01-evidence/replay-db-expiry-final.txt",
+      "bytes": 249,
+      "sha256": "ba10ff13df68e0049d3d223703e0208baae3752bad246e891451cb0ae4091b93",
+      "git_blob": "30bebadfccd9a302409bc39fad08120374f85220"
+    },
+    "unknown-ui-final.txt": {
+      "path": "/workspace/work/ce-guide-native-01-evidence/unknown-ui-final.txt",
+      "bytes": 246,
+      "sha256": "b015584b13641777f9a7021360f841074dea3b3e824cd11903a79107f487f195",
+      "git_blob": "307ba3aca1ee6e59a4636230f84e01168d08b5d9"
+    },
+    "typecheck-sealed.txt": {
+      "path": "/workspace/work/ce-guide-native-01-evidence/typecheck-sealed.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    },
+    "lint-sealed.txt": {
+      "path": "/workspace/work/ce-guide-native-01-evidence/lint-sealed.txt",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+    }
+  },
+  "skills": {
+    "policy": "CLADORA-SKILLS-USAGE v1.1.0",
+    "url": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-6316739482",
+    "applied": [
+      "cloud-environment runtime/network",
+      "Supabase source Auth security",
+      "React best practices",
+      "AGENTS Next guide"
+    ],
+    "limitation": "Supabase changelog direct fetch denied403; no retry/bypass; official docs search + installed SDK declarations used"
+  },
+  "no_prohibited_actions": true,
+  "publication": "no source Push/ref/branch/PR/merge/deploy or GitHub blob transfer; local patch only",
+  "automation": "نیازمند بررسی; explicit authorized human publish/cancel/retry; native Core/Platform prerequisite, UNKNOWN to owners; no invented value"
+}

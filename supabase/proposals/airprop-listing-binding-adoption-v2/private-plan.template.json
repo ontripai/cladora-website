@@ -1,0 +1,27 @@
+{
+  "contract": "airprop-binding-storage-v2.private-plan.v1",
+  "mode": null,
+  "database_name": null,
+  "database_oid": null,
+  "executor": null,
+  "session": null,
+  "fresh_before": null,
+  "v1_before": null,
+  "fresh_after": null,
+  "adapt_after": null,
+  "v1_table_oid": null,
+  "v1_guard_oid": null,
+  "v1_receipt_guard_oid": null,
+  "v1_constraints": {
+    "root_keys": {
+      "name": null,
+      "expression_sha256": null
+    },
+    "selection_keys": {
+      "name": null,
+      "expression_sha256": null
+    }
+  },
+  "target_transport_authority": "EXTERNAL_PLATFORM_ADMISSION_NOT_PROVEN_BY_THIS_JSON",
+  "activation": null
+}

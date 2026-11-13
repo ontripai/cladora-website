@@ -1,9 +1,8 @@
+import { createCore15NativeLoader } from './lib/core15-native-ts-loader.mjs';
+import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import pg from 'pg';
-import ts from 'typescript';
 
 let activeCheck = 'fixture setup';
 const workflowEscape = value => String(value).replaceAll('%', '%25')
@@ -24,20 +23,10 @@ if (!['localhost', '127.0.0.1', '[::1]'].includes(target.hostname)
   throw new Error('Local disposable Supabase PostgreSQL only');
 }
 
-const require = createRequire(import.meta.url);
-const cache = new Map();
-function load(url) {
-  if (cache.has(url.href)) return cache.get(url.href);
-  const compiled = ts.transpileModule(readFileSync(url, 'utf8'), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
-  });
-  const loadedModule = { exports: {} };
-  new Function('require', 'module', 'exports', compiled.outputText)(name => name.startsWith('.')
-    ? load(new URL(name.endsWith('.ts') ? name : `${name}.ts`, url)) : require(name),
-  loadedModule, loadedModule.exports);
-  cache.set(url.href, loadedModule.exports);
-  return loadedModule.exports;
-}
+
+
+const { load: loadSource } = createCore15NativeLoader(fileURLToPath(new URL('../', import.meta.url)));
+const load = url => loadSource(fileURLToPath(url));
 
 const { resolveAuthority } = load(new URL(
   '../src/lib/core/current-authority-postgres-provider-v1.ts', import.meta.url,

@@ -1,0 +1,66 @@
+{
+  "contract": "app.published-ce-guide-source-transition.v1",
+  "before_source": "6cecfa15b00f445be68817e756d766fb0e6fe026",
+  "qa": "PENDING_INDEPENDENT_REVIEW",
+  "source_only": true,
+  "native_execution_eligible": false,
+  "runtime": null,
+  "files": [
+    {
+      "path": "src/app/[lang]/app/experience/guides/page.tsx",
+      "source_commit": "7d5ec54a4718bdac600b6a668453d51818f22a4e",
+      "before": {
+        "bytes": 424,
+        "sha256": "43fc37f47bed97f7b771b3f40d2841805078184852156e3dee0107c697f8ff19",
+        "git_blob": "c0be577966f2d59a38d402e235869db51bf4d0fe"
+      },
+      "after": {
+        "bytes": 697,
+        "sha256": "1bde638bdc0be6d3972222c9c7209442be13f368a83c29b03a5e149198c1ddf6",
+        "git_blob": "b71a9a6403722943bfd1b4845528fdd132d184f6"
+      }
+    },
+    {
+      "path": "src/components/customer/CustomerCommunityBasePage.tsx",
+      "source_commit": "c32002bbf93f0dd9b8c5a2097a2afea7503ef3d4",
+      "before": {
+        "bytes": 25335,
+        "sha256": "2db6b57ce6e99fbf9792e6fbf5e20f68b4f026cde150e812a875c41c848f51ce",
+        "git_blob": "55d41e16f12e5e1dec5ae658c25be627abd4cc25"
+      },
+      "after": {
+        "bytes": 25727,
+        "sha256": "7b9d2bdb6547160b97dfd2531642397ff43d47d1be896996c6c49060bf2571f6",
+        "git_blob": "0f9adfad3edb17752e4dbfefc6619413a1506738"
+      }
+    },
+    {
+      "path": "src/components/customer/CustomerExperienceGuide.tsx",
+      "source_commit": "7d5ec54a4718bdac600b6a668453d51818f22a4e",
+      "before": {
+        "bytes": 10739,
+        "sha256": "559c0a292b07391a26d0ce44270ec338cea50a3ace484809269c2bf140b2c739",
+        "git_blob": "ef70051aa5b2c47c38a9f81711d4f69ad9f08c25"
+      },
+      "after": {
+        "bytes": 10834,
+        "sha256": "9ddd963fddef2e6aa9879d2de7fc4600955d10e362ad23dbe46c8569516dcc4b",
+        "git_blob": "aa410f5e94912d2d7fe183d8ca0e6f2175213064"
+      }
+    },
+    {
+      "path": "src/components/customer/CustomerExperienceGuidePage.tsx",
+      "source_commit": "7d5ec54a4718bdac600b6a668453d51818f22a4e",
+      "before": {
+        "bytes": 10115,
+        "sha256": "db0b81e32df9099b69ec050051488ba50abd6c175ee72286d394a78b230115df",
+        "git_blob": "246edffa41679f2c2a537a027bf209fc3b630a0a"
+      },
+      "after": {
+        "bytes": 12313,
+        "sha256": "caba77e856908f0edf2ba08db815847aa6f1c70375b2e6ba21f12c232e2dca4c",
+        "git_blob": "afcd6666aa397e1f7147cda731e303af84211599"
+      }
+    }
+  ]
+}

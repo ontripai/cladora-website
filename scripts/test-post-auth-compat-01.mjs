@@ -49,10 +49,22 @@ function equal(actual, expected, message) {
   assert.strictEqual(actual, expected, message);
 }
 
-function loadModule(relPath, mocks = {}) {
+function loadModule(relPath, mocks = {}, modules = new Map()) {
   const filename = path.join(root, relPath);
-  const mod = new Module(filename);
-  mod.require = (id) => (Object.hasOwn(mocks, id) ? mocks[id] : require(id));
+  if (modules.has(filename)) return modules.get(filename).exports;
+  const mod = new Module(filename); modules.set(filename, mod);
+  if (filename.endsWith('.json')) { mod.exports = JSON.parse(readFileSync(filename, 'utf8')); return mod.exports; }
+  mod.require = id => {
+    if (Object.hasOwn(mocks, id)) return mocks[id];
+    if (id === 'server-only') return require('next/dist/compiled/server-only/empty');
+    if (id.startsWith('@/') || id.startsWith('.')) {
+      const base = id.startsWith('@/') ? path.resolve(root, 'src', id.slice(2)) : path.resolve(path.dirname(filename), id);
+      const target = [base, base + '.ts', base + '.tsx', base + '.json'].find(p => existsSync(p));
+      assert.ok(target, `Source dependency exists: ${id}`);
+      return loadModule(path.relative(root, target), mocks, modules);
+    }
+    return require(id);
+  };
   const rawSource = readFileSync(filename, 'utf8');
   const compiled = ts.transpileModule(rawSource, {
     compilerOptions: {

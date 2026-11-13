@@ -15,6 +15,7 @@ export function createB2Loader(mocks = {}) {
     } });
     new Function('require', 'module', 'exports', compiled.outputText)(name => {
       if (Object.hasOwn(mocks, name)) return mocks[name];
+      if (name === 'server-only') return require('next/dist/compiled/server-only/empty');
       if (!name.startsWith('.') && !name.startsWith('@/')) return require(name);
       const target = name.startsWith('@/') ? new URL(`src/${name.slice(2)}`, root) : new URL(name, url);
       const candidates = /\.(tsx?|mjs|js)$/.test(target.pathname) ? [target]

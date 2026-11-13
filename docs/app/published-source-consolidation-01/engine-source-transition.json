@@ -1,0 +1,32 @@
+{
+  "format": "APP_ROOT_ENGINE_SOURCE_TRANSITION_V1",
+  "before_commit": "3e7bb9590d3270ad15423251ea419df551eda4c3",
+  "approved_commit": "a8e19c358345bc5fc75fd96dea3c3032a80cef0e",
+  "scope": "Only two root engines.node selectors; historical Checklist manifest is unchanged; not a build/runtime/native claim",
+  "files": [
+    {
+      "path": "package.json",
+      "selector": "engines.node",
+      "before": {
+        "bytes": 20058,
+        "sha256": "fd82e8763837cbf7af3a0b55dd3e17c9d51f916deab6f5551ecf1a74bce083ce"
+      },
+      "after": {
+        "bytes": 20062,
+        "sha256": "80947eb65fef6323153102566f78fd1e17e9f9370c78b1d6fb038e559d1eed77"
+      }
+    },
+    {
+      "path": "package-lock.json",
+      "selector": "packages[\"\"].engines.node",
+      "before": {
+        "bytes": 285183,
+        "sha256": "c0d6201b9dddab56818ee2c6a547cdba318b0f6979f2a27657b7ac5a41c9b4dc"
+      },
+      "after": {
+        "bytes": 285187,
+        "sha256": "e490306fcabb49992c2b9e9ad81e9d58189af0aa0a150c6f7b3db837896f7bfa"
+      }
+    }
+  ]
+}

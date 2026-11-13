@@ -1,0 +1,156 @@
+/** Actual Next routes + official Core factory. Only App provider, SDK and PG transport are modeled. */
+import assert from 'node:assert/strict';
+import {createRequire} from 'node:module';
+import {execFileSync} from 'node:child_process';
+import {fileURLToPath} from 'node:url';
+const require=createRequire(import.meta.url),ts=require('typescript');
+const url=new URL('test-core-guide-ce-r1-coupling.mjs',import.meta.url);
+let source=execFileSync('git',['show','62f3c4ea3280821d3df69cd5d0cfbd10fbf6cb6d:scripts/test-core-guide-ce-r1-coupling.mjs'],{cwd:fileURLToPath(new URL('..',import.meta.url)),encoding:'utf8'}).split('let n=0;')[0];
+source=source.replace(/function sourceRead\(p,encoding\)\{[^\n]+\}/,"function sourceRead(p,encoding){return readFileSync(p,encoding);}");
+// Reuse setup only. Production Core and CE read CURRENT composed source, never
+// substitute pinned6259 for the consumer under test. No old cases execute.
+source=source.replace("prefix+='\\nexport const setSDK=v=>{legacyBackend=v;};';", "prefix+='\\nexport const setSDK=v=>{legacyBackend=v;};\\nexport const setProvider=v=>{platformProvider=v;};\\nexport {React,act,JSDOM,createRoot};';")
+ .replace("prefix=prefix.replace(\"function load(p)", "prefix+='\\nlet platformProvider=null;';\nprefix=prefix.replace(\"function load(p)")
+ .replace("if(p.endsWith('.json'))return", "if(p==='src/lib/app/guide-platform-provider-v1.ts')return{get GUIDE_PLATFORM_PROVIDER_V1(){return platformProvider;},isGuideNativeEntrySelectedV1:()=>platformProvider!==null};if(p.endsWith('.json'))return");
+source=source.replace("let denied=false;const driverErrors=[];", "let denied=false;const driverErrors=[];const state={readOnly:false,denyRead:false,failFinal:false,authorityReads:0,candidates:[{context_id:ids.context,membership_id:ids.member,tenant_id:ids.tenant,workspace_id:ids.workspace,tenant_name:'Permitted tenant',role_name:'Guide reader'}]};")
+ .replace("observed.push({text,values:v});", `observed.push({text,values:v});
+ if(text==='select app_private.require_request_session_current_at_v1(clock_timestamp())')return {rows:[{}],rowCount:1};
+ if(text.includes('order by g.id,w.id limit 51')){
+  const bounded=text.includes('as transfer_bounds_valid');
+  const valid=v=>typeof v==='string'&&[...v].length>=1&&[...v].length<=256&&Buffer.byteLength(v,'utf8')<=1024;
+  // SQL transport model only: fixed independent expected limits. PostgreSQL CASE
+  // semantics/ACL/physical transfer remain Core/Platform native review gates.
+  const rows=state.candidates.map(r=>bounded?{...r,tenant_name:valid(r.tenant_name)?r.tenant_name:null,role_name:valid(r.role_name)?r.role_name:null,transfer_bounds_valid:valid(r.tenant_name)&&valid(r.role_name)}:structuredClone(r));
+  state.transferredLabelBytes=rows.reduce((sum,r)=>sum+Buffer.byteLength(r.tenant_name??'','utf8')+Buffer.byteLength(r.role_name??'','utf8'),0);
+  return {rows,rowCount:rows.length};
+ }
+ if(text===api.CE012_FUNCTIONAL_AUTH_SQL){state.authorityReads++;const found=state.candidates.find(x=>x.context_id===v[0]&&x.workspace_id===v[1]);return {rows:[{tenant_id:found?.tenant_id??ids.tenant,membership_id:found?.membership_id??ids.member,can_read:Boolean(found)&&!state.denyRead&&!(state.failFinal&&state.authorityReads>1),can_manage:!state.readOnly&&!state.denyRead,revision:1,session_guard:null}],rowCount:1};}
+ if(text===api.CE012_FUNCTIONAL_READ_SQL)return {rows:[{projection:{...h.projection(),guides:h.projection().guides.filter(g=>g.workspace_id===v[1])}}],rowCount:1};
+ if(text==='rollback'){const r=await q(text,v);return {...r,command:'ROLLBACK'};}
+ `)
+ .replace('return{h,observed,driverErrors,deny()', 'return{h,physical,target,SDK,state,observed,driverErrors,deny()');
+source=source.replace("const {setup,ids,client,api,load,NextRequest,input,setSDK}=realm.exports;", "const {setup,ids,client,api,load,NextRequest,input,setSDK,setProvider,setTransport,React,act,JSDOM,createRoot}=realm.exports;");
+source+='\nexport {connected,ids,client,api,load,NextRequest,input,setProvider,setSDK,setTransport,React,act,JSDOM,createRoot};';
+source=source.replace("const realmRequire=","prefix=prefix.replace('function resolve(p){',\"function resolve(p){try{readFileSync(path.join(root,p,'index.ts'));return p+'/index.ts';}catch{}\");\nconst realmRequire=");
+source=source.replace("publishableKey:'synthetic'})};","publishableKey:'synthetic'}),isSupabaseConfigured:()=>true};");
+source=source.replace(',require=createRequire(',',toolRequire=createRequire(').replaceAll('require(','toolRequire(');
+// Imported declarations are removed by TS; use an isolated module lexical scope.
+const realm={exports:{}};new Function('require','module','exports',ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true},transformers:{before:[context=>{const visit=node=>ts.isPropertyAccessExpression(node)&&node.name.text==='url'&&node.expression.kind===ts.SyntaxKind.MetaProperty?ts.factory.createStringLiteral(url.href):ts.visitEachChild(node,visit,context);return root=>ts.visitNode(root,visit);}]}}).outputText)(require,realm,realm.exports);
+const {connected,ids,client,api,load,NextRequest,input,setProvider,setTransport,React,act,JSDOM,createRoot}=realm.exports;
+const draft=load('src/app/api/customer/v1/experience/guides/draft/route.ts'),read=load('src/app/api/customer/v1/experience/guides/route.ts'),discovery=load('src/app/api/customer/v1/experience/guides/discovery/route.ts');
+const owner={},id=n=>`80000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
+function platform(){const x=connected();setProvider({contract:'guide-platform-provider.v1',async resolve(request){x.requests??=[];x.requests.push(request);return {runtime_pool:x.physical,target:x.target,connection_model:'direct',request:new Request('http://wrong-request.test')};}});
+ const fetch=async(url,init={})=>{const request=new NextRequest('http://ce.test'+url,{...init,headers:{origin:'http://ce.test',...init.headers}});const route=url.includes('/discovery')?discovery:url.includes('/draft')?draft:read;if(init.method==='POST')x.h.wires.push(init.body);return route[init.method??'GET'](request);};x.h.fetch=fetch;return x;}
+const only=process.argv.find(a=>a.startsWith('--case='))?.slice(7);let n=0;async function check(name,fn){if(only&&only!==name)return;await fn();console.log(`PASS ${++n} ${name}`);}
+await check('actual draft POST and current read call Core factory per original Request',async()=>{const x=platform(),s=client.createCe012GuideCreatorV1({fetch:x.h.fetch,context_id:ids.context,workspace_id:ids.workspace,owner:()=>owner,denied:()=>{}});const guide=await s.create(input);
+ const response=await x.h.fetch(`/api/customer/v1/experience/guides?context_id=${ids.context}&workspace_id=${ids.workspace}`);assert.equal(response.status,200);assert.equal((await response.json()).projection.guides[0].guide_id,guide);assert.equal(x.h.f.commits,1);assert.equal(x.requests.length,3);assert.equal(new Set(x.requests).size,3);assert.ok(x.observed.some(q=>q.text.includes('ce_guide_role_safety')));
+});
+await check('absent/missing/invalid provider stays unavailable; no native or SERVICE fallback',async()=>{const x=connected();setProvider(null);assert.equal((await draft.GET(new NextRequest('http://ce.test/api/customer/v1/experience/guides/draft'))).status,503);
+ setProvider({contract:'guide-platform-provider.v1',resolve:async()=>null});assert.equal((await read.GET(new NextRequest(`http://ce.test/api/customer/v1/experience/guides?context_id=${ids.context}&workspace_id=${ids.workspace}`))).status,503);
+ setProvider({contract:'guide-platform-provider.v1',resolve:async()=>({runtime_pool:x.physical,target:{...x.target,runtime_role:'unexpected_owner'},connection_model:'direct'})});assert.equal((await draft.GET(new NextRequest('http://ce.test/api/customer/v1/experience/guides/draft'))).status,503);assert.equal(x.observed.length,0);
+});
+await check('native401/403 preserved without legacy RPC, read/write or permission fallback',async()=>{for(const status of [401,403]){const x=platform();if(status===401)x.deny();else x.state.denyRead=true;const response=await x.h.fetch(`/api/customer/v1/experience/guides?context_id=${ids.context}&workspace_id=${ids.workspace}`);assert.equal(response.status,status);assert.equal(x.h.f.commits,0);assert.equal(x.observed.some(q=>/service|list_ce|list_contexts/.test(q.text)),false);}});
+await check('Guide-only discovery uses current CE permission, bounded rollback and final recheck',async()=>{const x=platform(),response=await x.h.fetch('/api/customer/v1/experience/guides/discovery');assert.equal(response.status,200);const body=await response.json();assert.equal(body.selections.length,1);assert.equal(body.selections[0].workspace_id,ids.workspace);assert.equal(body.authority,'not_evaluated');assert.equal(x.h.f.commits,0);assert.equal(x.observed.some(q=>/services\.|list_core_service/.test(q.text)),false);assert.ok(x.observed.some(q=>q.text==='rollback'));
+ const y=platform();y.state.failFinal=true;const denied=await y.h.fetch('/api/customer/v1/experience/guides/discovery');assert.equal(denied.status,403);assert.equal((await denied.json()).selections,undefined);
+ const z=platform();z.state.candidates=Array.from({length:51},()=>z.state.candidates[0]);assert.equal((await z.h.fetch('/api/customer/v1/experience/guides/discovery')).status,503);
+});
+await check('explicit Guide login/MFA intent never calls SERVICE or Platform permission RPC',async()=>{const auth=load('src/lib/auth/post-auth-route.ts');let verified=true,aal='aal2';const sdk={schema(){throw Error('NO_PERMISSION_RPC');},auth:{mfa:{listFactors:async()=>({data:{totp:verified?[{status:'verified'}]:[]},error:null}),getAuthenticatorAssuranceLevel:async()=>({data:{currentLevel:aal},error:null})}}};
+ for(const lang of ['fa','en','ro']){assert.equal(auth.sanitizeAllowedNextRoute('app/experience/guides',lang,true),`/${lang}/app/experience/guides`);assert.equal(await auth.resolveGuidePostAuthRouteV1(sdk,lang),`/${lang}/app/experience/guides`);aal='aal1';assert.match(await auth.resolveGuidePostAuthRouteV1(sdk,lang),/mfa\?next=app%2Fexperience%2Fguides/);verified=false;assert.match(await auth.resolveGuidePostAuthRouteV1(sdk,lang),/mfa\/setup\?reason=customer_required&next=/);verified=true;aal='aal2';}
+ assert.equal(auth.sanitizeAllowedNextRoute('https://evil.test/app/experience/guides','en',true),null);assert.equal(auth.sanitizeAllowedNextRoute('app/services','en',true),'/en/app/services');
+});
+await check('mounted native entry has explicit Context selection, current read and FA/EN/RO without SERVICE ContextProvider',async()=>{const {CustomerExperienceGuideNativeEntry:Entry}=load('src/components/customer/CustomerExperienceGuideNativeEntry.tsx');
+ for(const lang of ['fa','en','ro']){const x=platform(),originalFetch=globalThis.fetch;setTransport(x.h.fetch);globalThis.fetch=x.h.fetch;const dom=new JSDOM('<div id="root"></div>',{url:'http://ce.test'});Object.assign(globalThis,{window:dom.window,document:dom.window.document,HTMLElement:dom.window.HTMLElement,Event:dom.window.Event,IS_REACT_ACT_ENVIRONMENT:true});const root=createRoot(document.getElementById('root'));
+ try{await act(async()=>{root.render(React.createElement(Entry,{lang}));await new Promise(r=>setTimeout(r,40));});const select=document.querySelector('select');assert.equal(select.value,'');assert.equal(document.querySelector('form'),null);await act(async()=>{select.value=select.options[1].value;select.dispatchEvent(new window.Event('change',{bubbles:true}));await new Promise(r=>setTimeout(r,40));});assert.ok(document.querySelector('form'));assert.equal(document.querySelector('section').dir,lang==='fa'?'rtl':'ltr');assert.equal(x.observed.some(q=>/services\.|list_core_service/.test(q.text)),false);
+ }finally{await act(async()=>root.unmount());globalThis.fetch=originalFetch;dom.window.close();}}
+});
+await check('actual MFA continuation returns Guide without SERVICE or Platform-access RPC',async()=>{const x=platform();for(const lang of ['en','ro','fa'])for(const path of ['src/app/[lang]/mfa/page.tsx','src/app/[lang]/mfa/setup/page.tsx']){const page=load(path).default;
+ await assert.rejects(page({params:Promise.resolve({lang}),searchParams:Promise.resolve({next:'app/experience/guides'})}),e=>typeof e.digest==='string'&&e.digest.includes(`/${lang}/app/experience/guides`));}assert.equal(x.observed.length,0);
+});
+await check('native Context switch fences late creation JSON and retains UNKNOWN exact-wire retry',async()=>{const {CustomerExperienceGuideNativeEntry:Entry}=load('src/components/customer/CustomerExperienceGuideNativeEntry.tsx'),x=platform();x.state.candidates.push({...x.state.candidates[0],context_id:id(21),membership_id:id(22),workspace_id:id(23),tenant_name:'Second permitted context'});
+ const transport=x.h.fetch;let release,arrived;const at=new Promise(r=>{arrived=r;});let held=false;
+ x.h.fetch=async(...args)=>{const response=await transport(...args);if(JSON.parse(args[1]?.body??'{}').op==='execute_create'&&!held){held=true;return {ok:true,status:200,json:()=>new Promise(resolve=>{release=async()=>resolve(await response.json());arrived();})};}return response;};
+ const originalFetch=globalThis.fetch;globalThis.fetch=x.h.fetch;setTransport((...a)=>x.h.fetch(...a));const dom=new JSDOM('<div id="root"></div>',{url:'http://ce.test'});Object.assign(globalThis,{window:dom.window,document:dom.window.document,HTMLElement:dom.window.HTMLElement,Event:dom.window.Event,IS_REACT_ACT_ENVIRONMENT:true});const root=createRoot(document.getElementById('root'));
+ try{await act(async()=>{root.render(React.createElement(Entry,{lang:'en'}));await new Promise(r=>setTimeout(r,35));});const change=async index=>act(async()=>{const select=document.querySelector('select');select.value=select.options[index].value;select.dispatchEvent(new window.Event('change',{bubbles:true}));await new Promise(r=>setTimeout(r,35));});await change(1);
+ await act(async()=>{const values=[input.title,input.step_title,input.instructions,input.reason];for(const [i,e]of [...document.querySelectorAll('input,textarea')].entries()){const type=e.tagName==='TEXTAREA'?window.HTMLTextAreaElement.prototype:window.HTMLInputElement.prototype;Object.getOwnPropertyDescriptor(type,'value').set.call(e,values[i]);e.dispatchEvent(new window.Event('input',{bubbles:true}));}});
+ await act(async()=>{document.querySelector('form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true}));await at;});const wire=x.h.wires.at(-1);await change(2);await act(async()=>{await release();await new Promise(r=>setTimeout(r,10));});assert.equal(document.querySelector('form input').value,'');assert.equal(x.h.f.commits,1);
+ await change(1);assert.equal(document.querySelector('form fieldset').disabled,true);assert.equal(document.querySelector('form input').value,input.title);await act(async()=>{document.querySelector('form').dispatchEvent(new window.Event('submit',{bubbles:true,cancelable:true}));await new Promise(r=>setTimeout(r,35));});assert.equal(x.h.wires.at(-1),wire);assert.equal(x.h.f.commits,1);
+ }finally{await act(async()=>root.unmount());globalThis.fetch=originalFetch;dom.window.close();}
+});
+await check('actual App layout and Guide shell do not mount SERVICE Context/dashboard discovery',async()=>{const x=platform();x.SDK.auth.mfa.listFactors=async()=>({data:{totp:[{status:'verified'}]},error:null});
+ const AppLayout=load('src/app/[lang]/app/layout.tsx').default;const layout=await AppLayout({params:Promise.resolve({lang:'en'}),children:React.createElement('p',null,'Native Guide entry')});assert.equal(layout.props.guideNativeSelected,true);assert.equal(x.observed.length,0);
+ const {PathnameContext}=require('next/dist/shared/lib/hooks-client-context.shared-runtime'),dom=new JSDOM('<div id="root"></div>',{url:'http://ce.test'});Object.assign(globalThis,{window:dom.window,document:dom.window.document,HTMLElement:dom.window.HTMLElement,IS_REACT_ACT_ENVIRONMENT:true});const root=createRoot(document.getElementById('root')),originalFetch=globalThis.fetch;let calls=0;globalThis.fetch=async()=>{calls++;throw Error('NO_SERVICE_BOOTSTRAP');};
+ try{await act(async()=>{root.render(React.createElement(PathnameContext.Provider,{value:'/en/app/experience/guides'},layout));await new Promise(r=>setTimeout(r,10));});assert.ok(document.body.textContent.includes('Native Guide entry'));assert.equal(calls,0);}finally{await act(async()=>root.unmount());globalThis.fetch=originalFetch;dom.window.close();}
+});
+await check('read-only Guide permission allows discovery/read but never creates management admission',async()=>{const x=platform();x.state.readOnly=true;
+ const discovered=await x.h.fetch('/api/customer/v1/experience/guides/discovery');assert.equal(discovered.status,200);assert.equal((await discovered.json()).selections.length,1);
+ const response=await x.h.fetch(`/api/customer/v1/experience/guides?context_id=${ids.context}&workspace_id=${ids.workspace}`);assert.equal(response.status,200);const projection=await response.json();assert.equal(projection.can_manage,false);assert.equal(projection.can_create,false);
+ const s=client.createCe012GuideCreatorV1({fetch:x.h.fetch,context_id:ids.context,workspace_id:ids.workspace,owner:()=>owner,denied:()=>{}});await assert.rejects(s.create(input));assert.equal(x.h.f.commits,0);assert.deepEqual(x.h.f.writes,[]);
+});
+await check('native Guide cold MFA continuation retains Guide intent; inactive Guide preserves SERVICE default',async()=>{const x=platform(),Layout=load('src/app/[lang]/app/layout.tsx').default;x.SDK.auth.mfa.listFactors=async()=>({data:{totp:[{status:'verified'}]},error:null});x.SDK.auth.mfa.getAuthenticatorAssuranceLevel=async()=>({data:{currentLevel:'aal1',nextLevel:'aal2'},error:null});
+ for(const lang of ['fa','en','ro'])await assert.rejects(Layout({params:Promise.resolve({lang}),children:null}),e=>typeof e.digest==='string'&&e.digest.includes(`/${lang}/mfa?next=app%2Fexperience%2Fguides`));
+ x.SDK.auth.mfa.listFactors=async()=>({data:{totp:[]},error:null});for(const lang of ['fa','en','ro'])await assert.rejects(Layout({params:Promise.resolve({lang}),children:null}),e=>typeof e.digest==='string'&&e.digest.includes(`/${lang}/mfa/setup?reason=customer_required&next=app%2Fexperience%2Fguides`));
+ x.SDK.auth.mfa.listFactors=async()=>({data:{totp:[{status:'verified'}]},error:null});
+ setProvider(null);const saved=process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE;process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE='core-service-real-app-assembly.v1';
+ try{await assert.rejects(Layout({params:Promise.resolve({lang:'en'}),children:null}),e=>typeof e.digest==='string'&&e.digest.includes('/en/mfa;')&&!e.digest.includes('experience/guides'));}finally{if(saved===undefined)delete process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE;else process.env.CLADORA_CORE_SERVICE_ASSEMBLY_PROFILE=saved;}
+ assert.equal(x.observed.length,0);
+});
+for(const operation of ['create','save','publish'])await check(`retained ${operation} UNKNOWN explains recovery after remount in FA/EN/RO without auto POST`,async()=>{
+ const x=platform(),creator=client.createCe012GuideCreatorV1({fetch:(...a)=>x.h.fetch(...a),context_id:ids.context,workspace_id:ids.workspace,owner:()=>owner,denied:()=>{}});
+ let guide,commands,Component,props;
+ if(operation==='create'){
+  commands=creator;Component=load('src/components/customer/CustomerExperienceGuideCreate.tsx').CustomerExperienceGuideCreate;props={commands,onCreated:()=>{completed++;}};
+ }else{
+  guide=await creator.create(input);
+  if(operation==='save'){
+   commands=load('src/lib/community/experience-guide-functional-client.ts').createCe012GuideHttpCommandsV1({fetch:(...a)=>x.h.fetch(...a),binding:{context_id:ids.context,workspace_id:ids.workspace,guide_id:guide,expected_guide_version:1},owner:()=>owner,denied:()=>{}});
+   Component=load('src/components/customer/CustomerExperienceGuide.tsx').CustomerExperienceGuide;
+   props={commands,guide:load('src/lib/community/experience-guide-client.ts').toExperienceGuideView(x.h.projection().guides[0],'en'),onChanged:()=>{completed++;}};
+  }else{
+   commands=load('src/lib/community/experience-guide-actions-client.ts').createCe012GuideActionsV1({fetch:(...a)=>x.h.fetch(...a),context_id:ids.context,workspace_id:ids.workspace,guide_id:guide,version:1,owner:()=>owner,denied:()=>{}});
+   Component=load('src/components/customer/CustomerExperienceGuideActions.tsx').CustomerExperienceGuideActions;props={commands,status:'draft',hasDraft:()=>false,onPending:()=>{},onChanged:()=>{completed++;}};
+  }
+ }
+ let completed=0,dropped=false;const original=x.h.fetch,execute=operation==='create'?'execute_create':operation==='save'?'execute':'execute_lifecycle';
+ x.h.fetch=async(...a)=>{const response=await original(...a);if(JSON.parse(a[1]?.body??'{}').op===execute&&!dropped){assert.equal(response.status,200);dropped=true;throw Error('controlled lost reply after modeled commit');}return response;};
+ await assert.rejects(operation==='create'?commands.create(input):operation==='save'?commands.saveDraft({guide_id:guide,title:'Retained edited guide',step_title:'Edited step',step_body:'Retained instructions',target_id:null}):commands.run('publish'),e=>e.code==='UNKNOWN');
+ assert.equal(commands.isUncertain(),true);const wire=x.h.wires.at(-1),postCount=x.h.wires.length,commits=x.h.f.commits;
+ const dom=new JSDOM('<div id="root"></div>',{url:'http://ce.test'});Object.assign(globalThis,{window:dom.window,document:dom.window.document,HTMLElement:dom.window.HTMLElement,Event:dom.window.Event,IS_REACT_ACT_ENVIRONMENT:true});const root=createRoot(document.getElementById('root'));
+ try{
+  for(const lang of ['fa','en','ro']){
+   await act(async()=>{root.render(React.createElement(Component,{...props,lang,key:lang}));});
+   const alert=document.querySelector('[role="alert"]');assert.ok(alert,`${operation}/${lang}: retained UNKNOWN must explain the pending command on remount`);
+   assert.ok(alert.textContent.startsWith(lang==='fa'?'نتیجه نامعلوم است':lang==='en'?'The result is unknown':'Rezultatul este necunoscut'));
+   assert.equal(x.h.wires.length,postCount,'mount/locale must not POST');assert.equal(completed,0);assert.equal(commands.isUncertain(),true);
+   if(operation!=='publish'){assert.equal(document.querySelector('fieldset').disabled,true);assert.equal(document.querySelector('input').value,operation==='create'?input.title:'Retained edited guide');}
+  }
+  await act(async()=>{document.querySelector('button').click();await new Promise(r=>setTimeout(r,35));});
+  assert.equal(x.h.wires.length,postCount+1);assert.equal(x.h.wires.at(-1),wire);assert.equal(x.h.f.commits,commits);assert.equal(completed,1);assert.equal(commands.isUncertain(),false);assert.equal(document.querySelector('[role="alert"]'),null);
+ }finally{await act(async()=>root.unmount());dom.window.close();}
+});
+await check('Guide discovery revoke during final SDK wait withholds the former selection',async()=>{
+ const x=platform(),get=x.SDK.auth.getUser;let calls=0;x.SDK.auth.getUser=async()=>{if(++calls===2){x.observed.push({text:'SDK_FINAL_VERIFICATION',values:[]});x.state.denyRead=true;}return get();};
+ const r=await x.h.fetch('/api/customer/v1/experience/guides/discovery');assert.equal(r.status,403,'post-wait canonical read guard must withhold revoked selection');assert.equal((await r.json()).selections,undefined);assert.equal(calls,2);assert.equal(x.h.f.commits,0);assert.deepEqual(x.h.f.writes,[]);
+});
+await check('Guide discovery text is bounded in SQL projection before modeled transfer, never silently truncated',async()=>{
+ const x=platform();x.state.candidates[0].tenant_name='x'.repeat(250000);const r=await x.h.fetch('/api/customer/v1/experience/guides/discovery');assert.equal(r.status,503);assert.equal((await r.json()).selections,undefined);
+ assert.ok(x.state.transferredLabelBytes<=2048,'LIMIT and downstream Zod cannot bound the original transferred label');
+});
+await check('Guide discovery matching SDK finishes before final canonical gates and preserves full bounded Unicode labels',async()=>{
+ for(const name of ['x'.repeat(256),'😀'.repeat(256),'a\u0301'.repeat(128)]){const x=platform(),get=x.SDK.auth.getUser;let calls=0;
+  x.state.candidates[0].tenant_name=name;x.state.candidates[0].role_name=name;x.SDK.auth.getUser=async()=>{if(++calls===2)x.observed.push({text:'SDK_FINAL_VERIFICATION',values:[]});return get();};
+  const r=await x.h.fetch('/api/customer/v1/experience/guides/discovery');assert.equal(r.status,200);const body=await r.json();assert.equal(body.selections[0].tenant_name,name);assert.equal(body.selections[0].role_name,name);assert.equal(body.truncated,false);assert.equal(body.authority,'not_evaluated');assert.equal(body.selections[0].transfer_bounds_valid,undefined);assert.ok(x.state.transferredLabelBytes<=2048);
+  const sdk=x.observed.findLastIndex(q=>q.text==='SDK_FINAL_VERIFICATION'),canonical=x.observed.findLastIndex(q=>q.text===api.CE012_FUNCTIONAL_AUTH_SQL),session=x.observed.findLastIndex(q=>q.text==='select app_private.require_request_session_current_at_v1(clock_timestamp())'),rollback=x.observed.findLastIndex(q=>q.text==='rollback');
+  assert.ok(sdk<canonical&&canonical<session&&session<rollback);assert.equal(x.observed.slice(canonical+1).some(q=>q.text==='SDK_FINAL_VERIFICATION'),false);assert.match(r.headers.get('cache-control'),/no-store, private/);assert.equal(r.headers.get('vary'),'Cookie');assert.equal(x.h.f.commits,0);assert.deepEqual(x.h.f.writes,[]);
+ }
+});
+await check('Guide discovery invalid label or overflow withholds all rows, never removes one silently',async()=>{
+ for(const field of ['tenant_name','role_name'])for(const value of ['',null,'x'.repeat(257),'😀'.repeat(257)]){const x=platform();x.state.candidates.push({...x.state.candidates[0],[field]:value});const r=await x.h.fetch('/api/customer/v1/experience/guides/discovery');assert.equal(r.status,503);assert.equal((await r.json()).selections,undefined);assert.ok(x.state.transferredLabelBytes<=4096);assert.equal(x.h.f.commits,0);}
+ const x=platform();x.state.candidates=Array.from({length:51},()=>({...x.state.candidates[0],tenant_name:'😀'.repeat(256),role_name:'😀'.repeat(256)}));const r=await x.h.fetch('/api/customer/v1/experience/guides/discovery');assert.equal(r.status,503);assert.equal((await r.json()).selections,undefined);assert.equal(x.state.transferredLabelBytes,51*2048);
+});
+await check('Guide discovery final issuer SID expiry and error controls withhold without weaker fallback',async()=>{
+ for(const mode of ['sid','expiry','error']){const x=platform(),user=x.SDK.auth.getUser,claims=x.SDK.auth.getClaims;let calls=0;
+  x.SDK.auth.getUser=async()=>{if(++calls===2){if(mode==='error')throw Error('private SDK failure');if(mode==='sid')x.SDK.auth.getClaims=async()=>{const c=await claims();c.data.claims.session_id=id(499);return c;};if(mode==='expiry'){x.SDK.auth.getSession=async()=>({error:null,data:{session:{user:{id:ids.actor},expires_at:1}}});x.SDK.auth.getClaims=async()=>{const c=await claims();c.data.claims.exp=1;return c;};}}return user();};
+  const r=await x.h.fetch('/api/customer/v1/experience/guides/discovery');assert.equal(r.status,mode==='expiry'?401:503);const b=await r.json();assert.equal(b.selections,undefined);assert.doesNotMatch(JSON.stringify(b),/private SDK|Permitted tenant/);assert.equal(calls,2);assert.equal(x.h.f.commits,0);assert.deepEqual(x.h.f.writes,[]);
+ }
+});
+console.log(JSON.stringify({task:'CE-GUIDE-NATIVE-01/CORE62-ROUTE-ADOPTION',groups:n,result:'PASS_CONTROLLED_ROUTE_COMPOSITION',native_platform_app_auth_pg_browser:'NOT_RUN_NOT_PASS',prior_core_ce_suites:'NOT_RERUN'}));

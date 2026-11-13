@@ -21,9 +21,11 @@ function load(file) {
   }
   const filename = fileURLToPath(file);
   const mod = new Module(filename);
+  // CommonJS cycles must observe the same exports object during evaluation.
+  cache.set(file.href, mod.exports);
   // Next resolves this build-time server marker for route modules. The standalone
   // Node fixture still loads the real Core read bridge; no runtime authority is mocked.
-  mod.require = name => name === 'server-only' ? {} : name === '@/lib/supabase/server' ? { createClient: async () => ({
+  mod.require = name => name === 'server-only' ? require('next/dist/compiled/server-only/empty') : name === '@/lib/supabase/server' ? { createClient: async () => ({
     auth: { getClaims: async () => auth }, schema: name => { assert.equal(name, 'customer_api'); return { rpc: async (name, args) => { calls.push({ name, args }); return result; } }; },
   }) } : name.startsWith('@/') ? load(new URL(`../src/${name.slice(2)}.ts`, import.meta.url))
     : name.startsWith('.') ? load(new URL(/\.(?:json|[cm]?[jt]sx?)$/.test(name) ? name : `${name}.ts`, file)) : require(name);

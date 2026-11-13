@@ -53,6 +53,7 @@ function GuideEditor({ lang, guide, targets, commands, onChanged }: { lang: Lang
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [unknown, setUnknown] = useState(commands.isUncertain?.()??false);
+  const visibleError = unknown && !busy ? feedback[lang].unknown : error;
   useEffect(()=>{if(Object.values(dirty.current).some(Boolean))commands.rememberDraft?.({guide_id:guide.guide_id,title:draft.title,step_title:draft.stepTitle,step_body:draft.body,target_id:draft.targetId||null});},[draft,commands,guide.guide_id]);
   const incomingStepTitle = guide.steps[0]?.title ?? '';
   const incomingBody = guide.steps[0]?.body ?? '';
@@ -110,10 +111,10 @@ function GuideEditor({ lang, guide, targets, commands, onChanged }: { lang: Lang
     }
   }
 
-  return <form aria-labelledby={titleId} aria-describedby={error ? `${statusId}-error` : statusId} className="grid gap-3 rounded-xl border p-4 sm:grid-cols-2" onSubmit={(event) => { event.preventDefault(); void submit(); }}>
+  return <form aria-labelledby={titleId} aria-describedby={visibleError ? `${statusId}-error` : statusId} className="grid gap-3 rounded-xl border p-4 sm:grid-cols-2" onSubmit={(event) => { event.preventDefault(); void submit(); }}>
     <h2 id={titleId} className="font-bold sm:col-span-2">{t.editor}</h2>
     <p id={statusId} role="status" aria-live="polite" aria-atomic="true" className="text-sm text-teal-800 sm:col-span-2">{busy ? feedback[lang].sending : message}</p>
-    {error ? <p id={`${statusId}-error`} role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800 sm:col-span-2">{error}</p> : null}
+    {visibleError ? <p id={`${statusId}-error`} role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800 sm:col-span-2">{visibleError}</p> : null}
     <fieldset aria-busy={busy} disabled={busy || unknown} className="contents">
       <label className="space-y-1 text-sm"><span>{t.title}</span><input required maxLength={160} value={draft.title} onChange={(event) => change('title', event.target.value)} className="w-full rounded-lg border px-3 py-2" /></label>
       <label className="space-y-1 text-sm"><span>{t.step}</span><input required maxLength={160} value={draft.stepTitle} onChange={(event) => change('stepTitle', event.target.value)} className="w-full rounded-lg border px-3 py-2" /></label>

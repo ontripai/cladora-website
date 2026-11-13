@@ -1,0 +1,101 @@
+{
+  "contract": "core-listing-writer-lock.pg-proof-request.v1",
+  "status": "NOT_RUN_NOT_PASS",
+  "target_binding": null,
+  "execution_authorization": null,
+  "required": [
+    "owned disposable PG17 target, separately admitted by Platform",
+    "actual admitted owner/ACL/RLS and exact catalog pins; no privilege expansion",
+    "reviewed canonical source prerequisites for each PRESENT routine; absent domains not installed",
+    "synthetic domain/session fixtures only, private IDs; no shared target",
+    "two independent correlated backend attempts; bounded deadlines and settlement ACK",
+    "quiescent schema adoption; direct SQL/unknown callers excluded"
+  ],
+  "cases": [
+    {
+      "id": "W01",
+      "case": "source counterexample versus real patched entry",
+      "steps": [
+        "reader: BEGIN SERIALIZABLE; epoch FOR SHARE",
+        "writer BEFORE patch: lock target row; request epoch FOR UPDATE",
+        "reader: request row SHARE; capture bounded wait/deadlock terminal without business commit",
+        "after reviewed adoption: writer calls actual routine at fresh transaction entry; must wait on epoch before domain rows",
+        "reader row read/ROLLBACK; writer proceeds only under existing checks"
+      ],
+      "expected": "no epoch/row cycle on admitted corrected entry; 40001/deadlock/timeout exact terminal recorded; no PASS inferred from model"
+    },
+    {
+      "id": "W02",
+      "case": "import approval and invitation wrapper",
+      "steps": [
+        "hold reader epoch SHARE",
+        "invoke actual outer approval or invitation wrapper",
+        "independent observer confirms it has not acquired import_run/invitation UPDATE row before epoch wait",
+        "release reader; inner entry reacquires same epoch lock in same transaction"
+      ],
+      "expected": "actual outer+inner order; patching only inner is negative"
+    },
+    {
+      "id": "W03",
+      "case": "same-unit two writers",
+      "steps": [
+        "fresh independent writer attempts call real entries",
+        "first holds epoch UPDATE; second waits before conflicting domain row",
+        "first settles; second re-evaluates original current state and existing domain/idempotency checks"
+      ],
+      "expected": "no parallel source effect under stale baseline; original key/body/conflict rules retained; no fabricated command receipt"
+    },
+    {
+      "id": "W04",
+      "case": "rollback and canonical invalidation",
+      "steps": [
+        "actual versioned and historical NULL ownership cases in owned fixture",
+        "business mutation inside transaction must bump existing epoch and actual stored revision only as existing source dictates",
+        "ROLLBACK with same-backend ACK; independent read checks exact source/epoch/metadata residue"
+      ],
+      "expected": "all mutation/epoch changes roll back; NULL historical version never becomes positive"
+    },
+    {
+      "id": "W05",
+      "case": "missing/foreign owner privilege or RLS path",
+      "steps": [
+        "controlled negative projected prestate without epoch SELECT/lock privilege",
+        "preflight must STOP before CREATE OR REPLACE",
+        "native proof separately validates every actual SECDEF owner role path"
+      ],
+      "expected": "no GRANT/BYPASS/owner fallback or altered routine metadata"
+    },
+    {
+      "id": "W06",
+      "case": "40001/cancellation/UNKNOWN settlement",
+      "steps": [
+        "controlled bounded serialization conflict at epoch/row acquisition under actual PG",
+        "keep original SQLSTATE/error and backend/attempt correlation",
+        "inject only separately admitted ACK-loss at adoption/command terminal",
+        "read-only reconcile exact original command and body/catalog state"
+      ],
+      "expected": "no new retry engine/key, no successful partial reply or guessed rollback"
+    },
+    {
+      "id": "W07",
+      "case": "expiry/revoke after entry wait",
+      "steps": [
+        "real current-session fixture must be valid before wait",
+        "expire/revoke while entry is waiting, then release epoch",
+        "record actual original canonical terminal session/authority check and precise DB clock"
+      ],
+      "expected": "deny or block native acceptance if original statement-start predicates permit stale allow; source unchanged does not prove currentness"
+    },
+    {
+      "id": "W08",
+      "case": "TRUNCATE/DDL relation-lock ordering",
+      "steps": [
+        "no shared TRUNCATE/DDL; owned lab only if separately admitted",
+        "negative: relation Exclusive before table trigger epoch request",
+        "positive maintenance entry: epoch acquired before issuing relation-lock statement, or reviewed quiescent maintenance"
+      ],
+      "expected": "table BEFORE trigger alone is NOT total writer order proof; no privilege/activation granted"
+    }
+  ],
+  "remaining_policy": "own-party/other-party disclosure and management/representation decision remains separate; no positive Listing companion"
+}

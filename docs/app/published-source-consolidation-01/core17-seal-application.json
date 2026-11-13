@@ -1,0 +1,134 @@
+{
+  "task": "CORE-PR479-SEAL-COMPAT-01_APP_APPLICATION",
+  "source_head": "4d21561862c20f56b9c4b81a59ca5e1f0a5d9e55",
+  "source_tree": "529ee080f0aa3a59e64cee25b4fcb11029525fa0",
+  "proposal_base": "67f17777f342c103e2588410949c0b32a104a37f",
+  "applied_on_existing_head": "e15757fc5255806c7f2b744e736218f3d9cdf674",
+  "application_commit": "07dc064f4a2a56c83b627a3cf1b56b8b1a596029",
+  "application_parent": "e15757fc5255806c7f2b744e736218f3d9cdf674",
+  "proposal_afterimages": "ALL5_BYTE_SHA256_GITBLOB_MATCH",
+  "paths": [
+    {
+      "path": ".github/workflows/core17-native-case-source.yml",
+      "before": {
+        "bytes": 2028,
+        "sha256": "156e7049d41e5d085670dc542a53b587bbaf09aebd816a77664ac5ef241b6c73",
+        "git_blob": "00f3927fef182c9e38d29e7d99ee732d3a287f2c"
+      },
+      "after": {
+        "bytes": 2303,
+        "sha256": "8b86c76210882bdbc69808377cfc68025deefb69826042feb325a39762ab5fe6",
+        "git_blob": "0fb8047d70034c987233041245a3a27185d9b8c2"
+      }
+    },
+    {
+      "path": "scripts/core17-native-source-successor-v1/README.md",
+      "before": null,
+      "after": {
+        "bytes": 6349,
+        "sha256": "bccd6df54d6f721e1ad6ae7aa30619792c219dc7c3bf4dadd96e7dfd07af7a98",
+        "git_blob": "3316710c64539218a571e853a76b3159de375b4c"
+      }
+    },
+    {
+      "path": "scripts/core17-native-source-successor-v1/check.mjs",
+      "before": null,
+      "after": {
+        "bytes": 6832,
+        "sha256": "ac3bac721a2fee75bfb0adc2c13514f5912a1fc6c3eff54002c1d57f8c9df179",
+        "git_blob": "1d0670eb52bbeb84a900a427f8c7ba227fd17627"
+      }
+    },
+    {
+      "path": "scripts/core17-native-source-successor-v1/source-successor.json",
+      "before": null,
+      "after": {
+        "bytes": 22192,
+        "sha256": "09ad4bdd83cea119735ec555da3834ec290c75db263bedaa6e1fb55a5eed3682",
+        "git_blob": "b1ba15ab6d8d210833276d8ee8772537cb7a2f88"
+      }
+    },
+    {
+      "path": "scripts/core17-native-source-successor-v1/test.mjs",
+      "before": null,
+      "after": {
+        "bytes": 3850,
+        "sha256": "34c654f5a25f99c5242d8f7e4897caa0481c0724e34227f0ac8dbc9a4b1a5abc",
+        "git_blob": "a12287b57caf8314460ea08aa5d079fb50230e9d"
+      }
+    }
+  ],
+  "current_checkout_check": {
+    "contract": "core17.source-successor-check.v1",
+    "historical_manifest": "ORIGINAL_IDENTITY_VERIFIED",
+    "historical_App": "fd7bc8799ce8aba970bb74e2a9035d4ee41e5119",
+    "reviewed_source_head": "67f17777f342c103e2588410949c0b32a104a37f",
+    "historical_product_sources": 62,
+    "current_product_sources": 73,
+    "operator_sources": 18,
+    "historical_evidence_scope": "UNCHANGED_NOT_EXTENDED_TO_SUCCESSOR",
+    "source_successor": "EXACT_REVIEWED_SOURCE_ONLY",
+    "native_execution_eligible": false,
+    "runtime_activation": null,
+    "native": "NOT_RUN_NOT_PASS"
+  },
+  "new_negative_tests": {
+    "contract": "core17.source-successor-negative-receipt.v1",
+    "reviewed": "67f17777f342c103e2588410949c0b32a104a37f",
+    "groups": [
+      {
+        "name": "positive exact PR479 source; original 62-file historical validator plus current 73-file identity",
+        "result": "PASS"
+      },
+      {
+        "name": "tampered historical manifest cannot relabel old runtime/evidence",
+        "result": "PASS"
+      },
+      {
+        "name": "same-size changed current runtime rejected",
+        "result": "PASS"
+      },
+      {
+        "name": "extra imported product dependency rejected even when otherwise valid source",
+        "result": "PASS"
+      },
+      {
+        "name": "extra historical operator file rejected",
+        "result": "PASS"
+      },
+      {
+        "name": "unreviewed successor pin/native relabel rejected",
+        "result": "PASS"
+      },
+      {
+        "name": "native execution guard remains original and fail-closed for new App",
+        "result": "PASS"
+      }
+    ],
+    "node": "v24.19.0",
+    "SQL_Auth_native": false,
+    "old_controlled_54": "NOT_REPEATED"
+  },
+  "syntax_lint": "PASS_NEW_TWO_SCRIPTS_ONLY",
+  "historical_manifest_checker_sourceGate_runtime": "BYTE_IDENTICAL_TO_BEFORE",
+  "old_54_healthy_suites_local": "NOT_REPEATED",
+  "SQL_build_native_local": "NOT_RUN",
+  "CI22_24": {
+    "head": "552ea91be530db92c4afda43d644732ea1a08c29",
+    "workflow_run": "https://github.com/ontripai/cladora-website/actions/runs/43384398939",
+    "result": "PASS_BOTH_LANES",
+    "lanes": [
+      {
+        "node": "22.23.4",
+        "job": 131749371398,
+        "result": "success"
+      },
+      {
+        "node": "24.22.2",
+        "job": 131749371593,
+        "result": "success"
+      }
+    ],
+    "scope": "Actual original62/current73/18operator checks and seven new groups; native_execution_eligible=false; final independent S01/Documents successor CI must be read separately"
+  }
+}

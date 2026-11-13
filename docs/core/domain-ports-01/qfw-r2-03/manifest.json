@@ -1,0 +1,149 @@
+{
+  "contract": "core-qfw-r2-03.source.v1",
+  "FullSHA": "CONTAINING_COMMIT",
+  "Parent": "365d47b59d0cd0b5f7bb13604f1497c2104ed6e7",
+  "branch": "codex/core-domain-ports-01",
+  "status": "CORE_AND_ACTUAL_SERVICE_COUPLING_PASS_READY_FOR_COORDINATOR_REVIEW",
+  "native": "NOT_RUN_NOT_PASS",
+  "activation": null,
+  "inventory": [
+    {
+      "path": "src/lib/core/functional-command-runtime-v1.ts",
+      "before": {
+        "bytes": 28304,
+        "sha256": "ac745c7afefdfcaea7e26a610b566845668d01900af7e88a063b75621b1293ed",
+        "git_blob": "7e4e45596f122c309a618186a7c1117c865b125e"
+      },
+      "after": {
+        "bytes": 28727,
+        "sha256": "ec5ada6a57427d06dea947da621d0039f51078c8aaeca358349195b5b015f9c0",
+        "git_blob": "5c34552afe4323298730e7a622b2f437df1f874b"
+      }
+    },
+    {
+      "path": "scripts/test-core-quote-mfa-qfw-r2-03.mjs",
+      "before": null,
+      "after": {
+        "bytes": 8815,
+        "sha256": "6d26762ba52969f273a0593aa1a0b19b81184a2af3a9e8c9f83767a4445def22",
+        "git_blob": "f2320d34be7917b20b2588bbb7b8dd889adb4e50"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/qfw-r2-03/README.md",
+      "before": null,
+      "after": {
+        "bytes": 6024,
+        "sha256": "d0baac9c021a1170cb7732d0662158bd57e47bda7a67761ecb15b93b61ff967a",
+        "git_blob": "6886ba350ae4b1cda07e802292a24ace2753f016"
+      }
+    }
+  ],
+  "consumer": [
+    {
+      "path": "src/lib/customer/service-quote-runtime-composition-v1.ts",
+      "source": "fdfe3c6eb5f5f7dd586d21b5d8a8855fa912cb83",
+      "bytes": 6581,
+      "sha256": "b80dbac14f2b72907d1e3d27ebf47feefc21b4f7390f883312c1cd3271067047",
+      "git_blob": "6ef56dcbf060bae1c5cc7f1a8a1b9e98fdafedea"
+    },
+    {
+      "path": "src/lib/customer/service-quote-http-v1.ts",
+      "source": "fdfe3c6eb5f5f7dd586d21b5d8a8855fa912cb83",
+      "bytes": 4164,
+      "sha256": "0e94b6fb18257566ced3ac5515cfea610717257c668908959fe58ff99886fd61",
+      "git_blob": "35396ada3109539cd38e63eece3838acddd8efc4"
+    },
+    {
+      "path": "src/lib/customer/service-quote-runtime-binding-v1.ts",
+      "source": "fdfe3c6eb5f5f7dd586d21b5d8a8855fa912cb83",
+      "bytes": 903,
+      "sha256": "ce4fa0531954cb63bdca7b13245206fd202fb7c2f47fdadab3a8255e0dbcdbac",
+      "git_blob": "6ddce9f97d3b53be5e61336bf33f678f3cb1bf6d"
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/custody-owner.ts",
+      "source": "fdfe3c6eb5f5f7dd586d21b5d8a8855fa912cb83",
+      "bytes": 3108,
+      "sha256": "3ccf93326fd14bc3e74a1204c161305377cdcdcaa21f44856310c904ef4b6700",
+      "git_blob": "a442ef7b63e91978c57bd27c23cce383341d5b10"
+    },
+    {
+      "path": "src/lib/customer/service-request-custody.ts",
+      "source": "fdfe3c6eb5f5f7dd586d21b5d8a8855fa912cb83",
+      "bytes": 8407,
+      "sha256": "4c357c78aa09431d5ea23c375abb1abce09da711daa0fa527385d3c94d7a1c7f",
+      "git_blob": "c69d8ef428194cd461fdb88b3115b690b0682828"
+    },
+    {
+      "path": "src/lib/customer/service-quote-command-v1.ts",
+      "source": "fdfe3c6eb5f5f7dd586d21b5d8a8855fa912cb83",
+      "bytes": 14895,
+      "sha256": "6f0ffde43e6e34b02f2bc5142ba0d6a1a700c607fb5569df9beca05214c88ca8",
+      "git_blob": "60cd0d79e377a5e8320bcfa437f0d95ba39c226f"
+    },
+    {
+      "path": "src/lib/customer/service-quote-postgres-adapter-v1.ts",
+      "source": "fdfe3c6eb5f5f7dd586d21b5d8a8855fa912cb83",
+      "bytes": 6618,
+      "sha256": "fdb80393804fc344b2fd45aa557ca12d9dac58519d647eee927b02e313405e7b",
+      "git_blob": "0251f29d133b93e364965a23730843bf29d3f9b4"
+    },
+    {
+      "path": "src/lib/customer/service-quote-schema.ts",
+      "source": "fdfe3c6eb5f5f7dd586d21b5d8a8855fa912cb83",
+      "bytes": 3034,
+      "sha256": "c81e84c4e9f42ac67f2d17da45a8be2e43a8fe88ba712a2e2230516d7f0fe322",
+      "git_blob": "5c2f0532ebfc616660b0390ab92999cbc3b7a07a"
+    }
+  ],
+  "Core_binder": {
+    "path": "src/lib/core/service-quote-command-binding-v1.ts",
+    "source": "365d47b59d0cd0b5f7bb13604f1497c2104ed6e7",
+    "bytes": 2846,
+    "sha256": "9ae57a5ee805f0e94f2ea799371d71f4dc87006c0b43997b541f4edfa3ccb4af",
+    "git_blob": "cf8d91a13b3ecb100f2d46f5aadf7fc54423be0b"
+  },
+  "checks": {
+    "core_binder_guards": 13,
+    "actual_Service_coupled_controls": 5,
+    "predecessor": "RAW_ZODERROR_REPRODUCED",
+    "prior_Service31b400": "HTTP503_VS403_ASSERTION_FAILED_RETAINED",
+    "accepted_Servicefdfe3": "HTTP403_MFA_REQUIRED",
+    "checkout_on_denial": 0,
+    "source_bind_on_denial": 0,
+    "business_dispatch_on_denial": 0,
+    "full_ES5_typecheck": "PASS_ISOLATED_PARENT_PLUS_AUTH_POSTIMAGE_ONLY",
+    "limited_lint": "PASS",
+    "SQL_Auth_native": "NOT_RUN",
+    "JS_syntax": "PASS",
+    "diff": "PASS"
+  },
+  "R3": {
+    "included": false,
+    "ready": false,
+    "WIP_preserved": true,
+    "prior_source_logs_in_tmp": "ABSENT_AFTER_RECOVERY_NOT_RECREATED"
+  },
+  "service_bundles": [
+    {
+      "blob": "7583ff22c7b92df8a29ce7613e3e86640b59dbf0",
+      "bytes": 7966,
+      "sha256": "ab3fdf64709b3b1fec25e67b08713b8bcb6aeae84c5f134fbf1502776a83d570"
+    },
+    {
+      "blob": "035145618f7fef47e7e95186ef44e403e5ee7989",
+      "bytes": 10397,
+      "sha256": "26b585aba435da99015d36b73f80b1b8e2677cca361fe9a64cbfe4173a021e51"
+    },
+    {
+      "blob": "697c6c6e02602010678e29666902c23eddd8a0c0",
+      "bytes": 3933,
+      "sha256": "9106726878a7800811f4c6c2a4b2cefeb42f4b631b3b2a72f09ea71c2b48b31b"
+    }
+  ],
+  "seal": {
+    "algorithm": "sha256_canonical_json_excluding_seal",
+    "digest": "0521e2f9fca42c0bc9d4ad048d55dbcfc406950d46baae0c12f9c9905a25c0a8"
+  }
+}

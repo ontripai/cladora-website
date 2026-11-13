@@ -1,11 +1,11 @@
+import { createCore15NativeLoader } from './lib/core15-native-ts-loader.mjs';
+import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import { createHmac, randomUUID } from 'node:crypto';
 import { createServer } from 'node:http';
 import { readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import pg from 'pg';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-import ts from 'typescript';
 
 let activeCheck = 'fixture setup';
 const escape = value => String(value).replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A');
@@ -33,21 +33,10 @@ if (target.pathname === '/postgres') {
   target.pathname = `/${isolatedDatabaseName}`;
 }
 
-const require = createRequire(import.meta.url);
-const cache = new Map();
-function load(url) {
-  if (cache.has(url.href)) return cache.get(url.href);
-  const compiled = ts.transpileModule(readFileSync(url, 'utf8'), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
-  });
-  const loadedModule = { exports: {} };
-  new Function('require', 'module', 'exports', compiled.outputText)(name => name === 'server-only'
-    ? {} : name.startsWith('.')
-      ? load(new URL(name.endsWith('.ts') ? name : `${name}.ts`, url)) : require(name),
-  loadedModule, loadedModule.exports);
-  cache.set(url.href, loadedModule.exports);
-  return loadedModule.exports;
-}
+
+
+const { load: loadSource } = createCore15NativeLoader(fileURLToPath(new URL('../', import.meta.url)));
+const load = url => loadSource(fileURLToPath(url));
 
 const { createCorePostgresTransactionHostV1 } = load(new URL(
   '../src/lib/core/postgres-transaction-host-v1.ts', import.meta.url,

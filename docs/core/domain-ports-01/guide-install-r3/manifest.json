@@ -1,0 +1,295 @@
+{
+  "contract": "core-guide-no-document-install.delivery.v1",
+  "FullSHA": "CONTAINING_COMMIT",
+  "Parent": "ae1fe67187b0b09bcc3fc5b8d22d55d08a7139e6",
+  "activation": null,
+  "source_state": "READY_FOR_INDEPENDENT_REVIEW",
+  "shared_target": "NOT_EXECUTED",
+  "native_scope": "DISPOSABLE_PG17_INSTALL_ONLY_PLUS_LIMITED_NATIVE_ROLE_RLS_CASES",
+  "inventory": [
+    {
+      "path": "scripts/prepare-core-guide-install-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 7006,
+        "sha256": "c1baf94dc08e313b26eaa10d3199b6af0df4380dd7b1cb14598365e2dcc4f46b",
+        "git_blob": "b00a505b290189caf189f62dc4e2af6844107ab8"
+      }
+    },
+    {
+      "path": "scripts/prepare-core-guide-save-adoption-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 9815,
+        "sha256": "cd0b7d4524522206564fc568bf29e585ba1ed0515efb656f58e2c338b1f8cae9",
+        "git_blob": "5e8e7991adcc61d8c39215465c5be461b36e3d74"
+      }
+    },
+    {
+      "path": "scripts/test-core-guide-install-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 5488,
+        "sha256": "591923fd1ca91b06e9ad343875241566bcdce2d713126203762effaec33f2f07",
+        "git_blob": "f0c125f1d6b4de69b9353dd04816871078251b55"
+      }
+    },
+    {
+      "path": "scripts/test-core-guide-save-adoption-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 2493,
+        "sha256": "21ff4f2ff493e35dd4fe8e933c2046bfab48746f97a7345f877448ec6e58535a",
+        "git_blob": "d41f6c6a7034a8bdbbda01ce4ee638ec67173b85"
+      }
+    },
+    {
+      "path": "scripts/test-core-guide-install-pg17.py",
+      "before": null,
+      "after": {
+        "bytes": 14526,
+        "sha256": "43ce54d501369d55b6c16e50310e4980f922eb7b45c8ed394646b316b9048f74",
+        "git_blob": "a9b94f48806c51e69cb193ad1841461c1c93fa94"
+      }
+    },
+    {
+      "path": "scripts/lib/core-guide-lab-prestate-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 1110,
+        "sha256": "7d8a83b143f91fd5e9d4d1a2cc434dc887f9a22c4954d47cd9abcd621f2a49b4",
+        "git_blob": "66f96405047d442d9cbbc978ad0e4492cd7f8025"
+      }
+    },
+    {
+      "path": "supabase/install/guide-no-document-v1/00-fixed-roles.sql",
+      "before": null,
+      "after": {
+        "bytes": 2248,
+        "sha256": "b235e566631ccb52b6a20d8ea2fdaa7c9d6e45de1e4652768c9b24ece3f1815d",
+        "git_blob": "90d0f19784fbb327685ce7c997226fda0c6d1273"
+      }
+    },
+    {
+      "path": "supabase/install/guide-no-document-v1/05-owner-delegations.sql",
+      "before": null,
+      "after": {
+        "bytes": 3509,
+        "sha256": "b3718be17f30122773ce4a5f4b84056c3a4ccc9f10180cb14d6013ec93e6effe",
+        "git_blob": "f47799a236cfc083ec553d770a26b105d29acd49"
+      }
+    },
+    {
+      "path": "supabase/install/guide-no-document-v1/08-audience-dependency.sql",
+      "before": null,
+      "after": {
+        "bytes": 16514,
+        "sha256": "62b9d3243b381928fbae019b9f9275da9e0bf73ad2db510e9ae4ff670387a444",
+        "git_blob": "4ff9217da75e32ba76d695469a9df135b02013a1"
+      }
+    },
+    {
+      "path": "supabase/install/guide-no-document-v1/10-guide-core.prefix.sql",
+      "before": null,
+      "after": {
+        "bytes": 5323,
+        "sha256": "cec7a6a3a84b4aa581fb7c67d128b959fad31a695d4c25b47afa9b6afbec5252",
+        "git_blob": "4a1ad2d1782be91d7f5892109da830fccee60eb1"
+      }
+    },
+    {
+      "path": "supabase/install/guide-no-document-v1/10-guide-core.sql",
+      "before": null,
+      "after": {
+        "bytes": 34136,
+        "sha256": "6812a04f54ab9bde5b1661a40bb78740c43147588e2d00c9af1e28ddee0e85b9",
+        "git_blob": "97803fd30dfa5257db790b421b42c54293c8a8c3"
+      }
+    },
+    {
+      "path": "supabase/install/guide-no-document-v1/10-guide-core.suffix.sql",
+      "before": null,
+      "after": {
+        "bytes": 19545,
+        "sha256": "8e5b6bd3d77504522267e7f37c9c7b254474420b5679f9e4992f4827851ad1cd",
+        "git_blob": "0d807d7ac5b67bb0210820b3756090ae8b5eaf6c"
+      }
+    },
+    {
+      "path": "supabase/install/guide-no-document-v1/20-save-relation.sql",
+      "before": null,
+      "after": {
+        "bytes": 16598,
+        "sha256": "9eb6fc9454d47fdacebd8b5a077a3fec9bc20e62f4a7c2873c18dfe99fe33e4a",
+        "git_blob": "dd4c5ac945d513078604127e8d23091c6feb6865"
+      }
+    },
+    {
+      "path": "supabase/install/guide-no-document-v1/preflight.sql",
+      "before": null,
+      "after": {
+        "bytes": 5535,
+        "sha256": "176f2282efbd37af62c261858417d516efa607fa7389cc28312bcf1046e6dd27",
+        "git_blob": "c67d20d36d02e74c505a3675518697ff7db61d74"
+      }
+    },
+    {
+      "path": "supabase/install/guide-no-document-v1/recovery.md",
+      "before": null,
+      "after": {
+        "bytes": 4333,
+        "sha256": "63b482175ff3290edfce2bce8361afd8b3573654486fa23085900075748f6847",
+        "git_blob": "dbbb0bf6c84607db108243f41095fe9f3c8046ce"
+      }
+    },
+    {
+      "path": "supabase/install/guide-no-document-v1/save-preflight.sql",
+      "before": null,
+      "after": {
+        "bytes": 3681,
+        "sha256": "ac678a70b31b53793353805e0605ef3091a2a9fe86c7e6d7fb61f1a6f0e53dca",
+        "git_blob": "25a99ae19da8b7ce78fe86d7e5f4d073705c9209"
+      }
+    },
+    {
+      "path": "supabase/install/guide-no-document-v1/save-verify.sql",
+      "before": null,
+      "after": {
+        "bytes": 2684,
+        "sha256": "6666ef3c5b2c090f5f244a3c80db7d17ae7d08d0cdfa88bd6397868cdbe19068",
+        "git_blob": "ba647de931d987c7520f10b43fd20de1a5977995"
+      }
+    },
+    {
+      "path": "supabase/install/guide-no-document-v1/verify.sql",
+      "before": null,
+      "after": {
+        "bytes": 4209,
+        "sha256": "1bbc5d7c72c61ee929bd1879d8a5cbc29549241442bc9b9f1706c4e572df4271",
+        "git_blob": "4a2c46d1f6d4d47e8a8c3890252f5234b7c30ad7"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/guide-install-r3/README.md",
+      "before": null,
+      "after": {
+        "bytes": 9158,
+        "sha256": "4771997773af283a94e9eb7ddc7378f6b523e4c704057ba48b6bb57b9804e511",
+        "git_blob": "41c68b1518058333f49b6fff6a0abac60e00a314"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/guide-install-r3/native-pg17.receipt.json",
+      "before": null,
+      "after": {
+        "bytes": 6425,
+        "sha256": "261acd732363eef7d4568c3e0f49e89137398ac10f343aa8401e0e98b71d8000",
+        "git_blob": "110cc8e6c1023d6ad7394bd53a8b76fb0637bf39"
+      }
+    },
+    {
+      "path": "supabase/install/guide-no-document-v1/manifest.json",
+      "before": null,
+      "after": {
+        "bytes": 2322,
+        "sha256": "10a215bf2b61a24b26e94256278b2de77c8ceb8f5740eab266d0ba39177fbcab",
+        "git_blob": "0e63fb49e17985aaa77f973e6105682ef9faec29"
+      }
+    }
+  ],
+  "protected_committed": [
+    {
+      "path": "src/lib/core/functional-command-runtime-v1.ts",
+      "source": "ae1fe67187b0b09bcc3fc5b8d22d55d08a7139e6",
+      "bytes": 28727,
+      "sha256": "ec5ada6a57427d06dea947da621d0039f51078c8aaeca358349195b5b015f9c0",
+      "git_blob": "5c34552afe4323298730e7a622b2f437df1f874b"
+    },
+    {
+      "path": "src/lib/core/platform-role-bound-pool-v1.ts",
+      "source": "ae1fe67187b0b09bcc3fc5b8d22d55d08a7139e6",
+      "bytes": 10318,
+      "sha256": "3abeca26ee87ad647ed7af74eaababff9d2308ccc52b1543a2569e29d51ab128",
+      "git_blob": "278e7cde60876a7046b700794644bad33ca22da8"
+    },
+    {
+      "path": "src/lib/core/guide-request-binding-v1.ts",
+      "source": "ae1fe67187b0b09bcc3fc5b8d22d55d08a7139e6",
+      "bytes": 8700,
+      "sha256": "1c0fd98df4b9bc45ebd9fb499db34e54cf9585819a733ac939fbfaa77971a2f9",
+      "git_blob": "e850728f49d2deb6ea209101ac48e3c307fef4bf"
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "source": "ae1fe67187b0b09bcc3fc5b8d22d55d08a7139e6",
+      "bytes": 62680,
+      "sha256": "9436c082f8ce8a054d8300f55bd49ac4b6120240cf06fa6ca94190b5c6c1858a",
+      "git_blob": "9e1a0229b9676368dc1d49015cf95be13fac9908"
+    },
+    {
+      "path": "supabase/proposals/ce012_save_writer_relation_v1.sql",
+      "source": "ae1fe67187b0b09bcc3fc5b8d22d55d08a7139e6",
+      "bytes": 10405,
+      "sha256": "b5edb0d313d28d9cea3e6e188ad98f97002f93de914bf18f8ba9dcb2e0d12909",
+      "git_blob": "d81bfccb996736c45690c4f861f7222d5baf329b"
+    }
+  ],
+  "private_inputs": [
+    {
+      "name": "PLATFORM-GUIDE-R1-CORE-HELPERS-HANDOFF-01.md",
+      "bytes": 21015,
+      "sha256": "6de81658370bf41e60b1ad306ef99641805ea874b532f63fae66e9a59a933569",
+      "consumed": true,
+      "publication": false
+    },
+    {
+      "name": "PLATFORM-GUIDE-CORE-DISCOVERY-REVIEW-02.md",
+      "bytes": 4116,
+      "sha256": "95c5682624452c76da9bfb0e0898416899d97de9fd03e3420630731bc4ba1373",
+      "consumed": true,
+      "publication": false
+    }
+  ],
+  "ordered_units": [
+    "preflight.sql",
+    "00-fixed-roles.sql",
+    "05-owner-delegations.sql",
+    "08-audience-dependency.sql",
+    "10-guide-core.sql",
+    "20-save-relation.sql",
+    "verify.sql"
+  ],
+  "checks": {
+    "source_install_groups": 13,
+    "source_save_groups": 10,
+    "actual_native_cases": 18,
+    "actual_native_expected_denials": {
+      "native-full-guide-unit-rollback": "P0001",
+      "native-guide-no-session-denial": "42501",
+      "native-canonical-session-denial": "42501",
+      "native-install-rollback-oracle": "P0001",
+      "native-role-inherit-denial": "42501",
+      "native-role-admin-denial": "42501"
+    },
+    "lint": "PASS",
+    "syntax": "PASS",
+    "typescript": "NO_TS_CHANGE_ACCEPTED_QFW_PRESERVED_NOT_RERUN"
+  },
+  "required_actors": {
+    "00/05": "actual separately admitted lifecycle custodian; superuser capability checked, never inferred",
+    "08/10/20": "ordinary Core installer",
+    "runtime": "cladora_ce_guide_runtime LOGIN",
+    "executor": "cladora_ce_guide_executor NOLOGIN; one SET-only edge"
+  },
+  "remaining": [
+    "fresh shared-target preflight/owner custody and execution admission",
+    "real actor/MFA/entitlement/caller admission",
+    "CE bounded discovery capture successor if required",
+    "positive C03/Guide mutation/replay/concurrency/UNKNOWN/readback/restart/UI native acceptance"
+  ],
+  "S01_Listing_WIP_included": false,
+  "seal": {
+    "algorithm": "sha256_canonical_json_excluding_seal",
+    "digest": "e21661d43dd52b3607fc371c11ae740454a65c181b96123cc113b3b3440dbc99"
+  }
+}

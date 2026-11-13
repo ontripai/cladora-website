@@ -1,30 +1,13 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { dirname, extname, resolve } from 'node:path';
+import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import ts from 'typescript';
+import { createCore15NativeLoader } from './lib/core15-native-ts-loader.mjs';
 
 const require = createRequire(import.meta.url);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const cache = new Map();
-function load(filename) {
-  filename = extname(filename) ? filename : `${filename}.ts`;
-  if (cache.has(filename)) return cache.get(filename).exports;
-  const mod = { exports: {} }; cache.set(filename, mod);
-  const compiled = ts.transpileModule(readFileSync(filename, 'utf8'), {
-    fileName: filename,
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022,
-      esModuleInterop: true, moduleResolution: ts.ModuleResolutionKind.NodeNext },
-  }).outputText;
-  const localRequire = specifier => {
-    if (specifier.startsWith('@/')) return load(resolve(root, 'src', specifier.slice(2)));
-    if (specifier.startsWith('.')) return load(resolve(dirname(filename), specifier));
-    return require(specifier);
-  };
-  new Function('require', 'module', 'exports', compiled)(localRequire, mod, mod.exports);
-  return mod.exports;
-}
+const { load } = createCore15NativeLoader(root);
 
 const {
   preflightServiceOfferingRequestV1,

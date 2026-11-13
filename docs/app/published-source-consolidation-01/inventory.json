@@ -1,0 +1,1259 @@
+{
+  "task": "APP-PUBLISHED-SOURCE-CONSOLIDATION-01",
+  "base": "6cecfa15b00f445be68817e756d766fb0e6fe026",
+  "tested_source_head": "84a5ce313bfec47df3b8e63ef598b7dfeb378b66",
+  "tested_source_tree": "8eaaed31f48ff73f6c547e462f39a9a392f6e7f3",
+  "branches": [
+    {
+      "branch": "codex/core-domain-ports-01",
+      "head": "4b3138f0ff0a27187d23d8a5b058d114ddcad773",
+      "included_ancestor": true,
+      "disposition": "MERGED_PRESERVING_HISTORY"
+    },
+    {
+      "branch": "codex/ce011-basic-events-c03",
+      "head": "c32002bbf93f0dd9b8c5a2097a2afea7503ef3d4",
+      "included_ancestor": true,
+      "disposition": "MERGED_PRESERVING_HISTORY"
+    },
+    {
+      "branch": "codex/ce010-community-announcement-01",
+      "head": "b5adc9bc392838dee384b1cd8c6e297084626659",
+      "included_ancestor": true,
+      "disposition": "COVERED_BY_CE011_ANCESTRY"
+    },
+    {
+      "branch": "codex/ce-guide-native-01",
+      "head": "7d5ec54a4718bdac600b6a668453d51818f22a4e",
+      "included_ancestor": true,
+      "disposition": "MERGED_PRESERVING_HISTORY"
+    },
+    {
+      "branch": "codex/airprop-listing-native-01",
+      "head": "e20d6fb3715f52977b13305b650abf635b1f20da",
+      "included_ancestor": true,
+      "disposition": "MERGED_PRESERVING_HISTORY_WITH_APPROVED_SINGLE_FILE_CORE_BLOB_RESOLUTION"
+    }
+  ],
+  "engine_delta": "Only the two root engines.node fields;22.x ||24.x; original lock dependencies/integrities and workflows unchanged",
+  "conflict": {
+    "path": "src/lib/core/functional-command-runtime-v1.ts",
+    "common_ancestor": "bfadc5042cb00841dd605862a2a72ddc0dbafb87",
+    "common_blob": "79c16e9c6e75ea218ab25f1ed19dd89d0a0eabd7",
+    "core_head": "4b3138f0ff0a27187d23d8a5b058d114ddcad773",
+    "core_blob": "8ef53310edd2f7bac8f9c43b7bbf7925ad34db8f",
+    "airprop_head": "e20d6fb3715f52977b13305b650abf635b1f20da",
+    "airprop_blob": "5c34552afe4323298730e7a622b2f437df1f874b",
+    "merge_tree_content_conflict_hunks": 3,
+    "candidate_blob": "8ef53310edd2f7bac8f9c43b7bbf7925ad34db8f",
+    "candidate_decision": "RESOLVED: only functional-command-runtime-v1.ts selected byte-for-byte from official Core4b3138; all other AIRPROP merge paths retained; no branch-wide ours/theirs",
+    "owner": "Core: CORE-AIRPROP-MERGE-COMPAT-01",
+    "resolution_source": "Explicit owner approval of this one path and exact Core blob",
+    "resolved": true,
+    "merge_commit": "b46965f929497b78d4b4b63685c9405b1fbef6d8",
+    "merge_parents": [
+      "3cae66e4f51a093fd112f1cf5aca9c2f4eff4002",
+      "e20d6fb3715f52977b13305b650abf635b1f20da"
+    ]
+  },
+  "source_inventory": {
+    "included": "All five published branches covered by ancestry: Core, AIRPROP, CE011, CE010 through CE011, independent Guide; approved two-field engines constraint retained",
+    "excluded": "Latest private APP/Finance/CE successors and current Gemini UI/WIP are not imported or published; public snapshots are not represented as those successors",
+    "operational_binding": "NULL; no admission/target activation",
+    "remaining_published_branches": []
+  },
+  "checks": {
+    "typecheck": {
+      "command": "npm run typecheck",
+      "result": "PASS",
+      "scope": "Full repository tsconfig, strict true; no diagnostic filter",
+      "source_head": "b46965f929497b78d4b4b63685c9405b1fbef6d8"
+    },
+    "lint": {
+      "command": "npm run lint",
+      "result": "PASS",
+      "scope": "Repository ESLint configuration, max-warnings0",
+      "source_head": "b46965f929497b78d4b4b63685c9405b1fbef6d8"
+    },
+    "build": {
+      "command": "NEXT_TELEMETRY_DISABLED=1 npm run build",
+      "result": "PASS_ON_FULL_COMBINATION",
+      "scope": "Isolated local Next16.4.1 production build; no hosted deployment or product runtime",
+      "initial_failure": "Earlier partial candidate initial attempt hit symlink root restriction; retained in prior run evidence. Full combined candidate uses the existing local dependency copy and passes directly.",
+      "recovery": "Copied exact existing installed dependencies into isolated candidate; no install/config/lock edit; build then passed",
+      "source_head": "b46965f929497b78d4b4b63685c9405b1fbef6d8"
+    },
+    "affected_coupling": {
+      "command": "node scripts/test-ce010-core6adb-route-coupling.mjs",
+      "result": "PRIOR_COMBINED_HEAD_PASS_6_GROUPS_PRESERVED_UNCHANGED_INPUTS",
+      "scope": "Actual merged route/Core factory/CE provider/C03 with controlled SDK/Auth/Pool/C01 transport; no live DB/native",
+      "fixture_note": "Script historical Core/CE constants supply fixture definitions; product modules are read from the current candidate. These are new combined-head results, not historical standalone PASS claims",
+      "rerun_after_airprop": false,
+      "unchanged_inputs": "AIRPROP merge changes none of src/lib/core,src/lib/community,src/lib/app,CE/Guide API routes,package/lock,tsconfig/Next config or workflows relative to prior combined head. Earlier controlled CE result remains scoped to that run; not counted as a new run."
+    },
+    "source_check": "Public Core ce010-request-binding module exists in candidate and historical unresolved-import path compiles; original Request and fail-closed NULL binding preserved",
+    "affected_airprop_coupling": {
+      "result": "PASS_4_SELECTED_GROUPS",
+      "script": "scripts/test-airprop-core-auth-mfa-consumption-v1.mjs",
+      "filters": [
+        {
+          "case": "official verified AAL1",
+          "integration_only": false
+        },
+        {
+          "case": "verified assurance drop after bind",
+          "integration_only": false
+        },
+        {
+          "case": "actual request-local bridge",
+          "integration_only": true
+        },
+        {
+          "case": "message/JSON/lookalike",
+          "integration_only": true
+        }
+      ],
+      "scope": "Actual merged Listing route/resolver and official Core runtime/binder, controlled SDK/SQL transport; AAL1 denial, post-bind assurance drop/original wire, typed error authenticity, raw40001 and lost COMMIT ACK uncertainty. No live Auth/DB/native or mounted UI suite."
+    }
+  },
+  "toolchain": {
+    "node": "24.19.0",
+    "npm": "11.9.0",
+    "packages": {
+      "next": {
+        "version": "16.4.1",
+        "package_json_sha256": "546222266ef4402af870e96f03964570038e8498f4a4f7cb6dcf591f08cb07ec"
+      },
+      "typescript": {
+        "version": "5.9.3",
+        "package_json_sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+      },
+      "zod": {
+        "version": "4.6.6",
+        "package_json_sha256": "cff7e142055a9dd9bc2947a71ca3fb5e3aacdfda966d7728993ff3656245b94a"
+      },
+      "eslint": {
+        "version": "9.39.5",
+        "package_json_sha256": "361210aa42b55fd814c48a01e3724559ec6f0f3e1c021d0f8aa2e8b00276060e"
+      },
+      "eslint-config-next": {
+        "version": "16.3.3",
+        "package_json_sha256": "c289bcc566ee7d672b49643bd4d3e932aa0bd67b4eeb6d07e926c3582685acf9"
+      },
+      "pg": {
+        "version": "8.23.0",
+        "package_json_sha256": "e42dd36cba6e9dd8dbb6f773a2f7be8a8c3c273e18b155e42e75961a4cb8bc28"
+      },
+      "@supabase/ssr": {
+        "version": "0.12.5",
+        "package_json_sha256": "8941d85450592fe880bb2acd600398e0063be7168a2b6cf3f433276679cfad64"
+      },
+      "@supabase/supabase-js": {
+        "version": "2.112.4",
+        "package_json_sha256": "9efbe93869da1a587a7c4f66158d92f9f1f7582cf15a79c7238aca09a0fa3f1a"
+      }
+    }
+  },
+  "pins": [
+    {
+      "path": "src/lib/core/functional-command-runtime-v1.ts",
+      "git_blob": "8ef53310edd2f7bac8f9c43b7bbf7925ad34db8f",
+      "bytes": 39845,
+      "sha256": "438fb03e1c069b051cfa69ed48f95d9fb3bc0f3ea9450c0e0d387153d7b0f530"
+    },
+    {
+      "path": "src/lib/core/ce010-request-binding-v1.ts",
+      "git_blob": "844abbececc0263c42e42a8359bdeef65e390408",
+      "bytes": 15164,
+      "sha256": "18c6a299465f9e6838b2ad8cebd92f5785877a28352d310f788f22d349a67d84"
+    },
+    {
+      "path": "src/lib/core/platform-role-bound-pool-v1.ts",
+      "git_blob": "2e91086349247b00c461d83c3cdf4ce5be6026be",
+      "bytes": 12209,
+      "sha256": "a09a91da3d89f785a49559999482db6994a7607b375faa38aa0f994701522e17"
+    },
+    {
+      "path": "src/lib/community/experience-guide-discovery-v1.ts",
+      "git_blob": "d16b3d319d8ec96e21ed49068dc45ddbdf0d2ac3",
+      "bytes": 5790,
+      "sha256": "fd0530e071c2ab88d6f865ce0c232ce472b871fdaecbeebfbdf3efd61b61d673"
+    },
+    {
+      "path": "src/lib/community/community-announcement-platform-provider-v1.ts",
+      "git_blob": "d49899970ce1abcecb35f37626530980470273ac",
+      "bytes": 623,
+      "sha256": "5136a195edb2afada122c0fbb2d08f84df2ee9bb89a619ce1dff7787106c7163"
+    },
+    {
+      "path": "src/lib/app/guide-platform-provider-v1.ts",
+      "git_blob": "e1862ebeb8690e688e443c343bfa92b2a10f1e57",
+      "bytes": 837,
+      "sha256": "7416ad29a3935c0055492cdccfd8b236506be914269bba74e2ef3d3f443067b4"
+    },
+    {
+      "path": "package.json",
+      "git_blob": "33efc966589f1fc3c5c05b52452f773fa13241ed",
+      "bytes": 20062,
+      "sha256": "80947eb65fef6323153102566f78fd1e17e9f9370c78b1d6fb038e559d1eed77"
+    },
+    {
+      "path": "package-lock.json",
+      "git_blob": "d338554aaba6d34751731e2bc11290ad0d25abb5",
+      "bytes": 285187,
+      "sha256": "e490306fcabb49992c2b9e9ad81e9d58189af0aa0a150c6f7b3db837896f7bfa"
+    },
+    {
+      "path": "tsconfig.json",
+      "git_blob": "7f9d7d66bf8228222565337be9438986ef09e72b",
+      "bytes": 739,
+      "sha256": "9a5465ed302af1556cb72f0f5b98392f4b745761ba51f519c721f0ee49bb4226"
+    },
+    {
+      "path": "eslint.config.mjs",
+      "git_blob": "084d016be1596896625909dfe5c94e900fef22f2",
+      "bytes": 725,
+      "sha256": "b8e19062ff97ec73e56b47e37c4d66ed5b0f51a53a21f91c9d27ca2645185ba9"
+    },
+    {
+      "path": "next.config.mjs",
+      "git_blob": "af9f6a0ecf24131362749300caec11fcb12470cf",
+      "bytes": 4052,
+      "sha256": "a426743cadeb5bea53478c579dc31fc40f46f49e26c37f772f76b0a6b7869888"
+    },
+    {
+      "path": "src/lib/airprop/listing-runtime-binding-v1.ts",
+      "git_blob": "5c767d63441e13a30bcfd405a0f8866aa93c3ea9",
+      "bytes": 8362,
+      "sha256": "ec3a86f36fc2e24ba0751e6ce35451b26f2ccd32fb7e21564912775d437195da"
+    },
+    {
+      "path": "src/lib/airprop/listing-flow-api-v1.ts",
+      "git_blob": "694308f3e4b73446cec3fe93e4d489122ad3b932",
+      "bytes": 9082,
+      "sha256": "c75b61422b556c7b3c7dae093709af33b206d940a3f413dc70f21945cbc206c9"
+    },
+    {
+      "path": "src/lib/core/listing-command-binding-v1.ts",
+      "git_blob": "9631a43b09a6cd18280eb9dd4baaff9e5eb9a811",
+      "bytes": 3038,
+      "sha256": "cc89f17fb7b9f2fb20a5c384a9c3ab204040f683541a3a09aac13d85f1a34b6e"
+    },
+    {
+      "path": "src/lib/core/domain-command-identity-v1.ts",
+      "git_blob": "21fd4ff4cb31885d540a4479ff0d02a4d401799a",
+      "bytes": 1920,
+      "sha256": "6e31298e18708c5d1833d97a5142740f506d19544eaf0a15459df9d69448ae5b"
+    }
+  ],
+  "qa_review": "PENDING_INDEPENDENT_QA_ON_ACTUAL_FULL_COMBINATION",
+  "not_performed": [
+    "main merge",
+    "force push/rebase/reset",
+    "remote branch deletion",
+    "live SQL/target install",
+    "Auth/RLS/role changes",
+    "runtime restart/activation",
+    "production promotion/deployment"
+  ],
+  "integration_lineage": [
+    {
+      "commit": "b46965f929497b78d4b4b63685c9405b1fbef6d8",
+      "parents": [
+        "3cae66e4f51a093fd112f1cf5aca9c2f4eff4002",
+        "e20d6fb3715f52977b13305b650abf635b1f20da"
+      ]
+    },
+    {
+      "commit": "3e7bb9590d3270ad15423251ea419df551eda4c3",
+      "parents": [
+        "d066389ff69b396f8b38155094b00a78a8fc1974",
+        "7d5ec54a4718bdac600b6a668453d51818f22a4e"
+      ]
+    },
+    {
+      "commit": "d066389ff69b396f8b38155094b00a78a8fc1974",
+      "parents": [
+        "4f67ec65ccde140b3ae2fcf1eba23c108b07a576",
+        "c32002bbf93f0dd9b8c5a2097a2afea7503ef3d4"
+      ]
+    },
+    {
+      "commit": "4f67ec65ccde140b3ae2fcf1eba23c108b07a576",
+      "parents": [
+        "6cecfa15b00f445be68817e756d766fb0e6fe026",
+        "4b3138f0ff0a27187d23d8a5b058d114ddcad773"
+      ]
+    }
+  ],
+  "ci155_corrections": {
+    "source_head": "bec53e4301d539181ca564f8f87d9498875bc02b",
+    "parent": "67f17777f342c103e2588410949c0b32a104a37f",
+    "scope": "Test loaders, MFA behavioral assertions, underwriting fixture, versioned package inventory reconciliation only; src/package/lock/workflows/historical Core17 packet unchanged",
+    "local_node": "24.19.0",
+    "local_npm": "11.9.0",
+    "checks": [
+      {
+        "command": "node scripts/test-documents-replacement-workspace-writer-v1.mjs",
+        "result": "PASS_4"
+      },
+      {
+        "command": "node scripts/test-service-request-subject-link-v1.mjs",
+        "result": "PASS_12"
+      },
+      {
+        "command": "node scripts/test-ce-010-route.mjs",
+        "result": "PASS_55"
+      },
+      {
+        "command": "node scripts/test-service-request-route-010.mjs",
+        "result": "PASS_42"
+      },
+      {
+        "command": "node scripts/test-real-authenticated-service-08.mjs",
+        "result": "PASS_262_PLUS_MFA_16_BEHAVIORAL_AND_5_NEGATIVE"
+      },
+      {
+        "command": "node scripts/test-airprop-underwriting-ui-008.mjs",
+        "result": "PASS_MOUNTED_CONTROLLED_UNDERWRITING_SUITE"
+      },
+      {
+        "command": "node scripts/test-release-checklist-composition.mjs --match \"manifest identities\"",
+        "result": "PASS_1_CASE_85_ASSERTIONS"
+      },
+      {
+        "command": "node scripts/test-app-engine-source-transition.mjs",
+        "result": "PASS_2_POSITIVE_10_NEGATIVE_RANGE_20_22_23_24_25_26"
+      },
+      {
+        "command": "existing createCore15NativeLoader: three authority/provider/transaction exports and cached module identity",
+        "result": "PASS_SOURCE_ONLY_NO_SQL"
+      },
+      {
+        "command": "node scripts/test-core-authority-revision-postgres-v1.mjs (no target env)",
+        "result": "EXPECTED_DENIAL_EXPLICIT_DISPOSABLE_TARGET_REQUIRED_NO_SQL"
+      },
+      {
+        "command": "ESLint --max-warnings 0 on the eleven changed/new scripts; git diff --check",
+        "result": "PASS"
+      }
+    ],
+    "not_repeated": [
+      "build",
+      "full typecheck",
+      "prior healthy supplier/domain/QA suites",
+      "live SQL/native"
+    ],
+    "open": {
+      "core17_historical_seal": "INPUT_PENDING_OWNER_CORE_PROPOSAL; original manifest/check/native evidence unchanged; prior CI22/24 failure remains open",
+      "ci22_successor": "PENDING_AUTOMATIC_CI",
+      "hosted_build_successor": "NOT_CLAIMED",
+      "native": "NOT_RUN_NOT_PASS",
+      "activation": null
+    },
+    "details": "ci155-review.md"
+  },
+  "ci155_followup": {
+    "source_head": "b2513eeab79f7281e955ebed48b84c3a2481595f",
+    "parent": "0c5182b6d8333006930eadd9304607ba85f2356b",
+    "source_tree": "3de34c115fa266492f7a1d481f234e29cfc13763",
+    "reason": "Actual successor CI passed initial failing steps and exposed downstream loader failures plus shallow Git checkout inventory precondition",
+    "checks": [
+      {
+        "script": "test-ce-010-community-page.mjs",
+        "result": "PASS_MOUNTED_BASELINE_PLUS_48_DRAFT_AND_45_SELECTION_GROUPS",
+        "change": "Existing in-memory application loader replaces generated ESM files; no UI edit"
+      },
+      {
+        "script": "test-ce-012-route.mjs",
+        "result": "PASS_55",
+        "change": "Early cache, JSON/default interop and Next marker resolution"
+      },
+      {
+        "script": "test-post-auth-compat-01.mjs",
+        "result": "PASS_133",
+        "change": "Resolve real alias/relative module graph while retaining explicit test mocks and per-load cache"
+      },
+      {
+        "script": "test-service-request-subject-link-http-v1.mjs",
+        "result": "PASS_10",
+        "change": "Reuse unchanged Core15 source loader"
+      },
+      {
+        "script": "test-service-catalog-route-002.mjs",
+        "result": "PASS_53",
+        "change": "Publish CJS cache before evaluation"
+      },
+      {
+        "script": "test-documents-replacement-promotion-after-clean-v1.mjs",
+        "result": "PASS_4",
+        "change": "Reuse unchanged Core15 source loader"
+      },
+      {
+        "script": "test-core-jurisdiction-profile-selector-v1.mjs",
+        "result": "PASS_6",
+        "change": "Reuse unchanged Core15 source loader"
+      },
+      {
+        "script": "test-app-engine-source-transition.mjs",
+        "result": "PASS_2_POSITIVE_10_NEGATIVE"
+      },
+      {
+        "script": "test-release-checklist-composition.mjs --match manifest-identities; GIT_DIR explicitly absent",
+        "result": "PASS_85_ASSERTIONS_WITHOUT_GIT_HISTORY",
+        "change": "Authenticate restored exact preimage against original historical bytes/SHA256/Gitblob; dependencies/whitespace cannot change"
+      },
+      {
+        "script": "test-ce-011-route.mjs",
+        "result": "PASS_EXISTING_CHECKS_NO_CHANGE_REQUIRED"
+      },
+      {
+        "script": "ESLint eight follow-up scripts and git diff --check",
+        "result": "PASS"
+      }
+    ],
+    "ci_at_0c5182": "Initial MFA/SERVICE/CE010/authority and underwriting failure steps cleared; later blockers were read and corrected here. Core17 remains INPUT_PENDING_OWNER_CORE_PROPOSAL; final SHA automatic CI results must be read separately."
+  },
+  "ci155_current": {
+    "source_head": "5513076845ebbc9dcc092d3bce0a228ef709bed2",
+    "parent": "c07c5928caacc29d0c01dabbdabe17a0a95ceba1",
+    "source_tree": "6084493a7c9343c4be1f69ea2b9757f914f65fdc",
+    "scope": "Only further standalone loader seams and Guide/owned-layout test contract alignment; no product/package/workflow/native packet change",
+    "new_affected_controls": {
+      "owned_post_auth_boundaries": "PASS_99_FAILED_0",
+      "documents_vault_download": "PASS_5",
+      "communications_private_conversation": "PASS_5",
+      "communications_attachment_gate": "PASS_5",
+      "documents_retention_lifecycle_gate": "PASS",
+      "core_jurisdiction_artifact_resolver": "PASS_7",
+      "documents_country_retention_resolution": "PASS_11",
+      "documents_country_retention_operation": "PASS_8",
+      "ce_guide_inactive_http": "PASS_11_WITH_DELEGATE_CUSTODY_AND_6_ADDED_CLAIMS_NEGATIVES",
+      "postgres_loader_only": "PASS_13_HARNESSES_49_ACTUAL_ROOT_LOADS_AND_CACHE_IDENTITY_SQL_NOT_RUN",
+      "postgres_body_preservation": "AST_IDENTICAL_TO_C07_13_HARNESSES_INCLUDING_TARGET_GUARDS_SQL_AND_ASSERTIONS",
+      "lint_whitespace": "PASS_22_CHANGED_SCRIPTS"
+    },
+    "postgres_evidence": "postgres-loader-review.json",
+    "native": "NOT_RUN_NOT_PASS",
+    "core17_historical_seal": "INPUT_PENDING_OWNER_CORE_PROPOSAL",
+    "automatic_ci": "READ_SEPARATELY_AT_FINAL_DOCUMENTATION_HEAD",
+    "source_pins": [
+      {
+        "path": "scripts/lib/app-engine-source-transition.mjs",
+        "bytes": 2439,
+        "sha256": "add207a8014f7a28040c25f5b85acc83884a3b41e5bb65d8e1e6cd7fb59be317",
+        "git_blob": "6c8e466896031606102dc6d123522dc5f509ec85"
+      },
+      {
+        "path": "scripts/lib/app-layout-mfa-composition.mjs",
+        "bytes": 5057,
+        "sha256": "e59ec13fb15a4ca9ffdcd0da68b5530e301963efc7ec282d064b8ddf7ead2f84",
+        "git_blob": "2dace6716d24659779ce51691b0b61d75ce08166"
+      },
+      {
+        "path": "scripts/test-airprop-underwriting-ui-008.mjs",
+        "bytes": 15006,
+        "sha256": "6c8c08166a55b4cac0957114cdc00d459d54a6c1b2ed0c4243f8b44780a496e9",
+        "git_blob": "c68fb3cff9d6f978e23fcf7c028713fb43dae1d5"
+      },
+      {
+        "path": "scripts/test-app-engine-source-transition.mjs",
+        "bytes": 2216,
+        "sha256": "b23df8bc4ad3545cd6e2e5b016241575cdb9dd5c7dd4925ae91848f1cea442c3",
+        "git_blob": "5020f3051ae3905fc48c1f73c1cfed221dd325ca"
+      },
+      {
+        "path": "scripts/test-ce-010-community-page.mjs",
+        "bytes": 41978,
+        "sha256": "bbad6d09fe8b385fad8138e9695d1541bd7796d34b2b8df5a25e993239039a2e",
+        "git_blob": "27915d5896befc9ca28a990a929d8ee894a68f77"
+      },
+      {
+        "path": "scripts/test-ce-010-route.mjs",
+        "bytes": 6191,
+        "sha256": "517c5422ec2a32bfae401946bdabe8f20b46d470242bc66083ce2a5f0521f14c",
+        "git_blob": "77b66eff794b5951bfd314ba0d1b26c996cd1ff0"
+      },
+      {
+        "path": "scripts/test-ce-012-route.mjs",
+        "bytes": 6530,
+        "sha256": "41c36197901c0a6ea3fdab245d2e098db32d51cfa850f1a7af194448c1ac0b34",
+        "git_blob": "89a7e98765a824a72368750409000cb8e6ed53aa"
+      },
+      {
+        "path": "scripts/test-ce-guide-lifecycle-http-v1.mjs",
+        "bytes": 21171,
+        "sha256": "83042490febf7ef3bce0b4d86651df54a7cc27d9611472cbf483d2920969dee4",
+        "git_blob": "c4186ca8f2c1114368b3357ac007f76b08fe4bf9"
+      },
+      {
+        "path": "scripts/test-communications-document-attachment-workspace-gate-v2.mjs",
+        "bytes": 9315,
+        "sha256": "743afe3e61df2c63f297d6ff7fa8623cba73513a450305ee3fd47a6561b48e67",
+        "git_blob": "cbb1da2ca3b95c2d6b4347ab5930bf328058eab5"
+      },
+      {
+        "path": "scripts/test-communications-private-conversation-workspace-v1.mjs",
+        "bytes": 7946,
+        "sha256": "365c9e458584f33cb474fb8b8b5f585d808c53ecfaf9784379902f12772cb069",
+        "git_blob": "b3e474039b36d8da04512cceb860d5b23cf825e1"
+      },
+      {
+        "path": "scripts/test-communications-private-message-provider-postgres-v1.mjs",
+        "bytes": 16013,
+        "sha256": "16c47d75eaf7c0bc59c7c2f206416a071d64b911f3d57ab09b5eb4e1e67c6ac2",
+        "git_blob": "06d801edcabf2ad2c5836d829a156b79fc73030b"
+      },
+      {
+        "path": "scripts/test-communications-private-message-request-audience-postgres-v1.mjs",
+        "bytes": 28350,
+        "sha256": "907b7ff4814d6f6b80f121ef3f2980be0c6e66b38d1a9603054e0400057ac2b3",
+        "git_blob": "98622046943ea6a7156e4c4a8c01cd2157d8789c"
+      },
+      {
+        "path": "scripts/test-core-authority-revision-postgres-v1.mjs",
+        "bytes": 20492,
+        "sha256": "ab563eeae28cd3b5fc030167f4395a1c810c6f242a3a19b24df1e1d9716e3eda",
+        "git_blob": "668749399564c2300bed9660f2196397fc9aaa7f"
+      },
+      {
+        "path": "scripts/test-core-jurisdiction-domain-artifact-resolver-postgres-v1.mjs",
+        "bytes": 45051,
+        "sha256": "2bd9b40ef727de50594074a8a02a82d826fa2acf33506c0b55242c7e96951dc3",
+        "git_blob": "058da421daa6d31e6064174e5dfc08cbc3b8267f"
+      },
+      {
+        "path": "scripts/test-core-jurisdiction-domain-artifact-resolver-v1.mjs",
+        "bytes": 18825,
+        "sha256": "f0a1e9bfe0d524863e5652890f1f0384dcb2a2f16041ccb8322ac7afca6dd0c9",
+        "git_blob": "94486decf03ff1496389ca9a6d18ce9fbd74d4a0"
+      },
+      {
+        "path": "scripts/test-core-jurisdiction-profile-selector-postgres-v1.mjs",
+        "bytes": 15295,
+        "sha256": "648f32fd4b3693601f84190d23229f67290fca3f7ac0bdb3a22ff0d45243bf38",
+        "git_blob": "bfa5fa7d3a67f0201e7b868e548f8899bb4244e4"
+      },
+      {
+        "path": "scripts/test-core-jurisdiction-profile-selector-v1.mjs",
+        "bytes": 10079,
+        "sha256": "20481d28aea0f0b3984b9380d499e08ed8f09644038cd999ccd0972da80bcc2b",
+        "git_blob": "a5daa217df6e7fbd0c60220cdd3bc7d2092a9b8a"
+      },
+      {
+        "path": "scripts/test-core-transaction-host-postgres-v1.mjs",
+        "bytes": 16288,
+        "sha256": "3227489c79238070f9a2a116f681ab0d9b571e38ad3f370b2aa61662c7a74daf",
+        "git_blob": "cb68e40321078aeba3b8040339e932fbbbc663c1"
+      },
+      {
+        "path": "scripts/test-core-transaction-replay-provider-hook-postgres-v1.mjs",
+        "bytes": 17481,
+        "sha256": "abb8746b186f4a3b33042af22ccbf85439514ab0cd6eefb95c7d6ffcd3d50000",
+        "git_blob": "d089ca210beea47d3f2a418d1235b899936898ff"
+      },
+      {
+        "path": "scripts/test-core-tx-provider-evidence-postgres-v1.mjs",
+        "bytes": 12551,
+        "sha256": "7fa38ddc4a1ae7f9a2ffd0debdc67c8815efb97e346837dcdf3fb156be5833c6",
+        "git_blob": "0863715b2e76431f4c9145dda71bbd91ffc44eef"
+      },
+      {
+        "path": "scripts/test-documents-country-retention-operation-integration-postgres-v1.mjs",
+        "bytes": 28446,
+        "sha256": "55abc4a762dd2ec08d6d9b4a44be9b338eb6f7983b4bebb6b7816f3dc196a9a0",
+        "git_blob": "16dd1e6aaf1560ee0f00899b5abd03d2a6e08063"
+      },
+      {
+        "path": "scripts/test-documents-country-retention-operation-integration-v1.mjs",
+        "bytes": 18529,
+        "sha256": "3bc1356cf73408f336d4aee4660f3d8edf881014893a1764e101a4bf40a1b3bc",
+        "git_blob": "0d9501d7a45977860cfed39c33929f051b15e173"
+      },
+      {
+        "path": "scripts/test-documents-country-retention-resolution-postgres-v1.mjs",
+        "bytes": 25955,
+        "sha256": "f9ecefa9409de837c3c87fa3ec5c81b0191d4f532202a9a19e963d646a675416",
+        "git_blob": "1e11ddab40e2bb27bf54e7ef7e155f18f1e2f8db"
+      },
+      {
+        "path": "scripts/test-documents-country-retention-resolution-v1.mjs",
+        "bytes": 19566,
+        "sha256": "8697a63bd14a2d9b7ec0993a5287e1587c1ffa93255daf04b67de1d5ed97fb00",
+        "git_blob": "8255d0fd60402a4954bbd86a15be614804fe5eba"
+      },
+      {
+        "path": "scripts/test-documents-replacement-promotion-after-clean-v1.mjs",
+        "bytes": 9532,
+        "sha256": "c33b7ec704b94163a4f757ed41a5bf429081f64d1bf3da43c8f2ef056f1789e4",
+        "git_blob": "7b8d5632f6ed3cee685bccd526b66883459b6ac5"
+      },
+      {
+        "path": "scripts/test-documents-replacement-workspace-writer-v1.mjs",
+        "bytes": 9792,
+        "sha256": "8c0b5043fdd909afebf5142d7e3a2a5fe83535ce2ff1087c2b7d26ce53a90911",
+        "git_blob": "a4f0a1a5798723381383fbe0adb15fc4f519df29"
+      },
+      {
+        "path": "scripts/test-documents-retention-lifecycle-workspace-gate-v2.mjs",
+        "bytes": 4583,
+        "sha256": "f2796071a87252c60965a5f8f68afec92791273901165063fd5afd38a036da65",
+        "git_blob": "8a3ce88e89e771a0d5120c7f488a0c664c2f922c"
+      },
+      {
+        "path": "scripts/test-documents-vault-download-exact-workspace-v2.mjs",
+        "bytes": 8692,
+        "sha256": "2cb73bf9be6bebdae94f6f1d13d758a08b3621c36bbdaeacda5809170ef2200f",
+        "git_blob": "a60ff57e24d5724abbcaf38fa19a73483b19ce13"
+      },
+      {
+        "path": "scripts/test-documents-workspace-binding-writer-postgres-v1.mjs",
+        "bytes": 57278,
+        "sha256": "be45c807f4e170ec89f6e472bbced855415ff99f0fee1bb29042567145237891",
+        "git_blob": "081f188b945bd7bc76658dbb883f8bafab3d6b73"
+      },
+      {
+        "path": "scripts/test-owned-post-auth-boundaries-01.mjs",
+        "bytes": 7171,
+        "sha256": "c4cfe4a0a615263e771c491b341d38fe687040e5e972765ed6cc24a83375ebb9",
+        "git_blob": "6251cde6d0420f2af185752a93e9bc4de97f07b7"
+      },
+      {
+        "path": "scripts/test-post-auth-compat-01.mjs",
+        "bytes": 32786,
+        "sha256": "6ad830a9605094b429fd29a6f5109dfdd23a85c7fda92672b4bc2f2e65e06ae6",
+        "git_blob": "148be52ff1074537ac47e0e687c041d51b413dd4"
+      },
+      {
+        "path": "scripts/test-real-authenticated-service-08.mjs",
+        "bytes": 77203,
+        "sha256": "c0db2e601115250319b771be94237cae0abe93bb0e3983c7daab59ec25ef5c3a",
+        "git_blob": "5c97246c293fdf5c617c0779c5c4e44a331cf876"
+      },
+      {
+        "path": "scripts/test-release-checklist-composition.mjs",
+        "bytes": 53243,
+        "sha256": "2977cddebc106619866b6657e7583c9c2cf812547f6721ade761d184d472bc84",
+        "git_blob": "849a3e2d0a98bae9b0bd8dc16ca329beaf112f69"
+      },
+      {
+        "path": "scripts/test-service-catalog-route-002.mjs",
+        "bytes": 14868,
+        "sha256": "ac6067525d606692d5ede2917e41d8bea4bdecc3851229fd8808056178b5add3",
+        "git_blob": "af88d9332bb794626ecfa935c4d34bf4d6e13b46"
+      },
+      {
+        "path": "scripts/test-service-request-route-010.mjs",
+        "bytes": 9444,
+        "sha256": "1e4948d98dcdab22bff9cb6b3da1082cb7207996602e8bd3e2925aef77e28a9b",
+        "git_blob": "b854f4323313a9ebe004bfbc96151bfd12ed5cb7"
+      },
+      {
+        "path": "scripts/test-service-request-subject-link-http-postgres-v1.mjs",
+        "bytes": 76374,
+        "sha256": "857215b4a704d690ee26ed6309a4542293db4d25fa505cc6ad7eeded4b10c0d5",
+        "git_blob": "7a1c0a7360536c0e87e7b112e4502f95a0eff14e"
+      },
+      {
+        "path": "scripts/test-service-request-subject-link-http-v1.mjs",
+        "bytes": 8704,
+        "sha256": "3f4880148f16d6a3b050d401c034d1b7b2a6bb2a8de40490a4c3d512949231ca",
+        "git_blob": "af5ad96a29e92fdd074849c89dd8224afe8ebdc8"
+      },
+      {
+        "path": "scripts/test-service-request-subject-link-postgres-v1.mjs",
+        "bytes": 47234,
+        "sha256": "07a11092fbd24658da502dceebe790f3c1daf726b90e19020354cf885477cef3",
+        "git_blob": "6a402eaf56caf14695d4a4236279668bb1116d8f"
+      },
+      {
+        "path": "scripts/test-service-request-subject-link-v1.mjs",
+        "bytes": 10161,
+        "sha256": "cad2da589b627a3a1bb6aa76594418188d02cc25013051883f8c1e8531f23b8c",
+        "git_blob": "fcbdd275d23ae3acf6db97ee50ca44d0930eeef6"
+      },
+      {
+        "path": "scripts/test-service-request-subject-provider-postgres-v2.mjs",
+        "bytes": 19589,
+        "sha256": "feb645464d87d13abbe91758910294f1d08147cab76aa24c7bf378b1363c421b",
+        "git_blob": "d4d6f90168ab72f8033ccdb3096dbe0bdd19fcfb"
+      }
+    ]
+  },
+  "core17_seal_application": {
+    "status": "APPLIED_EXACT_PROPOSAL_LOCAL_AFFECTED_CHECKS_PASS_CI22_24_PENDING",
+    "record": "core17-seal-application.json",
+    "source_head": "4d21561862c20f56b9c4b81a59ca5e1f0a5d9e55",
+    "application_commit": "07dc064f4a2a56c83b627a3cf1b56b8b1a596029",
+    "historical_product_files": 62,
+    "current_product_files": 73,
+    "operator_files": 18,
+    "runtime_activation": null,
+    "native": "NOT_RUN_NOT_PASS"
+  },
+  "ci155_last_independent_fixes": {
+    "source_head": "4d21561862c20f56b9c4b81a59ca5e1f0a5d9e55",
+    "service_offering_request_flow": "PASS_12_EXISTING_CORE15_LOADER",
+    "documents_reference_authority": "PASS_7_EXPORTED_SHARED_CORE15_LOADER",
+    "reference_shared_consumer_probe": "PASS_HOST_AUTHORITY_PROVIDER_PORT_CACHE_IDENTITY_SOURCE_ONLY",
+    "lint_whitespace": "PASS",
+    "reason": "Actual e157 CI exposed these final legacy loaders after all AIRPROP, CE and both SERVICE catalogue workflows passed; Database static also passed."
+  },
+  "current_correction_pins": [
+    {
+      "path": ".github/workflows/application-foundation.yml",
+      "bytes": 21188,
+      "sha256": "00280e90740a0bcc947abc1dc0348c62b19f298f801bef06f45cfbd43b47508e",
+      "git_blob": "b395fd209a4134e78ccb3d437c4221e715bbd0bc"
+    },
+    {
+      "path": ".github/workflows/core17-native-case-source.yml",
+      "bytes": 2303,
+      "sha256": "8b86c76210882bdbc69808377cfc68025deefb69826042feb325a39762ab5fe6",
+      "git_blob": "0fb8047d70034c987233041245a3a27185d9b8c2"
+    },
+    {
+      "path": "scripts/check-app-core17-adoption-source-v1.mjs",
+      "bytes": 4776,
+      "sha256": "c062b888efa6e1ba20e61819f38be0adc6f1b05cfb892f8cd36dbe8b8d2dc93b",
+      "git_blob": "a847b9e284b08ba2f7b65274b657993db7d14c94"
+    },
+    {
+      "path": "scripts/core17-native-source-successor-v1/README.md",
+      "bytes": 6349,
+      "sha256": "bccd6df54d6f721e1ad6ae7aa30619792c219dc7c3bf4dadd96e7dfd07af7a98",
+      "git_blob": "3316710c64539218a571e853a76b3159de375b4c"
+    },
+    {
+      "path": "scripts/core17-native-source-successor-v1/check.mjs",
+      "bytes": 6832,
+      "sha256": "ac3bac721a2fee75bfb0adc2c13514f5912a1fc6c3eff54002c1d57f8c9df179",
+      "git_blob": "1d0670eb52bbeb84a900a427f8c7ba227fd17627"
+    },
+    {
+      "path": "scripts/core17-native-source-successor-v1/source-successor.json",
+      "bytes": 22192,
+      "sha256": "09ad4bdd83cea119735ec555da3834ec290c75db263bedaa6e1fb55a5eed3682",
+      "git_blob": "b1ba15ab6d8d210833276d8ee8772537cb7a2f88"
+    },
+    {
+      "path": "scripts/core17-native-source-successor-v1/test.mjs",
+      "bytes": 3850,
+      "sha256": "34c654f5a25f99c5242d8f7e4897caa0481c0724e34227f0ac8dbc9a4b1a5abc",
+      "git_blob": "a12287b57caf8314460ea08aa5d079fb50230e9d"
+    },
+    {
+      "path": "scripts/lib/app-ce-guide-source-transition-v1.mjs",
+      "bytes": 2418,
+      "sha256": "deca27e36950800e3966264a71a0135ab8094ed10055e35cc73f4fe5029a9e57",
+      "git_blob": "77605edf3f0116e1ea421b7827ee2c9c3dc07a52"
+    },
+    {
+      "path": "scripts/lib/app-engine-source-transition.mjs",
+      "bytes": 2439,
+      "sha256": "add207a8014f7a28040c25f5b85acc83884a3b41e5bb65d8e1e6cd7fb59be317",
+      "git_blob": "6c8e466896031606102dc6d123522dc5f509ec85"
+    },
+    {
+      "path": "scripts/lib/app-layout-mfa-composition.mjs",
+      "bytes": 5057,
+      "sha256": "e59ec13fb15a4ca9ffdcd0da68b5530e301963efc7ec282d064b8ddf7ead2f84",
+      "git_blob": "2dace6716d24659779ce51691b0b61d75ce08166"
+    },
+    {
+      "path": "scripts/lib/app-official-core-directory-v1.mjs",
+      "bytes": 3307,
+      "sha256": "93bb86bd7b144d6d4eeea8387489aef880a92166c8d8060417769a80e8c35a2f",
+      "git_blob": "47476c641eaf56614920847f1ff1f8b7fe165f29"
+    },
+    {
+      "path": "scripts/lib/owned-test-database-pool-teardown-v1.mjs",
+      "bytes": 646,
+      "sha256": "56f0bb8df06be1eb6b420bb41fc51d5663b98745c532cec24f1354997045c2da",
+      "git_blob": "5034ebd17815ca93d97ce870eccbb1e774761787"
+    },
+    {
+      "path": "scripts/lib/reviewed-core-host-source-pin-v1.mjs",
+      "bytes": 1424,
+      "sha256": "fb7f453c2b028212e669ee04274ac48c1366b4f499afd157e9d3bec0eda5f9b7",
+      "git_blob": "d736e862254c62e5c0d0ff7485854c5d5509ac8f"
+    },
+    {
+      "path": "scripts/run-app-core17-historical-admission-check-v1.mjs",
+      "bytes": 1938,
+      "sha256": "0b2ffd4e14e9e912651424426d0e705508dd2451a535176f711e2018cc74ef79",
+      "git_blob": "1c8ca3d0685ae0c5b639d7c7c1a19519c4a57a97"
+    },
+    {
+      "path": "scripts/test-airprop-b2-safety.mjs",
+      "bytes": 22948,
+      "sha256": "e50649cacfb05d12928fd27d8693e15e3cd54d52899ecb36f14bb0147bef8918",
+      "git_blob": "3b7cf60a772ac269f116e7b58d53aefe58fa88fc"
+    },
+    {
+      "path": "scripts/test-airprop-underwriting-ui-008.mjs",
+      "bytes": 15006,
+      "sha256": "6c8c08166a55b4cac0957114cdc00d459d54a6c1b2ed0c4243f8b44780a496e9",
+      "git_blob": "c68fb3cff9d6f978e23fcf7c028713fb43dae1d5"
+    },
+    {
+      "path": "scripts/test-app-ce-guide-source-transition-v1.mjs",
+      "bytes": 1530,
+      "sha256": "f3b7257826b11140c446abf0cd3de7880b1042baccf3176df91e219302e37547",
+      "git_blob": "ca452c332007b935454124360ad005f8946eff76"
+    },
+    {
+      "path": "scripts/test-app-core17-adoption-source-v1.mjs",
+      "bytes": 1721,
+      "sha256": "47da785a71ee801086d8420b3d6e9f69bc0d3a968a3d3a46013a7121c8442060",
+      "git_blob": "a7e7c06a0255aa90b80b5956b5e3918f5c41e6c9"
+    },
+    {
+      "path": "scripts/test-app-engine-source-transition.mjs",
+      "bytes": 2216,
+      "sha256": "b23df8bc4ad3545cd6e2e5b016241575cdb9dd5c7dd4925ae91848f1cea442c3",
+      "git_blob": "5020f3051ae3905fc48c1f73c1cfed221dd325ca"
+    },
+    {
+      "path": "scripts/test-app-official-core-directory-v1.mjs",
+      "bytes": 1105,
+      "sha256": "8ae33da2ae7d128d1613f1c2856ad0fc0e5b5343e742dd122808cfbfabb5476a",
+      "git_blob": "340a94204bba487fb9a605988144511630ac1bcd"
+    },
+    {
+      "path": "scripts/test-ce-010-community-page.mjs",
+      "bytes": 41978,
+      "sha256": "bbad6d09fe8b385fad8138e9695d1541bd7796d34b2b8df5a25e993239039a2e",
+      "git_blob": "27915d5896befc9ca28a990a929d8ee894a68f77"
+    },
+    {
+      "path": "scripts/test-ce-010-route.mjs",
+      "bytes": 6191,
+      "sha256": "517c5422ec2a32bfae401946bdabe8f20b46d470242bc66083ce2a5f0521f14c",
+      "git_blob": "77b66eff794b5951bfd314ba0d1b26c996cd1ff0"
+    },
+    {
+      "path": "scripts/test-ce-012-route.mjs",
+      "bytes": 6530,
+      "sha256": "41c36197901c0a6ea3fdab245d2e098db32d51cfa850f1a7af194448c1ac0b34",
+      "git_blob": "89a7e98765a824a72368750409000cb8e6ed53aa"
+    },
+    {
+      "path": "scripts/test-ce-benefit-presentation-service-handoff-v1.mjs",
+      "bytes": 21665,
+      "sha256": "351007e4cbebe6512517fa0b9cf8aa1fad34f8421fb40334b22c187aa6685d24",
+      "git_blob": "0f18e29f548f5545e71891fbe85721e976ab0550"
+    },
+    {
+      "path": "scripts/test-ce-guide-lifecycle-http-v1.mjs",
+      "bytes": 21171,
+      "sha256": "83042490febf7ef3bce0b4d86651df54a7cc27d9611472cbf483d2920969dee4",
+      "git_blob": "c4186ca8f2c1114368b3357ac007f76b08fe4bf9"
+    },
+    {
+      "path": "scripts/test-ce-member-benefit-terminology-audit-v1.mjs",
+      "bytes": 26403,
+      "sha256": "7d5d6427c1dc088eb90646fd69aa8cc5d372c2dfebc6ad3a1748c0400d545254",
+      "git_blob": "a452329521abace606e1f42bf5923ae2db9eee85"
+    },
+    {
+      "path": "scripts/test-communications-document-attachment-workspace-gate-v2.mjs",
+      "bytes": 9315,
+      "sha256": "743afe3e61df2c63f297d6ff7fa8623cba73513a450305ee3fd47a6561b48e67",
+      "git_blob": "cbb1da2ca3b95c2d6b4347ab5930bf328058eab5"
+    },
+    {
+      "path": "scripts/test-communications-private-conversation-workspace-v1.mjs",
+      "bytes": 7946,
+      "sha256": "365c9e458584f33cb474fb8b8b5f585d808c53ecfaf9784379902f12772cb069",
+      "git_blob": "b3e474039b36d8da04512cceb860d5b23cf825e1"
+    },
+    {
+      "path": "scripts/test-communications-private-message-currentness-postgres-v2.mjs",
+      "bytes": 9515,
+      "sha256": "b799cf9e77420307e00fea68d0f0dfee603addbc497065e037e38c5f3227ed28",
+      "git_blob": "49ea24c022b9a4d6887eac2afd4bedbefdea2c57"
+    },
+    {
+      "path": "scripts/test-communications-private-message-provider-postgres-v1.mjs",
+      "bytes": 16013,
+      "sha256": "16c47d75eaf7c0bc59c7c2f206416a071d64b911f3d57ab09b5eb4e1e67c6ac2",
+      "git_blob": "06d801edcabf2ad2c5836d829a156b79fc73030b"
+    },
+    {
+      "path": "scripts/test-communications-private-message-request-audience-postgres-v1.mjs",
+      "bytes": 28350,
+      "sha256": "907b7ff4814d6f6b80f121ef3f2980be0c6e66b38d1a9603054e0400057ac2b3",
+      "git_blob": "98622046943ea6a7156e4c4a8c01cd2157d8789c"
+    },
+    {
+      "path": "scripts/test-core-authority-revision-postgres-v1.mjs",
+      "bytes": 20492,
+      "sha256": "ab563eeae28cd3b5fc030167f4395a1c810c6f242a3a19b24df1e1d9716e3eda",
+      "git_blob": "668749399564c2300bed9660f2196397fc9aaa7f"
+    },
+    {
+      "path": "scripts/test-core-jurisdiction-domain-artifact-resolver-postgres-v1.mjs",
+      "bytes": 45051,
+      "sha256": "2bd9b40ef727de50594074a8a02a82d826fa2acf33506c0b55242c7e96951dc3",
+      "git_blob": "058da421daa6d31e6064174e5dfc08cbc3b8267f"
+    },
+    {
+      "path": "scripts/test-core-jurisdiction-domain-artifact-resolver-v1.mjs",
+      "bytes": 18825,
+      "sha256": "f0a1e9bfe0d524863e5652890f1f0384dcb2a2f16041ccb8322ac7afca6dd0c9",
+      "git_blob": "94486decf03ff1496389ca9a6d18ce9fbd74d4a0"
+    },
+    {
+      "path": "scripts/test-core-jurisdiction-domain-artifact-v1.mjs",
+      "bytes": 21393,
+      "sha256": "0ab62e25b4223a2e3eb109294e7ea87e5c1d6530cd57b658aa99cf35cd65c989",
+      "git_blob": "b819ad4202520204cc3bea8776935f5b6e0c6f76"
+    },
+    {
+      "path": "scripts/test-core-jurisdiction-profile-selector-postgres-v1.mjs",
+      "bytes": 15295,
+      "sha256": "648f32fd4b3693601f84190d23229f67290fca3f7ac0bdb3a22ff0d45243bf38",
+      "git_blob": "bfa5fa7d3a67f0201e7b868e548f8899bb4244e4"
+    },
+    {
+      "path": "scripts/test-core-jurisdiction-profile-selector-v1.mjs",
+      "bytes": 10079,
+      "sha256": "20481d28aea0f0b3984b9380d499e08ed8f09644038cd999ccd0972da80bcc2b",
+      "git_blob": "a5daa217df6e7fbd0c60220cdd3bc7d2092a9b8a"
+    },
+    {
+      "path": "scripts/test-core-transaction-host-postgres-v1.mjs",
+      "bytes": 16288,
+      "sha256": "3227489c79238070f9a2a116f681ab0d9b571e38ad3f370b2aa61662c7a74daf",
+      "git_blob": "cb68e40321078aeba3b8040339e932fbbbc663c1"
+    },
+    {
+      "path": "scripts/test-core-transaction-replay-provider-hook-postgres-v1.mjs",
+      "bytes": 17481,
+      "sha256": "abb8746b186f4a3b33042af22ccbf85439514ab0cd6eefb95c7d6ffcd3d50000",
+      "git_blob": "d089ca210beea47d3f2a418d1235b899936898ff"
+    },
+    {
+      "path": "scripts/test-core-tx-provider-evidence-postgres-v1.mjs",
+      "bytes": 12551,
+      "sha256": "7fa38ddc4a1ae7f9a2ffd0debdc67c8815efb97e346837dcdf3fb156be5833c6",
+      "git_blob": "0863715b2e76431f4c9145dda71bbd91ffc44eef"
+    },
+    {
+      "path": "scripts/test-documents-core-host-source-transition.mjs",
+      "bytes": 1472,
+      "sha256": "ed68efe212eefd759d53bfdb843df0d392c986bb6376c67cff0a9635244a478d",
+      "git_blob": "c6ea32c6c3815fa4288a9646e48a059d9c1f1cf0"
+    },
+    {
+      "path": "scripts/test-documents-country-retention-operation-integration-postgres-v1.mjs",
+      "bytes": 28446,
+      "sha256": "55abc4a762dd2ec08d6d9b4a44be9b338eb6f7983b4bebb6b7816f3dc196a9a0",
+      "git_blob": "16dd1e6aaf1560ee0f00899b5abd03d2a6e08063"
+    },
+    {
+      "path": "scripts/test-documents-country-retention-operation-integration-v1.mjs",
+      "bytes": 18529,
+      "sha256": "3bc1356cf73408f336d4aee4660f3d8edf881014893a1764e101a4bf40a1b3bc",
+      "git_blob": "0d9501d7a45977860cfed39c33929f051b15e173"
+    },
+    {
+      "path": "scripts/test-documents-country-retention-resolution-postgres-v1.mjs",
+      "bytes": 25955,
+      "sha256": "f9ecefa9409de837c3c87fa3ec5c81b0191d4f532202a9a19e963d646a675416",
+      "git_blob": "1e11ddab40e2bb27bf54e7ef7e155f18f1e2f8db"
+    },
+    {
+      "path": "scripts/test-documents-country-retention-resolution-v1.mjs",
+      "bytes": 19566,
+      "sha256": "8697a63bd14a2d9b7ec0993a5287e1587c1ffa93255daf04b67de1d5ed97fb00",
+      "git_blob": "8255d0fd60402a4954bbd86a15be614804fe5eba"
+    },
+    {
+      "path": "scripts/test-documents-null-workspace-creation-closure-v1.mjs",
+      "bytes": 6218,
+      "sha256": "8c0e5fac5a2603922ea35ac456d7324774fae26399e2ec52e94dfbd6d5f48d31",
+      "git_blob": "6f3b1c682d98e05eeb0d2d31f531a9df2a0b3ae1"
+    },
+    {
+      "path": "scripts/test-documents-reference-authority-v1.mjs",
+      "bytes": 12699,
+      "sha256": "fb0c602948afc42bf17aaf64fa5fadfea6548b0b919c1e614855d68e0f556a0d",
+      "git_blob": "775e88021e3493ba08ea5676bda4fd7cea31306c"
+    },
+    {
+      "path": "scripts/test-documents-replacement-promotion-after-clean-v1.mjs",
+      "bytes": 9532,
+      "sha256": "c33b7ec704b94163a4f757ed41a5bf429081f64d1bf3da43c8f2ef056f1789e4",
+      "git_blob": "7b8d5632f6ed3cee685bccd526b66883459b6ac5"
+    },
+    {
+      "path": "scripts/test-documents-replacement-workspace-writer-v1.mjs",
+      "bytes": 9792,
+      "sha256": "8c0b5043fdd909afebf5142d7e3a2a5fe83535ce2ff1087c2b7d26ce53a90911",
+      "git_blob": "a4f0a1a5798723381383fbe0adb15fc4f519df29"
+    },
+    {
+      "path": "scripts/test-documents-retention-lifecycle-workspace-gate-v2.mjs",
+      "bytes": 4583,
+      "sha256": "f2796071a87252c60965a5f8f68afec92791273901165063fd5afd38a036da65",
+      "git_blob": "8a3ce88e89e771a0d5120c7f488a0c664c2f922c"
+    },
+    {
+      "path": "scripts/test-documents-vault-download-exact-workspace-v2.mjs",
+      "bytes": 8692,
+      "sha256": "2cb73bf9be6bebdae94f6f1d13d758a08b3621c36bbdaeacda5809170ef2200f",
+      "git_blob": "a60ff57e24d5724abbcaf38fa19a73483b19ce13"
+    },
+    {
+      "path": "scripts/test-documents-workspace-binding-writer-postgres-v1.mjs",
+      "bytes": 57278,
+      "sha256": "be45c807f4e170ec89f6e472bbced855415ff99f0fee1bb29042567145237891",
+      "git_blob": "081f188b945bd7bc76658dbb883f8bafab3d6b73"
+    },
+    {
+      "path": "scripts/test-documents-workspace-binding-writer-v1.mjs",
+      "bytes": 13224,
+      "sha256": "2a1c9227652d107849387cc1cb47d954d996050be1dd3f90247ba9bbb9f3f661",
+      "git_blob": "6b5f917815c7d1d9eb77dbcff585da8cfd1d8180"
+    },
+    {
+      "path": "scripts/test-owned-post-auth-boundaries-01.mjs",
+      "bytes": 7171,
+      "sha256": "c4cfe4a0a615263e771c491b341d38fe687040e5e972765ed6cc24a83375ebb9",
+      "git_blob": "6251cde6d0420f2af185752a93e9bc4de97f07b7"
+    },
+    {
+      "path": "scripts/test-owned-test-database-pool-teardown-v1.mjs",
+      "bytes": 1574,
+      "sha256": "e55a64abdb49845be4d7902227420b7ece7066645c34681b61571a18daf6a211",
+      "git_blob": "5116fc72a4b7bac57e3e1ead31bbad78ac7b2233"
+    },
+    {
+      "path": "scripts/test-post-auth-compat-01.mjs",
+      "bytes": 32786,
+      "sha256": "6ad830a9605094b429fd29a6f5109dfdd23a85c7fda92672b4bc2f2e65e06ae6",
+      "git_blob": "148be52ff1074537ac47e0e687c041d51b413dd4"
+    },
+    {
+      "path": "scripts/test-real-authenticated-service-08.mjs",
+      "bytes": 77203,
+      "sha256": "c0db2e601115250319b771be94237cae0abe93bb0e3983c7daab59ec25ef5c3a",
+      "git_blob": "5c97246c293fdf5c617c0779c5c4e44a331cf876"
+    },
+    {
+      "path": "scripts/test-release-checklist-composition.mjs",
+      "bytes": 53243,
+      "sha256": "2977cddebc106619866b6657e7583c9c2cf812547f6721ade761d184d472bc84",
+      "git_blob": "849a3e2d0a98bae9b0bd8dc16ca329beaf112f69"
+    },
+    {
+      "path": "scripts/test-service-catalog-route-002.mjs",
+      "bytes": 14868,
+      "sha256": "ac6067525d606692d5ede2917e41d8bea4bdecc3851229fd8808056178b5add3",
+      "git_blob": "af88d9332bb794626ecfa935c4d34bf4d6e13b46"
+    },
+    {
+      "path": "scripts/test-service-offering-request-flow-02.mjs",
+      "bytes": 11521,
+      "sha256": "9f250a0d072d146090f7b16f78bd5b0255d6fbaec4f0e0b66bd4949712b4c802",
+      "git_blob": "f5ff79d32a759968f7c6208d8883a86f0beb512e"
+    },
+    {
+      "path": "scripts/test-service-request-route-010.mjs",
+      "bytes": 9444,
+      "sha256": "1e4948d98dcdab22bff9cb6b3da1082cb7207996602e8bd3e2925aef77e28a9b",
+      "git_blob": "b854f4323313a9ebe004bfbc96151bfd12ed5cb7"
+    },
+    {
+      "path": "scripts/test-service-request-subject-link-http-postgres-v1.mjs",
+      "bytes": 76374,
+      "sha256": "857215b4a704d690ee26ed6309a4542293db4d25fa505cc6ad7eeded4b10c0d5",
+      "git_blob": "7a1c0a7360536c0e87e7b112e4502f95a0eff14e"
+    },
+    {
+      "path": "scripts/test-service-request-subject-link-http-v1.mjs",
+      "bytes": 8704,
+      "sha256": "3f4880148f16d6a3b050d401c034d1b7b2a6bb2a8de40490a4c3d512949231ca",
+      "git_blob": "af5ad96a29e92fdd074849c89dd8224afe8ebdc8"
+    },
+    {
+      "path": "scripts/test-service-request-subject-link-postgres-v1.mjs",
+      "bytes": 47234,
+      "sha256": "07a11092fbd24658da502dceebe790f3c1daf726b90e19020354cf885477cef3",
+      "git_blob": "6a402eaf56caf14695d4a4236279668bb1116d8f"
+    },
+    {
+      "path": "scripts/test-service-request-subject-link-v1.mjs",
+      "bytes": 10161,
+      "sha256": "cad2da589b627a3a1bb6aa76594418188d02cc25013051883f8c1e8531f23b8c",
+      "git_blob": "fcbdd275d23ae3acf6db97ee50ca44d0930eeef6"
+    },
+    {
+      "path": "scripts/test-service-request-subject-provider-postgres-v2.mjs",
+      "bytes": 19589,
+      "sha256": "feb645464d87d13abbe91758910294f1d08147cab76aa24c7bf378b1363c421b",
+      "git_blob": "d4d6f90168ab72f8033ccdb3096dbe0bdd19fcfb"
+    },
+    {
+      "path": "scripts/test-service-s01-consumer-sqlstate-v1.mjs",
+      "bytes": 9521,
+      "sha256": "662d3877bb377edc749f9cb546adddd061cad27c831284099e509e892ba29ee1",
+      "git_blob": "5a95f1cfab46f8f78552ed4dcd8f037d5ed55cb6"
+    }
+  ],
+  "current_status": {
+    "source_head": "84a5ce313bfec47df3b8e63ef598b7dfeb378b66",
+    "core_proposal": "APPLIED_EXACT_FIVE_AFTERIMAGES; HISTORICAL_CHECKER_MANIFEST_SOURCEGATE_PRODUCT_RUNTIME_UNCHANGED",
+    "Core17_CI22_24": "BOTH_PASS_AT_b2e807eb; FINAL_HISTORICAL_DOMAIN_ADAPTER_SUCCESSOR_CI_PENDING",
+    "last_independent_seams": "JURISDICTION_ARTIFACT_EXISTING_LOADER_PASS14; PRECEDINGef055_EXACT_CI22_SUCCESS_1_FAILURE_OF23",
+    "native": "NOT_RUN_NOT_PASS",
+    "runtime": null,
+    "QA": "PENDING_INDEPENDENT_EXACT_HEAD_REVIEW"
+  },
+  "ci155_final_source_seams": {
+    "source_head": "b6bddb7b863c4b31c4f2047310d008f443c3c305",
+    "parent": "6d7c0bfd15c54bbb90091fcb53773ca45a28361a",
+    "S01": "PASS4_EXACT40001_OBJECT_BOUNDED_FAILURE_EXISTING_HOST_RETRY_COUNTS_PRESERVED",
+    "Documents_NULL_workspace_closure": "PASS_EXISTING_ALL_MIGRATION_SOURCE_INSERT_OWNER_GUARDS",
+    "host_transition": "Core owner profile sha09ad4bdd... authenticates historical9436c082 and official Core4b current6bcca1f3; entire current host bytes/SHA/Gitblob checked; profile/native/extra tamper and host tamper rejected",
+    "no_SQL": "Local tests are source/controlled only",
+    "Core17_current_workflow_22_24": "Already passed at552ea; new real exact-head CI follows publication; no historical receipt relabel"
+  },
+  "historical_source_domain_adapters": {
+    "source_head": "f15c71d708e3431a85f99cd5e658628709400d49",
+    "source_tree": "c9144d698811e7ea72114890e418b951f0955fb2",
+    "details": "historical-source-domains.md",
+    "historical_checkpoint": "6cecfa15b00f445be68817e756d766fb0e6fe026",
+    "official_current_Core": "4b3138f0ff0a27187d23d8a5b058d114ddcad773",
+    "official_Core_tree": "17e8ba3a78208dfbd2f674158117c8ddd5c7f3ee",
+    "official_Core_files": 78,
+    "checks": {
+      "historical_adoption_validator": "ORIGINAL_BODY_EXECUTED_WITH_EXACT_GIT_HISTORY",
+      "current_adoption": "EXACTLY4_AUTHORIZED_DIFFERENCES; ALL6_OPERATORS_AND_OTHER_PROTECTED_PINS_MATCH",
+      "adoption_new_controls": "PASS_POSITIVE_PLUS6_TAMPER_CONTROLS",
+      "B2_guard": "ORIGINAL_FUNCTION_AND_ALL_PIN_LITERALS_UNCHANGED; EXECUTED_IN_ORIGINAL_CORE_SOURCE_CONTEXT",
+      "B2_current_Core": "MATCH_ALL78_BLOBS_EXPLICIT_OFFICIAL_CORE4b_TREE; EXTRA_MISSING_TAMPER_REJECTED",
+      "B2_safety_case": "PASS_MIGRATION_GUARDS_AND_INACTIVE_API_UI_ASSERTIONS_PRESERVED",
+      "documents_workspace_writer": "PASS7_AFTER_EXISTING_LOADER_REUSE",
+      "lint_whitespace": "PASS6_CHANGED_NEW_SCRIPTS"
+    },
+    "source_only": true,
+    "native_execution_eligible": false,
+    "runtime": null,
+    "activation": null
+  },
+  "historical_admission_test_context": {
+    "source_head": "2f6d371c687d721f352fcdfa431ffd9a83ac2b3a",
+    "historical_source": "6cecfa15b00f445be68817e756d766fb0e6fe026",
+    "reason": "Actual3da CI guard correctly rejected current engine metadata against installed historical Core; original positive fixture copied working source",
+    "original_guard_checker_manifest_test": "UNCHANGED",
+    "runner": "scripts/run-app-core17-historical-admission-check-v1.mjs",
+    "local_inspection": "PASS_CHECK_ONLY_HISTORY_MATERIALIZATION_AND_ALL_ORIGINAL_PINNED_FILES; ORIGINAL45_NOT_RUN_LOCALLY",
+    "CI": "Default runner executes original cases at original checkpoint and removes only task-owned detached worktree; current-source check is separate",
+    "current_candidate_admission": "NOT_READY_NOT_GRANTED",
+    "native_execution_eligible": false,
+    "runtime_binding": null
+  },
+  "terminology_and_teardown": {
+    "source_head": "a067e8a52dd2ed5e2ffdd61f40cf13716b90e2cd",
+    "source_tree": "6d86d10a9f676df37dd13d29aa386c0b01e9e18e",
+    "terminology": {
+      "result": "PASS4850_ASSERTIONS",
+      "technical_phrase": "Exact official Core write-free comment path added to existing technical allowlist; no product copy change",
+      "private_Guide_bindings": "Exact scope DTO type/property and private cache key AST positions only; text/DOM/unrelated props/serialized scopes/spreads remain rejected",
+      "source_UI": "UNCHANGED"
+    },
+    "owned_DB_teardown": {
+      "observed_CI": "5f953d9f: all6 Communications currentness assertions passed, then idle pool emitted late57P01 during DROP of its own isolated test DB",
+      "local_controls": "PASS_1_EXPECTED_PLUS7_DENIALS; SAME_ERROR_OBJECT_FOR_UNEXPECTED_ERRORS",
+      "SQL_and_original_assertions": "AST_IDENTICAL_TO_5f953d9f",
+      "scope": "Only after pool.end and immediately before own isolated DB drop; exact client DB and code57P01; no retry or product pool handler",
+      "SQL_local": "NOT_RUN"
+    },
+    "lint_whitespace": "PASS_CHANGED_SCRIPTS"
+  },
+  "CE_handoff_published_successor": {
+    "source_head": "bc53e490d88e0ba001f2669ce3509d829094dcc8",
+    "profile": "ce-guide-source-transition.json",
+    "profile_sha256": "336a64d734f6800a63db0c70b3c2497540d364fb8c5f5f22c6e61512ffaad7d0",
+    "old_inventory_and_overlays": "BYTE_IDENTICAL",
+    "paths": 4,
+    "owner_heads": [
+      "7d5ec54a4718bdac600b6a668453d51818f22a4e",
+      "c32002bbf93f0dd9b8c5a2097a2afea7503ef3d4"
+    ],
+    "proof": "Actual owner Git bytes/blobs and exact main6cec predecessor verified; only four paths supersede original overlay/inventory pins",
+    "checks": "PASS_FOUR_POSITIVES_TEN_NEGATIVES; PASS314_HANDOFF_ASSERTIONS_AND_23_ENTRIES",
+    "classification_counts": "UNCHANGED_ACCEPTED10_INACTIVE9_INTERNAL4",
+    "UI_and_runtime": "UNCHANGED; runtimeNULL; native_execution_eligible=false; QA_PENDING",
+    "lint_whitespace": "PASS_CHANGED_SCRIPTS"
+  },
+  "jurisdiction_artifact_last_loader": {
+    "source_head": "84a5ce313bfec47df3b8e63ef598b7dfeb378b66",
+    "previous_head": "ef055c35cf736bbe7ae0d98614e53c368d0134b4",
+    "previous_CI": "22_SUCCESS_1_FAILURE_OF23; Core17_22_24_BOTH_PASS; DB_STATIC_AND_POSTGRES_PASS",
+    "actual_failure": "Application Foundation after unit suite: test-core-jurisdiction-domain-artifact-v1.mjs standalone loader cannot resolve server-only",
+    "change": "Reuse unchanged Core15 native TS loader only; all original artifact assertions and product source retained",
+    "local": "PASS14_WITH_FIVE_SYNTHETIC_COUNTRIES; LINT_AND_WHITESPACE_PASS; SQL_NATIVE_NOT_RUN"
+  },
+  "B2_marker_loader": {
+    "reviewed_parent": "57eb876d26436ecef258169e3f3d4ad2e09e51dd",
+    "path": "scripts/lib/airprop-b2-test-loader.mjs",
+    "bytes": 1690,
+    "sha256": "1741d8c3de1e1b9ec0cff0ddc784f739e3a9355a1f7afd8543d0f32aeb86bfe2",
+    "git_blob": "6ea1df667856e19d2b0e0fecc545ec83131cfdc0",
+    "change": "Resolve server-only using installed Next server empty marker after explicit mocks; rest of loader byte-identical",
+    "affected_local": "PASS_RUNTIME12_API6_RENDERED_UI5; LINT_WHITESPACE_PASS",
+    "assertions_guards_product": "UNCHANGED",
+    "parent_core_matrix": "PASS_REAL_NODE22.23.4_AND24.22.2_RUN43393706361",
+    "successor_CI": "PENDING_AUTOMATIC_EXACT_HEAD"
+  },
+  "address_presentation_loader": {
+    "reviewed_parent": "6f40f0583353623bea6baaedc07aff2d7d9f6523",
+    "path": "scripts/test-airprop-address-structure-presentation-evaluator-v1.mjs",
+    "bytes": 19246,
+    "sha256": "c9629537f5e9bf863efa3f3bd195f394b47eda7e8d1d025f2189bce54cd40b28",
+    "git_blob": "d1f5c64601dc5691f5063df5d9326f61417d3b56",
+    "observed_failure": "Same actual Core jurisdiction selector import graph: server-only unresolved, reproduced locally before correction",
+    "change": "Reuse unchanged Core15 actual-source loader; all19 assertions and evaluator product source retained",
+    "local": "PASS19_SYNTHETIC_PURE_PRESENTATION; LINT_WHITESPACE_PASS",
+    "activation": "NOT_RUN_NOT_PASS"
+  },
+  "service_shell_country_fixture_transition": {
+    "reviewed_parent": "e810010a9932b8c31281745054d0d4938664ea48",
+    "observed_CI": "Core real22/24 PASS; Database static/Postgres PASS; Application Foundation B2 and address evaluator PASS, legacy audit stopped at historical SERVICE test blob",
+    "historical_fixture_manifest": "UNCHANGED; b603383d SHA/106b8f6d blob retained",
+    "transition": "Exactly one MFA helper import and two textual assertions replaced with controlled actual-layout checks; preimage reconstructed and authenticated before unchanged historical assertions; all other source bytes fixed",
+    "helper_authentication": "Actual MFA composition helper e59ec13f SHA bound; no weakening of16 cases/5 mutants",
+    "local": "PASS61_AUDIT_ASSERTIONS; PASS1_PREIMAGE_PLUS8_DENIALS; LINT_WHITESPACE_PASS",
+    "pins": [
+      {
+        "path": "scripts/lib/app-service-shell-fixture-transition-v1.mjs",
+        "bytes": 2279,
+        "sha256": "e46edd99049977ed92dd863c2f87183fb12f4fd1211e746d8a5a5ab98c6a76e1",
+        "git_blob": "f5d98a06066aa71b2a7a3ab3e13215bf0639aabd"
+      },
+      {
+        "path": "scripts/test-app-service-shell-fixture-transition-v1.mjs",
+        "bytes": 1339,
+        "sha256": "6d0e6f87228ab06b20b4053d627dc6c2432059b0e047d3e6cbb2db7f1ca92022",
+        "git_blob": "2f434592361d944d3fbe230828ec0b8cbfba3918"
+      },
+      {
+        "path": "scripts/test-airprop-legacy-country-defaults-audit-07.mjs",
+        "bytes": 22460,
+        "sha256": "7fd7a7384da0022fcdb41cf97d80f9ab6e4eca89534a18bdaf44d154177076c0",
+        "git_blob": "6bb76def8be2392512913b8afbc7a9d3508653c2"
+      },
+      {
+        "path": ".github/workflows/application-foundation.yml",
+        "bytes": 21526,
+        "sha256": "53ee54021b8b853aa988b2c7d8d77a4e9deeedd90156afd6f5a1b891e65eb128",
+        "git_blob": "c121fcb54758e076c3b8d67f513d3ffeb12f11f2"
+      }
+    ],
+    "source_runtime_activation": "UNCHANGED_NULL_NOT_READY"
+  }
+}

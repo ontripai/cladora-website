@@ -1,0 +1,105 @@
+{
+  "task": "CE011-basic-events-v2",
+  "executor": "CLADORA-CE-WORKER-01",
+  "evidence_class": "ACTUAL_TS_API_ADAPTER_AND_ISSUER_VERIFIER_WITH_SDK_AND_DOMAIN_MODEL_RPC_SUBSTITUTES",
+  "groups": [
+    {
+      "name": "actual v2 route/adapter seven-action lifecycle + independent correction after cancellation",
+      "result": "PASS_CONTROLLED_OR_SOURCE_ONLY"
+    },
+    {
+      "name": "UNKNOWN existing session + original same-wire replay one modeled effect",
+      "result": "PASS_CONTROLLED_OR_SOURCE_ONLY"
+    },
+    {
+      "name": "version/same-key tamper denial",
+      "result": "PASS_CONTROLLED_OR_SOURCE_ONLY"
+    },
+    {
+      "name": "missing/mismatched binding tuple zero command RPC",
+      "result": "PASS_CONTROLLED_OR_SOURCE_ONLY"
+    },
+    {
+      "name": "strict input/origin/issuer guards",
+      "result": "PASS_CONTROLLED_OR_SOURCE_ONLY"
+    },
+    {
+      "name": "malformed success/late abort UNKNOWN",
+      "result": "PASS_CONTROLLED_OR_SOURCE_ONLY"
+    },
+    {
+      "name": "original40001 object and bounded error",
+      "result": "PASS_CONTROLLED_OR_SOURCE_ONLY"
+    },
+    {
+      "name": "exact canonical SQL key/hash and current guards/source reproduction",
+      "result": "PASS_CONTROLLED_OR_SOURCE_ONLY"
+    },
+    {
+      "name": "cancel-draft model/SQL contract mismatch repair",
+      "result": "PASS_CONTROLLED_OR_SOURCE_ONLY"
+    },
+    {
+      "name": "canonical P0002 missing-row rollback maps bounded404 without replay/fallback",
+      "result": "PASS_CONTROLLED_OR_SOURCE_ONLY"
+    },
+    {
+      "name": "missing executable command RPC binding is503 before dispatch",
+      "result": "PASS_CONTROLLED_OR_SOURCE_ONLY"
+    }
+  ],
+  "execution_history": [
+    {
+      "run": "initial combined",
+      "passed_before_stop": 3,
+      "result": "FAILED_NOT_PASS",
+      "failure": "fourth group fixture cloned consumed Request, produced503 before intended403 identity guard"
+    },
+    {
+      "run": "single-case missing binding after fixture correction",
+      "result": "PASS",
+      "product_expected_result_weakened": false
+    },
+    {
+      "run": "four remaining groups as separate --case runs",
+      "result": "PASS",
+      "old_successful_groups_repeated": false
+    },
+    {
+      "run": "new state-machine mismatch witness",
+      "result": "PASS"
+    },
+    {
+      "run": "new single-case P0002 error-mapping regression",
+      "result": "PASS"
+    },
+    {
+      "run": "single-case missing executable port regression",
+      "result": "PASS"
+    },
+    {
+      "run": "SQL source case after adding specific-role validity window",
+      "result": "PASS_SOURCE_ONLY",
+      "SQL_execution": false
+    }
+  ],
+  "full_suite_rerun_from_start": "NOT_RUN_NOT_CLAIMED",
+  "toolchain": {
+    "Node": "v24.19.0",
+    "Next": "16.4.1",
+    "Zod": "4.6.6",
+    "TypeScript": "5.9.3"
+  },
+  "static_checks": {
+    "syntax_new2_MJS": "PASS",
+    "ESLint_changed_TS_and_new_MJS_max_warnings_0": "PASS",
+    "typecheck": "PASS_COMPOSED_CORE103_PLUS_FINAL_CE_TS_DELTA_ES5_NO_EMIT",
+    "diff_check": "PASS"
+  },
+  "SQL_parse_compile": "NOT_RUN_NOT_PASS",
+  "PostgreSQL_RLS_Auth_native": "NOT_RUN_NOT_PASS",
+  "SQL_model_effects": "Test-only existing domain model; never imported by runtime adapter",
+  "old_suites": "NOT_RUN: 27/35/G1/G2, CE010V2, accepted Guide/Core suites",
+  "private_binding": null,
+  "target_operations": false
+}

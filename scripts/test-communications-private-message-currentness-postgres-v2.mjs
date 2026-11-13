@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import pg from 'pg';
+import { guardOwnedTestDatabasePoolTeardownV1 } from './lib/owned-test-database-pool-teardown-v1.mjs';
 
 const connectionString = process.env.COMM_CURRENTNESS_TEST_DATABASE_URL;
 if (!connectionString || process.env.COMM_CURRENTNESS_EPHEMERAL !== '1') {
@@ -23,6 +24,7 @@ if (target.pathname === '/postgres') {
 }
 
 const pool = new pg.Pool({ connectionString: target.toString(), max: 3 });
+const teardown = guardOwnedTestDatabasePoolTeardownV1(pool, isolatedDatabaseName);
 const actorId = randomUUID(), membershipId = randomUUID(), tenantId = randomUUID();
 const contextId = randomUUID(), workspaceId = randomUUID(), otherWorkspaceId = randomUUID();
 const conversationId = randomUUID(), nullConversationId = randomUUID();
@@ -161,6 +163,7 @@ try {
 } finally {
   await pool.end();
   if (adminPool && isolatedDatabaseName) {
+    teardown.beginOwnDrop();
     await adminPool.query(`drop database "${isolatedDatabaseName}" with (force)`);
     await adminPool.end();
   }

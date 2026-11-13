@@ -101,9 +101,11 @@ try {
   });
   await test('versioned local recovery preserves exact wire and fails closed', async () => {
     const f = fixture(), wire = JSON.stringify(await f.command());
-    for (const state of ['uncertain', 'blocked']) assert.deepEqual(f.contract.readListingRecovery(f.contract.writeListingRecovery(wire, state), scope), { recovery_version: 1, state, wire });
-    assert.equal(f.contract.readListingRecovery('bad', scope).state, 'invalid');
-    assert.equal(f.contract.readListingRecovery(f.contract.writeListingRecovery(wire, 'uncertain'), { ...scope, workspace_id: id(99) }).state, 'invalid');
+    const owner = { ...scope, actor_id: f.state.actor, membership_id: id(40) };
+    for (const state of ['uncertain', 'blocked']) assert.deepEqual(f.contract.readListingRecovery(f.contract.writeListingRecovery(wire, state, owner), scope, owner), { state, wire });
+    assert.equal(f.contract.readListingRecovery('bad', scope, owner).state, 'invalid');
+    assert.equal(f.contract.readListingRecovery(f.contract.writeListingRecovery(wire, 'uncertain', owner), { ...scope, workspace_id: id(99) }, owner).state, 'invalid');
+    assert.equal(f.contract.readListingRecovery(JSON.stringify({ recovery_version: 1, state: 'uncertain', wire }), scope, owner).state, 'unverified');
   });
   await test('existing B2 AAL2 gate retained; missing/AAL1 never calls command bridge', async () => {
     const f = fixture(), c = await f.command();

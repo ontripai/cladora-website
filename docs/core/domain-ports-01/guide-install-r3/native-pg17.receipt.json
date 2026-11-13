@@ -1,0 +1,201 @@
+{
+  "contract": "core-guide-disposable-pg17.sanitized.v1",
+  "result": "PASS_RELEVANT_PRESTATE_INSTALL_AND_LIMITED_NATIVE_PG_CASES",
+  "PG": "17.11",
+  "prestate": "canonical Core300 ordinary foundation derivative, official provider schema initialization and relevant minimal closure; NOT full target clone",
+  "packet": {
+    "00-fixed-roles.sql": {
+      "bytes": 2248,
+      "sha256": "b235e566631ccb52b6a20d8ea2fdaa7c9d6e45de1e4652768c9b24ece3f1815d"
+    },
+    "05-owner-delegations.sql": {
+      "bytes": 3509,
+      "sha256": "b3718be17f30122773ce4a5f4b84056c3a4ccc9f10180cb14d6013ec93e6effe"
+    },
+    "08-audience-dependency.sql": {
+      "bytes": 16514,
+      "sha256": "62b9d3243b381928fbae019b9f9275da9e0bf73ad2db510e9ae4ff670387a444"
+    },
+    "10-guide-core.sql": {
+      "bytes": 34136,
+      "sha256": "6812a04f54ab9bde5b1661a40bb78740c43147588e2d00c9af1e28ddee0e85b9"
+    },
+    "20-save-relation.sql": {
+      "bytes": 16598,
+      "sha256": "9eb6fc9454d47fdacebd8b5a077a3fec9bc20e62f4a7c2873c18dfe99fe33e4a"
+    },
+    "preflight.sql": {
+      "bytes": 5535,
+      "sha256": "176f2282efbd37af62c261858417d516efa607fa7389cc28312bcf1046e6dd27"
+    },
+    "verify.sql": {
+      "bytes": 4209,
+      "sha256": "1bbc5d7c72c61ee929bd1879d8a5cbc29549241442bc9b9f1706c4e572df4271"
+    }
+  },
+  "cases": [
+    {
+      "case": "00-fixed-roles.sql",
+      "principal": "postgres",
+      "payload_bytes": 2646,
+      "payload_sha256": "f4e9da71a38e315abaab726e5e744369ee090c5ee8aca7a16e6fc239d9da1fea",
+      "exit": 0,
+      "sqlstate": null
+    },
+    {
+      "case": "05-owner-delegations.sql",
+      "principal": "postgres",
+      "payload_bytes": 3907,
+      "payload_sha256": "eca8cd0384aafb768c9d6594b044a6fb67bda5a921435134fd67f20aec791430",
+      "exit": 0,
+      "sqlstate": null
+    },
+    {
+      "case": "08-audience-dependency.sql",
+      "principal": "cladora_core_installer",
+      "payload_bytes": 16912,
+      "payload_sha256": "36df1a13fc71f7174428f7b83baa82954051ae718c05c41fab290990a0c070fe",
+      "exit": 0,
+      "sqlstate": null
+    },
+    {
+      "case": "native-full-guide-unit-rollback",
+      "principal": "cladora_core_installer",
+      "payload_bytes": 34611,
+      "payload_sha256": "4755290047412163df7a362cf0ed2c87604f6c0250920e85d75f19b25f98fba2",
+      "exit": 3,
+      "sqlstate": "P0001"
+    },
+    {
+      "case": "native-full-unit-prestate-readback",
+      "principal": "postgres",
+      "payload_bytes": 222,
+      "payload_sha256": "1686d1f24de6496dc6332c9bf3cd095d55950ec5bd0a8068b871083c812ef5f7",
+      "exit": 0,
+      "sqlstate": null
+    },
+    {
+      "case": "10-guide-core.sql",
+      "principal": "cladora_core_installer",
+      "payload_bytes": 34534,
+      "payload_sha256": "1187ae3aae8ad4f849acfd8b9845d6eda12bbe77072c007e57b9c77ebda3166e",
+      "exit": 0,
+      "sqlstate": null
+    },
+    {
+      "case": "20-save-relation.sql",
+      "principal": "cladora_core_installer",
+      "payload_bytes": 16996,
+      "payload_sha256": "1dc95555057f2b573934b6265b6e98994e0ecbaa2f6cc6a1db416a3cbf9c480e",
+      "exit": 0,
+      "sqlstate": null
+    },
+    {
+      "case": "guide-verify",
+      "principal": "cladora_core_installer",
+      "payload_bytes": 4607,
+      "payload_sha256": "5b4423d25fdb3c987abefe3257360de2824f870e39b4cb26c3d7bd5dfdbbd2e9",
+      "exit": 0,
+      "sqlstate": null
+    },
+    {
+      "case": "native-fixed-role-safety",
+      "principal": "cladora_ce_guide_runtime",
+      "payload_bytes": 171,
+      "payload_sha256": "553989f425df4c0d1c81346521944de2cea0dc7f390ea3046b6f8ffa9df48e29",
+      "exit": 0,
+      "sqlstate": null
+    },
+    {
+      "case": "native-discovery-FOR-SHARE",
+      "principal": "cladora_ce_guide_runtime",
+      "payload_bytes": 328,
+      "payload_sha256": "1597f9985b00f420424e654e196f8c5bf3f5aa438ef6975ca497be067414d9a9",
+      "exit": 0,
+      "sqlstate": null
+    },
+    {
+      "case": "native-guide-no-session-denial",
+      "principal": "cladora_ce_guide_runtime",
+      "payload_bytes": 358,
+      "payload_sha256": "bdf26ad060c1a00065cffbc1675c7269bbd0dbf13197b9c97334cdf70cb632cb",
+      "exit": 3,
+      "sqlstate": "42501"
+    },
+    {
+      "case": "native-canonical-session-denial",
+      "principal": "cladora_ce_guide_runtime",
+      "payload_bytes": 135,
+      "payload_sha256": "45a2bd0ac4c031d163ddd7f794d04a167b2eea75c9364c1e49201b318c090cff",
+      "exit": 3,
+      "sqlstate": "42501"
+    },
+    {
+      "case": "native-denial-zero-residue",
+      "principal": "postgres",
+      "payload_bytes": 283,
+      "payload_sha256": "08fef7286dfeb56030657a8019e298752d674eb679ed7eb7cbf30e43887f67de",
+      "exit": 0,
+      "sqlstate": null
+    },
+    {
+      "case": "native-install-rollback-oracle",
+      "principal": "cladora_core_installer",
+      "payload_bytes": 139,
+      "payload_sha256": "6da3dc27a425013f7f2490d2183cd2c0782dda209891447f79837941a7acc8d4",
+      "exit": 3,
+      "sqlstate": "P0001"
+    },
+    {
+      "case": "native-rollback-preserves-committed-units",
+      "principal": "postgres",
+      "payload_bytes": 217,
+      "payload_sha256": "63049b57fadd5fbaccbe3a9c5fc0a0bba297131c6563d40b9f7067e237dbd881",
+      "exit": 0,
+      "sqlstate": null
+    },
+    {
+      "case": "native-role-inherit-denial",
+      "principal": "cladora_ce_guide_runtime",
+      "payload_bytes": 111,
+      "payload_sha256": "0c1ae31055e195516a03fef12bcb4155ab5e6054ce09ab6386946b78843c92cc",
+      "exit": 3,
+      "sqlstate": "42501"
+    },
+    {
+      "case": "native-role-admin-denial",
+      "principal": "cladora_ce_guide_runtime",
+      "payload_bytes": 111,
+      "payload_sha256": "0c1ae31055e195516a03fef12bcb4155ab5e6054ce09ab6386946b78843c92cc",
+      "exit": 3,
+      "sqlstate": "42501"
+    },
+    {
+      "case": "native-final-verify-after-fault-restoration",
+      "principal": "cladora_core_installer",
+      "payload_bytes": 4607,
+      "payload_sha256": "5b4423d25fdb3c987abefe3257360de2824f870e39b4cb26c3d7bd5dfdbbd2e9",
+      "exit": 0,
+      "sqlstate": null
+    }
+  ],
+  "cleanup": [
+    {
+      "cleanup": "container",
+      "result": "ACK"
+    },
+    {
+      "cleanup": "container",
+      "result": "ACK"
+    },
+    {
+      "cleanup": "network",
+      "result": "ACK"
+    }
+  ],
+  "shared_target_calls": 0,
+  "Auth_HTTP": "NOT_RUN",
+  "positive_application_auth_C03_Guide_UI_restart": "NOT_RUN",
+  "wire_ReadyForQuery": "NOT_CAPTURED_BY_PSQL",
+  "activation": null
+}

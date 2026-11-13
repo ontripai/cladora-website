@@ -1,0 +1,22 @@
+{
+  "contract": "ce010-existing-target-review-plan.v2",
+  "path": "adaptation",
+  "source_only": true,
+  "preimage": null,
+  "forward_delta": null,
+  "status": "BLOCKED_TARGET_BEFORE_IMAGE",
+  "required_before_image": [
+    "exact target/OID/version/marker",
+    "all requested object presence including partial installs",
+    "full definitions/signatures/owners/ACL/column ACL/RLS/policy expressions/defaults/constraints/indexes/triggers",
+    "actual role/defaultACL/schema ownership/privilege graph",
+    "data/legacy receipt/writer dependencies assessed by the domain and Core; never select/publish private rows here"
+  ],
+  "rules": [
+    "Any existing/partial CE object selects this path, never fresh CREATE",
+    "Exact existing shape does not automatically adopt rights or authorize a command",
+    "No DROP/replace/backfill/reset/grant/ownership/adoption delta without the real before-image and its review",
+    "Ambiguous COMMIT/unsettled/partial/drift stays UNKNOWN; readback under an independently admitted observer, no automatic retry"
+  ],
+  "runnable": false
+}

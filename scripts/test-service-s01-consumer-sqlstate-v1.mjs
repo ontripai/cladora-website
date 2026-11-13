@@ -1,23 +1,9 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
-import ts from 'typescript';
+import { fileURLToPath } from 'node:url';
+import { createCore15NativeLoader } from './lib/core15-native-ts-loader.mjs';
 
-const require = createRequire(import.meta.url);
-const cache = new Map();
-function load(url) {
-  if (cache.has(url.href)) return cache.get(url.href);
-  const compiled = ts.transpileModule(readFileSync(url, 'utf8'), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
-  });
-  const loaded = { exports: {} };
-  new Function('require','module','exports',compiled.outputText)(name => name.startsWith('.')
-    ? load(new URL(name.endsWith('.ts') ? name : `${name}.ts`, url))
-    : name.startsWith('@/') ? load(new URL(`../src/${name.slice(2)}.ts`, import.meta.url)) : require(name),
-  loaded,loaded.exports);
-  cache.set(url.href,loaded.exports); return loaded.exports;
-}
-
+const { load: loadSource } = createCore15NativeLoader(fileURLToPath(new URL('../', import.meta.url)));
+const load = url => loadSource(fileURLToPath(url));
 const { preflightServiceOfferingRequestV1 } = load(
   new URL('../src/lib/customer/service-v14-execution/application-flow.ts',import.meta.url));
 const { prepareCreateVersionedServiceRequestV1 } = load(

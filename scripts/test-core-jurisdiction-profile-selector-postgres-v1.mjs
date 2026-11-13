@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { createHash, randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
+import { createCore15NativeLoader } from './lib/core15-native-ts-loader.mjs';
 import pg from 'pg';
-import ts from 'typescript';
 import { createAp10CoreAuthorityDriver } from './lib/ap10-core-authority-driver.mjs';
 
 const connectionString=process.env.CORE_JURISDICTION_SELECTOR_TEST_DATABASE_URL;
@@ -15,18 +15,8 @@ if(!['localhost','127.0.0.1','[::1]'].includes(target.hostname)||target.pathname
   throw new Error('Local disposable PostgreSQL only');
 }
 
-const require=createRequire(import.meta.url),cache=new Map();
-function load(url){
-  if(cache.has(url.href))return cache.get(url.href);
-  const compiled=ts.transpileModule(readFileSync(url,'utf8'),{compilerOptions:{
-    module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,
-  }});
-  const mod={exports:{}};cache.set(url.href,mod.exports);
-  new Function('require','module','exports',compiled.outputText)(name=>name.startsWith('.')
-    ?load(new URL(name.endsWith('.ts')?name:`${name}.ts`,url)):require(name),mod,mod.exports);
-  return mod.exports;
-}
-
+const { load: loadSource } = createCore15NativeLoader(fileURLToPath(new URL('../', import.meta.url)));
+const load = url => loadSource(fileURLToPath(url));
 const selector=load(new URL('../src/lib/core/jurisdiction-profile-selector-v1.ts',import.meta.url));
 const authorityPort=load(new URL('../src/lib/core/current-authority-transaction-port-v1.ts',import.meta.url));
 const authorityProvider=load(new URL('../src/lib/core/current-authority-postgres-provider-v1.ts',import.meta.url));

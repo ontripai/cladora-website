@@ -1,0 +1,146 @@
+{
+  "contract": "airprop-listing-core-producer-inputs.v2",
+  "classification": "DEPENDENCY_INPUT_NOT_AN_ACCEPTED_NEW_CORE_ABI",
+  "consumer_head": "067464d07cb08629adf59490febf6222f5c0d878",
+  "task": "AIRPROP-LISTING-NATIVE-01",
+  "available": {
+    "factory": "src/lib/core/listing-command-binding-v1.ts#createCoreListingCommandBindingV1",
+    "bind": "bind(original Request) -> null or request-local {resolveIdentity, host.execute}; actual Core Auth+AAL2; not a prepared operation",
+    "read": "createCoreListingOwnershipCompanionV1().readCanonical: own-party read only; not management authority",
+    "consumer": "src/lib/airprop/listing-runtime-binding-v1.ts#createListingRequestRuntimeResolverV1"
+  },
+  "required_seam": {
+    "symbol": "ListingFunctionalDependenciesV1.command.prepareControl",
+    "owner": "Core original-operation producer; AIRPROP consumes the existing domain contract",
+    "arguments": [
+      "actual request-local CoreListingBoundPort",
+      "verified actorId",
+      "ListingCommand parsed by listingCommandSchema"
+    ],
+    "result": "ListingPreparedCoreControlV1 | null",
+    "members": {
+      "command": "actual CoreTransactionCommandV1, original immutable IDs/key/fingerprint/aggregate/source commitments",
+      "plan": "ReturnType<prepareListingControlV1>, exact retained original wire; never reconstructed from newer selection",
+      "providers": "CoreTransactionProvidersV1 with provider_current_state_required and independent current authority/evidence/mutate/replay"
+    },
+    "profile": {
+      "permission": "airprop.opportunity.manage",
+      "module": "airprop_commercial",
+      "purpose": "airprop.b2",
+      "aal": "aal2"
+    },
+    "missing_now": "No official persisted original operation mapping/replay factory delivered to consumer; null/NOT_READY remains"
+  },
+  "wire_custody_gap": {
+    "owner": "Core + AIRPROP affected API coupling, contract agreement before any change",
+    "source": "src/lib/airprop/listing-flow-api-v1.ts -> parseJsonWithLimit(Request) -> parsed request -> prepareControl",
+    "current_parser": "src/lib/security/request-body.ts consumes request.body; returns parsed data, not original bytes",
+    "required_input": "Actual original operation wire/hash via authoritative durable mapping, or separately agreed bounded original-wire handoff; current parsed DTO is insufficient",
+    "forbidden": [
+      "JSON.stringify(parsed/current GET) as original wire",
+      "new key/transaction to settle UNKNOWN",
+      "mutating shared parser/host in this packet"
+    ]
+  },
+  "command_identity": {
+    "aggregate_type": "portfolio.unit",
+    "aggregate_id": "original selected.unit_id",
+    "aggregate_version": "actual official source; not guessed1",
+    "source_ids": [
+      "selected.unit_id",
+      "selected.property_id",
+      "selected.party_id",
+      "selected.relationship_id",
+      "actual specification_id"
+    ],
+    "fingerprint": "sha256:SHA256(actual original UTF8 plan.wire)",
+    "source_versions": "selected.source_versions v2, exact specification/resource/Party/relationship revisions; same scope current pre/post wait",
+    "current_vs_original": "Original command immutable. Current authority/revoke/expiry independent. Missing current evidence -> hold/deny/NOT_READY, not committed result."
+  },
+  "domain_mutate": {
+    "factory": "src/lib/airprop/listing-selected-binding-v1.ts#createListingSelectedBindingMutatorV1(plan,recheckCanonical)",
+    "callback": "CoreTransactionProvidersV1.mutate(scope,command)",
+    "canonical_result": "ListingSelectedCanonicalV1: management core evidence, spec{id,version}, source_versions{specification_id,resource_version,party_version,relationship_version}",
+    "scope": "exact same admitted physical C03 transaction; canonical recheck before and after lock waits",
+    "result": "{mutation_id} only; real immutable receipt produced by existing Core host"
+  },
+  "queries": [
+    {
+      "symbol": "LISTING_SELECTED_BINDING_READ_SQL",
+      "file": "src/lib/airprop/listing-selected-binding-v1.ts",
+      "args": [
+        "tenant_id",
+        "workspace_id",
+        "context_id",
+        "listing_id",
+        "listing_version"
+      ],
+      "result": "0 rows -> historical unavailable; 1 binding jsonb -> strict v1/v2 record; mismatch invalid. Read only, no reservation."
+    },
+    {
+      "symbol": "LISTING_SELECTED_SPEC_SQL",
+      "file": "src/lib/airprop/listing-selected-binding-v1.ts",
+      "args": [
+        "specification_id",
+        "unit_id",
+        "tenant_id",
+        "property_id",
+        "spec_version"
+      ],
+      "result": "exact latest spec id/version, FOR SHARE s/u/b; no first-Unit fallback"
+    },
+    {
+      "symbol": "LISTING_SELECTED_BINDING_INSERT_SQL",
+      "file": "src/lib/airprop/listing-selected-binding-v1.ts",
+      "args": [
+        "tenant_id",
+        "workspace_id",
+        "context_id",
+        "listing_id",
+        "next_listing_version",
+        "JSON.stringify(actual binding v2)"
+      ],
+      "result": "exact returned binding; inside existing mutate only, rollback delegated to host"
+    },
+    {
+      "symbol": "LISTING_CONTROL_NATIVE_SQL",
+      "file": "src/lib/airprop/listing-control-plan-v1.ts",
+      "args": [
+        "context",
+        "workspace",
+        "listing_id",
+        "edit|withdraw|republish",
+        "original expected_version",
+        "available_from or null",
+        "available_until or null",
+        "reason",
+        "original key"
+      ],
+      "result": "domain native result, not Core committed receipt"
+    },
+    {
+      "symbol": "LISTING_PUBLICATION_NATIVE_SQL",
+      "file": "src/lib/airprop/listing-publication-v1.ts",
+      "args": [
+        "context",
+        "workspace",
+        "opportunity",
+        "property",
+        "unit",
+        "kind",
+        "available_from",
+        "available_until",
+        "original key"
+      ],
+      "result": "native publication result; publication HTTP/C03 operation producer still separate and unavailable"
+    }
+  ],
+  "owners_remaining": {
+    "Core": "official original operation producer + replay/current authority and exact selected-binding query admission",
+    "AIRPROP": "only affected consumer coupling after official operation input; no parallel evaluator/ownership registry",
+    "Platform": "private target, source compilation and owner/ACL/RLS/query adoption, resource/window and native run",
+    "QA": "independent source review then actual installed/native evidence",
+    "Coordinator": "central registration, integration and acceptance"
+  },
+  "activation": null
+}

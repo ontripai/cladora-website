@@ -4,6 +4,9 @@ import type { Pool, PoolClient } from 'pg';
 
 export const corePlatformRoleBoundPoolContractV1 =
   'core-platform-role-bound-pool.v1' as const;
+export const corePlatformCe010RoleBoundPoolContractV1='core-platform-ce010-role-bound-pool.v1' as const;
+export const corePlatformCe010RuntimeRoleV1='cladora_ce010_runtime' as const;
+export const corePlatformCe010ExecutorRoleV1='cladora_ce010_executor' as const;
 export const corePlatformCeGuideRuntimeRoleV1 = 'cladora_ce_guide_runtime' as const;
 export const corePlatformCeGuideExecutorRoleV1 = 'cladora_ce_guide_executor' as const;
 export const corePlatformServiceSubjectLinkRoleBoundPoolContractV1 =
@@ -48,6 +51,14 @@ const clearIdentitySql = `select
   set_config('request.jwt.claim.role','',false),
   set_config('request.cladora.context_id','',false),
   set_config('request.cladora.workspace_id','',false)`;
+
+// Guide-only: legacy aliases must not shadow its verified plural carrier.
+const ceGuideLegacySessionClearSql = `select
+  pg_catalog.set_config('request.jwt.claim','',false),
+  pg_catalog.set_config('request.jwt.claim.email','',false)`;
+const ceGuideLegacyTransactionClearSql = `select
+  pg_catalog.set_config('request.jwt.claim','',true),
+  pg_catalog.set_config('request.jwt.claim.email','',true)`;
 
 type FixedRoleBoundProfileV1<Contract extends string> = Readonly<{
   contract_version: Contract;
@@ -99,6 +110,10 @@ async function cleanForReuse(client: PoolClient, profile: FixedRoleBoundProfileV
   await client.query('reset all');
   await client.query('reset role');
   await assertRuntimeIdentity(client, profile);
+  if (profile.contract_version === corePlatformRoleBoundPoolContractV1 || profile.contract_version === corePlatformCe010RoleBoundPoolContractV1) {
+    // RESET ALL can reinstate database/role defaults; blank AFTER it, not before.
+    await client.query(ceGuideLegacySessionClearSql);
+  }
 }
 
 const ceGuideProfileV1 = Object.freeze({
@@ -146,7 +161,7 @@ function createFixedRoleBoundPoolV1<Contract extends string>(
         await assertExecutorIdentity(client, profile);
         await assertSafety(client, profile, false);
       } catch (error) {
-        client.release(true);
+        if(profile.contract_version===corePlatformCe010RoleBoundPoolContractV1){try{client.release(true);}catch{} }else client.release(true);
         throw error;
       }
 
@@ -157,7 +172,12 @@ function createFixedRoleBoundPoolV1<Contract extends string>(
           throw new Error('core_platform_text_query_required');
         }
         const normalized = text.trim().toLowerCase();
-        const isBegin = /^begin(?:\s+isolation\s+level\s+(?:serializable|repeatable\s+read|read\s+committed|read\s+uncommitted))?$/.test(normalized);
+        const isBegin = /^begin(?:\s+isolation\s+level\s+(?:serializable|repeatable\s+read|read\s+committed|read\s+uncommitted))?$/.test(normalized)
+          // The official CE probe is a write-free read transaction. Admit its
+          // exact spelling without admitting arbitrary BEGIN options or changing
+          // the independent SERVICE profile's transaction-control contract.
+          || (profile.contract_version === corePlatformRoleBoundPoolContractV1
+            && normalized === 'begin isolation level serializable read only');
         if (normalized.startsWith('begin') && !isBegin) {
           poisoned = true;
           throw new Error('core_platform_transaction_control_denied');
@@ -171,6 +191,9 @@ function createFixedRoleBoundPoolV1<Contract extends string>(
           transactionOpen = true;
           try {
             await assertExecutorIdentity(client, profile);
+            if (profile.contract_version === corePlatformRoleBoundPoolContractV1 || profile.contract_version === corePlatformCe010RoleBoundPoolContractV1) {
+              await client.query(ceGuideLegacyTransactionClearSql);
+            }
             await assertSafety(client, profile, true);
           } catch (error) {
             poisoned = true;
@@ -254,4 +277,12 @@ export function createCorePlatformServiceSubjectLinkRoleBoundPoolV1(
   options: CorePlatformRoleBoundPoolOptionsV1,
 ): CorePlatformServiceSubjectLinkRoleBoundPoolV1 {
   return createFixedRoleBoundPoolV1(options, serviceSubjectLinkProfileV1);
+}
+
+/** Fixed CE010-only role profile; role/helper installation is a separate Platform admission. */
+export function createCorePlatformCe010RoleBoundPoolV1(options:CorePlatformRoleBoundPoolOptionsV1){
+ return createFixedRoleBoundPoolV1(options,Object.freeze({contract_version:corePlatformCe010RoleBoundPoolContractV1,
+  runtime_role:corePlatformCe010RuntimeRoleV1,executor_role:corePlatformCe010ExecutorRoleV1,
+  checkout_safety_sql:'select app_private.assert_ce010_role_safety_v1() as safe',
+  transaction_safety_sql:'select app_private.acquire_ce010_role_safety_lease_v1() as safe'}));
 }

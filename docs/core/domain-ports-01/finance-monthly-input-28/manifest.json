@@ -1,0 +1,272 @@
+{
+  "contract": "utilities-monthly-input-producer.v1",
+  "parent": "57a1525d35ba4bcfbe4d998bd48e37e9f9dee547",
+  "status": "DOMAIN_SOURCE_IMPLEMENTED_BINDING_AND_NATIVE_NOT_READY",
+  "runtime": null,
+  "permit": null,
+  "target": null,
+  "inventory": [
+    {
+      "path": "src/lib/utilities/monthly-input-producer-v1.ts",
+      "bytes": 8626,
+      "sha256": "42b6226fb0fa8a869a4580778e01a9bcff89c8a29f5ce6f573490774a241076b",
+      "git_blob": "2504560a89d246ace016086c9a1f24601d215fb1"
+    },
+    {
+      "path": "supabase/proposals/utilities-monthly-input-v1/producer.sql",
+      "bytes": 17350,
+      "sha256": "00fc5be73d73fe0ab030fac3a2eae9a3aedee90d2acd89f51aad85dbbe3cd703",
+      "git_blob": "7475cc96e743dc0a357f1b425170b91ded1d163d"
+    },
+    {
+      "path": "supabase/proposals/utilities-monthly-input-v1/preflight.sql",
+      "bytes": 2067,
+      "sha256": "b57353766db465be8bd8f8753843aceb4b90f4da2ee1770aecc353db4ad18e61",
+      "git_blob": "67d46e2ee6eea1d4eebc373ca805b5d351dddecd"
+    },
+    {
+      "path": "supabase/proposals/utilities-monthly-input-v1/verify.sql",
+      "bytes": 1062,
+      "sha256": "07dd4a7e5ccd327c477b57ba2c8267d6f16d3348ee4953eb5c7e321f33bd692f",
+      "git_blob": "f6807f7a00543c4b5f96bedd1cd9efced9f04a48"
+    },
+    {
+      "path": "supabase/proposals/utilities-monthly-input-v1/recovery.md",
+      "bytes": 3128,
+      "sha256": "f356165a31dfe2628fc72b647c8137daa6b76d9ebeedc6f22e22a40c587b4307",
+      "git_blob": "2555f26695208b4c0efb182ed5be830549fc503e"
+    },
+    {
+      "path": "scripts/test-utilities-monthly-input-producer-v1.mjs",
+      "bytes": 12134,
+      "sha256": "ba2bae0836a4ab94493a4982cb7c262e8dd891d9b0f1d19605ece41684dbf1f5",
+      "git_blob": "db9f76c2e0c37b993e22243bb757205f0b1be377"
+    },
+    {
+      "path": "docs/core/domain-ports-01/finance-monthly-input-28/README.md",
+      "bytes": 11603,
+      "sha256": "ba2c1b147faf034f9fd65e17aad9f8f253a729fa24848b5168c985adfb38bbae",
+      "git_blob": "15b8e8a3ae0e067c04894b849ebd36acabae2cac"
+    }
+  ],
+  "unchanged_dependencies": [
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "bytes": 75138,
+      "sha256": "6bcca1f378b4a0c5f3a0367d5a03da96ce64ef4bdf71e7f4270bd4c804d2c21a",
+      "git_blob": "458576c1b9c44ea329f01ff91cfe9718d8ba3ef1"
+    },
+    {
+      "path": "src/lib/core/functional-command-runtime-v1.ts",
+      "bytes": 32729,
+      "sha256": "3456e5defa4c13f8c8c7f4581865b011589c025a9b082c76cf2d058670c2f227",
+      "git_blob": "37555804be5c8a28dd9c90731c981c59c795f616"
+    },
+    {
+      "path": "src/lib/customer/utilities-schema.ts",
+      "bytes": 5542,
+      "sha256": "07c7ab07860b1e6540c9473aa081c60b2b04405f059150f22801d2f0a86b68d0",
+      "git_blob": "cf768281fb80bca22810c7171a93bdb0a2478494"
+    },
+    {
+      "path": "src/lib/customer/utilities-api-helper.ts",
+      "bytes": 2224,
+      "sha256": "e3322fc8de1a89c13e3423b5b82f3a6743c40b98755c26d7e5b44a1de2422347",
+      "git_blob": "46fba26b1b24fa90e6818b50867acfb16806164c"
+    },
+    {
+      "path": "supabase/migrations/20260825000900_utilities_contracts_invoices_ocr.sql",
+      "bytes": 11204,
+      "sha256": "b3891d58cd7109689cc9a6b1ffdce09874b0f0d60703c4cd2b2f38e88fd77c48",
+      "git_blob": "f382cdc1966d615be7fa49273091e127ad07fabc"
+    },
+    {
+      "path": "supabase/migrations/20260825001200_utilities_ingestion_review_audit.sql",
+      "bytes": 6562,
+      "sha256": "4ad1ccea31b1a78a0c542474a00f2921213b872bcb0a78b4e0600f95751abaa2",
+      "git_blob": "106463c83040d4d2f29bab84bb3991bc2d0e23e2"
+    },
+    {
+      "path": "supabase/migrations/20260829004700_customer_metering_utility_validation.sql",
+      "bytes": 23694,
+      "sha256": "b5645a6e5a316d07530367b551a016dc23f9b5b73c97cefb4fec783c0773e091",
+      "git_blob": "c848bc3fd0ee2e61160d017e386dc79baa2b107f"
+    },
+    {
+      "path": "supabase/migrations/20260908120000_utilities_metering_billing_slice.sql",
+      "bytes": 80420,
+      "sha256": "4e07591b91e32102c2e7ffc38a1272c51d79ab571fe6f902c40009a68d31d1b5",
+      "git_blob": "6f236b87fb24724c0b3b075b06d90f5806a4c714"
+    },
+    {
+      "path": "supabase/install/core-functional-runtime-v1/02-session-runtime-access.sql",
+      "bytes": 12828,
+      "sha256": "b7cf676aa64308ebdeefc08383966660c11e19775e1257ddb69606e231a5fd44",
+      "git_blob": "0bfd8246c6893faa8dee7dd3ed643254116c9ad0"
+    },
+    {
+      "path": "supabase/install/core-functional-runtime-v1/03-canonical-sqlstate.sql",
+      "bytes": 57080,
+      "sha256": "4a10c4ad0002d0e98e8ccdfe8df8d90ef4772e9f06741548adb866d5de4c1c8e",
+      "git_blob": "c4653cef6e23af7a3698c459276ebc8e4c5a17a9"
+    },
+    {
+      "path": "supabase/hosted-building-slice/building-setup-command-receipts-v1.sql",
+      "bytes": 732202,
+      "sha256": "254e17c9e5f21ce4e50786d3325c2cc84759097b16cb53028602d1e8db5e02e3",
+      "git_blob": "f365539237f6799311e5a2a824837987fd4e8fea"
+    },
+    {
+      "path": "docs/core/domain-ports-01/custody-fresh-time-20/helper-pins.json",
+      "bytes": 8077,
+      "sha256": "45224f26a85f4f4f34246998f49374ef151277c61e87a62df4b8c5b9b17dc3d0",
+      "git_blob": "319c23ceb36e6f6d170fab02f04a6fe13ef44e2b"
+    },
+    {
+      "path": "src/app/api/customer/v1/utilities/readings/route.ts",
+      "bytes": 3921,
+      "sha256": "f337b829925144814fef5df6eae2f6c3cf4fd083c3c2ff8585b97d39807e6121",
+      "git_blob": "7a4e5c668046f22ed67e9899ae3a2d1340eab0a4"
+    },
+    {
+      "path": "src/app/api/customer/v1/utilities/readings/[id]/approve/route.ts",
+      "bytes": 2199,
+      "sha256": "2c761035f86e8e95de034c209ec23e62a377d316141d56697cb58646b4569d82",
+      "git_blob": "ea984fc6f8d04afe55415077a693198413abe952"
+    }
+  ],
+  "source_contracts": {
+    "input": "utilities-monthly-input.v1",
+    "result": "utilities-monthly-input-result.v1",
+    "module": "utilities",
+    "invoice_permission_policy": "PROPOSED_NO_ROLE_ASSIGNMENT",
+    "invoice_permissions": [
+      "utilities.invoices.ingest",
+      "utilities.invoices.review"
+    ],
+    "reading_permission": "utilities.readings.approve",
+    "assurance": "aal2 only; managed session and whole canonical chain at fresh server time",
+    "host": "Existing C01/C03 required, no new engine/receipt/ledger",
+    "mutation_id": "source_id, explicit for this NEW writer ABI only; not Core receipt_id",
+    "review_preimage": "actual canonical invoice + full lines ordered by row ID; source hash from read helper, not reconstructed JSON"
+  },
+  "query": {
+    "sql": "select utilities.produce_monthly_input_v1($1::uuid,$2::uuid,$3::bigint,$4::jsonb) as result",
+    "arity": 4,
+    "args": [
+      "original_context_uuid",
+      "original_workspace_uuid",
+      "original_authority_revision_bigint",
+      "strict_domain_input_jsonb"
+    ],
+    "phase": "existing C03 domain mutation only",
+    "result": "exactly one internal utilities-monthly-input-result.v1; only mutation_id returned to host"
+  },
+  "source_writer_effects": {
+    "ingest_invoice": [
+      "provider_invoices INSERT review_required",
+      "provider_invoice_lines INSERT from validated decimals",
+      "review_tasks INSERT open",
+      "ingestion_documents UPDATE invoice_id/processing_status"
+    ],
+    "review_invoice": [
+      "provider_invoices UPDATE approved/void; actual actor/time",
+      "review_tasks UPDATE canonical decision",
+      "review_decisions INSERT actual before/after"
+    ],
+    "approve_reading": [
+      "existing utilities.approve_reading after actual locked preimage match"
+    ]
+  },
+  "forbidden_effects": [
+    "finance/billing/payments DML",
+    "new command/receipt ledger",
+    "new transaction/retry/commit",
+    "public/customer_api exposure",
+    "Auth ACL/shared guard/evaluator modifications"
+  ],
+  "role_privileges_request_not_grants": {
+    "helper_execute": [
+      "all exact signatures in preflight; canonical fresh-time13-function dependency source pinned unchanged"
+    ],
+    "select": [
+      "utilities.supply_contracts",
+      "utilities.ingestion_sources",
+      "utilities.ingestion_documents",
+      "utilities.provider_invoices",
+      "utilities.provider_invoice_lines",
+      "utilities.review_tasks",
+      "utilities.meters",
+      "utilities.meter_readings"
+    ],
+    "row_lock_privilege": [
+      "SELECT plus effective UPDATE privilege on locked relations; propose UPDATE(id) for otherwise read-only parents only, review native PG/RLS before grant"
+    ],
+    "insert": [
+      "provider_invoices exact producer columns",
+      "provider_invoice_lines exact producer columns",
+      "review_tasks(tenant_id,invoice_id,reason_code,status)",
+      "review_decisions(tenant_id,task_id,actor_id,decision,before_snapshot,after_snapshot,reason)"
+    ],
+    "update": [
+      "ingestion_documents(invoice_id,processing_status)",
+      "provider_invoices(status,approved_by,approved_at,approved_snapshot)",
+      "review_tasks(status,decided_by,decided_at,decision_note)",
+      "existing approve_reading row/trigger/audit rights per actual native role"
+    ],
+    "closed_direct_acl": "new functions owner only; no selected owner/executor",
+    "rls": "NO bypass/inferred write policy. Existing source tables have read policies; actual scoped writer closure must be reviewed by Platform."
+  },
+  "open_gates": [
+    {
+      "owner": "Utilities / Coordinator policy",
+      "gate": "accept/register invoice-specific permission/module/action mapping and roles; maker/reviewer independence decision; no borrowed utilities.manage/SERVICE permission"
+    },
+    {
+      "owner": "Platform / Documents source custodian",
+      "gate": "canonical document/contract/captured-reading provenance; no arbitrary row is file custody proof"
+    },
+    {
+      "owner": "Platform",
+      "gate": "exact role/owner/effective ACL+FOR SHARE rights/RLS/trigger/sequence/helper and query admission from actual target; serialized campaign and budget"
+    },
+    {
+      "owner": "Core / consumer with Platform",
+      "gate": "actual C03 provider replay/current-authority/terminal host composition, native settlement/40001/UNKNOWN proof"
+    },
+    {
+      "owner": "Finance",
+      "gate": "published source/schema for bridge; accepted57 planner unchanged pending actual input"
+    }
+  ],
+  "evidence": {
+    "new_controlled_adapter_and_static_groups": 15,
+    "final_sql_static_recheck": 1,
+    "full_project_es5_typecheck": "PASS",
+    "focused_lint": "PASS",
+    "syntax_diff": "PASS",
+    "unchanged_dependency_identity": "MATCH",
+    "native_sql_auth_install_fixture": "NOT_RUN",
+    "accepted57_tests": "NOT_REPEATED",
+    "accepted_service_finance_tests": "NOT_REPEATED",
+    "affected_read_source_new_groups": 2
+  },
+  "automation": "نیازمند بررسی",
+  "review_preparation_query": {
+    "sql": "select utilities.read_invoice_review_source_v1($1::uuid,$2::uuid,$3::bigint,$4::uuid) as result",
+    "arity": 4,
+    "args": [
+      "context_uuid",
+      "workspace_uuid",
+      "authority_revision_bigint",
+      "source_uuid"
+    ],
+    "phase": "existing lock-capable read scope, rollback settlement; no command/reservation",
+    "result": "one utilities-invoice-review-source.v1; exact source/task/hash + DB/actor/tenant internal binding"
+  },
+  "new_routines": [
+    "utilities.monthly_input_actor_v1(uuid,uuid,bigint,text,uuid)",
+    "utilities.produce_monthly_input_v1(uuid,uuid,bigint,jsonb)",
+    "utilities.read_invoice_review_source_v1(uuid,uuid,bigint,uuid)"
+  ]
+}

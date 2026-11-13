@@ -1,0 +1,220 @@
+{
+  "FullSHA": "CONTAINING_COMMIT",
+  "Parent": "62f3c4ea3280821d3df69cd5d0cfbd10fbf6cb6d",
+  "main_reference": "6cecfa15b00f445be68817e756d766fb0e6fe026",
+  "native": "NOT_RUN_NOT_PASS",
+  "activation": null,
+  "target_calls": 0,
+  "automation": "نیازمند بررسی",
+  "contract": "core-listing-read-command-r2.source.v1",
+  "status": "READ_SELECTOR_AND_COMMAND_PORT_SOURCE_READY_FULL_CANONICAL_PRODUCER_OPEN",
+  "inventory": [
+    {
+      "path": "src/lib/core/airprop-read-host-v1.ts",
+      "before": {
+        "bytes": 16793,
+        "sha256": "4b13bfa4c920a68e7ec31b4a10f17a6e2bcf90721d255ccbc7e33eea34958c3c",
+        "git_blob": "47fde404a10ef6bfcf507fd01069b754eff4bbe8"
+      },
+      "after": {
+        "bytes": 20207,
+        "sha256": "52ba8a442a890a114349addf569a180ff6179adf7698ba6dbb4bed1a94c9a87f",
+        "git_blob": "ffcfec5c7310ed5018bf66590aee1f487a0f70a8"
+      }
+    },
+    {
+      "path": "src/lib/core/airprop-read-selector-queries-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 3361,
+        "sha256": "93e30ce9a1e8f55da4f26e3e2a8a0d7fb8bdc0213d61ad592beb4e86d4492cd1",
+        "git_blob": "06a4935c3a2e80d921e8c669c746cb4d3a9b342a"
+      }
+    },
+    {
+      "path": "src/lib/core/current-unit-property-read-selector-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 5747,
+        "sha256": "6be30696e2f75d94d62b105911f4e8df977383487baf8fe37bcfc8a574667844",
+        "git_blob": "d56d0509b797cd345cc18fd5c69c0b1f22de10ac"
+      }
+    },
+    {
+      "path": "src/lib/core/domain-command-identity-v1.ts",
+      "before": {
+        "bytes": 1278,
+        "sha256": "25b6c025992823486f304bc6bd5e9b5fce0fe192fb862e7f122f3f3714e2e84f",
+        "git_blob": "eedabbe9e8e0f78b90c55c1038adf1d1cdd9b8e8"
+      },
+      "after": {
+        "bytes": 1920,
+        "sha256": "6e31298e18708c5d1833d97a5142740f506d19544eaf0a15459df9d69448ae5b",
+        "git_blob": "21fd4ff4cb31885d540a4479ff0d02a4d401799a"
+      }
+    },
+    {
+      "path": "src/lib/core/listing-command-binding-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 3038,
+        "sha256": "cc89f17fb7b9f2fb20a5c384a9c3ab204040f683541a3a09aac13d85f1a34b6e",
+        "git_blob": "9631a43b09a6cd18280eb9dd4baaff9e5eb9a811"
+      }
+    },
+    {
+      "path": "scripts/test-core-airprop-read-selector-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 8764,
+        "sha256": "5488bf4136689c23fdd23c3b65c7df877e1bc0dacc1aff56eda2c3335037b75f",
+        "git_blob": "97cdb9cf5c4c65d295909138f55e2f95b84273a4"
+      }
+    },
+    {
+      "path": "scripts/test-core-listing-command-binding-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 6758,
+        "sha256": "a46bfbbdfe042049a524e8ddb20f1f32d19100678ad46a7f90d151c6acdf3f83",
+        "git_blob": "fe5301268acdd31d5a1793a1e568bf026c6e2d61"
+      }
+    },
+    {
+      "path": "scripts/test-core-airprop-read-host-minimum-08.mjs",
+      "before": {
+        "bytes": 18031,
+        "sha256": "430decbd301f8d9a8161872d164013617ffe039a68518224716da5213009d98d",
+        "git_blob": "69f4a03f69ada7322e1a3f8b8806691cbb880b16"
+      },
+      "after": {
+        "bytes": 18138,
+        "sha256": "c23cd10a09c6024c6dbdcf42a856bd60b052451184d47436ee722792ef1b5b61",
+        "git_blob": "e335c3031551af6668b57bb4ecb0a36145c0f34f"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/listing-read-r2/README.md",
+      "before": null,
+      "after": {
+        "bytes": 8673,
+        "sha256": "9510c75ecfba1469f3e81132b3cb3c01db8a92075d86a1c5739410c9929cf3d1",
+        "git_blob": "fb4f669095e783925e2536fa7e5aca66f5551801"
+      }
+    }
+  ],
+  "consumer": [
+    {
+      "path": "docs/airprop/AIRPROP-LISTING-NATIVE-01-core-port-request.json",
+      "source": "dc3fcceaf1439e7bf91fb257d449b2b4e1ace4b0",
+      "bytes": 11683,
+      "sha256": "72b0960601a85726d28567d000f1ff794edcbb0fcb797cb8ca4a81b758c21d1d",
+      "git_blob": "e397258cd708c1d1ca0211952dca3942f580ee4c"
+    },
+    {
+      "path": "src/lib/airprop/listing-native-read-v1.ts",
+      "source": "dc3fcceaf1439e7bf91fb257d449b2b4e1ace4b0",
+      "bytes": 11498,
+      "sha256": "dd38454f193a0ad54ac397e41a065254871d97527a64fe8e9951b0d03279a580",
+      "git_blob": "1cfc17a0894a705452ede9fa0c6909798880a531"
+    },
+    {
+      "path": "src/lib/airprop/listing-publication-v1.ts",
+      "source": "dc3fcceaf1439e7bf91fb257d449b2b4e1ace4b0",
+      "bytes": 3506,
+      "sha256": "905e2fdfeaf64c8a2fc123ff9b1e4018402ed8bee77195b5c3a5677a0d35d81a",
+      "git_blob": "5a59d8e651e28483f95d04a352f9df5280323c2b"
+    }
+  ],
+  "protected_command_selector": [
+    {
+      "path": "src/lib/core/current-unit-property-selector-v1.ts",
+      "source": "62f3c4ea3280821d3df69cd5d0cfbd10fbf6cb6d",
+      "bytes": 14179,
+      "sha256": "cf8649d0196c4d87e6bb17a756ab24194faddd1cec382cde97e17c5466c55dcd",
+      "git_blob": "454e547a66aad25316e5c9232a0921ccbb874024"
+    }
+  ],
+  "source_families": [
+    {
+      "path": "supabase/migrations/20261006060827_lifecycle_unit_specification_history.sql",
+      "source": "62f3c4ea3280821d3df69cd5d0cfbd10fbf6cb6d",
+      "bytes": 3409,
+      "sha256": "5720ff5659bc8986b90e72453aac7b323978945ee15a2781cf132400ee031db4",
+      "git_blob": "6888a0a0accaa648f49aded00cd2d00109cdccce"
+    },
+    {
+      "path": "supabase/migrations/20261006073930_lifecycle_core_evidence_workspace_provenance.sql",
+      "source": "62f3c4ea3280821d3df69cd5d0cfbd10fbf6cb6d",
+      "bytes": 8000,
+      "sha256": "18374c0924cefc3c26685c60c01d945f066f9975722b5d47aeb94b6970938713",
+      "git_blob": "f8de5d3396abd8db9b175b461237d1839d11b1f0"
+    },
+    {
+      "path": "supabase/migrations/20261019170121_dw02_canonical_unit_reference_v1.sql",
+      "source": "62f3c4ea3280821d3df69cd5d0cfbd10fbf6cb6d",
+      "bytes": 9787,
+      "sha256": "a3e78a3b9973cc0bce1ea381b3831cf04fe38f07689801e545890215718c09a6",
+      "git_blob": "96bd03fd1580283ffc4d846440bcc8b2323556a3"
+    },
+    {
+      "path": "src/lib/core/resource-authority-contract-v1.ts",
+      "source": "62f3c4ea3280821d3df69cd5d0cfbd10fbf6cb6d",
+      "bytes": 12058,
+      "sha256": "435841041ee5bc14e62eac44b2875ab7b700e2636ae3d580071db96932607eaf",
+      "git_blob": "455725edc026e20bccffed2c05ed3b675ad9f777"
+    },
+    {
+      "path": "src/lib/core/owner-portfolio-projection-v1.ts",
+      "source": "62f3c4ea3280821d3df69cd5d0cfbd10fbf6cb6d",
+      "bytes": 7968,
+      "sha256": "8483628ad449a812ec7e413306b63afc9f201a6a14a0be02d93397b0b2530202",
+      "git_blob": "325f8082d8c2138a8a5abbf144f59756a3002b64"
+    },
+    {
+      "path": "supabase/migrations/20261019193000_pf01_owner_portfolio_projection_v1.sql",
+      "source": "62f3c4ea3280821d3df69cd5d0cfbd10fbf6cb6d",
+      "bytes": 8994,
+      "sha256": "abad17b3ee8aa4783247dac60b0eb24b71782794617743d22a569b19f82b6aba",
+      "git_blob": "b869b2156311403fca91bc83de025ed174bfbae3"
+    }
+  ],
+  "ABI": {
+    "read_selector": "selectCurrentUnitPropertyForReadV1",
+    "read_checkpoint": "checkpointCoreAirpropReadScopeV1",
+    "opaque_inspector": "inspectCoreAirpropReadObservationV1",
+    "command_factory": "createCoreListingCommandBindingV1",
+    "read_profile": [
+      "airprop.asset.read",
+      "airprop_commercial",
+      "airprop.portfolio.read"
+    ],
+    "command_profile": [
+      "airprop.opportunity.manage",
+      "airprop_commercial",
+      "airprop.b2",
+      "aal2"
+    ],
+    "canonical_companion": null,
+    "full_current_until": null,
+    "domain_provider": "AIRPROP_OWNED_NOT_IMPLEMENTED_IN_CORE"
+  },
+  "checks": {
+    "new_selector_groups": 11,
+    "new_command_profile_groups": 8,
+    "affected_existing_host_regression": 47,
+    "existing_suite_reason": "host session prerequisite, admission and checkpoint lifecycle changed; fixture only adds new canonical session call; old security assertions preserved",
+    "native": "NOT_RUN_NOT_PASS",
+    "full_ES5_typecheck": "PASS",
+    "limited_lint": "PASS",
+    "JS_syntax": "PASS",
+    "SQL_parse_compile_execute": "NOT_RUN"
+  },
+  "remaining": [
+    "read-compatible selector adoption by actual AIRPROP consumer",
+    "authorized versioned Party/relationship family and bounded discovery; no permission/purpose aliases",
+    "full canonical companion/current_until and action projection",
+    "AIRPROP provider and same-C03-transaction selected binding storage",
+    "Platform actual target/roles/RLS/column-lock/helper compatibility; native concurrency/restart/UI proof"
+  ]
+}

@@ -1,0 +1,228 @@
+{
+  "contract": "core-ce010-query-profile.v1",
+  "consumer": "989e35a78363908357f65460011492e0472dc047",
+  "module": "community_basic",
+  "entitlement": "module.community_basic",
+  "read_permission": "community.community.read",
+  "command_permission": "community.announcement.publish",
+  "command_purpose": "community.announcement.command",
+  "queries": [
+    {
+      "sql": "select id::text,version,audience from community.communities where tenant_id=$1 and workspace_id=$2 and id=$3 for update",
+      "sha256": "2577da8645acd8f3d42a6c94b2bdc0336987c0160fe12984e0eb98f25d7be775",
+      "source_path": "src/lib/community/community-announcement-provider-v1.ts",
+      "source_symbol": "CE010_COMMUNITY_LOCK_SQL",
+      "parameters": 3
+    },
+    {
+      "sql": "select id::text,community_id::text,version,audience,status,body from community.announcements where tenant_id=$1 and workspace_id=$2 and community_id=$3 and id=$4 for update",
+      "sha256": "f85e4c2016e0b03bc6734cf247c45af07cbe7f6357551740e8af74ac26b63859",
+      "source_path": "src/lib/community/community-announcement-provider-v1.ts",
+      "source_symbol": "CE010_ANNOUNCEMENT_LOCK_SQL",
+      "parameters": 4
+    },
+    {
+      "sql": "select app_private.ce_community_audience_valid_v1($1::jsonb,$2::uuid,$3::uuid) as valid",
+      "sha256": "48650d6d7256f060cb4761c240674188f64f413a767ec79608f0db6963cefa6e",
+      "source_path": "src/lib/community/community-announcement-provider-v1.ts",
+      "source_symbol": "CE010_AUDIENCE_VALID_SQL",
+      "parameters": 3
+    },
+    {
+      "sql": "insert into community.announcements(id,tenant_id,workspace_id,community_id,body,audience,status,version,created_by)\n values($1,$2,$3,$4,$5,$6::jsonb,'draft',1,$7) returning id",
+      "sha256": "7f93712df692ae530c2bb12c52ed17a83f78126fcd694ff80b98aab6f5e70555",
+      "source_path": "src/lib/community/community-announcement-provider-v1.ts",
+      "source_symbol": "CE010_ANNOUNCEMENT_INSERT_SQL",
+      "parameters": 7
+    },
+    {
+      "sql": "update community.announcements set status=$5,version=version+1,updated_at=clock_timestamp()\n where tenant_id=$1 and workspace_id=$2 and community_id=$3 and id=$4 and version=$6\n and (($5='published' and status='draft') or ($5='cancelled' and status<>'cancelled')) returning id",
+      "sha256": "f9ff3d77ed3515431b0e5c1a3baca511265b9497a7957365583d63c5ddd5c1e2",
+      "source_path": "src/lib/community/community-announcement-provider-v1.ts",
+      "source_symbol": "CE010_ANNOUNCEMENT_UPDATE_SQL",
+      "parameters": 6
+    },
+    {
+      "sql": "select auth.uid()=$1::uuid as actor_bound,\n  app_private.check_workspace_native_permission_v2_at_v1($2::uuid,$3::uuid,$4,$5,clock_timestamp()) as allowed,\n  app_private.check_workspace_native_permission_v2_at_v1($2::uuid,$3::uuid,'community.community.read','community_basic',clock_timestamp()) as can_read,\n  app_private.require_request_session_current_at_v1(clock_timestamp()) as session_guard",
+      "sha256": "a37b83db3eb5c23022db327a0035754e8b7aa816b8b9a763a825005d89ff262d",
+      "source_path": "src/lib/community/community-announcement-provider-v1.ts",
+      "source_symbol": "inline:53",
+      "parameters": 5
+    },
+    {
+      "sql": "select r.tenant_id::text,r.membership_id::text,\n (auth.uid()=$3::uuid and auth.jwt()->>'session_id'=$4 and auth.jwt()->>'exp'=$5\n  and auth.jwt()->>'role'='authenticated' and auth.jwt()->>'aal'='aal2') as actor_bound,\n app_private.check_workspace_native_permission_v2_at_v1($1,$2,'community.community.read','community_basic',clock_timestamp()) as can_read,\n app_private.check_workspace_native_permission_v2_at_v1($1,$2,'community.announcement.publish','community_basic',clock_timestamp()) as can_publish,\n (select revision::text from app_private.canonical_authority_revision_v1 where singleton) as revision,\n app_private.require_request_session_current_at_v1(clock_timestamp()) as session_guard\n from app_private.resolve_workspace_native_context_v2_at_v1($1,$2,clock_timestamp()) r",
+      "sha256": "c4972b99d10042d1673e1222c67f857aaac13d7e7a3a670521223719c127c3ad",
+      "source_path": "src/lib/community/community-announcement-http-v1.ts",
+      "source_symbol": "CE010_NATIVE_AUTH_SQL",
+      "parameters": 5
+    },
+    {
+      "sql": "select customer_api.read_ce_community_v1($1::uuid,$2::uuid) as projection",
+      "sha256": "94670109965d71f03e15a397bd33fcada74c25fc9cc50baaf130187f61715cf9",
+      "source_path": "src/lib/community/community-announcement-http-v1.ts",
+      "source_symbol": "CE010_NATIVE_READ_SQL",
+      "parameters": 2
+    },
+    {
+      "sql": "begin isolation level serializable",
+      "sha256": "a25b6cc7ddd0477f34e731d522fe028d299ef35960c512e22c23b18326c63736",
+      "source_path": "src/lib/community/community-announcement-http-v1.ts",
+      "source_symbol": "inline:33",
+      "parameters": 0
+    },
+    {
+      "sql": "select revision::text from app_private.canonical_authority_revision_v1 where singleton for share",
+      "sha256": "c68c616ed8e806234bde7ee81c83ca6fa66b29b403c25a772e2ca885a2364269",
+      "source_path": "src/lib/community/community-announcement-http-v1.ts",
+      "source_symbol": "inline:34",
+      "parameters": 0
+    },
+    {
+      "sql": "rollback",
+      "sha256": "da25480fb483e6ce3d30f1a179c3c07e9f3b045425b0ac54acc6758a97e2db62",
+      "source_path": "src/lib/community/community-announcement-http-v1.ts",
+      "source_symbol": "inline:45",
+      "parameters": 0
+    },
+    {
+      "sql": "select expires_at>clock_timestamp() as unexpired\n              from platform.idempotency_keys where tenant_id=$1 and key=$2",
+      "sha256": "955fb7d645dc1b9445ad6aa79bdd84828d4008129ce71a09b5c2f31c47c3613c",
+      "source_path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "source_symbol": "CORE_SERVER_REPLAY_EXPIRY_SQL_V1",
+      "parameters": 2
+    },
+    {
+      "sql": "set local search_path = pg_catalog",
+      "sha256": "18f643be7bf9a35dfac2c2ad1d945e61fbf8a6fd3675c11b5f7cd9efd7889105",
+      "source_path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "source_symbol": "inline:521",
+      "parameters": 0
+    },
+    {
+      "sql": "set local lock_timeout = '5s'",
+      "sha256": "901a8f219b041b443972daceaae55f976beebb077e5a3b5b123105240af28d97",
+      "source_path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "source_symbol": "inline:522",
+      "parameters": 0
+    },
+    {
+      "sql": "set local statement_timeout = '10s'",
+      "sha256": "e28b8258f479f65439e7fcc920e3222482c861eaa837c069822b6ec86da536ab",
+      "source_path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "source_symbol": "inline:523",
+      "parameters": 0
+    },
+    {
+      "sql": "select pg_advisory_xact_lock(hashtextextended($1,0))",
+      "sha256": "a0fd30a8b87f865c3fd233762d9052741d7152609fb3b842a789d74852b629bb",
+      "source_path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "source_symbol": "inline:527",
+      "parameters": 1
+    },
+    {
+      "sql": "select tenant_id from platform.customer_workspaces\n              where id=$1 and archived_at is null and lifecycle_status='ACTIVE' for update",
+      "sha256": "9de3f6a046200f461dd39e06bcf7de693f8119d29446e2ca01d3440c543fb655",
+      "source_path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "source_symbol": "dynamic_core_template:530",
+      "parameters": 1
+    },
+    {
+      "sql": "select txid_current()::text as id, clock_timestamp()::text as now",
+      "sha256": "c7d22f5e086466f10aaf33d1d43544c53985085e36e21d98fc1bfea2bebc6fc1",
+      "source_path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "source_symbol": "inline:543",
+      "parameters": 0
+    },
+    {
+      "sql": "select auth.uid()=$1::uuid as actor_bound,\n              app_private.check_workspace_native_permission_v2($2,$3,$4,$5) as allowed",
+      "sha256": "ceb705eaba988588a45f1140815a21e54c009271cac41e0db75802e5d305ade1",
+      "source_path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "source_symbol": "inline:659",
+      "parameters": 5
+    },
+    {
+      "sql": "select actor_id,request_hash,response_ref,expires_at from platform.idempotency_keys\n              where tenant_id=$1 and key=$2 for update",
+      "sha256": "5e167697fd33e6af34b758c9576fbea0a9c884603429aaee3317b8f3fea90403",
+      "source_path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "source_symbol": "inline:676",
+      "parameters": 2
+    },
+    {
+      "sql": "select clock_timestamp()::text as now",
+      "sha256": "c6aa6829a0f293071f6a68fe83870520ecdd53e05e677c802ba1105bfd110ae5",
+      "source_path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "source_symbol": "inline:732",
+      "parameters": 0
+    },
+    {
+      "sql": "insert into platform.idempotency_keys\n            (tenant_id,actor_id,key,request_hash,expires_at) values($1,$2,$3,$4,statement_timestamp()+interval '1 day')",
+      "sha256": "c29fbbf2078b2b313f3a2bc1ee1c840f3f11b8b9735339d421f56fd1443f6fb9",
+      "source_path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "source_symbol": "inline:847",
+      "parameters": 4
+    },
+    {
+      "sql": "insert into audit.events\n            (tenant_id,actor_id,action,entity_type,entity_id,request_id,after_snapshot)\n            values($1,$2,$3,$4,$5,$6,$7::jsonb) returning id::text",
+      "sha256": "ab25c5bcd90db802226b2d999128961a04c5f4779d1ac17931b04d647a9e02af",
+      "source_path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "source_symbol": "inline:893",
+      "parameters": 7
+    },
+    {
+      "sql": "insert into platform.outbox_events\n            (tenant_id,aggregate_type,aggregate_id,aggregate_version,event_type,payload,trace_id)\n            values($1,$2,$3,$4,$5,$6::jsonb,$7) returning id::text",
+      "sha256": "b9892aaa426eb3ff793f5da6d5d175d5c2c06dad330941dacccdb7ad873c6464",
+      "source_path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "source_symbol": "inline:902",
+      "parameters": 7
+    },
+    {
+      "sql": "update platform.idempotency_keys set response_ref=$3::jsonb,status_code=200\n            where tenant_id=$1 and key=$2",
+      "sha256": "e7f81534546c3f2fa9381068de3cd8e25e0b11927e60046d391216c4b1a1a414",
+      "source_path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "source_symbol": "inline:928",
+      "parameters": 3
+    },
+    {
+      "sql": "commit",
+      "sha256": "9505cacb7c710ed17125fcc6cb3669e8ddca6c8cd8af6a31f6b3cd64604c3098",
+      "source_path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "source_symbol": "inline:933",
+      "parameters": 0
+    },
+    {
+      "sql": "select txid_current()::text as transaction_id,\n        auth.uid()::text as actor_id, current_setting('transaction_isolation') as isolation,\n        clock_timestamp()::text as evaluated_at",
+      "sha256": "044c38ac5ef44bbfb0c5891995714446417d3a65919339c45c17b00e91e9c5c0",
+      "source_path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "source_symbol": "inline:45",
+      "parameters": 0
+    },
+    {
+      "sql": "select revision::text\n      from app_private.canonical_authority_revision_v1 where singleton for share",
+      "sha256": "c2010cd0f9768e32c9c615692e3b1a24e5e43d59cfd4e8264ac1c6dc8f462702",
+      "source_path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "source_symbol": "inline:60",
+      "parameters": 0
+    },
+    {
+      "sql": "select m.tenant_id::text, m.user_id::text as actor_id,\n        m.status::text, (m.starts_at<=clock_timestamp()\n          and (m.ends_at is null or m.ends_at>clock_timestamp())\n          and g.starts_at<=clock_timestamp()\n          and (g.ends_at is null or g.ends_at>clock_timestamp())) as current\n      from identity.context_grants g join identity.memberships m\n        on m.id=g.membership_id and m.tenant_id=g.tenant_id\n      where g.id=$1",
+      "sha256": "f7690727dae6b06d1b314dd639cd94a7f4fd7ee95174d980d0aa58b56b0a6158",
+      "source_path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "source_symbol": "inline:66",
+      "parameters": 1
+    },
+    {
+      "sql": "select tenant_id::text\n      from platform.customer_workspaces where id=$1 and archived_at is null\n        and lifecycle_status='ACTIVE'",
+      "sha256": "01034b9fa779d85272905df030f4a2155c783e47fb99a8f5e65a0b29276406e0",
+      "source_path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "source_symbol": "inline:85",
+      "parameters": 1
+    },
+    {
+      "sql": "select\n      app_private.check_workspace_native_permission_v2($1,$2,$3,$4) as allowed,\n      statement_timestamp()::text as evaluated_at, d.id::text as module_definition_id,\n      d.entitlement_key from platform.module_definitions d\n      where d.code=$4 and d.is_active and d.lifecycle_status in ('active','published')\n        and d.valid_from<=statement_timestamp()\n        and (d.valid_to is null or d.valid_to>statement_timestamp())",
+      "sha256": "8cac53cd9598384744e7a359a0147a99fe4af161b5e88a634f33b1cc46ab6baf",
+      "source_path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "source_symbol": "inline:94",
+      "parameters": 4
+    }
+  ]
+}

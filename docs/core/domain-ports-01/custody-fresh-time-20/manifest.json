@@ -1,0 +1,291 @@
+{
+  "contract": "core-custody-fresh-time-20.delivery.v1",
+  "FullSHA": "CONTAINING_COMMIT",
+  "Parent": "c332983d6064aa20855aeb4ca309ce443888e164",
+  "branch": "codex/core-domain-ports-01",
+  "finding": "QFW-DOCS15-01",
+  "sibling_review": "Core22 SERVICE old delta74/90, same source temporal cause; not independent native finding or general C03 bypass",
+  "runtime": null,
+  "activation": null,
+  "target_changed": false,
+  "inventory": [
+    {
+      "path": "docs/core/domain-ports-01/WORKLOG.md",
+      "before": {
+        "bytes": 24651,
+        "sha256": "76b3f710ac1b9ee869a33e357619c45d8a648585d797b74f8b7eab7245b8e339",
+        "git_blob": "e16df93b58273bebfd8def92b6f8f02d732ce57f"
+      },
+      "after": {
+        "bytes": 26937,
+        "sha256": "2a176c4111fc9f81ca37f31c63b5487ce788c9f0ade684b2a94227942016db7b",
+        "git_blob": "b01c92bac2e6d92bb4252812d2e4f3df9cdb55e9"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/custody-fresh-time-20/README.md",
+      "before": null,
+      "after": {
+        "bytes": 4575,
+        "sha256": "2d02759c2acb7c28a1e2d8abeeaedb692231f62de16fbe50fa5ee59a8805d34c",
+        "git_blob": "859b8e6ba36ca7bd0ea292f34c0cff1cfd5178ce"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/custody-fresh-time-20/helper-pins.json",
+      "before": null,
+      "after": {
+        "bytes": 8077,
+        "sha256": "45224f26a85f4f4f34246998f49374ef151277c61e87a62df4b8c5b9b17dc3d0",
+        "git_blob": "319c23ceb36e6f6d170fab02f04a6fe13ef44e2b"
+      }
+    },
+    {
+      "path": "scripts/test-core-custody-postwait-fresh-time-v1.mjs",
+      "before": null,
+      "after": {
+        "bytes": 7172,
+        "sha256": "110de2140f2aa736ad3e071400abefcf49b320048117ee4c28ec6acee48a8174",
+        "git_blob": "112cc1bbd77b045aa5ebd355ed4571b92152f1c8"
+      }
+    },
+    {
+      "path": "supabase/install/documents-upload-custody-v1/install.sql",
+      "before": {
+        "bytes": 20946,
+        "sha256": "4ebd5a5f2ec81740f4eb23fac467b56884ce2053e2a158871615717f1709e923",
+        "git_blob": "b321d65ae597be78ecc620eb5e0d4d925229eeb3"
+      },
+      "after": {
+        "bytes": 22836,
+        "sha256": "3c0fc0f235a2568d3736ccbed9394769d76cdd6ca68ca0db4eba79e764542c5a",
+        "git_blob": "529b57040b7eaa9527d4340acef6ebcb8995cf06"
+      }
+    },
+    {
+      "path": "supabase/install/documents-upload-custody-v1/preflight.sql",
+      "before": {
+        "bytes": 2261,
+        "sha256": "89d1378b0d57e51b133aef1a97cf767f841809cd2308f26c20776c3b5ed5b30c",
+        "git_blob": "c7163802c470260852c686f09785002f577668d1"
+      },
+      "after": {
+        "bytes": 5903,
+        "sha256": "1b58a4a180ddb9f61c18678bd872e7e50fb84aaf54280b5b583a2e63f6d66301",
+        "git_blob": "bb714c4af5ab156aeb944bd0dacf9cdffcebadd4"
+      }
+    },
+    {
+      "path": "supabase/install/documents-upload-custody-v1/recovery.md",
+      "before": {
+        "bytes": 4178,
+        "sha256": "73be6049d52c4a467d51258d6b00fad73f74e83b3c250a88fce2b362064bb91d",
+        "git_blob": "8e2bf7cd41d6ff217eb4d5595a1f9e003f82d853"
+      },
+      "after": {
+        "bytes": 7015,
+        "sha256": "e80d7bb1720226dab9cf1060a26fea20b8c628aaacacf93125f58dc9f70e01c0",
+        "git_blob": "d4dbb067560246742f7636667b29d5546b8721a4"
+      }
+    },
+    {
+      "path": "supabase/install/documents-upload-custody-v1/verify.sql",
+      "before": {
+        "bytes": 2459,
+        "sha256": "feae01dd857341d890e0aaea0b548f569e155939f7f0357ebe765c2d6acc004a",
+        "git_blob": "e17f7a052f8be866bbde99237ffd5cb02a734cf4"
+      },
+      "after": {
+        "bytes": 7069,
+        "sha256": "c4778ebc7a3919df0389c60dd6f76ab28c8a2d97473f117ef95f58806469bab2",
+        "git_blob": "37b2fef7dc8759048f9705f820a3eda7bc69877c"
+      }
+    },
+    {
+      "path": "supabase/proposals/core-service-authoring-custody-v1/delta.sql",
+      "before": {
+        "bytes": 8732,
+        "sha256": "974201341d320004d4b7ad9402da958a27744b3f27a88552de27344d56810caf",
+        "git_blob": "47b469392102de2b7d4f12f7d4ec106a7d79d981"
+      },
+      "after": {
+        "bytes": 9682,
+        "sha256": "b13ed0d5f956929f2780d60097d0d7cc829872f22d5a100912726174772c8e3e",
+        "git_blob": "152b1c242ce6ca5e669e7be1ca632f281e483c06"
+      }
+    },
+    {
+      "path": "supabase/proposals/core-service-authoring-custody-v1/preflight.sql",
+      "before": {
+        "bytes": 1688,
+        "sha256": "e8283452dc27f09d3ad9371b806e8c657a792da8d282853f979b2ca9ab487950",
+        "git_blob": "f0f985e80927e35f444f07ac67908ba8e375a3fd"
+      },
+      "after": {
+        "bytes": 5473,
+        "sha256": "6f432dc59be29e74500e95fe4deb9700f811841adbb85a11d24ce230d7de56d7",
+        "git_blob": "ecbf01b349a0fe22e78cdff06898903468e29052"
+      }
+    },
+    {
+      "path": "supabase/proposals/core-service-authoring-custody-v1/recovery.md",
+      "before": {
+        "bytes": 3194,
+        "sha256": "49539bc84549a50dd41bdfdc1362447bfa39a465f2e8882047f11327bb039ab0",
+        "git_blob": "bb237d1c39f94a15408f3ae687bec444ce1b2a3b"
+      },
+      "after": {
+        "bytes": 4614,
+        "sha256": "88f47937213e514bbda60c5c94f40f3a51c2dc05c5aecc33982c58ccff8f5784",
+        "git_blob": "5766ec3dd8c0866bd18917fadca98fbaa59bfbff"
+      }
+    },
+    {
+      "path": "supabase/proposals/core-service-authoring-custody-v1/verify.sql",
+      "before": {
+        "bytes": 1089,
+        "sha256": "56c4fe5d9e9de147d568f7da01a5045d8698d57d0362f968364d8be579752ece",
+        "git_blob": "5bbacf4fea917cfc888d287a4a5e5f9d8fb0fa36"
+      },
+      "after": {
+        "bytes": 4862,
+        "sha256": "427d7ef103a4a0d1cfb90a21af1defcf38b67c3e832681f472bbc79e45519d15",
+        "git_blob": "9a138215c8eb2eb1288b3e5b05a6074f6ae8b51f"
+      }
+    }
+  ],
+  "self_excluded": true,
+  "protected_pins": [
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "bytes": 64851,
+      "sha256": "e269802f7b4b5b376eb3910d9f1b55f42eb8abc87d1cf75fd9d019a0ffd2297a",
+      "git_blob": "8a2c5e97f929af3b52c66656046143fbf7fcbba1",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "src/lib/core/functional-command-runtime-v1.ts",
+      "bytes": 29684,
+      "sha256": "664e6527b5def43b0208c76341e995e74055c5eee3102b13d32e3d9500123232",
+      "git_blob": "2efcc11705a6005f03485af5d73abba205f89e64",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "git_blob": "e67df2d947608f546dab42dba88b5bdc418cbffb",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "src/lib/core/documents-upload-custody-v1.ts",
+      "bytes": 12155,
+      "sha256": "35990c6f571ed2957854a3d535f83ab2c2793a4aa9fda058837737f01f79c428",
+      "git_blob": "831956439161283674b8ffeac32da4a609289a28",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "src/lib/core/documents-replay-only-v1.ts",
+      "bytes": 5176,
+      "sha256": "d90d063d71f75326dc3744b6a2f358bc7441454fefc00bcccec6bb882796d844",
+      "git_blob": "cd83d8bd435366e5a079ab76c8aaefafb1079f17",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "src/lib/core/service-offering-authoring-custody-v1.ts",
+      "bytes": 6590,
+      "sha256": "8ca0a476aa08a761d6aa1ccbcc274a02ab78e831b11b1dc966dabb5d21610d7d",
+      "git_blob": "924fb87d7a13f22027eca9905599aaf4e0b0a4c3",
+      "unchanged_from_Parent": true
+    },
+    {
+      "path": "supabase/hosted-building-slice/building-setup-command-receipts-v1.sql",
+      "bytes": 732202,
+      "sha256": "254e17c9e5f21ce4e50786d3325c2cc84759097b16cb53028602d1e8db5e02e3",
+      "git_blob": "f365539237f6799311e5a2a824837987fd4e8fea",
+      "unchanged_from_Parent": true
+    }
+  ],
+  "evidence": {
+    "source_checkpoint_sites": 5,
+    "source_derived_expired_timelines": 30,
+    "unexpired_controls": 5,
+    "coherent_negatives": 4,
+    "canonical_helper_bodies": 13,
+    "table_and_immutable_trigger": "BYTE_IDENTICAL",
+    "packet": {
+      "install": {
+        "bytes": 36537,
+        "sha256": "b747e499971bd08ea76e11d3df2693d051471f5cc46f3a757101c9c22c9fdb5d"
+      },
+      "preflight": {
+        "bytes": 6029,
+        "sha256": "031e3fd6aaafc6cf74c25f38622349d805134c9fd225724bd59e80058969434b"
+      },
+      "verify": {
+        "bytes": 7808,
+        "sha256": "a74be0af1c99a21b1e75d8e5b8227689a495b2b9ae0ed686bbea5bf2bf9a0849"
+      }
+    },
+    "evidence": "SOURCE_SCHEDULE_MODEL_NOT_SQL",
+    "SQL_parser": false,
+    "SQL_compile_execute": false,
+    "native": "NOT_RUN_NOT_PASS"
+  },
+  "checks": {
+    "focused_MJS_syntax_lint": "PASS",
+    "diff": "PASS",
+    "apply_reverse": "external delivery receipt",
+    "SQL_parser_compile_execute": "NOT_RUN",
+    "native_two_connections": "NOT_RUN_NOT_PASS"
+  },
+  "helper_pin_contract": {
+    "source_definitions": "helper-pins.json",
+    "canonical_helper_body_count": 13,
+    "new_custodian_entry_EXECUTE_count": 2,
+    "transitive_helper_grants": 0,
+    "owner_and_ACL_metadata": "fresh_helper_owner_oid/fresh_helper_acl_sha256 from admitted actual Platform preimage; absent=STOP"
+  },
+  "historical_identity": {
+    "table_and_immutable_trigger": "BYTE_IDENTICAL",
+    "command_authority_key_IDs_wire_fingerprint_TTL": "not rewritten or extended",
+    "old_manifests": "not overwritten"
+  },
+  "CE010_WIP": {
+    "status": "PRESERVED_NOT_DELIVERED_NOT_IN_THIS_DELTA",
+    "checkpoint_sha256": "6127bbc040d265a82dd2284891839384456182d13f5d4d295d5cc5323e47fc11",
+    "unchanged_code_pins": [
+      {
+        "path": "scripts/prepare-core-ce010-query-profile-v1.mjs",
+        "bytes": 2061,
+        "sha256": "a479ae87070963c351f1ed573488f9b57b16cdb4c18c353215c98bdc62edfadf"
+      },
+      {
+        "path": "scripts/test-core-ce010-request-binding-v1.mjs",
+        "bytes": 18222,
+        "sha256": "c56328d06c11819789f02b651d63792d0d1ed4f33dec916705d861943c670d46"
+      },
+      {
+        "path": "src/lib/core/ce010-query-profile-v1.json",
+        "bytes": 13147,
+        "sha256": "0069780e3f14a056800f6923b251b47a5d303d1ab2dfbb40ea448f7ada751839"
+      },
+      {
+        "path": "src/lib/core/ce010-request-binding-v1.ts",
+        "bytes": 14693,
+        "sha256": "c244df89eed946daf66433585688547330a70cc606c2c5d5d0a95ea4805e5c72"
+      },
+      {
+        "path": "src/lib/core/platform-role-bound-pool-v1.ts",
+        "bytes": 12209,
+        "sha256": "a09a91da3d89f785a49559999482db6994a7607b375faa38aa0f994701522e17"
+      }
+    ]
+  },
+  "open_gates": [
+    "independent QA source acceptance",
+    "Platform exact target/principal/helper owner/ACL prestate and admitted install adaptation",
+    "native PG lock wait and expiry, RLS/ACL, rollback/UNKNOWN/restart"
+  ],
+  "automation": "نیازمند بررسی"
+}

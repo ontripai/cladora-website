@@ -1,0 +1,76 @@
+{
+  "contract_version": "core-finance-invoice-decisions-rls.v2",
+  "runtime": null,
+  "security": "INVOKER",
+  "authority": "canonical C01/session and fresh DB time; selector/GUC/role label is not authority",
+  "principal": "actual Platform-admitted private non-superuser/non-BYPASS/nonowner; no inherited ownership",
+  "tables": [
+    {
+      "relation": "utilities.review_tasks",
+      "prefix": "core_finance_invoice_tasks_v2_",
+      "qual": "app_private.finance_invoice_origin_scope_v2(tenant_id, invoice_id)"
+    },
+    {
+      "relation": "utilities.review_decisions",
+      "prefix": "core_finance_invoice_decisions_v2_",
+      "qual": "app_private.finance_invoice_decision_scope_v2(tenant_id, task_id, decision, reason, after_snapshot)"
+    }
+  ],
+  "policies_per_table": [
+    {
+      "suffix": "select",
+      "command": "SELECT",
+      "permissive": true,
+      "using": "EXACT_TABLE_QUAL",
+      "with_check": null
+    },
+    {
+      "suffix": "lock",
+      "command": "UPDATE",
+      "permissive": true,
+      "using": "EXACT_TABLE_QUAL",
+      "with_check": "false"
+    },
+    {
+      "suffix": "no_write",
+      "command": "UPDATE",
+      "permissive": false,
+      "using": "true",
+      "with_check": "false"
+    }
+  ],
+  "acl_required_not_granted": {
+    "review_tables": [
+      "SELECT all columns",
+      "UPDATE(id) for FOR UPDATE/SHARE only"
+    ],
+    "forbidden_review_table_privileges": [
+      "INSERT",
+      "DELETE",
+      "TRUNCATE",
+      "UPDATE other columns"
+    ],
+    "new_functions": "USAGE(app_private), EXECUTE three exact signatures only; actual owner/runtime ACL admission by Platform",
+    "other_dependencies": "existing Finance75/C01/Core30 scope and source SELECT/row-lock closure; no sequence or DML privilege added by reader"
+  },
+  "completeness": "both SELECT and row-lock UPDATE USING exact policies, no other applicable restrictive SELECT/UPDATE/ALL, RLS active, no partitions/inheritance, exact non-DEFINER policy helper bodies; missing/actor-only/filtered-zero =55000 NOT_READY",
+  "proof_not_claimed": [
+    "actual role mapping",
+    "target ACL/RLS",
+    "PG compilation",
+    "native concurrency",
+    "installation",
+    "activation"
+  ],
+  "selector_contract": {
+    "transaction_local": [
+      "request.cladora.finance_invoice_v2",
+      "request.cladora.finance_cycle_v2",
+      "request.cladora.finance_permission_v2",
+      "request.cladora.finance_module_v2"
+    ],
+    "authority": false,
+    "validation": "real canonical Finance75/C01 per target row, denial raises; never a claimed allow flag",
+    "cleanup": "restore previous values before final fresh canonical check; failed SQL statement/transaction rolls back locals"
+  }
+}

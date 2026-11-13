@@ -206,7 +206,7 @@ export function applyEventCommand(
   } else if (command.type === 'publish_event' || command.type === 'cancel_event') {
     if (!has(authority, commandPermission[command.type])) return reject(state, 'AUTHORITY_DENIED');
     if (command.type === 'publish_event' && event!.status !== 'draft') return reject(state, 'INVALID_STATE');
-    if (command.type === 'cancel_event' && event!.status === 'cancelled') return reject(state, 'INVALID_STATE');
+    if (command.type === 'cancel_event' && event!.status !== 'published') return reject(state, 'INVALID_STATE');
     nextEvent = { ...event!, status: command.type === 'publish_event' ? 'published' : 'cancelled', version: event!.version + 1 };
   } else if (command.type === 'register_interest' || command.type === 'withdraw_interest') {
     if (!has(authority, 'events.interest.manage_self')) return reject(state, 'AUTHORITY_DENIED');

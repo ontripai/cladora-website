@@ -1,0 +1,257 @@
+{
+  "contract": "core-domain-successor-coupling-r2.source.v1",
+  "FullSHA": "CONTAINING_COMMIT",
+  "Parent": "62f3c4ea3280821d3df69cd5d0cfbd10fbf6cb6d",
+  "main_reference": "6cecfa15b00f445be68817e756d766fb0e6fe026",
+  "native": "NOT_RUN_NOT_PASS",
+  "activation": null,
+  "target_calls": 0,
+  "automation": "نیازمند بررسی",
+  "inventory": [
+    {
+      "path": "src/lib/core/domain-command-identity-v1.ts",
+      "before": {
+        "bytes": 1278,
+        "sha256": "25b6c025992823486f304bc6bd5e9b5fce0fe192fb862e7f122f3f3714e2e84f",
+        "git_blob": "eedabbe9e8e0f78b90c55c1038adf1d1cdd9b8e8"
+      },
+      "after": {
+        "bytes": 1920,
+        "sha256": "6e31298e18708c5d1833d97a5142740f506d19544eaf0a15459df9d69448ae5b",
+        "git_blob": "21fd4ff4cb31885d540a4479ff0d02a4d401799a"
+      }
+    },
+    {
+      "path": "src/lib/core/listing-command-binding-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 3038,
+        "sha256": "cc89f17fb7b9f2fb20a5c384a9c3ab204040f683541a3a09aac13d85f1a34b6e",
+        "git_blob": "9631a43b09a6cd18280eb9dd4baaff9e5eb9a811"
+      }
+    },
+    {
+      "path": "src/lib/core/service-quote-command-binding-v1.ts",
+      "before": null,
+      "after": {
+        "bytes": 2846,
+        "sha256": "9ae57a5ee805f0e94f2ea799371d71f4dc87006c0b43997b541f4edfa3ccb4af",
+        "git_blob": "cf8d91a13b3ecb100f2d46f5aadf7fc54423be0b"
+      }
+    },
+    {
+      "path": "scripts/test-core-domain-successor-coupling-r2.mjs",
+      "before": null,
+      "after": {
+        "bytes": 12017,
+        "sha256": "f376a8e0d69b334c744352521370edec8fc6e9e26fe0be3827bf2e05da4c88ef",
+        "git_blob": "41f24499108049db329b1fe7100363201441a9c9"
+      }
+    },
+    {
+      "path": "scripts/verify-core-domain-port-pins-r2.mjs",
+      "before": null,
+      "after": {
+        "bytes": 1820,
+        "sha256": "e82996bcd11bd1946a957de05453bc1f891073942775a7d1d40785432c6cff9e",
+        "git_blob": "4abcbd7614edccd7f32d698003b4c38ba3e903a8"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/successor-coupling-r2/README.md",
+      "before": null,
+      "after": {
+        "bytes": 7932,
+        "sha256": "d8652cc6bdf7434ed15c500a38480551273bd5e879e73047f1838cead9cd80a6",
+        "git_blob": "87d9857f95d088663957bd4d789bd18328e90600"
+      }
+    }
+  ],
+  "consumer": [
+    {
+      "path": "src/lib/customer/service-v14-execution/offering-authoring-composition-v1.ts",
+      "source": "cf3d1e3349298c4cc4cf8f6f771c78179cc2bc52",
+      "bytes": 4653,
+      "sha256": "5c13bf6d85845dbb2358d9bdccf56db687019544e775ff8fa209986e9b3be2af",
+      "git_blob": "f2d7c5580ade1a513ff6e9ccbb2e33f9528c34b4"
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/offering-command.ts",
+      "source": "cf3d1e3349298c4cc4cf8f6f771c78179cc2bc52",
+      "bytes": 4762,
+      "sha256": "5e3ffe48f7d3584c171c1064c559557269179ee1857e8fa171e6d017fee65044",
+      "git_blob": "344794ea61517539c8888a37cdfc7f030ba9b981"
+    },
+    {
+      "path": "src/lib/customer/service-v14-execution/provider-binding.ts",
+      "source": "cf3d1e3349298c4cc4cf8f6f771c78179cc2bc52",
+      "bytes": 17376,
+      "sha256": "cc758f83ce3f851f7a5e52cd04d5b5936142ca3e6fea1f470f3b2806d21a0ee0",
+      "git_blob": "80bf96b10f83588bee4f5e6c0e74d51b6c304be3"
+    },
+    {
+      "path": "src/lib/customer/service-quote-command-v1.ts",
+      "source": "cf3d1e3349298c4cc4cf8f6f771c78179cc2bc52",
+      "bytes": 14802,
+      "sha256": "ab5529c66735c9598336e1d5ab651d24a77a0ac7d3765eaab26698bb8f5dc345",
+      "git_blob": "10a40a5b97ed5f3afe28239d64966d066051d215"
+    },
+    {
+      "path": "src/lib/customer/service-quote-postgres-adapter-v1.ts",
+      "source": "cf3d1e3349298c4cc4cf8f6f771c78179cc2bc52",
+      "bytes": 6618,
+      "sha256": "fdb80393804fc344b2fd45aa557ca12d9dac58519d647eee927b02e313405e7b",
+      "git_blob": "0251f29d133b93e364965a23730843bf29d3f9b4"
+    },
+    {
+      "path": "src/lib/customer/service-quote-schema.ts",
+      "source": "cf3d1e3349298c4cc4cf8f6f771c78179cc2bc52",
+      "bytes": 3034,
+      "sha256": "c81e84c4e9f42ac67f2d17da45a8be2e43a8fe88ba712a2e2230516d7f0fe322",
+      "git_blob": "5c2f0532ebfc616660b0390ab92999cbc3b7a07a"
+    },
+    {
+      "path": "src/lib/customer/service-quote-read-schema.ts",
+      "source": "cf3d1e3349298c4cc4cf8f6f771c78179cc2bc52",
+      "bytes": 1759,
+      "sha256": "557d0b9f100874e8a5dd22d3a159a5ef493ebadb063e6d954028481eebf5ecb4",
+      "git_blob": "f4ccb7f46723ff394f09a8c02bc78132121e8617"
+    },
+    {
+      "path": "src/lib/customer/service-offering-time-precision-v1.ts",
+      "source": "cf3d1e3349298c4cc4cf8f6f771c78179cc2bc52",
+      "bytes": 2332,
+      "sha256": "a14d38abb83b15a39d82d928e1e8e03fbce9939b195cbfea3883aeaa5ed851a2",
+      "git_blob": "bd758c5f53cb26dbc266f54672cef979549ccc8f"
+    },
+    {
+      "path": "src/lib/airprop/listing-native-read-v1.ts",
+      "source": "dc3fcceaf1439e7bf91fb257d449b2b4e1ace4b0",
+      "bytes": 11498,
+      "sha256": "dd38454f193a0ad54ac397e41a065254871d97527a64fe8e9951b0d03279a580",
+      "git_blob": "1cfc17a0894a705452ede9fa0c6909798880a531"
+    },
+    {
+      "path": "src/lib/airprop/listing-selected-binding-v1.ts",
+      "source": "dc3fcceaf1439e7bf91fb257d449b2b4e1ace4b0",
+      "bytes": 11202,
+      "sha256": "d10f1dcbfb0b4169a1e00465f7125c7534c4a75216e965e6189ac03b4f29d665",
+      "git_blob": "377d5f7ada6bf1b5be6497135a972811c4d3ac87"
+    },
+    {
+      "path": "src/lib/airprop/listing-publication-v1.ts",
+      "source": "dc3fcceaf1439e7bf91fb257d449b2b4e1ace4b0",
+      "bytes": 3506,
+      "sha256": "905e2fdfeaf64c8a2fc123ff9b1e4018402ed8bee77195b5c3a5677a0d35d81a",
+      "git_blob": "5a59d8e651e28483f95d04a352f9df5280323c2b"
+    },
+    {
+      "path": "src/lib/airprop/listing-control-plan-v1.ts",
+      "source": "dc3fcceaf1439e7bf91fb257d449b2b4e1ace4b0",
+      "bytes": 2946,
+      "sha256": "0a4c336cbf40161de4683c310eb547501dec7164e8bf66d96e8a3b2fad84d1f0",
+      "git_blob": "5fa4de4b955cb7aa29117029f3c88d94edc63726"
+    },
+    {
+      "path": "src/lib/airprop/listing-flow-contract-v1.ts",
+      "source": "dc3fcceaf1439e7bf91fb257d449b2b4e1ace4b0",
+      "bytes": 8157,
+      "sha256": "89bd94a45dbb515bf32fdc6065c36ba0a485edcb9a13b98fbcae05d75fd0a0d9",
+      "git_blob": "0566217d7afd1025f1b4e99233ef1f08881c8f35"
+    },
+    {
+      "path": "supabase/proposals/airprop_listing_selected_bindings_v1.sql",
+      "source": "dc3fcceaf1439e7bf91fb257d449b2b4e1ace4b0",
+      "bytes": 8891,
+      "sha256": "124fc20a2dfb63d7da13290a1e1aaefc49655287d0e490c82d3dda85ab1640c1",
+      "git_blob": "59adc65cf4a0f181a113212f8e9a29d54cbae97b"
+    }
+  ],
+  "protected": [
+    {
+      "path": "src/lib/core/current-unit-property-selector-v1.ts",
+      "source": "62f3c4ea3280821d3df69cd5d0cfbd10fbf6cb6d",
+      "bytes": 14179,
+      "sha256": "cf8649d0196c4d87e6bb17a756ab24194faddd1cec382cde97e17c5466c55dcd",
+      "git_blob": "454e547a66aad25316e5c9232a0921ccbb874024"
+    },
+    {
+      "path": "src/lib/core/service-s01/provider-agreement-reader-v1.ts",
+      "source": "62f3c4ea3280821d3df69cd5d0cfbd10fbf6cb6d",
+      "bytes": 19246,
+      "sha256": "977581d5c025287e7a88cc485a31d277fc412e8d7825087c871bfbdf2ecbeb8c",
+      "git_blob": "4080a96d003670068abbf435bb303f09e32cdc0d"
+    },
+    {
+      "path": "src/lib/core/service-s01/offering-disclosure-policy-v1.ts",
+      "source": "62f3c4ea3280821d3df69cd5d0cfbd10fbf6cb6d",
+      "bytes": 7396,
+      "sha256": "3d57e846dd782a4443b637a4bf9fc8337fda471f36d56ad3ae5eaab0830c3df6",
+      "git_blob": "9cba2cc22501c0695837d2c800c00fa03d24f236"
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "source": "62f3c4ea3280821d3df69cd5d0cfbd10fbf6cb6d",
+      "bytes": 62680,
+      "sha256": "9436c082f8ce8a054d8300f55bd49ac4b6120240cf06fa6ca94190b5c6c1858a",
+      "git_blob": "9e1a0229b9676368dc1d49015cf95be13fac9908"
+    },
+    {
+      "path": "src/lib/core/service-authoring-identity-port-v1.ts",
+      "source": "62f3c4ea3280821d3df69cd5d0cfbd10fbf6cb6d",
+      "bytes": 1693,
+      "sha256": "f13a0eb99686a13b9fca4f88824b75df3dc3adede048fa8eb6428cd2776d27ac",
+      "git_blob": "2ba51a7d66d902c6e44861012bdaaddfd91079d9"
+    },
+    {
+      "path": "supabase/proposals/ce012_save_writer_relation_v1.sql",
+      "source": "62f3c4ea3280821d3df69cd5d0cfbd10fbf6cb6d",
+      "bytes": 10405,
+      "sha256": "b5edb0d313d28d9cea3e6e188ad98f97002f93de914bf18f8ba9dcb2e0d12909",
+      "git_blob": "d81bfccb996736c45690c4f861f7222d5baf329b"
+    },
+    {
+      "path": "supabase/migrations/20260825000300_portfolio_properties_buildings_units.sql",
+      "source": "62f3c4ea3280821d3df69cd5d0cfbd10fbf6cb6d",
+      "bytes": 7862,
+      "sha256": "53e3f36a9656a2a16b686ee8eb830cfae49f6297f14820b5199630db97cf65a4",
+      "git_blob": "e4ab67394613f0be3d645b27f71bbd8807ff12ca"
+    },
+    {
+      "path": "supabase/migrations/20260829005200_customer_occupancy_parties_ownership_lease_registry.sql",
+      "source": "62f3c4ea3280821d3df69cd5d0cfbd10fbf6cb6d",
+      "bytes": 26722,
+      "sha256": "1b78c4f78f1ee9d5aae4a8d8001d1056a6c97b4d642d26165f754680e9c38b56",
+      "git_blob": "d4ff9ec2822100cd94414ac2d7a7f6f2143f1c17"
+    },
+    {
+      "path": "supabase/migrations/20261019193000_pf01_owner_portfolio_projection_v1.sql",
+      "source": "62f3c4ea3280821d3df69cd5d0cfbd10fbf6cb6d",
+      "bytes": 8994,
+      "sha256": "abad17b3ee8aa4783247dac60b0eb24b71782794617743d22a569b19f82b6aba",
+      "git_blob": "b869b2156311403fca91bc83de025ed174bfbae3"
+    }
+  ],
+  "SERVICE_transfer": {
+    "type": "official_bundle_not_assumed_published_commit",
+    "git_blob": "953d66532c652a155a27e705137de67e046a2b38",
+    "bytes": 26321,
+    "sha256": "8b1dc6a1cd3ecee9f6467dc362b8163ff5cc36c28e9ce69e8c96de2332a1542c",
+    "prerequisite": "93025127da3de7f151347cf2377f10907847f1ed",
+    "head": "cf3d1e3349298c4cc4cf8f6f771c78179cc2bc52",
+    "verify": "PASS"
+  },
+  "checks": {
+    "new_controlled_successor_coupling_groups": 9,
+    "full_ES5_typecheck": "PASS",
+    "limited_lint": "PASS",
+    "native": "NOT_RUN_NOT_PASS",
+    "SQL_parse_compile_execute": "NOT_RUN"
+  },
+  "remaining": [
+    "approved authoring/Quote S01 disclosure and narrow actual source permissions",
+    "versioned canonical Listing Party/relationship discovery/full companion/current_until",
+    "actual target-specific native role/lock/concurrency/settlement/restart/UI proof",
+    "Guide exact private helper observation and full target-specific installer"
+  ]
+}

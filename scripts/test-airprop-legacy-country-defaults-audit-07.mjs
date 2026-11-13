@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
+import { readReviewedServiceShellPreimage } from './lib/app-service-shell-fixture-transition-v1.mjs';
 
 const read = path => readFileSync(path, 'utf8');
 const migrationsDirectory = 'supabase/migrations';
@@ -297,14 +298,16 @@ assert.equal(shellSuccessor.entries.length,1);
 const originalShell=shellFixture.entries[0],updatedShell=shellSuccessor.entries[0];
 assert.equal(updatedShell.before_bytes,originalShell.bytes);
 assert.equal(updatedShell.before_sha256,originalShell.sha256);
-const shellBytes=readFileSync(updatedShell.path);
+// Authenticate the actual successor's exact three source edits before running
+// the unchanged historical fixture assertions against its recovered preimage.
+const shellBytes=readReviewedServiceShellPreimage(updatedShell);
 assert.equal(createHash('sha1').update(Buffer.concat([Buffer.from(`blob ${shellBytes.length}\0`),shellBytes])).digest('hex'),updatedShell.git_blob);
 const reviewedEntries=[...supplement.entries,...shellSuccessor.entries];
 const additions=reviewedEntries.map(entry=>entry.path).sort();
 assert.deepEqual(signalCandidates.filter(path=>!additions.includes(path)), expectedSignalCandidates);
 assert.deepEqual(signalCandidates.filter(path=>additions.includes(path)),additions);
 for(const entry of reviewedEntries){
- const bytes=readFileSync(entry.path);assert.equal(bytes.length,entry.bytes);
+ const bytes=entry.path===updatedShell.path?shellBytes:readFileSync(entry.path);assert.equal(bytes.length,entry.bytes);
  assert.equal(createHash('sha256').update(bytes).digest('hex'),entry.sha256);
  assert.ok(['presentation-only','synthetic/test fixture','dormant or superseded definition'].includes(entry.classification));
  assert.ok(entry.reason.length>20);

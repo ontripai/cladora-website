@@ -1,0 +1,313 @@
+{
+  "schema": "core-finance-lock-admission.v3",
+  "parent": "a2ad62a29e522745e91fb6f2170c97ce892131f8",
+  "runtime": null,
+  "finding": "FIN-CORE32-LOCK-PRIVILEGE-01",
+  "status": "SOURCE_SUCCESSOR_WITH_CONTROLLED_COUPLING_NATIVE_PENDING",
+  "Finance": {
+    "head": "7638f9145f17785ad4bb29108e6c30ac6479e86f",
+    "tree": "9e86efa2bc65c9fccd27806d7c5c556c4840e236",
+    "original_harness_sha256": "77f4510fa3bf3f3f472d259269e0e7a2632ec4704b5f1222538e98e59f18c0bd",
+    "caller_selectors": "INITIALLY_EMPTY_NO_PRESEED"
+  },
+  "ABI": "UNCHANGED_SIX_ARG_SETOF_UTILITIES_REVIEW_DECISIONS",
+  "lock": {
+    "before": "EXPLICIT_LOCK_TABLE_ROW_SHARE_REQUIRES_TABLE_ACL",
+    "after": "ZERO_TUPLE_SELECT_ID_WHERE_FALSE_FOR_SHARE",
+    "mode": "RowShareLock",
+    "order": [
+      "utilities.review_tasks",
+      "utilities.review_decisions"
+    ],
+    "phase": "BEFORE_POLICY_PROOF_THROUGH_TRANSACTION",
+    "rows": 0,
+    "privileges": "EXISTING_SELECT_PLUS_UPDATE_ID_NO_TABLE_UPDATE_OR_MAINTAIN",
+    "policy_RLS": "UNCHANGED",
+    "fresh_authority": "UNCHANGED_AFTER_ALL_RELEVANT_WAITS"
+  },
+  "reader": {
+    "before_file_sha256": "3dfe4be4c032e90fa0800f9bb5f7957f2ba7f796b2be47dabe9933b2a8288d96",
+    "after_file_sha256": "8684a59a2485d56589f26594321342556758228a4563de998d9bcb8e2d69895c",
+    "before_body_sha256": "1ab4160f37d53d3f8b8f6f7056645cc2ed8ce0aed3e4a03b477fbd723e1c01e1",
+    "after_body_sha256": "6b0b40174965ab0a9844ee8d761d9304abd74492060fbc0cd5a84e92e54a8306"
+  },
+  "install": {
+    "target": "UNBOUND_PLATFORM_REQUIRED",
+    "fresh": "reader.sql_IF_THREE_ROUTINES_ABSENT",
+    "existing_a2ad": "upgrade-rowshare-v3.sql_EXACT_PREIMAGE_OWNER_ACL_GUARD",
+    "verify": "verify.sql_NEW_BODY_PIN_UNCHANGED_POLICIES",
+    "recovery": "recovery.md_CORE33_SECTION",
+    "unknown": "STOP_READ_ONLY_BODY_OWNER_ACL_RECONCILE_NO_RETRY",
+    "business_data": "NOT_REVERSED_BY_INSTALL_ROLLBACK",
+    "privilege_changes": "NONE"
+  },
+  "inventory": [
+    {
+      "path": "docs/core/domain-ports-01/WORKLOG.md",
+      "bytes": 58418,
+      "sha256": "d843509e0314ed83ac231d1c66c04ea66d64a2d7ef21e46070affd51ed7293ac",
+      "git_blob": "5c68c228d528e87e8da6fbaee7c327f0fe7e2f34",
+      "before_sha256": "96727a4590a3ce8ed626b6a5acbe06ef830d66f1b356de05026ba18bf2e426b6"
+    },
+    {
+      "path": "supabase/proposals/core-finance-invoice-decisions-v2/reader.sql",
+      "bytes": 18641,
+      "sha256": "8684a59a2485d56589f26594321342556758228a4563de998d9bcb8e2d69895c",
+      "git_blob": "0798d2d7dd403d752f7dd98bc51e7150cc23acda",
+      "before_sha256": "3dfe4be4c032e90fa0800f9bb5f7957f2ba7f796b2be47dabe9933b2a8288d96"
+    },
+    {
+      "path": "supabase/proposals/core-finance-invoice-decisions-v2/verify.sql",
+      "bytes": 5724,
+      "sha256": "22fc1ec2ab551388d07d007c490f0a045f37e4070f637b3e10c0674de0b17da1",
+      "git_blob": "afb8df6dd33f1d1c472d0e566cd08e6bb2e04905",
+      "before_sha256": "bf649385596b8937c25f4ae5c58ef63d11ef4dbd2018d0f8388ea61bd1a4780b"
+    },
+    {
+      "path": "supabase/proposals/core-finance-invoice-decisions-v2/preflight.sql",
+      "bytes": 4518,
+      "sha256": "3865f8cf770543ddc9c690223fc0e507a1dde9902484fa3e22c3bc8a7496d60f",
+      "git_blob": "5c1f72d5f5203cfec948c5e0fc2a09303f1cb294",
+      "before_sha256": "703d1394181c9f79e5c2d155ae15b5d2a19478b418a779ff6d5fdc5ca4ab369c"
+    },
+    {
+      "path": "supabase/proposals/core-finance-invoice-decisions-v2/recovery.md",
+      "bytes": 7204,
+      "sha256": "04731948ffbdd3e268b9048e5282d8bb5e75ca4204c5e557059de356b6c6aac3",
+      "git_blob": "4e72c9f85db6aed9d75078c22f80e19a50ac2a0d",
+      "before_sha256": "1c92221755f83adf17ebb6b6047136d2f3103e2642d1165d6ae1852c3baf8a25"
+    },
+    {
+      "path": "supabase/proposals/core-finance-invoice-decisions-v2/upgrade-rowshare-v3.sql",
+      "bytes": 14379,
+      "sha256": "48e6d8dccb26e7541c405edd4fdcffa9df709eee622a5f873e5ffa83375ec367",
+      "git_blob": "753e2f24a3b0724f194893ab4bb426fa91c9c42f",
+      "before_sha256": null
+    },
+    {
+      "path": "scripts/check-core-finance-lock-v3.mjs",
+      "bytes": 9505,
+      "sha256": "0c1d2ca3f2f1b0ea54b2a99e90e348accff1ceba43c9a887c2e5245c1d41eea4",
+      "git_blob": "5439b92d43815a839d58e5615decd2d0aae1778b",
+      "before_sha256": null
+    },
+    {
+      "path": "docs/core/domain-ports-01/finance-lock-33/README.md",
+      "bytes": 7268,
+      "sha256": "94d3ce0737ebcfd5d46ba5022a742d3863e7c43bef5bbecbc988514569794aed",
+      "git_blob": "2cba9606218f0583628c047b91690b57dc687344",
+      "before_sha256": null
+    },
+    {
+      "path": "docs/core/domain-ports-01/finance-lock-33/evidence.json",
+      "bytes": 6114,
+      "sha256": "01a691c090fa5734a27d326ef771198614531b78599a2e8cb1139c237149c843",
+      "git_blob": "4cdb6e10fd6ea58a73b948cf735f668a84e9d38c",
+      "before_sha256": null
+    }
+  ],
+  "unchanged_pins": [
+    {
+      "path": "docs/core/domain-ports-01/finance-composition-30/manifest.json",
+      "bytes": 13025,
+      "sha256": "54c89dbf01b2b59d0eda378a90dd7f1bc593c36513126fcc5ed74012aa21380b",
+      "git_blob": "d98419edc35e0ece4916b625ece0940bbfec110b"
+    },
+    {
+      "path": "docs/core/domain-ports-01/finance-entry-contract-32/README.md",
+      "bytes": 8993,
+      "sha256": "802b29bb60be2fac1122f2b0c341f3f44bcb6d2f418c8666f7c543c462b1588d",
+      "git_blob": "ac91c505ec69e97ca4601ca25a1ddb266181508d"
+    },
+    {
+      "path": "docs/core/domain-ports-01/finance-entry-contract-32/compile-evidence.json",
+      "bytes": 3995,
+      "sha256": "58f6c3fac4a409a240457c75c0c3ab60096927f22f77f3cfb90eb94665b36446",
+      "git_blob": "50a3a3074f93870b7b7dfb754eff93444a2f1753"
+    },
+    {
+      "path": "docs/core/domain-ports-01/finance-entry-contract-32/manifest.json",
+      "bytes": 11451,
+      "sha256": "d28867b4bdc9bfad031089f0b9bd5cab95ccef109a7a9c0643324ce69c5257b6",
+      "git_blob": "7078c816d700c42c79c465f64a63e6bf1fe90721"
+    },
+    {
+      "path": "docs/core/domain-ports-01/finance-monthly-policy-29/manifest.json",
+      "bytes": 14794,
+      "sha256": "63f0015e72b1f5e3d7cc206df86fa513ffb1d55f95ebe2eb279fd8bad6e2054d",
+      "git_blob": "407bd0140c69cd23729285f72114649e21625883"
+    },
+    {
+      "path": "docs/core/domain-ports-01/finance-private-reader-31/README.md",
+      "bytes": 9293,
+      "sha256": "752f2d98931b840a97c055e6983924b202b8060437b0ccc13253e1c0e4fac495",
+      "git_blob": "5d0eefd99048f216e188ac1b70c1b268a68b48bd"
+    },
+    {
+      "path": "docs/core/domain-ports-01/finance-private-reader-31/manifest.json",
+      "bytes": 19895,
+      "sha256": "72446335d77438d0cbdb0a5c7c9b10571b6aedebd73a02b8ff585c6d789080f6",
+      "git_blob": "ee5f2f74c005af40a9d59f98805219a8e4e31770"
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 285183,
+      "sha256": "c0d6201b9dddab56818ee2c6a547cdba318b0f6979f2a27657b7ac5a41c9b4dc",
+      "git_blob": "e757f68e7602eb2f31dfd7d79eccedab18b72734"
+    },
+    {
+      "path": "package.json",
+      "bytes": 20058,
+      "sha256": "fd82e8763837cbf7af3a0b55dd3e17c9d51f916deab6f5551ecf1a74bce083ce",
+      "git_blob": "24d2aa6ac1b58b075a0e4c42b84ef73ab9ea063b"
+    },
+    {
+      "path": "scripts/check-core-finance-entry-contract-v2.mjs",
+      "bytes": 4140,
+      "sha256": "130eb28383aeb02b4b29e7155450d9f3bf08ab95a6a179489ab121dcec024b41",
+      "git_blob": "ca4d4debcad91e00fb20dba307372001f9a7ff16"
+    },
+    {
+      "path": "scripts/check-core-finance-invoice-decisions-v2.mjs",
+      "bytes": 4762,
+      "sha256": "8101ddf7cfee1e19be222833ffae9455447cc066e449a17aead511c4dc0763a2",
+      "git_blob": "280dc763951eeb897ba52a70ccf94a2ba161d218"
+    },
+    {
+      "path": "scripts/check-core-finance-reader-compile-v2.mjs",
+      "bytes": 4550,
+      "sha256": "22a2f2812ceebbd07e5abe3d29d6bb84a99005ddb9239cacf3f17c0c71b786f8",
+      "git_blob": "925e008c46e73f924d38df7c4f64b23735761cc3"
+    },
+    {
+      "path": "scripts/render-core-finance-invoice-decisions-rls-v2.mjs",
+      "bytes": 2575,
+      "sha256": "dd0eaa64cbfc9d48b1aad8c2737e36a84eb22ed21e9ff887da281fd0c2967dc6",
+      "git_blob": "ddb663c7b308fc49df445d3e214fc3a3b6c2bb8d"
+    },
+    {
+      "path": "scripts/test-core-finance-invoice-decisions-v2.mjs",
+      "bytes": 9924,
+      "sha256": "23fc076f424fbd8b52f90c18c34628553d14a0d9751d801e0db1ec4c77081ead",
+      "git_blob": "78b4b2cb26f4a5e562a6b732d9ae3db2c482eca0"
+    },
+    {
+      "path": "src/lib/core/current-authority-postgres-provider-v1.ts",
+      "bytes": 7831,
+      "sha256": "0703bd3a6268a9f86c321e714eb1a28ee791c4bf3c7747865c7576106247334a",
+      "git_blob": "e67df2d947608f546dab42dba88b5bdc418cbffb"
+    },
+    {
+      "path": "src/lib/core/finance-monthly-binding-v1.ts",
+      "bytes": 8011,
+      "sha256": "4e6563dfedc07019f8288c431806cf44a2b3a2e8a0a75d176a630643d4579c07",
+      "git_blob": "7e6e449e1f36910cac1de7d2039992d5844892b8"
+    },
+    {
+      "path": "src/lib/core/finance-monthly-query-profile-v1.json",
+      "bytes": 2608,
+      "sha256": "8d632c2ff8206311ca56dba506c1bc5d9d80cf8bbc06b646f85733d9b88ce5cd",
+      "git_blob": "0a966e85e05abda5b470ad3f5be905031ebd1527"
+    },
+    {
+      "path": "src/lib/core/functional-command-runtime-v1.ts",
+      "bytes": 39845,
+      "sha256": "438fb03e1c069b051cfa69ed48f95d9fb3bc0f3ea9450c0e0d387153d7b0f530",
+      "git_blob": "8ef53310edd2f7bac8f9c43b7bbf7925ad34db8f"
+    },
+    {
+      "path": "src/lib/core/monthly-source-handoff-v1.ts",
+      "bytes": 2091,
+      "sha256": "70f084ce2c10a304b6b090486a417648eef122ee928342907c801ce834b0eaa5",
+      "git_blob": "0a16a615628d15639ba290978a3251de2eb72187"
+    },
+    {
+      "path": "src/lib/core/monthly-source-handoff-v2.ts",
+      "bytes": 1330,
+      "sha256": "1cd38c66cfed8110875816e32d32f63cf4f21b8681dfcddacbb6a93ef9be0778",
+      "git_blob": "f622e996390eb383e6874eb589cc229da2808c8d"
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "bytes": 75138,
+      "sha256": "6bcca1f378b4a0c5f3a0367d5a03da96ce64ef4bdf71e7f4270bd4c804d2c21a",
+      "git_blob": "458576c1b9c44ea329f01ff91cfe9718d8ba3ef1"
+    },
+    {
+      "path": "src/lib/utilities/monthly-input-producer-v1.ts",
+      "bytes": 9823,
+      "sha256": "9f679ddd319592d6a2aa9a11d666ff137383478f487e052acee932ffbd6c1190",
+      "git_blob": "30ed5d60a7f61ef3c2309a422ad56b73f410b008"
+    },
+    {
+      "path": "supabase/migrations/20260908120000_utilities_metering_billing_slice.sql",
+      "bytes": 80420,
+      "sha256": "4e07591b91e32102c2e7ffc38a1272c51d79ab571fe6f902c40009a68d31d1b5",
+      "git_blob": "6f236b87fb24724c0b3b075b06d90f5806a4c714"
+    },
+    {
+      "path": "supabase/proposals/core-finance-invoice-decisions-v2/rls-contract.json",
+      "bytes": 2699,
+      "sha256": "484104b5a2261d5a4ae4f58d998ccbc3c28b3def9309854f6241b7f908d44596",
+      "git_blob": "61f9048816b899c3717901d93c4c1076f73e5563"
+    },
+    {
+      "path": "supabase/proposals/core-finance-monthly-binding-v1/checkpoint.sql",
+      "bytes": 3427,
+      "sha256": "50d68c34ea286c80b043398f3cf179a05edb456665cd1de4e495a034c1080003",
+      "git_blob": "e0f6d1fb5757428267fb64bb8030f63d7473a568"
+    },
+    {
+      "path": "supabase/proposals/core-finance-monthly-binding-v1/preflight.sql",
+      "bytes": 5106,
+      "sha256": "845e5e45a8fc1dc7550d65e2b556e4babe2233140b8aef09db38608ad78ed2d4",
+      "git_blob": "8197aa033b0937f0aa2f1b9a87e7799f0c9a0400"
+    },
+    {
+      "path": "supabase/proposals/core-finance-monthly-binding-v1/verify.sql",
+      "bytes": 796,
+      "sha256": "9ae6f5120bb480e837ca3d6ef175afb4528023b54d14797c56330cf6afc67b3e",
+      "git_blob": "b902ae96a7f97193e57c154c76b8c7b69a3884df"
+    },
+    {
+      "path": "supabase/proposals/utilities-monthly-input-v1/origin-integrity.sql",
+      "bytes": 4044,
+      "sha256": "61332f59b2cb54476e46bbff6b6d3e8958c6a8fa3d126b6a6f020222b83faceb",
+      "git_blob": "e74ff72a9e3e644772891b4d83365d640e801d06"
+    },
+    {
+      "path": "supabase/proposals/utilities-monthly-input-v1/producer.sql",
+      "bytes": 26608,
+      "sha256": "368241b91fafd9a0d3779093ac1fb9148e739971003f1b1437b7c739fef3436b",
+      "git_blob": "c52804f5de0269e3e9bebe79638820ca34ea9039"
+    },
+    {
+      "path": "tsconfig.json",
+      "bytes": 739,
+      "sha256": "9a5465ed302af1556cb72f0f5b98392f4b745761ba51f519c721f0ee49bb4226",
+      "git_blob": "7f9d7d66bf8228222565337be9438986ef09e72b"
+    }
+  ],
+  "checks": {
+    "embedded_coupling": "PASS_12_NEWLY_REACHABLE_FINANCE763_CHECKS",
+    "embedded_upgrade": "PASS_2",
+    "source": "PASS_3_NEW_GROUPS",
+    "syntax_lint_diff": "PASS",
+    "apply_reverse": "PASS_EXACT_10_POSTIMAGES",
+    "runtime_identity": "REUSED_MATCH_NO_RETEST",
+    "healthy_suites": "NOT_REPEATED",
+    "typecheck": "NOT_APPLICABLE_NO_TS_CHANGE",
+    "initial_pg_locks_probe": "FAILED_WASM_EMPTY_VIEW_PRESERVED",
+    "native_lock_retention": "NOT_RUN_NOT_PASS"
+  },
+  "gates": {
+    "actual_role_RLS": "NOT_ADMITTED",
+    "installation": "UNKNOWN_NO_RECEIPT",
+    "native": "NOT_RUN_NOT_PASS",
+    "ENTRY_independent_QA": "PENDING",
+    "historical_cde_runtime": "UNPROVEN",
+    "target_SQL": 0,
+    "activation": false
+  },
+  "automation": "نیازمند بررسی"
+}

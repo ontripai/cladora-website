@@ -1,0 +1,75 @@
+{
+  "contract_version": "core-finance-reader-embedded-compile.v2",
+  "reader_file_sha256": "3dfe4be4c032e90fa0800f9bb5f7957f2ba7f796b2be47dabe9933b2a8288d96",
+  "reader_body_sha256": "1ab4160f37d53d3f8b8f6f7056645cc2ed8ce0aed3e4a03b477fbd723e1c01e1",
+  "original_harness_sha256": "322440a82dcbdede7301195f8ee369d153fca31f549c42dc9c1a2a906de85f3d",
+  "adapted_harness_sha256": "1b43aa6c7c51ce418e0fd51a425002a4baaf3d5970db0a3d51af8e2e6c44248c",
+  "adaptation": "TWO_EXPECTED_HASH_LITERALS_ONLY",
+  "result": {
+    "scope": "NEW_FINANCE75_CORE31_COUPLING_ONLY",
+    "checks": 4,
+    "names": [
+      "actual Core31 private SQL body compiled/loaded unchanged in embedded WASM; no fixture reader",
+      "Finance75 real snapshot invokes actual Core31 reader; absent required RLS admission is NOT_READY rather than fake successful approval",
+      "real Finance\u2192reader argument/official-selector mismatch fails closed",
+      "failed actual coupling emits no monthly capture or substituted receipt"
+    ],
+    "result": "EXPECTED_NOT_READY_ON_ACTUAL_READER",
+    "actual_private_reader": "Core31 source SHA/body hash verified; NO MOCK READER",
+    "runtime": "embedded PGlite/WASM only",
+    "substitutions": [
+      "Auth/C01/session/checkpoint primitives and ordinary-role/source schema fixtures",
+      "synthetic input created by actual Core1f producer; no actual RLS admission policies"
+    ],
+    "actual_role_RLS": "NOT_ADMITTED",
+    "PostgreSQL_server_native": "NOT_RUN_NOT_PASS",
+    "installation_target_SQL": 0,
+    "old_Core15_Finance19_21_8_622": "NOT_REPEATED"
+  },
+  "fixture_sha256": "94b70de0118b3c0b435d3a71f36b26061c408a9074eb0e1b2fe343dc5d5bec58",
+  "module_path_private": true,
+  "toolchain_owner_version_match": "NOT_CONFIRMED",
+  "PostgreSQL_server_native": "NOT_RUN_NOT_PASS",
+  "target_SQL": 0,
+  "runtime_binding": null,
+  "validator_probe": {
+    "contract_version": "core-finance-reader-embedded-compile.v2",
+    "reader_file_sha256": "3dfe4be4c032e90fa0800f9bb5f7957f2ba7f796b2be47dabe9933b2a8288d96",
+    "reader_body_sha256": "1ab4160f37d53d3f8b8f6f7056645cc2ed8ce0aed3e4a03b477fbd723e1c01e1",
+    "original_harness_sha256": "322440a82dcbdede7301195f8ee369d153fca31f549c42dc9c1a2a906de85f3d",
+    "adapted_harness_sha256": "9fa2729b0f8dcea3425cabb09f1bac054466636d91326ce8e4941815c1ef1b72",
+    "adaptation": "SAME_PRE_GRANT_HARNESS_PREFIX_PLUS_READ_ONLY_VALIDATOR_ON_AND_VERSION_ASSERTIONS",
+    "result": {
+      "result": "COMPILE_ONLY_VALIDATOR_ON_PASS",
+      "check_function_bodies": "on",
+      "embedded_version": "PostgreSQL 17.5 on aarch64-unknown-linux-gnu, compiled by emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 3.1.74 (1092ec30a3fb1d46b1782ff1b4db5094d3d06ae5), 32-bit",
+      "functions": 3,
+      "SQL_target": 0,
+      "native": "NOT_RUN_NOT_PASS"
+    },
+    "fixture_sha256": "94b70de0118b3c0b435d3a71f36b26061c408a9074eb0e1b2fe343dc5d5bec58",
+    "module_path_private": true,
+    "toolchain_owner_version_match": "NOT_CONFIRMED",
+    "PostgreSQL_server_native": "NOT_RUN_NOT_PASS",
+    "target_SQL": 0,
+    "runtime_binding": null
+  },
+  "toolchain": {
+    "package": "@electric-sql/pglite",
+    "version": "0.3.14",
+    "embedded_version": "PostgreSQL 17.5 on aarch64-unknown-linux-gnu, compiled by emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 3.1.74 (1092ec30a3fb1d46b1782ff1b4db5094d3d06ae5), 32-bit",
+    "check_function_bodies": "on",
+    "node": "v24.19.0",
+    "install_scripts": false,
+    "location": "ARTIFACT_ONLY_OUTSIDE_REPOSITORY",
+    "package_lock_sha256": "f1d00f63599847bfb25fa868995fa142d6797cb92bb6fec3e7d44b65b1ad982b",
+    "dist_integrity": "sha512-3DB258dhqdsArOI1fIt7cb9RpUOgcDg5hXWVgVHAeqVQ/qxtFy605QKs4gx6mFq3jWsSPqDN8TgSEsqC3OfV9Q=="
+  },
+  "earlier_tool_probe": {
+    "version": "0.5.16",
+    "embedded": "PostgreSQL18.6 WASM",
+    "result": "COMPILE_AND_EXPECTED_DENIAL_COUPLING_PASS",
+    "retained_outside_repo": true,
+    "not_used_as_PG17_proof": true
+  }
+}

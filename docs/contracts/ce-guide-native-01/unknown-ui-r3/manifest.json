@@ -1,0 +1,172 @@
+{
+  "task": "CE-GUIDE-NATIVE-01",
+  "stage": "UNKNOWN_UI_R3",
+  "worker": "CLADORA-CE-WORKER-01",
+  "base_parent": "62ce7bcc5c52acb043b9e35e25803a3c99c71485",
+  "branch": "codex/ce-guide-native-01",
+  "inventory": [
+    {
+      "path": "src/components/customer/CustomerExperienceGuide.tsx",
+      "before": {
+        "bytes": 10739,
+        "sha256": "559c0a292b07391a26d0ce44270ec338cea50a3ace484809269c2bf140b2c739",
+        "git_blob": "ef70051aa5b2c47c38a9f81711d4f69ad9f08c25"
+      },
+      "after": {
+        "bytes": 10834,
+        "sha256": "9ddd963fddef2e6aa9879d2de7fc4600955d10e362ad23dbe46c8569516dcc4b",
+        "git_blob": "aa410f5e94912d2d7fe183d8ca0e6f2175213064"
+      }
+    },
+    {
+      "path": "src/components/customer/CustomerExperienceGuideCreate.tsx",
+      "before": {
+        "bytes": 5202,
+        "sha256": "7af4a41b039cca59f9f4b9ed930cb1bb0cd97796d1a50857b22491c8d47477a9",
+        "git_blob": "1ca8f1213452fc6ca3a0f802a32f9a09b65854f9"
+      },
+      "after": {
+        "bytes": 5249,
+        "sha256": "b26d026435d4fa9f3b0aced25f7cc2c120a76a93ecebd501870df84e32306350",
+        "git_blob": "0dbc8839cc19248b79bfaaf96ba207ebf01850d9"
+      }
+    },
+    {
+      "path": "src/components/customer/CustomerExperienceGuideActions.tsx",
+      "before": {
+        "bytes": 4270,
+        "sha256": "fee2fff1fe8489c4ff71f446486cecbe42cfc7bb0099741680835eebe452e769",
+        "git_blob": "98182a8b57d41b11dbc0ae28ec0e69d1b8c1e45d"
+      },
+      "after": {
+        "bytes": 4319,
+        "sha256": "8807a146babfdc03850f95c683ff9683061f8919b5fee50e6852f3515a98f1c2",
+        "git_blob": "3d20815b043d5e48720747a3d9c61df15664b768"
+      }
+    },
+    {
+      "path": "scripts/test-ce-guide-routes-r2.mjs",
+      "before": {
+        "bytes": 18437,
+        "sha256": "d9eb9da546ec69a6141bdb280f14c153342af07463ad6e2b872c3e77a95410e2",
+        "git_blob": "f5f346195124ffcfe7e3d9f80c3fc88049024778"
+      },
+      "after": {
+        "bytes": 22389,
+        "sha256": "dfe688e64ab1d8866f9ad88fe7b1ad7524578982fb7f3129c67966ce2039f0ea",
+        "git_blob": "e4bf5559b546190863ea354a777208cfd8401fe5"
+      }
+    },
+    {
+      "path": "docs/contracts/ce-guide-native-01/unknown-ui-r3/README.md",
+      "before": null,
+      "after": {
+        "bytes": 4394,
+        "sha256": "ed7724197e0f4b3c4066633c16110d89f855ab6737b53ee6717ffdb50b2182e5",
+        "git_blob": "87aeafdebd98f3b01c84c2be453bf9286807876c"
+      }
+    }
+  ],
+  "manifest_self_excluded": true,
+  "protected_byte_identical": [
+    "src/lib/app/guide-platform-provider-v1.ts",
+    "src/lib/community/experience-guide-route-runtime-v1.ts",
+    "src/lib/community/experience-guide-functional-client.ts",
+    "src/lib/community/experience-guide-create-client.ts",
+    "src/lib/community/experience-guide-actions-client.ts",
+    "package.json",
+    "package-lock.json"
+  ],
+  "actual_checks": [
+    {
+      "case": "create",
+      "phase": "before",
+      "result": "EXPECTED_ASSERTION_FAILURE_MISSING_ALERT_FA",
+      "evidence": {
+        "bytes": 614,
+        "sha256": "0afb772b42837f8a57a2dfd5aa04099956d50ae6ef3f2f92e4c5da44326d803f",
+        "git_blob": "05c1a829b931fba6d561a50978113e04b8ba8d2c"
+      }
+    },
+    {
+      "case": "create",
+      "phase": "after",
+      "result": "PASS_CONTROLLED_MOUNTED",
+      "evidence": {
+        "bytes": 293,
+        "sha256": "5a0e87b0ab5cdc762c4cf4b23bc7a6c274087ef1b0a1b9a318bf32e38ddb09e1",
+        "git_blob": "7e9f33bec24e0d7f5a33e67e40f568d5c4c6ddc9"
+      }
+    },
+    {
+      "case": "save",
+      "phase": "before",
+      "result": "EXPECTED_ASSERTION_FAILURE_MISSING_ALERT_FA",
+      "evidence": {
+        "bytes": 612,
+        "sha256": "d853dfb20aab4518be11a7b2837f0f32c99df45183f0b761a75a9a3610abc34b",
+        "git_blob": "927ba3d352a7ec23eb10e34556c65f2bd0163176"
+      }
+    },
+    {
+      "case": "save",
+      "phase": "after",
+      "result": "PASS_CONTROLLED_MOUNTED",
+      "evidence": {
+        "bytes": 291,
+        "sha256": "81fcae2b79e8e7436b0d16607804a1fb32be420094f8161adb5d6b12bc45df15",
+        "git_blob": "a5a2bcc2a9a67ed5bee6b5cd108bc421c475e9d0"
+      }
+    },
+    {
+      "case": "publish",
+      "phase": "before",
+      "result": "EXPECTED_ASSERTION_FAILURE_MISSING_ALERT_FA",
+      "evidence": {
+        "bytes": 615,
+        "sha256": "cbf922470daaaa0a8419b003270b7a6a24b8a169b6def0a40e3f870bf5a05599",
+        "git_blob": "2178f6afe5b222277a39d5805e88824e5ccfa4cc"
+      }
+    },
+    {
+      "case": "publish",
+      "phase": "after",
+      "result": "PASS_CONTROLLED_MOUNTED",
+      "evidence": {
+        "bytes": 294,
+        "sha256": "5df222e63e2d3078051fd57069695d7e262caf88212bca44b9f797e0018fc2a7",
+        "git_blob": "b8dc227a86dc14380530a57b2d13e663830b5dd0"
+      }
+    },
+    {
+      "case": "tsc",
+      "result": "PASS_EXIT_0",
+      "evidence": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      }
+    },
+    {
+      "case": "lint",
+      "result": "PASS_EXIT_0",
+      "evidence": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      }
+    }
+  ],
+  "toolchain": {
+    "next": "16.4.1",
+    "zod": "4.6.6",
+    "typescript": "5.9.3",
+    "node": "24.19.0"
+  },
+  "prior_successful_suites": "NOT_RERUN",
+  "provider": "NULL_UNCHANGED",
+  "native": "NOT_RUN_NOT_PASS",
+  "adapter_delivery": "AWAITING_ACTUAL_BYTES_NO_REPEATED_SEARCH",
+  "status": "TESTED_UI_SOURCE_NATIVE_GUIDE_OPEN",
+  "automation": "نیازمند بررسی"
+}

@@ -1,0 +1,375 @@
+{
+  "contract": "utilities-invoice-actor-approval-policy.v1",
+  "parent": "ab28c87a4eb82f5f462d3faf971149c4fec858f6",
+  "status": "OWNER_POLICY_IMPLEMENTED_SOURCE_CANDIDATE_ROLE_MAPPING_AND_NATIVE_NOT_READY",
+  "branch": "codex/core-domain-ports-01",
+  "runtime": null,
+  "permit": null,
+  "target": null,
+  "inventory": [
+    {
+      "path": "docs/core/domain-ports-01/WORKLOG.md",
+      "before": {
+        "bytes": 41962,
+        "sha256": "6e1b9401fa0a87dc4727410e041473cc44b90512d47686362e42c2f3958f4289",
+        "git_blob": "76ca97f054294f8ec13fea6ef80fa3ea0cfa11ba"
+      },
+      "after": {
+        "bytes": 44514,
+        "sha256": "971be8f5e5cc75490cfa9254c942d842360346f8a024542a8ddea5a4ae9bca12",
+        "git_blob": "5b452dba99a741fe14e9467ef72ca7e630c23b65"
+      }
+    },
+    {
+      "path": "src/lib/utilities/monthly-input-producer-v1.ts",
+      "before": {
+        "bytes": 8626,
+        "sha256": "42b6226fb0fa8a869a4580778e01a9bcff89c8a29f5ce6f573490774a241076b",
+        "git_blob": "2504560a89d246ace016086c9a1f24601d215fb1"
+      },
+      "after": {
+        "bytes": 9823,
+        "sha256": "9f679ddd319592d6a2aa9a11d666ff137383478f487e052acee932ffbd6c1190",
+        "git_blob": "30ed5d60a7f61ef3c2309a422ad56b73f410b008"
+      }
+    },
+    {
+      "path": "supabase/proposals/utilities-monthly-input-v1/producer.sql",
+      "before": {
+        "bytes": 17350,
+        "sha256": "00fc5be73d73fe0ab030fac3a2eae9a3aedee90d2acd89f51aad85dbbe3cd703",
+        "git_blob": "7475cc96e743dc0a357f1b425170b91ded1d163d"
+      },
+      "after": {
+        "bytes": 26608,
+        "sha256": "368241b91fafd9a0d3779093ac1fb9148e739971003f1b1437b7c739fef3436b",
+        "git_blob": "c52804f5de0269e3e9bebe79638820ca34ea9039"
+      }
+    },
+    {
+      "path": "supabase/proposals/utilities-monthly-input-v1/preflight.sql",
+      "before": {
+        "bytes": 2067,
+        "sha256": "b57353766db465be8bd8f8753843aceb4b90f4da2ee1770aecc353db4ad18e61",
+        "git_blob": "67d46e2ee6eea1d4eebc373ca805b5d351dddecd"
+      },
+      "after": {
+        "bytes": 3249,
+        "sha256": "05220ea701083133903253bab3ada07a4880fcbdc10ddd30737894ad510056b7",
+        "git_blob": "c612da4623e17d95ff83575e3e9923540cd5604f"
+      }
+    },
+    {
+      "path": "supabase/proposals/utilities-monthly-input-v1/verify.sql",
+      "before": {
+        "bytes": 1062,
+        "sha256": "07dd4a7e5ccd327c477b57ba2c8267d6f16d3348ee4953eb5c7e321f33bd692f",
+        "git_blob": "f6807f7a00543c4b5f96bedd1cd9efced9f04a48"
+      },
+      "after": {
+        "bytes": 2235,
+        "sha256": "33696aa9128b76e6deb9bdc638e36a08a799f67580292930926228fdfb9756f8",
+        "git_blob": "85ae34836488a3a54df6af8abdc8011f964b1a86"
+      }
+    },
+    {
+      "path": "supabase/proposals/utilities-monthly-input-v1/recovery.md",
+      "before": {
+        "bytes": 3128,
+        "sha256": "f356165a31dfe2628fc72b647c8137daa6b76d9ebeedc6f22e22a40c587b4307",
+        "git_blob": "2555f26695208b4c0efb182ed5be830549fc503e"
+      },
+      "after": {
+        "bytes": 5473,
+        "sha256": "b48d03c4cae0e0d60e40c21a4c377e66d1f8918bd797ab28ccf9f0541c9bf04d",
+        "git_blob": "82d806f40424c3d1d941fb68645039c94b0dd352"
+      }
+    },
+    {
+      "path": "supabase/proposals/utilities-monthly-input-v1/origin-integrity.sql",
+      "before": null,
+      "after": {
+        "bytes": 4044,
+        "sha256": "61332f59b2cb54476e46bbff6b6d3e8958c6a8fa3d126b6a6f020222b83faceb",
+        "git_blob": "e74ff72a9e3e644772891b4d83365d640e801d06"
+      }
+    },
+    {
+      "path": "supabase/proposals/utilities-monthly-input-v1/role-mapping-read-request.sql",
+      "before": null,
+      "after": {
+        "bytes": 2215,
+        "sha256": "c626ddfeb1af9eeb7590e9a259d3baf90a4f266ff698872df3a9527e8813e02f",
+        "git_blob": "6ddb9b992858f7e9d22c0eaaff38ebc672a99455"
+      }
+    },
+    {
+      "path": "scripts/test-utilities-monthly-input-producer-v1.mjs",
+      "before": {
+        "bytes": 12134,
+        "sha256": "ba2bae0836a4ab94493a4982cb7c262e8dd891d9b0f1d19605ece41684dbf1f5",
+        "git_blob": "db9f76c2e0c37b993e22243bb757205f0b1be377"
+      },
+      "after": {
+        "bytes": 13239,
+        "sha256": "40fc7409feddfb0c72ec69a9f7f145d06a61d10c80553b8eb3835ed305010888",
+        "git_blob": "babee60174f8a05ebde773001f2b223d7e704270"
+      }
+    },
+    {
+      "path": "scripts/test-utilities-invoice-approval-policy-v2.mjs",
+      "before": null,
+      "after": {
+        "bytes": 12913,
+        "sha256": "97e3ad7e17dfa14f9ecd835dd00fe41b3b41706cc6d2773da02b6b4daecefef9",
+        "git_blob": "3970dde6073187c276be18ab769cdb07c2c53a5c"
+      }
+    },
+    {
+      "path": "docs/core/domain-ports-01/finance-monthly-policy-29/README.md",
+      "before": null,
+      "after": {
+        "bytes": 10280,
+        "sha256": "d5c196a4fefab685b7350a512dc0b87c3bb32954efa08ace5540f92b0cba5788",
+        "git_blob": "de5ecb43513bb25bf4845bb3b88501b0aa997ce2"
+      }
+    }
+  ],
+  "protected_source": [
+    {
+      "path": "src/lib/core/monthly-source-handoff-v1.ts",
+      "bytes": 2091,
+      "sha256": "70f084ce2c10a304b6b090486a417648eef122ee928342907c801ce834b0eaa5",
+      "git_blob": "0a16a615628d15639ba290978a3251de2eb72187"
+    },
+    {
+      "path": "scripts/test-core-monthly-source-handoff-v1.mjs",
+      "bytes": 6771,
+      "sha256": "db1ce3905391a32292f2228546f5f25ce331d2ad4006cc501a0918a08422ad75",
+      "git_blob": "3568422bf7000a8bcca608f7ca1be890f3ddde3c"
+    },
+    {
+      "path": "src/lib/core/postgres-transaction-host-v1.ts",
+      "bytes": 75138,
+      "sha256": "6bcca1f378b4a0c5f3a0367d5a03da96ce64ef4bdf71e7f4270bd4c804d2c21a",
+      "git_blob": "458576c1b9c44ea329f01ff91cfe9718d8ba3ef1"
+    },
+    {
+      "path": "src/lib/core/functional-command-runtime-v1.ts",
+      "bytes": 32729,
+      "sha256": "3456e5defa4c13f8c8c7f4581865b011589c025a9b082c76cf2d058670c2f227",
+      "git_blob": "37555804be5c8a28dd9c90731c981c59c795f616"
+    },
+    {
+      "path": "docs/core/domain-ports-01/finance-monthly-input-27/manifest.json",
+      "bytes": 8011,
+      "sha256": "1144452cedc43e0728955d2e8635a08a96036ef9b1ddb0f843df8f390a5c7ff2",
+      "git_blob": "4e2e1a655cd5fbb5cc7b0af8fcec6b2ff95d684d"
+    },
+    {
+      "path": "docs/core/domain-ports-01/finance-monthly-input-28/manifest.json",
+      "bytes": 11395,
+      "sha256": "18665b6083745f5004fff138ad44b584f964f10f18dc3031511be069c026c35f",
+      "git_blob": "b25292625a295bf26d365a205e585ff1ac38a719"
+    },
+    {
+      "path": "supabase/migrations/20260825000900_utilities_contracts_invoices_ocr.sql",
+      "bytes": 11204,
+      "sha256": "b3891d58cd7109689cc9a6b1ffdce09874b0f0d60703c4cd2b2f38e88fd77c48",
+      "git_blob": "f382cdc1966d615be7fa49273091e127ad07fabc"
+    },
+    {
+      "path": "supabase/migrations/20260825001200_utilities_ingestion_review_audit.sql",
+      "bytes": 6562,
+      "sha256": "4ad1ccea31b1a78a0c542474a00f2921213b872bcb0a78b4e0600f95751abaa2",
+      "git_blob": "106463c83040d4d2f29bab84bb3991bc2d0e23e2"
+    },
+    {
+      "path": "supabase/migrations/20260908120000_utilities_metering_billing_slice.sql",
+      "bytes": 80420,
+      "sha256": "4e07591b91e32102c2e7ffc38a1272c51d79ab571fe6f902c40009a68d31d1b5",
+      "git_blob": "6f236b87fb24724c0b3b075b06d90f5806a4c714"
+    }
+  ],
+  "role_source_pins": [
+    {
+      "path": "src/lib/customer/access-matrix.ts",
+      "bytes": 17286,
+      "sha256": "3d1551b929cb5ce5cd351f80eacc246eb71565be8a8716dafa13139905969597",
+      "git_blob": "bb7a9c49bac353b845e9a6d410525d32cd21c1bd"
+    },
+    {
+      "path": "supabase/migrations/20260825000200_identity_roles_memberships_contexts.sql",
+      "bytes": 7477,
+      "sha256": "89d896867abee568267b7c43a34f2df274be896fdd0e93b2e8999e569d13a413",
+      "git_blob": "a10694dee00ede048d8ff20a18d2e9ea2e871207"
+    },
+    {
+      "path": "supabase/migrations/20260918120000_workspace_local_roles_permissions.sql",
+      "bytes": 108886,
+      "sha256": "4e7b2bce8fb56e30a31d1019c634888231ba636785cd31333816ac5d9a24b598",
+      "git_blob": "c87e136f50dde8241c4af6c8eef6456f71033b0b"
+    }
+  ],
+  "owner_decision": {
+    "keys": [
+      "utilities.invoices.ingest",
+      "utilities.invoices.review"
+    ],
+    "default": "deny",
+    "scope": "canonical current property/Workspace/member/session/authority",
+    "ingest_classes": [
+      "appointed operational/property manager",
+      "appointed property accountant"
+    ],
+    "review_classes": [
+      "appointed property accountant",
+      "appointed financial reviewer"
+    ],
+    "same_actor_review": "FORBIDDEN irrespective of session/Context/role/permissions",
+    "invoice_approval": "invoice-document version only; not payment/publish/close",
+    "monthly_president_censor_accountant": "UNCHANGED"
+  },
+  "role_mapping": [
+    {
+      "class": "property manager, ingest",
+      "source_key": "property_manager",
+      "source_status": "PRESENT_IN_SOURCE_ONLY",
+      "target_role_id": null,
+      "target_membership_assignment": null,
+      "explicit_permission": "utilities.invoices.ingest",
+      "gate": "OBSERVED_TARGET_MAPPING_AND_PERMISSION_REQUIRED"
+    },
+    {
+      "class": "operational manager or accountant, ingest",
+      "source_key": null,
+      "target_role_id": null,
+      "explicit_permission": "utilities.invoices.ingest",
+      "gate": "UNMAPPED_DENY"
+    },
+    {
+      "class": "accountant/financial reviewer, review",
+      "source_key": null,
+      "target_role_id": null,
+      "explicit_permission": "utilities.invoices.review",
+      "gate": "UNMAPPED_DENY"
+    }
+  ],
+  "role_request": {
+    "path": "supabase/proposals/utilities-monthly-input-v1/role-mapping-read-request.sql",
+    "params": [
+      "observed_workspace_uuid",
+      "observed_property_uuid",
+      "observed_tenant_uuid"
+    ],
+    "limit": 128,
+    "truncation": "STOP",
+    "sql_executed": false,
+    "qualification": "Finance/Coordinator sign actual canonical role mapping; codes/counts are not authority"
+  },
+  "new_versions": {
+    "invoice_input": "utilities-monthly-input.v2",
+    "reading_input_unchanged": "utilities-monthly-input.v1",
+    "review_source": "utilities-invoice-review-source.v2",
+    "content": "utilities-invoice-content.v2",
+    "approval_snapshot": "utilities-invoice-approval.v2",
+    "origin_record": "utilities-invoice-origin.v1",
+    "source_revision": "actual content-image SHA256; no numeric revision invented",
+    "legacy_v1_unknown": "retain original command; canonical recovery only; no auto-upgrade/resend/backfill"
+  },
+  "origin": {
+    "table": "utilities.review_decisions",
+    "actor_source": "auth.uid() in actual ingestion transaction",
+    "decision": "submitted",
+    "reason": "utilities.invoice.origin.v1",
+    "uniqueness": "tenant + canonical invoice source ID across tasks",
+    "immutable": "new-family origins/approval decisions; no UPDATE/DELETE",
+    "missing_legacy": "deny; never infer actor from current session or unrelated receipt"
+  },
+  "queries": {
+    "review_mutation_phases": [
+      "read_invoice_review_source_v1 (same transaction; write-intent invoice/task locks)",
+      "produce_monthly_input_v1 (actual origin/content/current-authority recheck before effect and after waits)"
+    ],
+    "read_queries_create_c03_reservation": false,
+    "query_strings_and_arity_unchanged": true,
+    "private_review_result": "origin actor/id retained internally; only versioned source/task/hash projected",
+    "actor_json_is_authority": false
+  },
+  "install_order": [
+    "qualified-role/canonical metadata preflight (read only)",
+    "producer.sql closed methods, COMMIT unit1",
+    "origin-integrity.sql closed guards/index/triggers, COMMIT unit2",
+    "verify.sql (read only)",
+    "separately reviewed role/query/RLS/host admission before any campaign"
+  ],
+  "additional_objects": [
+    "utilities.invoice_content_image_v2(utilities.provider_invoices,utilities.supply_contracts,utilities.ingestion_documents,jsonb,uuid)",
+    "utilities.protect_invoice_review_provenance_v1()",
+    "utilities.protect_invoice_approval_content_v2()",
+    "utilities.invoice_review_origin_once_v1 (unique tenant+invoice)",
+    "invoice_review_provenance_immutable_v1 trigger on review_decisions",
+    "invoice_input_approval_immutable_v2 trigger on provider_invoices"
+  ],
+  "acl_rls_requirements": {
+    "owner": "observed DDL/table/index/trigger authority only; no guessed role or SET/superuser fallback",
+    "origin_read": "actual reviewer needs narrow private same-tenant/Workspace/property/task visibility to other actor origin; existing actor-only RLS does not provide it",
+    "origin_insert": "actual auth actor + qualified explicit ingest + canonical task/source match",
+    "origin_update_delete": "not required; blocked by integrity guard",
+    "entry_functions": "closed owner-only direct ACL; role/query profile not activated",
+    "row_locks": "SELECT plus effective UPDATE privilege/policy for FOR UPDATE/SHARE; never assumed from SELECT",
+    "auth_shared_acl": "UNCHANGED"
+  },
+  "finance_handoff": {
+    "owner": "Finance",
+    "required": "verify immutable approval origin/independent actor and compare actual current content-image v2 hash to approval before capture; status alone is insufficient",
+    "source_schema_received": false,
+    "planner_57_changed": false
+  },
+  "evidence": {
+    "new_affected_control_groups": 12,
+    "actual_parent_counterexample": "controlled adapter accepted same actor; not PG",
+    "successor_counterexample": "same actor denied before mutation dispatch",
+    "positive": "independent actor with exact task/content; controlled fixed queries",
+    "version_drift_fields": [
+      "identity",
+      "Workspace/property",
+      "period",
+      "currency",
+      "amount",
+      "lines",
+      "provenance"
+    ],
+    "affected_source_recheck": "PASS",
+    "full_es5_typecheck": "PASS",
+    "focused_lint_syntax_diff": "PASS",
+    "healthy_suites_repeated": false,
+    "new_source_before_after_pins": "MATCH"
+  },
+  "not_run": [
+    "SQL parser/compile/execute",
+    "PG/Auth/RLS/native concurrency/settlement/restart",
+    "role mapping/grant/install/activation",
+    "fixture or two-cost/one-reading campaign",
+    "Finance schema adaptation"
+  ],
+  "open_gates": [
+    {
+      "owner": "Finance/Coordinator + Platform",
+      "gate": "actual qualified role IDs, property assignments and explicit final keys"
+    },
+    {
+      "owner": "Platform",
+      "gate": "observed owner/ACL/RLS/row-lock/query/trigger/index capacity and exact native install prestate"
+    },
+    {
+      "owner": "Finance",
+      "gate": "published schema + v2 current approval capture adoption"
+    },
+    {
+      "owner": "Core/Platform/QA",
+      "gate": "C03 terminal/replay/native independent proof; no ACK-currentness claim"
+    }
+  ],
+  "automation": "نیازمند بررسی"
+}

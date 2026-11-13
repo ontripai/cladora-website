@@ -1,0 +1,180 @@
+{
+  "task": "CE-GUIDE-NATIVE-01",
+  "worker": "CLADORA-CE-WORKER-01",
+  "stage": "DISCOVERY_POSTWAIT_AND_PRETRANSFER_BOUNDS",
+  "base_parent": "c84f13ffeb97a8365385243c7712216d47a04c4e",
+  "branch": "codex/ce-guide-native-01",
+  "inventory": [
+    {
+      "path": "src/lib/community/experience-guide-discovery-v1.ts",
+      "before": {
+        "bytes": 4936,
+        "sha256": "2edd77e4f00fe77686a97441a57faad49cb71ba4bfbef7e28c63acdf4bfcd10d",
+        "git_blob": "7d69a3a8d2679b1ac7da822fb85c5d3249e8f7df"
+      },
+      "after": {
+        "bytes": 5790,
+        "sha256": "fd0530e071c2ab88d6f865ce0c232ce472b871fdaecbeebfbdf3efd61b61d673",
+        "git_blob": "d16b3d319d8ec96e21ed49068dc45ddbdf0d2ac3"
+      }
+    },
+    {
+      "path": "scripts/test-ce-guide-routes-r2.mjs",
+      "before": {
+        "bytes": 22389,
+        "sha256": "dfe688e64ab1d8866f9ad88fe7b1ad7524578982fb7f3129c67966ce2039f0ea",
+        "git_blob": "e4bf5559b546190863ea354a777208cfd8401fe5"
+      },
+      "after": {
+        "bytes": 27630,
+        "sha256": "ff8c447365ddceccba536605d779083da58951538705fa42cf1d2c58b6b8dec9",
+        "git_blob": "a540c91d7506dae66ae7cfa89537f927eab52610"
+      }
+    },
+    {
+      "path": "docs/contracts/ce-guide-native-01/discovery-postwait-bounds/README.md",
+      "before": null,
+      "after": {
+        "bytes": 4756,
+        "sha256": "493909d5d6488ecfba2a4246e05207c2988b25e692bd464d1dca0fcc23274a71",
+        "git_blob": "ddff44654ce532b3f6d8c0021a849bcb918c09f1"
+      }
+    },
+    {
+      "path": "docs/contracts/ce-guide-native-01/discovery-postwait-bounds/core-sql-pins.json",
+      "before": null,
+      "after": {
+        "bytes": 5539,
+        "sha256": "792597c4093cfc2d33e5217dc96afeaf322e900ffbfa78d4d8b4fa0d5a0bc0a2",
+        "git_blob": "bd059328763a57de761978d88cdb27239e1e2d61"
+      }
+    }
+  ],
+  "manifest_self_excluded": true,
+  "protected_byte_identical": [
+    "src/lib/app/guide-platform-provider-v1.ts",
+    "src/lib/community/experience-guide-discovery-contract.ts",
+    "src/lib/community/experience-guide-route-runtime-v1.ts",
+    "src/lib/community/experience-guide-lifecycle-http-v1.ts",
+    "src/lib/community/experience-guide-functional-http-v1.ts",
+    "src/lib/core/guide-request-binding-v1.ts",
+    "src/components/customer/CustomerExperienceGuidePage.tsx",
+    "src/components/customer/CustomerExperienceGuideNativeEntry.tsx",
+    "src/lib/community/experience-guide-create-client.ts",
+    "src/lib/community/experience-guide-functional-client.ts",
+    "src/lib/community/experience-guide-actions-client.ts",
+    "package.json",
+    "package-lock.json"
+  ],
+  "CE010_QFW_closure": "PRESERVED_d23346a88253290d8842dfa0780a67c00c250390_CLEAN_NOT_RETESTED",
+  "sql_old": {
+    "bytes": 766,
+    "sha256": "38e105274f5d7fd1dab49b86f93a99b2beafd11af91134b965fac8b15f1fa72d"
+  },
+  "sql_candidate": {
+    "bytes": 1269,
+    "sha256": "4fbe16a342af4bfdcb42dffb1b3ac8b8dc6ddf3095b3f75027a6ada7386a5f9c"
+  },
+  "Core_rights_review": "REQUESTED_NOT_ADMITTED",
+  "checks": [
+    {
+      "name": "guide-discovery-r4-before-0.txt",
+      "result": "EXPECTED_BEFORE_FAILURE",
+      "local_evidence_not_transferred": {
+        "bytes": 626,
+        "sha256": "ea08e38407d76aedbd85654fbe88cc0201608a069b63414829246ad467307314",
+        "git_blob": "152d8d90f9e7e9465b1cab406dfb00ab460665ed"
+      }
+    },
+    {
+      "name": "guide-discovery-r4-before-1.txt",
+      "result": "EXPECTED_BEFORE_FAILURE",
+      "local_evidence_not_transferred": {
+        "bytes": 611,
+        "sha256": "a3cd6c2506b2c6a094277741f2c6ff41bee8ff865c1c11c0aa3e0c0e1ff0b7f8",
+        "git_blob": "b92bf67ef20fe6dc6b3ab2876d98e88f6eda512d"
+      }
+    },
+    {
+      "name": "guide-discovery-r4-after-0.txt",
+      "result": "PASS",
+      "local_evidence_not_transferred": {
+        "bytes": 283,
+        "sha256": "69c42d0983cc276d26b4970df7ffe7ec66efc4b645c607afd59221cdfec9dc20",
+        "git_blob": "39d60a03cf40915c54503db1eb80c0e6a81dc63d"
+      }
+    },
+    {
+      "name": "guide-discovery-r4-after-1.txt",
+      "result": "PASS",
+      "local_evidence_not_transferred": {
+        "bytes": 307,
+        "sha256": "bfaf486943f1d8cb570c2da33b20828662d1dbc60e1f07d02f365fc68cc82f9b",
+        "git_blob": "82ba6c1b49b9f4ca10e050a4cec6ae37b6723247"
+      }
+    },
+    {
+      "name": "guide-discovery-r4-control-0.txt",
+      "result": "PASS",
+      "local_evidence_not_transferred": {
+        "bytes": 316,
+        "sha256": "f1c8af68d073dc179361d2306ab953d98721378ab2530fc4842f1a1486fdbdfa",
+        "git_blob": "d9ab06565e4abb3e9a780a3594651101c4d55692"
+      }
+    },
+    {
+      "name": "guide-discovery-r4-control-1.txt",
+      "result": "PASS",
+      "local_evidence_not_transferred": {
+        "bytes": 296,
+        "sha256": "d80f70d408dafbafd3cad4e6b813d5f8f3055a0c5d7963cbe6511391275ff956",
+        "git_blob": "69efebf7342316538130937f0ad011f7f5f71fd5"
+      }
+    },
+    {
+      "name": "guide-discovery-r4-control-2.txt",
+      "result": "PASS",
+      "local_evidence_not_transferred": {
+        "bytes": 299,
+        "sha256": "4787af0c4a8f95c4362bc554d08fa0a45a5da5ec969f9f70bcb0c611166382ce",
+        "git_blob": "6dc1781021ee865af85ccd07a7b3ac7d798fb51a"
+      }
+    },
+    {
+      "name": "guide-discovery-r4-tsc.txt",
+      "result": "PASS",
+      "local_evidence_not_transferred": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      }
+    },
+    {
+      "name": "guide-discovery-r4-lint.txt",
+      "result": "PASS",
+      "local_evidence_not_transferred": {
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "git_blob": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391"
+      }
+    }
+  ],
+  "new_targeted_groups": 5,
+  "native_SQL_Auth_driver_RLS_browser": "NOT_RUN_NOT_PASS",
+  "prior_successful_suites": "NOT_RERUN",
+  "provider_binding": null,
+  "toolchain": {
+    "next": "16.4.1",
+    "zod": "4.6.6",
+    "typescript": "5.9.3",
+    "node": "24.19.0"
+  },
+  "remaining": [
+    "Core exact SQL/source pin, role/ACL/type/encoding/closed-admission/currentness review",
+    "actual Platform/App binding and installed-target native evidence",
+    "independent QA acceptance"
+  ],
+  "status": "SOURCE_CORRECTION_FOR_REVIEW_NATIVE_OPEN",
+  "skills_policy": "CLADORA-SKILLS-USAGE v1.1.0",
+  "automation": "نیازمند بررسی"
+}
