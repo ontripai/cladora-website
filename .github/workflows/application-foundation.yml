@@ -31,6 +31,8 @@ on:
       - 'scripts/check-app-core17-adoption-source-v1.mjs'
       - 'scripts/lib/app-ce-guide-source-transition-v1.mjs'
       - 'scripts/test-app-ce-guide-source-transition-v1.mjs'
+      - 'scripts/lib/app-service-shell-fixture-transition-v1.mjs'
+      - 'scripts/test-app-service-shell-fixture-transition-v1.mjs'
       - 'docs/app/published-source-consolidation-01/ce-guide-source-transition.json'
       - 'scripts/lib/owned-test-database-pool-teardown-v1.mjs'
       - 'scripts/test-owned-test-database-pool-teardown-v1.mjs'
@@ -139,6 +141,8 @@ on:
       - 'scripts/check-app-core17-adoption-source-v1.mjs'
       - 'scripts/lib/app-ce-guide-source-transition-v1.mjs'
       - 'scripts/test-app-ce-guide-source-transition-v1.mjs'
+      - 'scripts/lib/app-service-shell-fixture-transition-v1.mjs'
+      - 'scripts/test-app-service-shell-fixture-transition-v1.mjs'
       - 'docs/app/published-source-consolidation-01/ce-guide-source-transition.json'
       - 'scripts/lib/owned-test-database-pool-teardown-v1.mjs'
       - 'scripts/test-owned-test-database-pool-teardown-v1.mjs'
@@ -335,6 +339,7 @@ jobs:
           node scripts/test-app-core17-adoption-source-v1.mjs
           node scripts/test-app-official-core-directory-v1.mjs
           node scripts/test-app-ce-guide-source-transition-v1.mjs
+          node scripts/test-app-service-shell-fixture-transition-v1.mjs
           node scripts/test-documents-core-host-source-transition.mjs
           node scripts/test-owned-test-database-pool-teardown-v1.mjs
           node scripts/run-app-core17-historical-admission-check-v1.mjs

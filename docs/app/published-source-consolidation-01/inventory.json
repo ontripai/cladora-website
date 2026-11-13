@@ -1220,5 +1220,40 @@
     "change": "Reuse unchanged Core15 actual-source loader; all19 assertions and evaluator product source retained",
     "local": "PASS19_SYNTHETIC_PURE_PRESENTATION; LINT_WHITESPACE_PASS",
     "activation": "NOT_RUN_NOT_PASS"
+  },
+  "service_shell_country_fixture_transition": {
+    "reviewed_parent": "e810010a9932b8c31281745054d0d4938664ea48",
+    "observed_CI": "Core real22/24 PASS; Database static/Postgres PASS; Application Foundation B2 and address evaluator PASS, legacy audit stopped at historical SERVICE test blob",
+    "historical_fixture_manifest": "UNCHANGED; b603383d SHA/106b8f6d blob retained",
+    "transition": "Exactly one MFA helper import and two textual assertions replaced with controlled actual-layout checks; preimage reconstructed and authenticated before unchanged historical assertions; all other source bytes fixed",
+    "helper_authentication": "Actual MFA composition helper e59ec13f SHA bound; no weakening of16 cases/5 mutants",
+    "local": "PASS61_AUDIT_ASSERTIONS; PASS1_PREIMAGE_PLUS8_DENIALS; LINT_WHITESPACE_PASS",
+    "pins": [
+      {
+        "path": "scripts/lib/app-service-shell-fixture-transition-v1.mjs",
+        "bytes": 2279,
+        "sha256": "e46edd99049977ed92dd863c2f87183fb12f4fd1211e746d8a5a5ab98c6a76e1",
+        "git_blob": "f5d98a06066aa71b2a7a3ab3e13215bf0639aabd"
+      },
+      {
+        "path": "scripts/test-app-service-shell-fixture-transition-v1.mjs",
+        "bytes": 1339,
+        "sha256": "6d0e6f87228ab06b20b4053d627dc6c2432059b0e047d3e6cbb2db7f1ca92022",
+        "git_blob": "2f434592361d944d3fbe230828ec0b8cbfba3918"
+      },
+      {
+        "path": "scripts/test-airprop-legacy-country-defaults-audit-07.mjs",
+        "bytes": 22460,
+        "sha256": "7fd7a7384da0022fcdb41cf97d80f9ab6e4eca89534a18bdaf44d154177076c0",
+        "git_blob": "6bb76def8be2392512913b8afbc7a9d3508653c2"
+      },
+      {
+        "path": ".github/workflows/application-foundation.yml",
+        "bytes": 21526,
+        "sha256": "53ee54021b8b853aa988b2c7d8d77a4e9deeedd90156afd6f5a1b891e65eb128",
+        "git_blob": "c121fcb54758e076c3b8d67f513d3ffeb12f11f2"
+      }
+    ],
+    "source_runtime_activation": "UNCHANGED_NULL_NOT_READY"
   }
 }
