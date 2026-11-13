@@ -1,23 +1,10 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
-import ts from 'typescript';
+import { fileURLToPath } from 'node:url';
+import { createCore15NativeLoader } from './lib/core15-native-ts-loader.mjs';
 
-const require = createRequire(import.meta.url);
-const cache = new Map();
-function load(url) {
-  if (cache.has(url.href)) return cache.get(url.href);
-  const compiled = ts.transpileModule(readFileSync(url, 'utf8'), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
-  });
-  const loadedModule = { exports: {} };
-  new Function('require', 'module', 'exports', compiled.outputText)(name => name.startsWith('.')
-    ? load(new URL(name.endsWith('.ts') ? name : `${name}.ts`, url)) : require(name),
-  loadedModule, loadedModule.exports);
-  cache.set(url.href, loadedModule.exports);
-  return loadedModule.exports;
-}
-
+const { load: loadSource } = createCore15NativeLoader(fileURLToPath(new URL('../', import.meta.url)));
+const load = url => loadSource(fileURLToPath(url));
 const {
   SERVICE_SUBJECT_LINK_CORE_BINDING_V1,
   buildServiceSubjectLinkCoreCommandV1,

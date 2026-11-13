@@ -41,6 +41,7 @@ import React, { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { JSDOM } from 'jsdom';
 import ts from 'typescript';
+import { verifyAppLayoutMfaComposition } from './lib/app-layout-mfa-composition.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -97,9 +98,11 @@ check(appLayoutCode.includes("const { data, error } = await supabase.auth.getCla
 check(appLayoutCode.includes("redirect(`/${lang}/login`)"), 'AppLayout redirects unauthenticated sessions to /login');
 check(appLayoutCode.includes("await supabase.auth.mfa.listFactors()"), 'AppLayout lists configured MFA factors');
 check(appLayoutCode.includes("rpc('my_mfa_requirement_v1')"), 'AppLayout queries customer_api.my_mfa_requirement_v1');
-check(appLayoutCode.includes("redirect(`/${lang}/mfa/setup?reason=customer_required`)"), 'AppLayout forces MFA setup when required');
+const layoutMfa = await verifyAppLayoutMfaComposition();
+console.log("AppLayout controlled MFA composition:", layoutMfa);
+check(layoutMfa.setupRequired, 'AppLayout forces MFA setup when required');
 check(appLayoutCode.includes("assurance.currentLevel !== 'aal2'"), 'AppLayout gates on AAL2 level when MFA is required');
-check(appLayoutCode.includes("<CustomerAppShell lang={lang}>{children}</CustomerAppShell>"), 'AppLayout renders CustomerAppShell for authorized sessions');
+check(layoutMfa.authorizedShell, 'AppLayout renders CustomerAppShell for authorized sessions');
 
 // =========================================================================
 // SECTION 2: CUSTOMER APP SHELL & SERVICE NAVIGATION

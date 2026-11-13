@@ -2,6 +2,7 @@
 /** Affected offline integration. Actual codecs/client/React/Next handlers; FAKE
  * Auth/C03/native mutation/commit. SQL is inspected as text, never parsed/run. */
 import assert from 'node:assert/strict';
+import { verifyPublishedEngineTransition } from './lib/app-engine-source-transition.mjs';
 import {readFileSync,existsSync,statSync} from 'node:fs';
 import {createHash,webcrypto} from 'node:crypto';
 import Module,{createRequire} from 'node:module';
@@ -286,7 +287,7 @@ await test('native proof source has actual C03 calls, privilege gates, injected 
 await test('manifest identities, canonical dependency bodies and inactive bindings match final source',()=>{
  const packet=JSON.parse(readFileSync(path.join(root,'supabase/operations-command/checklist-v2.manifest.json'),'utf8'));
  const overlays=JSON.parse(readFileSync(path.join(root,'docs/verification/CLADORA-V14-RELEASE-COMPOSITION.json'),'utf8')).immutable_source_overlays;
- for(const f of [...packet.source_identities_excluding_self,...packet.immutable_sources]){const bytes=readFileSync(path.join(root,f.path));const overlay=overlays.find(o=>o.path===f.path);if(overlay){eq({bytes:f.bytes,sha256:f.sha256},overlay.before);eq(bytes.length,overlay.after.bytes);eq(sha(bytes),overlay.after.sha256);}else{eq(bytes.length,f.bytes);eq(sha(bytes),f.sha256);}}
+ for(const f of [...packet.source_identities_excluding_self,...packet.immutable_sources]){const bytes=readFileSync(path.join(root,f.path));const overlay=overlays.find(o=>o.path===f.path);if(['package.json','package-lock.json'].includes(f.path)){ok(verifyPublishedEngineTransition(root,f));}else if(overlay){eq({bytes:f.bytes,sha256:f.sha256},overlay.before);eq(bytes.length,overlay.after.bytes);eq(sha(bytes),overlay.after.sha256);}else{eq(bytes.length,f.bytes);eq(sha(bytes),f.sha256);}}
  for(const p of packet.canonical_helper_pins){const text=readFileSync(path.join(root,p.source),'utf8');const escaped=p.function.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');const match=text.match(new RegExp('create\\s+(?:or\\s+replace\\s+)?function\\s+'+escaped+'\\([\\s\\S]*?\\bas\\s+(\\$[a-zA-Z0-9_]*\\$)([\\s\\S]*?)\\1','i'));ok(match,'pinned native helper body exists');eq(sha(match[2]),p.body_sha256);ok(sql.includes(p.body_sha256));}
  eq(packet.execution_authorized,false);eq(packet.runtime_bindings,{native:null,operator:null,fixture:null,activation:null});eq(packet.cutover.default_mode,'legacy');eq(packet.retention.technical_test_policy,'CLOSED_OWNER_POLICY_SCOPED_TEST_ONLY');eq(packet.retention.public_real_data,'OPEN');
 });
