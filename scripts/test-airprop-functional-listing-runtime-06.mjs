@@ -1,16 +1,17 @@
 // Controlled request-boundary tests only. No issued Auth/SQL/C03 or durable DB proof.
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import { fixture, scope, id, loader } from './lib/airprop-listing-flow-test-fixture.mjs';
+import { fixture, scope, id } from './lib/airprop-listing-flow-test-fixture.mjs';
+import { r2Loader } from './lib/airprop-r2-test-fixture.mjs';
 const require = createRequire(import.meta.url), { NextRequest } = require('next/server');
-const load = loader({ 'server-only': {}, '../supabase/server': { createClient() { throw Error('LIVE_AUTH_FORBIDDEN'); } } });
+const load = r2Loader({ 'src/lib/supabase/server.ts': { createClient() { throw Error('LIVE_AUTH_FORBIDDEN'); } } });
 const { createListingRequestRuntimeResolverV1, resolveListingRuntimeForRequest } = load('src/lib/airprop/listing-runtime-binding-v1.ts');
 const get = () => new NextRequest('https://cladora.test/api/customer/v2/airprop/listings?' + new URLSearchParams(scope));
 const post = value => new NextRequest('https://cladora.test/api/customer/v2/airprop/listings', { method: 'POST', headers: { Origin: 'https://cladora.test', 'Content-Type': 'application/json' }, body: JSON.stringify(value) });
 let count = 0;
 const check = async (name, run) => { await run(); console.log('PASS', ++count, name); };
 await check('unconfigured official dependency remains unavailable', async () => {
-  assert.equal(await resolveListingRuntimeForRequest({ actor_id: id(3), aal: 'aal2' }, scope), null);
+  assert.equal(await resolveListingRuntimeForRequest({ actor_id: id(3), aal: 'aal2' }, scope, get()), null);
 });
 await check('resolver null cannot fall back to static fixture ports or dispatch', async () => {
   const f = fixture(); let resolved = 0;
@@ -41,10 +42,11 @@ await check('real composition rejects foreign use before Core checkout or contro
   const resolver = createListingRequestRuntimeResolverV1(async (session, selected) => {
     assert.ok(Object.isFrozen(session) && Object.isFrozen(selected));
     return { pool: { connect: async () => { checkouts++; throw Error('NO_DB'); } }, principal: { executor: 'airprop_read_executor', runtime: 'airprop_read_runtime' },
-      canonical: { bindSelector: async () => { throw Error('NO_CANONICAL'); }, readCanonical: async () => { throw Error('NO_CANONICAL'); } },
-      control: async () => { commands++; return { status: 'not_ready' }; } };
+      canonical: { readCanonical: async () => { throw Error('NO_CANONICAL'); } },
+      command: { pool: { options: {}, connect: async () => { checkouts++; throw Error('NO_DB'); } }, target: {},
+        prepareControl: async () => { commands++; return null; } } };
   });
-  const ports = await resolver({ actor_id: id(3), aal: 'aal2' }, scope), f = fixture();
+  const ports = await resolver({ actor_id: id(3), aal: 'aal2' }, scope, get()), f = fixture();
   await assert.rejects(() => ports.read(id(99), scope));
   await assert.rejects(() => ports.read(id(3), { ...scope, workspace_id: id(99) }));
   const request = await f.command();
