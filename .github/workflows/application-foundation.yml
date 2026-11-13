@@ -29,6 +29,8 @@ on:
       - 'scripts/test-core17-*.mjs'
       - 'scripts/check-core17-post-auth-consumer-adoption.mjs'
       - 'scripts/check-app-core17-adoption-source-v1.mjs'
+      - 'scripts/lib/owned-test-database-pool-teardown-v1.mjs'
+      - 'scripts/test-owned-test-database-pool-teardown-v1.mjs'
       - 'scripts/run-app-core17-historical-admission-check-v1.mjs'
       - 'scripts/test-app-core17-adoption-source-v1.mjs'
       - 'scripts/lib/app-engine-source-transition.mjs'
@@ -132,6 +134,8 @@ on:
       - 'scripts/test-core17-*.mjs'
       - 'scripts/check-core17-post-auth-consumer-adoption.mjs'
       - 'scripts/check-app-core17-adoption-source-v1.mjs'
+      - 'scripts/lib/owned-test-database-pool-teardown-v1.mjs'
+      - 'scripts/test-owned-test-database-pool-teardown-v1.mjs'
       - 'scripts/run-app-core17-historical-admission-check-v1.mjs'
       - 'scripts/test-app-core17-adoption-source-v1.mjs'
       - 'scripts/lib/app-engine-source-transition.mjs'
@@ -325,6 +329,7 @@ jobs:
           node scripts/test-app-core17-adoption-source-v1.mjs
           node scripts/test-app-official-core-directory-v1.mjs
           node scripts/test-documents-core-host-source-transition.mjs
+          node scripts/test-owned-test-database-pool-teardown-v1.mjs
           node scripts/run-app-core17-historical-admission-check-v1.mjs
           node scripts/test-core17-post-auth-security-contract.mjs
           node scripts/test-core-service-relay-cors-v2-preflight.mjs
