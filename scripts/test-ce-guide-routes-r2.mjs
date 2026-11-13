@@ -15,7 +15,15 @@ source=source.replace("prefix+='\\nexport const setSDK=v=>{legacyBackend=v;};';"
 source=source.replace("let denied=false;const driverErrors=[];", "let denied=false;const driverErrors=[];const state={readOnly:false,denyRead:false,failFinal:false,authorityReads:0,candidates:[{context_id:ids.context,membership_id:ids.member,tenant_id:ids.tenant,workspace_id:ids.workspace,tenant_name:'Permitted tenant',role_name:'Guide reader'}]};")
  .replace("observed.push({text,values:v});", `observed.push({text,values:v});
  if(text==='select app_private.require_request_session_current_at_v1(clock_timestamp())')return {rows:[{}],rowCount:1};
- if(text.includes('order by g.id,w.id limit 51'))return {rows:structuredClone(state.candidates),rowCount:state.candidates.length};
+ if(text.includes('order by g.id,w.id limit 51')){
+  const bounded=text.includes('as transfer_bounds_valid');
+  const valid=v=>typeof v==='string'&&[...v].length>=1&&[...v].length<=256&&Buffer.byteLength(v,'utf8')<=1024;
+  // SQL transport model only: fixed independent expected limits. PostgreSQL CASE
+  // semantics/ACL/physical transfer remain Core/Platform native review gates.
+  const rows=state.candidates.map(r=>bounded?{...r,tenant_name:valid(r.tenant_name)?r.tenant_name:null,role_name:valid(r.role_name)?r.role_name:null,transfer_bounds_valid:valid(r.tenant_name)&&valid(r.role_name)}:structuredClone(r));
+  state.transferredLabelBytes=rows.reduce((sum,r)=>sum+Buffer.byteLength(r.tenant_name??'','utf8')+Buffer.byteLength(r.role_name??'','utf8'),0);
+  return {rows,rowCount:rows.length};
+ }
  if(text===api.CE012_FUNCTIONAL_AUTH_SQL){state.authorityReads++;const found=state.candidates.find(x=>x.context_id===v[0]&&x.workspace_id===v[1]);return {rows:[{tenant_id:found?.tenant_id??ids.tenant,membership_id:found?.membership_id??ids.member,can_read:Boolean(found)&&!state.denyRead&&!(state.failFinal&&state.authorityReads>1),can_manage:!state.readOnly&&!state.denyRead,revision:1,session_guard:null}],rowCount:1};}
  if(text===api.CE012_FUNCTIONAL_READ_SQL)return {rows:[{projection:{...h.projection(),guides:h.projection().guides.filter(g=>g.workspace_id===v[1])}}],rowCount:1};
  if(text==='rollback'){const r=await q(text,v);return {...r,command:'ROLLBACK'};}
@@ -118,5 +126,31 @@ for(const operation of ['create','save','publish'])await check(`retained ${opera
   await act(async()=>{document.querySelector('button').click();await new Promise(r=>setTimeout(r,35));});
   assert.equal(x.h.wires.length,postCount+1);assert.equal(x.h.wires.at(-1),wire);assert.equal(x.h.f.commits,commits);assert.equal(completed,1);assert.equal(commands.isUncertain(),false);assert.equal(document.querySelector('[role="alert"]'),null);
  }finally{await act(async()=>root.unmount());dom.window.close();}
+});
+await check('Guide discovery revoke during final SDK wait withholds the former selection',async()=>{
+ const x=platform(),get=x.SDK.auth.getUser;let calls=0;x.SDK.auth.getUser=async()=>{if(++calls===2){x.observed.push({text:'SDK_FINAL_VERIFICATION',values:[]});x.state.denyRead=true;}return get();};
+ const r=await x.h.fetch('/api/customer/v1/experience/guides/discovery');assert.equal(r.status,403,'post-wait canonical read guard must withhold revoked selection');assert.equal((await r.json()).selections,undefined);assert.equal(calls,2);assert.equal(x.h.f.commits,0);assert.deepEqual(x.h.f.writes,[]);
+});
+await check('Guide discovery text is bounded in SQL projection before modeled transfer, never silently truncated',async()=>{
+ const x=platform();x.state.candidates[0].tenant_name='x'.repeat(250000);const r=await x.h.fetch('/api/customer/v1/experience/guides/discovery');assert.equal(r.status,503);assert.equal((await r.json()).selections,undefined);
+ assert.ok(x.state.transferredLabelBytes<=2048,'LIMIT and downstream Zod cannot bound the original transferred label');
+});
+await check('Guide discovery matching SDK finishes before final canonical gates and preserves full bounded Unicode labels',async()=>{
+ for(const name of ['x'.repeat(256),'😀'.repeat(256),'a\u0301'.repeat(128)]){const x=platform(),get=x.SDK.auth.getUser;let calls=0;
+  x.state.candidates[0].tenant_name=name;x.state.candidates[0].role_name=name;x.SDK.auth.getUser=async()=>{if(++calls===2)x.observed.push({text:'SDK_FINAL_VERIFICATION',values:[]});return get();};
+  const r=await x.h.fetch('/api/customer/v1/experience/guides/discovery');assert.equal(r.status,200);const body=await r.json();assert.equal(body.selections[0].tenant_name,name);assert.equal(body.selections[0].role_name,name);assert.equal(body.truncated,false);assert.equal(body.authority,'not_evaluated');assert.equal(body.selections[0].transfer_bounds_valid,undefined);assert.ok(x.state.transferredLabelBytes<=2048);
+  const sdk=x.observed.findLastIndex(q=>q.text==='SDK_FINAL_VERIFICATION'),canonical=x.observed.findLastIndex(q=>q.text===api.CE012_FUNCTIONAL_AUTH_SQL),session=x.observed.findLastIndex(q=>q.text==='select app_private.require_request_session_current_at_v1(clock_timestamp())'),rollback=x.observed.findLastIndex(q=>q.text==='rollback');
+  assert.ok(sdk<canonical&&canonical<session&&session<rollback);assert.equal(x.observed.slice(canonical+1).some(q=>q.text==='SDK_FINAL_VERIFICATION'),false);assert.match(r.headers.get('cache-control'),/no-store, private/);assert.equal(r.headers.get('vary'),'Cookie');assert.equal(x.h.f.commits,0);assert.deepEqual(x.h.f.writes,[]);
+ }
+});
+await check('Guide discovery invalid label or overflow withholds all rows, never removes one silently',async()=>{
+ for(const field of ['tenant_name','role_name'])for(const value of ['',null,'x'.repeat(257),'😀'.repeat(257)]){const x=platform();x.state.candidates.push({...x.state.candidates[0],[field]:value});const r=await x.h.fetch('/api/customer/v1/experience/guides/discovery');assert.equal(r.status,503);assert.equal((await r.json()).selections,undefined);assert.ok(x.state.transferredLabelBytes<=4096);assert.equal(x.h.f.commits,0);}
+ const x=platform();x.state.candidates=Array.from({length:51},()=>({...x.state.candidates[0],tenant_name:'😀'.repeat(256),role_name:'😀'.repeat(256)}));const r=await x.h.fetch('/api/customer/v1/experience/guides/discovery');assert.equal(r.status,503);assert.equal((await r.json()).selections,undefined);assert.equal(x.state.transferredLabelBytes,51*2048);
+});
+await check('Guide discovery final issuer SID expiry and error controls withhold without weaker fallback',async()=>{
+ for(const mode of ['sid','expiry','error']){const x=platform(),user=x.SDK.auth.getUser,claims=x.SDK.auth.getClaims;let calls=0;
+  x.SDK.auth.getUser=async()=>{if(++calls===2){if(mode==='error')throw Error('private SDK failure');if(mode==='sid')x.SDK.auth.getClaims=async()=>{const c=await claims();c.data.claims.session_id=id(499);return c;};if(mode==='expiry'){x.SDK.auth.getSession=async()=>({error:null,data:{session:{user:{id:ids.actor},expires_at:1}}});x.SDK.auth.getClaims=async()=>{const c=await claims();c.data.claims.exp=1;return c;};}}return user();};
+  const r=await x.h.fetch('/api/customer/v1/experience/guides/discovery');assert.equal(r.status,mode==='expiry'?401:503);const b=await r.json();assert.equal(b.selections,undefined);assert.doesNotMatch(JSON.stringify(b),/private SDK|Permitted tenant/);assert.equal(calls,2);assert.equal(x.h.f.commits,0);assert.deepEqual(x.h.f.writes,[]);
+ }
 });
 console.log(JSON.stringify({task:'CE-GUIDE-NATIVE-01/CORE62-ROUTE-ADOPTION',groups:n,result:'PASS_CONTROLLED_ROUTE_COMPOSITION',native_platform_app_auth_pg_browser:'NOT_RUN_NOT_PASS',prior_core_ce_suites:'NOT_RERUN'}));
