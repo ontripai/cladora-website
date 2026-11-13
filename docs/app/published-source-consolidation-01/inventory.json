@@ -1,0 +1,200 @@
+{
+  "task": "APP-PUBLISHED-SOURCE-CONSOLIDATION-01",
+  "base": "6cecfa15b00f445be68817e756d766fb0e6fe026",
+  "tested_source_head": "a8e19c358345bc5fc75fd96dea3c3032a80cef0e",
+  "tested_source_tree": "faf3c9667b9ebfb88d7870b24450a36287b145f1",
+  "branches": [
+    {
+      "branch": "codex/core-domain-ports-01",
+      "head": "4b3138f0ff0a27187d23d8a5b058d114ddcad773",
+      "included_ancestor": true,
+      "disposition": "MERGED_PRESERVING_HISTORY"
+    },
+    {
+      "branch": "codex/ce011-basic-events-c03",
+      "head": "c32002bbf93f0dd9b8c5a2097a2afea7503ef3d4",
+      "included_ancestor": true,
+      "disposition": "MERGED_PRESERVING_HISTORY"
+    },
+    {
+      "branch": "codex/ce010-community-announcement-01",
+      "head": "b5adc9bc392838dee384b1cd8c6e297084626659",
+      "included_ancestor": true,
+      "disposition": "COVERED_BY_CE011_ANCESTRY"
+    },
+    {
+      "branch": "codex/ce-guide-native-01",
+      "head": "7d5ec54a4718bdac600b6a668453d51818f22a4e",
+      "included_ancestor": true,
+      "disposition": "MERGED_PRESERVING_HISTORY"
+    },
+    {
+      "branch": "codex/airprop-listing-native-01",
+      "head": "e20d6fb3715f52977b13305b650abf635b1f20da",
+      "included_ancestor": false,
+      "disposition": "DEFERRED_CORE_OWNED_RUNTIME_RECONCILIATION"
+    }
+  ],
+  "engine_delta": "Only the two root engines.node fields;22.x ||24.x; original lock dependencies/integrities and workflows unchanged",
+  "conflict": {
+    "path": "src/lib/core/functional-command-runtime-v1.ts",
+    "common_ancestor": "bfadc5042cb00841dd605862a2a72ddc0dbafb87",
+    "common_blob": "79c16e9c6e75ea218ab25f1ed19dd89d0a0eabd7",
+    "core_head": "4b3138f0ff0a27187d23d8a5b058d114ddcad773",
+    "core_blob": "8ef53310edd2f7bac8f9c43b7bbf7925ad34db8f",
+    "airprop_head": "e20d6fb3715f52977b13305b650abf635b1f20da",
+    "airprop_blob": "5c34552afe4323298730e7a622b2f437df1f874b",
+    "merge_tree_content_conflict_hunks": 3,
+    "candidate_blob": "8ef53310edd2f7bac8f9c43b7bbf7925ad34db8f",
+    "candidate_decision": "Preserve official Core byte-for-byte; AIRPROP not yet merged; do not apply comparison diffs as product patches",
+    "owner": "Core: CORE-AIRPROP-MERGE-COMPAT-01",
+    "resume": "Receive owner-reviewed reconciliation or proof that exact existing source covers AIRPROP while preserving SERVICE/Finance/custody; then merge AIRPROP ancestry and verify affected combined boundary"
+  },
+  "source_inventory": {
+    "included": "Existing published Core, CE011/CE010 and Guide histories; adopted two-field engines change",
+    "excluded": "Latest private APP/Finance/CE successors and current Gemini UI/WIP are not imported or published; public snapshots are not represented as those successors",
+    "operational_binding": "NULL; no admission/target activation"
+  },
+  "checks": {
+    "typecheck": {
+      "command": "npm run typecheck",
+      "result": "PASS",
+      "scope": "Full repository tsconfig, strict true; no diagnostic filter"
+    },
+    "lint": {
+      "command": "npm run lint",
+      "result": "PASS",
+      "scope": "Repository ESLint configuration, max-warnings0"
+    },
+    "build": {
+      "command": "NEXT_TELEMETRY_DISABLED=1 npm run build",
+      "result": "PASS",
+      "scope": "Isolated local Next16.4.1 production build; no hosted deployment or product runtime",
+      "initial_failure": "Turbopack rejected node_modules symlink outside its filesystem root; original failure retained outside source",
+      "recovery": "Copied exact existing installed dependencies into isolated candidate; no install/config/lock edit; build then passed"
+    },
+    "affected_coupling": {
+      "command": "node scripts/test-ce010-core6adb-route-coupling.mjs",
+      "result": "PASS_6_GROUPS",
+      "scope": "Actual merged route/Core factory/CE provider/C03 with controlled SDK/Auth/Pool/C01 transport; no live DB/native",
+      "fixture_note": "Script historical Core/CE constants supply fixture definitions; product modules are read from the current candidate. These are new combined-head results, not historical standalone PASS claims"
+    },
+    "source_check": "Public Core ce010-request-binding module exists in candidate and historical unresolved-import path compiles; original Request and fail-closed NULL binding preserved"
+  },
+  "toolchain": {
+    "node": "24.19.0",
+    "npm": "11.9.0",
+    "packages": {
+      "next": {
+        "version": "16.4.1",
+        "package_json_sha256": "546222266ef4402af870e96f03964570038e8498f4a4f7cb6dcf591f08cb07ec"
+      },
+      "typescript": {
+        "version": "5.9.3",
+        "package_json_sha256": "822ef7ca6452205657b6288b066481ecf508bfbf43455d715cf7d3ec457561e6"
+      },
+      "zod": {
+        "version": "4.6.6",
+        "package_json_sha256": "cff7e142055a9dd9bc2947a71ca3fb5e3aacdfda966d7728993ff3656245b94a"
+      },
+      "eslint": {
+        "version": "9.39.5",
+        "package_json_sha256": "361210aa42b55fd814c48a01e3724559ec6f0f3e1c021d0f8aa2e8b00276060e"
+      },
+      "eslint-config-next": {
+        "version": "16.3.3",
+        "package_json_sha256": "c289bcc566ee7d672b49643bd4d3e932aa0bd67b4eeb6d07e926c3582685acf9"
+      },
+      "pg": {
+        "version": "8.23.0",
+        "package_json_sha256": "e42dd36cba6e9dd8dbb6f773a2f7be8a8c3c273e18b155e42e75961a4cb8bc28"
+      },
+      "@supabase/ssr": {
+        "version": "0.12.5",
+        "package_json_sha256": "8941d85450592fe880bb2acd600398e0063be7168a2b6cf3f433276679cfad64"
+      },
+      "@supabase/supabase-js": {
+        "version": "2.112.4",
+        "package_json_sha256": "9efbe93869da1a587a7c4f66158d92f9f1f7582cf15a79c7238aca09a0fa3f1a"
+      }
+    }
+  },
+  "pins": [
+    {
+      "path": "src/lib/core/functional-command-runtime-v1.ts",
+      "git_blob": "8ef53310edd2f7bac8f9c43b7bbf7925ad34db8f",
+      "bytes": 39845,
+      "sha256": "438fb03e1c069b051cfa69ed48f95d9fb3bc0f3ea9450c0e0d387153d7b0f530"
+    },
+    {
+      "path": "src/lib/core/ce010-request-binding-v1.ts",
+      "git_blob": "844abbececc0263c42e42a8359bdeef65e390408",
+      "bytes": 15164,
+      "sha256": "18c6a299465f9e6838b2ad8cebd92f5785877a28352d310f788f22d349a67d84"
+    },
+    {
+      "path": "src/lib/core/platform-role-bound-pool-v1.ts",
+      "git_blob": "2e91086349247b00c461d83c3cdf4ce5be6026be",
+      "bytes": 12209,
+      "sha256": "a09a91da3d89f785a49559999482db6994a7607b375faa38aa0f994701522e17"
+    },
+    {
+      "path": "src/lib/community/experience-guide-discovery-v1.ts",
+      "git_blob": "d16b3d319d8ec96e21ed49068dc45ddbdf0d2ac3",
+      "bytes": 5790,
+      "sha256": "fd0530e071c2ab88d6f865ce0c232ce472b871fdaecbeebfbdf3efd61b61d673"
+    },
+    {
+      "path": "src/lib/community/community-announcement-platform-provider-v1.ts",
+      "git_blob": "d49899970ce1abcecb35f37626530980470273ac",
+      "bytes": 623,
+      "sha256": "5136a195edb2afada122c0fbb2d08f84df2ee9bb89a619ce1dff7787106c7163"
+    },
+    {
+      "path": "src/lib/app/guide-platform-provider-v1.ts",
+      "git_blob": "e1862ebeb8690e688e443c343bfa92b2a10f1e57",
+      "bytes": 837,
+      "sha256": "7416ad29a3935c0055492cdccfd8b236506be914269bba74e2ef3d3f443067b4"
+    },
+    {
+      "path": "package.json",
+      "git_blob": "33efc966589f1fc3c5c05b52452f773fa13241ed",
+      "bytes": 20062,
+      "sha256": "80947eb65fef6323153102566f78fd1e17e9f9370c78b1d6fb038e559d1eed77"
+    },
+    {
+      "path": "package-lock.json",
+      "git_blob": "d338554aaba6d34751731e2bc11290ad0d25abb5",
+      "bytes": 285187,
+      "sha256": "e490306fcabb49992c2b9e9ad81e9d58189af0aa0a150c6f7b3db837896f7bfa"
+    },
+    {
+      "path": "tsconfig.json",
+      "git_blob": "7f9d7d66bf8228222565337be9438986ef09e72b",
+      "bytes": 739,
+      "sha256": "9a5465ed302af1556cb72f0f5b98392f4b745761ba51f519c721f0ee49bb4226"
+    },
+    {
+      "path": "eslint.config.mjs",
+      "git_blob": "084d016be1596896625909dfe5c94e900fef22f2",
+      "bytes": 725,
+      "sha256": "b8e19062ff97ec73e56b47e37c4d66ed5b0f51a53a21f91c9d27ca2645185ba9"
+    },
+    {
+      "path": "next.config.mjs",
+      "git_blob": "af9f6a0ecf24131362749300caec11fcb12470cf",
+      "bytes": 4052,
+      "sha256": "a426743cadeb5bea53478c579dc31fc40f46f49e26c37f772f76b0a6b7869888"
+    }
+  ],
+  "qa_review": "INPUT_PENDING until actual candidate is handed off; no independent QA result claimed",
+  "not_performed": [
+    "main merge",
+    "force push/rebase/reset",
+    "remote branch deletion",
+    "live SQL/target install",
+    "Auth/RLS/role changes",
+    "runtime restart/activation",
+    "production promotion/deployment"
+  ]
+}
