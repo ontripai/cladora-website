@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'scripts/core17-native-cases-v3/**'
+      - 'scripts/core17-native-source-successor-v1/**'
       - 'scripts/lib/core15-native-ts-loader.mjs'
       - 'scripts/lib/core-installer-credential-binding-v1.mjs'
       - 'scripts/lib/core-service-assembly-environment-v1.mjs'
@@ -14,6 +15,7 @@ on:
     branches: [main, codex/core-service-real-app-assembly-17]
     paths:
       - 'scripts/core17-native-cases-v3/**'
+      - 'scripts/core17-native-source-successor-v1/**'
       - 'scripts/lib/core15-native-ts-loader.mjs'
       - 'scripts/lib/core-installer-credential-binding-v1.mjs'
       - 'scripts/lib/core-service-assembly-environment-v1.mjs'
@@ -45,8 +47,10 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: npm
       - run: npm ci
-      - name: Exact source seals and negative manifest checks
-        run: node scripts/core17-native-cases-v3/check.mjs
+      - name: Historical seal and exact reviewed source successor (not native acceptance)
+        run: |
+          node scripts/core17-native-source-successor-v1/check.mjs
+          node scripts/core17-native-source-successor-v1/test.mjs
       - name: Controlled operator and probe tests; no target activation
         run: node scripts/core17-native-cases-v3/test.mjs
       - name: Synthetic request dry-run; no credentials, SQL or Auth
@@ -55,5 +59,5 @@ jobs:
           node scripts/core17-native-cases-v3/cli.mjs dry-run "$RUNNER_TEMP/core17.synthetic.request.json"
       - name: Changed script lint and whitespace
         run: |
-          npx eslint scripts/core17-native-cases-v3/*.mjs
+          npx eslint scripts/core17-native-cases-v3/*.mjs scripts/core17-native-source-successor-v1/*.mjs
           git diff --check HEAD^ HEAD
