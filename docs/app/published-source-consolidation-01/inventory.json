@@ -1,8 +1,8 @@
 {
   "task": "APP-PUBLISHED-SOURCE-CONSOLIDATION-01",
   "base": "6cecfa15b00f445be68817e756d766fb0e6fe026",
-  "tested_source_head": "b46965f929497b78d4b4b63685c9405b1fbef6d8",
-  "tested_source_tree": "8c3177ad319a07213a13aa25ae6bd59516be5229",
+  "tested_source_head": "bec53e4301d539181ca564f8f87d9498875bc02b",
+  "tested_source_tree": "e5b0eac4b93b1016f069782c3198820a7464ab70",
   "branches": [
     {
       "branch": "codex/core-domain-ports-01",
@@ -285,5 +285,72 @@
         "4b3138f0ff0a27187d23d8a5b058d114ddcad773"
       ]
     }
-  ]
+  ],
+  "ci155_corrections": {
+    "source_head": "bec53e4301d539181ca564f8f87d9498875bc02b",
+    "parent": "67f17777f342c103e2588410949c0b32a104a37f",
+    "scope": "Test loaders, MFA behavioral assertions, underwriting fixture, versioned package inventory reconciliation only; src/package/lock/workflows/historical Core17 packet unchanged",
+    "local_node": "24.19.0",
+    "local_npm": "11.9.0",
+    "checks": [
+      {
+        "command": "node scripts/test-documents-replacement-workspace-writer-v1.mjs",
+        "result": "PASS_4"
+      },
+      {
+        "command": "node scripts/test-service-request-subject-link-v1.mjs",
+        "result": "PASS_12"
+      },
+      {
+        "command": "node scripts/test-ce-010-route.mjs",
+        "result": "PASS_55"
+      },
+      {
+        "command": "node scripts/test-service-request-route-010.mjs",
+        "result": "PASS_42"
+      },
+      {
+        "command": "node scripts/test-real-authenticated-service-08.mjs",
+        "result": "PASS_262_PLUS_MFA_16_BEHAVIORAL_AND_5_NEGATIVE"
+      },
+      {
+        "command": "node scripts/test-airprop-underwriting-ui-008.mjs",
+        "result": "PASS_MOUNTED_CONTROLLED_UNDERWRITING_SUITE"
+      },
+      {
+        "command": "node scripts/test-release-checklist-composition.mjs --match \"manifest identities\"",
+        "result": "PASS_1_CASE_85_ASSERTIONS"
+      },
+      {
+        "command": "node scripts/test-app-engine-source-transition.mjs",
+        "result": "PASS_2_POSITIVE_10_NEGATIVE_RANGE_20_22_23_24_25_26"
+      },
+      {
+        "command": "existing createCore15NativeLoader: three authority/provider/transaction exports and cached module identity",
+        "result": "PASS_SOURCE_ONLY_NO_SQL"
+      },
+      {
+        "command": "node scripts/test-core-authority-revision-postgres-v1.mjs (no target env)",
+        "result": "EXPECTED_DENIAL_EXPLICIT_DISPOSABLE_TARGET_REQUIRED_NO_SQL"
+      },
+      {
+        "command": "ESLint --max-warnings 0 on the eleven changed/new scripts; git diff --check",
+        "result": "PASS"
+      }
+    ],
+    "not_repeated": [
+      "build",
+      "full typecheck",
+      "prior healthy supplier/domain/QA suites",
+      "live SQL/native"
+    ],
+    "open": {
+      "core17_historical_seal": "INPUT_PENDING_OWNER_CORE_PROPOSAL; original manifest/check/native evidence unchanged; prior CI22/24 failure remains open",
+      "ci22_successor": "PENDING_AUTOMATIC_CI",
+      "hosted_build_successor": "NOT_CLAIMED",
+      "native": "NOT_RUN_NOT_PASS",
+      "activation": null
+    },
+    "details": "ci155-review.md"
+  }
 }

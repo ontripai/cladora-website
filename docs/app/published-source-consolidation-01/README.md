@@ -27,9 +27,13 @@ The merge commit is `b46965f929497b78d4b4b63685c9405b1fbef6d8`, with parents `3c
 
 The resolution preserves Core's SERVICE final-wire/custody and Finance hooks while admitting the published AIRPROP route/resolver against that official API. All five requested public branch heads are now ancestors of the candidate. No outstanding published-branch conflict remains; semantic acceptance belongs to independent QA.
 
-## Validation of the actual combination
+## CI harness successor
 
-The final tested product-source head is `b46965f929497b78d4b4b63685c9405b1fbef6d8`; file pins and merge parents are in `inventory.json`:
+The CI correction source is `bec53e4301d539181ca564f8f87d9498875bc02b`, parent `67f17777f342c103e2588410949c0b32a104a37f`. The same PR retains every published ancestor and the exact Core runtime blob. See [ci155-review.md](ci155-review.md) for affected results, loader callgraphs, and the remaining Core17 seal gate. This successor changes scripts and review inventory only. Product UI, Auth/MFA guards, package/lock, workflows and historical Core17/native evidence remain unchanged.
+
+## Earlier validation of the product combination
+
+The earlier tested product-source head is `b46965f929497b78d4b4b63685c9405b1fbef6d8`; file pins and merge parents are in `inventory.json`:
 
 - Full `npm run typecheck`: PASS with the repository's strict tsconfig and no Core diagnostic filter.
 - Full `npm run lint`: PASS with the existing ESLint configuration and zero warnings.
@@ -37,7 +41,7 @@ The final tested product-source head is `b46965f929497b78d4b4b63685c9405b1fbef6d
 - Four selected affected AIRPROP/Core coupling groups: PASS against the full candidate's actual route/resolver and official runtime/binder, with controlled SDK/SQL transport: verified AAL1 denial, post-bind assurance drop while preserving original wire, genuine typed MFA versus accessor/lookalike errors, and unchanged uncertainty for raw40001/lost COMMIT ACK. Only these four filters ran; the unrelated domain/UI suites did not.
 - The six CE route/Core/provider/C03 coupling groups passed on the earlier actual partial combined head. AIRPROP changes none of those route/Core/CE/Guide product inputs or package/config/workflow inputs, so those successful checks were preserved rather than replayed or counted as new. Neither controlled run establishes live SQL or native acceptance.
 
-The review documentation commit leaves the tested `src`, package/lock, tsconfig, ESLint, Next config and workflow trees unchanged. Results bind to the recorded tested source tree; documentation alone is not a new runtime check.
+The earlier review documentation commit left the tested `src`, package/lock, tsconfig, ESLint, Next config and workflow trees unchanged. Results bind to the recorded tested source tree; documentation alone is not a new runtime check.
 
 ## Review and operational gates
 
