@@ -1209,5 +1209,16 @@
     "assertions_guards_product": "UNCHANGED",
     "parent_core_matrix": "PASS_REAL_NODE22.23.4_AND24.22.2_RUN43393706361",
     "successor_CI": "PENDING_AUTOMATIC_EXACT_HEAD"
+  },
+  "address_presentation_loader": {
+    "reviewed_parent": "6f40f0583353623bea6baaedc07aff2d7d9f6523",
+    "path": "scripts/test-airprop-address-structure-presentation-evaluator-v1.mjs",
+    "bytes": 19246,
+    "sha256": "c9629537f5e9bf863efa3f3bd195f394b47eda7e8d1d025f2189bce54cd40b28",
+    "git_blob": "d1f5c64601dc5691f5063df5d9326f61417d3b56",
+    "observed_failure": "Same actual Core jurisdiction selector import graph: server-only unresolved, reproduced locally before correction",
+    "change": "Reuse unchanged Core15 actual-source loader; all19 assertions and evaluator product source retained",
+    "local": "PASS19_SYNTHETIC_PURE_PRESENTATION; LINT_WHITESPACE_PASS",
+    "activation": "NOT_RUN_NOT_PASS"
   }
 }
