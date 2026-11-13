@@ -1,8 +1,8 @@
 {
   "task": "APP-PUBLISHED-SOURCE-CONSOLIDATION-01",
   "base": "6cecfa15b00f445be68817e756d766fb0e6fe026",
-  "tested_source_head": "2f6d371c687d721f352fcdfa431ffd9a83ac2b3a",
-  "tested_source_tree": "26b3d0908279452f68ef20c37368a2fb6a19dfbd",
+  "tested_source_head": "a067e8a52dd2ed5e2ffdd61f40cf13716b90e2cd",
+  "tested_source_tree": "6d86d10a9f676df37dd13d29aa386c0b01e9e18e",
   "branches": [
     {
       "branch": "codex/core-domain-ports-01",
@@ -702,9 +702,9 @@
   "current_correction_pins": [
     {
       "path": ".github/workflows/application-foundation.yml",
-      "bytes": 20387,
-      "sha256": "b31a074ee337912c204fdfc4bea91c514f5c516526e54009d4ec77049ee8c40d",
-      "git_blob": "9f0bcd272b1fa291d43077f2c207bc48f5be8c87"
+      "bytes": 20710,
+      "sha256": "fe72df3d250aabf2a042ce751a805bc27bdebd89f6aa94fc354b5d347c4f7981",
+      "git_blob": "0c4e17e3d7f1ca026dd36c32bcab9e1c60467a7b"
     },
     {
       "path": ".github/workflows/core17-native-case-source.yml",
@@ -759,6 +759,12 @@
       "bytes": 3307,
       "sha256": "93bb86bd7b144d6d4eeea8387489aef880a92166c8d8060417769a80e8c35a2f",
       "git_blob": "47476c641eaf56614920847f1ff1f8b7fe165f29"
+    },
+    {
+      "path": "scripts/lib/owned-test-database-pool-teardown-v1.mjs",
+      "bytes": 646,
+      "sha256": "56f0bb8df06be1eb6b420bb41fc51d5663b98745c532cec24f1354997045c2da",
+      "git_blob": "5034ebd17815ca93d97ce870eccbb1e774761787"
     },
     {
       "path": "scripts/lib/reviewed-core-host-source-pin-v1.mjs",
@@ -827,6 +833,12 @@
       "git_blob": "c4186ca8f2c1114368b3357ac007f76b08fe4bf9"
     },
     {
+      "path": "scripts/test-ce-member-benefit-terminology-audit-v1.mjs",
+      "bytes": 26403,
+      "sha256": "7d5d6427c1dc088eb90646fd69aa8cc5d372c2dfebc6ad3a1748c0400d545254",
+      "git_blob": "a452329521abace606e1f42bf5923ae2db9eee85"
+    },
+    {
       "path": "scripts/test-communications-document-attachment-workspace-gate-v2.mjs",
       "bytes": 9315,
       "sha256": "743afe3e61df2c63f297d6ff7fa8623cba73513a450305ee3fd47a6561b48e67",
@@ -837,6 +849,12 @@
       "bytes": 7946,
       "sha256": "365c9e458584f33cb474fb8b8b5f585d808c53ecfaf9784379902f12772cb069",
       "git_blob": "b3e474039b36d8da04512cceb860d5b23cf825e1"
+    },
+    {
+      "path": "scripts/test-communications-private-message-currentness-postgres-v2.mjs",
+      "bytes": 9515,
+      "sha256": "b799cf9e77420307e00fea68d0f0dfee603addbc497065e037e38c5f3227ed28",
+      "git_blob": "49ea24c022b9a4d6887eac2afd4bedbefdea2c57"
     },
     {
       "path": "scripts/test-communications-private-message-provider-postgres-v1.mjs",
@@ -983,6 +1001,12 @@
       "git_blob": "6251cde6d0420f2af185752a93e9bc4de97f07b7"
     },
     {
+      "path": "scripts/test-owned-test-database-pool-teardown-v1.mjs",
+      "bytes": 1574,
+      "sha256": "e55a64abdb49845be4d7902227420b7ece7066645c34681b61571a18daf6a211",
+      "git_blob": "5116fc72a4b7bac57e3e1ead31bbad78ac7b2233"
+    },
+    {
       "path": "scripts/test-post-auth-compat-01.mjs",
       "bytes": 32786,
       "sha256": "6ad830a9605094b429fd29a6f5109dfdd23a85c7fda92672b4bc2f2e65e06ae6",
@@ -1056,10 +1080,10 @@
     }
   ],
   "current_status": {
-    "source_head": "2f6d371c687d721f352fcdfa431ffd9a83ac2b3a",
+    "source_head": "a067e8a52dd2ed5e2ffdd61f40cf13716b90e2cd",
     "core_proposal": "APPLIED_EXACT_FIVE_AFTERIMAGES; HISTORICAL_CHECKER_MANIFEST_SOURCEGATE_PRODUCT_RUNTIME_UNCHANGED",
     "Core17_CI22_24": "BOTH_PASS_AT_b2e807eb; FINAL_HISTORICAL_DOMAIN_ADAPTER_SUCCESSOR_CI_PENDING",
-    "last_independent_seams": "HISTORICAL_ADMISSION_POSITIVES_RUN_IN_ORIGINAL_SOURCE_CONTEXT; CURRENT_ADMISSION_REMAINS_NOT_READY",
+    "last_independent_seams": "TERMINOLOGY_PASS4850_WITH_NEW_DTO_PUBLIC_EXPOSURE_NEGATIVES; OWNED_POOL_TEARDOWN_ONE_EXPECTED_PLUS7_NEGATIVES",
     "native": "NOT_RUN_NOT_PASS",
     "runtime": null,
     "QA": "PENDING_INDEPENDENT_EXACT_HEAD_REVIEW"
@@ -1107,5 +1131,23 @@
     "current_candidate_admission": "NOT_READY_NOT_GRANTED",
     "native_execution_eligible": false,
     "runtime_binding": null
+  },
+  "terminology_and_teardown": {
+    "source_head": "a067e8a52dd2ed5e2ffdd61f40cf13716b90e2cd",
+    "source_tree": "6d86d10a9f676df37dd13d29aa386c0b01e9e18e",
+    "terminology": {
+      "result": "PASS4850_ASSERTIONS",
+      "technical_phrase": "Exact official Core write-free comment path added to existing technical allowlist; no product copy change",
+      "private_Guide_bindings": "Exact scope DTO type/property and private cache key AST positions only; text/DOM/unrelated props/serialized scopes/spreads remain rejected",
+      "source_UI": "UNCHANGED"
+    },
+    "owned_DB_teardown": {
+      "observed_CI": "5f953d9f: all6 Communications currentness assertions passed, then idle pool emitted late57P01 during DROP of its own isolated test DB",
+      "local_controls": "PASS_1_EXPECTED_PLUS7_DENIALS; SAME_ERROR_OBJECT_FOR_UNEXPECTED_ERRORS",
+      "SQL_and_original_assertions": "AST_IDENTICAL_TO_5f953d9f",
+      "scope": "Only after pool.end and immediately before own isolated DB drop; exact client DB and code57P01; no retry or product pool handler",
+      "SQL_local": "NOT_RUN"
+    },
+    "lint_whitespace": "PASS_CHANGED_SCRIPTS"
   }
 }

@@ -1,8 +1,8 @@
 # PR479 affected CI corrections
 
-Current correction source: `2f6d371c687d721f352fcdfa431ffd9a83ac2b3a`.
-Parent: `3da06810fb4dee2927655bff140d7d3a0ce65864`.
-Tree: `26b3d0908279452f68ef20c37368a2fb6a19dfbd`.
+Current correction source: `a067e8a52dd2ed5e2ffdd61f40cf13716b90e2cd`.
+Parent: `357b0806852e91ad6ca21da4374339ec74d33fe3`.
+Tree: `6d86d10a9f676df37dd13d29aa386c0b01e9e18e`.
 Initial correction source: `bec53e4301d539181ca564f8f87d9498875bc02b` on prior published head67.
 The following documentation-only successor records these results. Its exact SHA is available from PR479; tests are bound to the correction source above.
 
@@ -81,6 +81,12 @@ Atb2e807eb, Core17 matrix again passed both lanes, both SERVICE catalogue workfl
 At3da06810 Database static and PostgreSQL jobs pass. Application Foundation then reached the unchanged admission guard, which correctly rejected current package80947 against installed historical fd82 at test-core17-consumer-admission-v1:58. This is expected non-admission of the current successor, not a guard to relax. The original test/guard/manifest remain untouched. APP runner now executes those original positive/negative cases at exact historical main6cec source context in a task-owned detached worktree. Current source identity is still checked separately by the APP composition verifier, and current admission remains NOT_READY_NOT_GRANTED.
 
 Local runner check-only inspection authenticated immutable operator inputs, materialized every original pinned source and cleaned up its own worktree; original45 tests were NOT run locally. Existing CI executes those cases by default in the appropriate context. No fake current Coordinator admission, binding, native capability or pin update was created. Full details are in historical-source-domains.md.
+
+## Terminology AST and late owned-database teardown
+
+CI5f953d9f passed the historical/current Core section and reached the terminology audit. One newly imported Core comment says write-free read transaction; the exact path/phrase is added to the existing technical allowlist, retaining count and phrase assertions. The subsequent local failure identified only internal Guide DTO/cache bindings: typed scope membership_id, a private scope property and a private cache key. No UI source was changed. The auditor now classifies only those exact AST positions and prevents the exception if scope/binding flows into public text, DOM attributes, unrelated components, JSON serialization or spreads. Existing privacy/price/locale/RO-EN-FA/RTL assertions remain; safe private bindings plus new leak counterexamples run by default. The full previously failing audit now PASS4850 assertions. Lint/whitespace PASS.
+
+In the same5f Database job all six Communications currentness assertions passed, then its data pool emitted late SQLSTATE57P01 as the harness force-dropped its own isolated database. The error was an unhandled idle pool event during cleanup, not a failed currentness assertion. A test-only listener now consumes only exact57P01 for the exact self-created database after pool.end and explicit beginOwnDrop. Active-phase, different/missing database,40001, ordinary and unowned errors still throw the same error object; one expected event plus seven rejection controls PASS with the actual EventEmitter transport. All SQL calls/arguments and original assertions are AST-identical to5f. No SQL/role/RLS/target change or retry was introduced; no SQL was run locally. Actual PostgreSQL acceptance remains bound to the next remote CI job.
 
 ## Open gates
 
