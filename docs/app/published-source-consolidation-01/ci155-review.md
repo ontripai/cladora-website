@@ -1,8 +1,8 @@
 # PR479 affected CI corrections
 
-Current correction source: `4d21561862c20f56b9c4b81a59ca5e1f0a5d9e55`.
-Parent: `07dc064f4a2a56c83b627a3cf1b56b8b1a596029`.
-Tree: `529ee080f0aa3a59e64cee25b4fcb11029525fa0`.
+Current correction source: `b6bddb7b863c4b31c4f2047310d008f443c3c305`.
+Parent: `6d7c0bfd15c54bbb90091fcb53773ca45a28361a`.
+Tree: `4babe6796aa736a399d580780aae84a7b5e739c4`.
 Initial correction source: `bec53e4301d539181ca564f8f87d9498875bc02b` on prior published head67.
 The following documentation-only successor records these results. Its exact SHA is available from PR479; tests are bound to the correction source above.
 
@@ -63,6 +63,14 @@ Owned-layout boundary checks now resolve the actual Guide provider graph while r
 The Guide factory now intentionally wraps its CE delegates with fresh-check custody. The obsolete direct-function-identity checks are replaced with explicit controlled delegate observations around the real factory: exact Core authority supplier identity, original arguments, validation/replay dispatch, fresh-check order before/after mutation, consumed-once staging, denied validation/replay without staging, and rejection of missing/changed command custody. These wiring observations temporarily replace only the delegate exports and fresh-check transport, then restore them in finally; they do not establish real authority or native settlement. The same HTTP harness uses the actual SSR authenticator with controlled getClaims/getUser/getSession/assurance fixtures and verifies the verified session_id carrier. Six additional negatives reject mismatched subject, missing session_id, expiry mismatch, wrong role/AAL, and claims error. All11 original HTTP groups pass; product guards and UI are unchanged.
 
 ESLint on all22 changed scripts in this correction and whitespace checks PASS. All correction script blobs are pinned separately in inventory.ci155_current.source_pins. The originally accepted product pins remain unchanged.
+
+## Real Core17 CI and last independent source seams
+
+[Core17 run43384398939](https://github.com/ontripai/cladora-website/actions/runs/43384398939) on actual head552ea91b passed both jobs: Node22.23.4/job131749371398 and Node24.22.2/job131749371593. Both actual logs contain the historical62/current73/operator18 receipt and all seven new groups PASS, with native_execution_eligible=false/runtime_activation=null. This is real remote matrix CI, not inferred from the local Node24 run. The final later successor must retain a separately read exact-head result; no manual rerun was requested.
+
+The same552ea CI then exposed two later seams: S01 consumer harness marker resolution, and Documents closure's historical transaction-host pin. S01 now uses the existing unchanged Core15 loader; all four controls PASS, including same-object40001, bounded ordinary failure and exactly the existing three fresh host attempts/rollbacks. No assertion/body/provider/command changed.
+
+Documents closure now consumes the exact, hash-bound Core proposal profile rather than replacing its historical hash with the current hash. The unchanged expected historical host9436c082 is authenticated against the owner's historical→current record; the entire actual current host75138bytes/SHA6bcca1f3/Gitblob458576c1 must match that same record and current product inventory. The producer separately read official Core4b and matched its exact current host. The profile itself must have SHA09ad4bdd, reviewed67 head and native_execution_eligible=false/runtime_activation=null. Other migration/authority/writer pins and all prospective Workspace creation/insert-owner/no-legacy/no-backfill guards remain unchanged. Original closure checks PASS; the focused transition check rejects five host/profile/extra/native mutations. No SQL was run locally.
 
 ## Open gates
 

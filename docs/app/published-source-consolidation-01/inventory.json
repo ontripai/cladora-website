@@ -1,8 +1,8 @@
 {
   "task": "APP-PUBLISHED-SOURCE-CONSOLIDATION-01",
   "base": "6cecfa15b00f445be68817e756d766fb0e6fe026",
-  "tested_source_head": "4d21561862c20f56b9c4b81a59ca5e1f0a5d9e55",
-  "tested_source_tree": "529ee080f0aa3a59e64cee25b4fcb11029525fa0",
+  "tested_source_head": "b6bddb7b863c4b31c4f2047310d008f443c3c305",
+  "tested_source_tree": "4babe6796aa736a399d580780aae84a7b5e739c4",
   "branches": [
     {
       "branch": "codex/core-domain-ports-01",
@@ -743,6 +743,12 @@
       "git_blob": "2dace6716d24659779ce51691b0b61d75ce08166"
     },
     {
+      "path": "scripts/lib/reviewed-core-host-source-pin-v1.mjs",
+      "bytes": 1424,
+      "sha256": "fb7f453c2b028212e669ee04274ac48c1366b4f499afd157e9d3bec0eda5f9b7",
+      "git_blob": "d736e862254c62e5c0d0ff7485854c5d5509ac8f"
+    },
+    {
       "path": "scripts/test-airprop-underwriting-ui-008.mjs",
       "bytes": 15006,
       "sha256": "6c8c08166a55b4cac0957114cdc00d459d54a6c1b2ed0c4243f8b44780a496e9",
@@ -851,6 +857,12 @@
       "git_blob": "0863715b2e76431f4c9145dda71bbd91ffc44eef"
     },
     {
+      "path": "scripts/test-documents-core-host-source-transition.mjs",
+      "bytes": 1472,
+      "sha256": "ed68efe212eefd759d53bfdb843df0d392c986bb6376c67cff0a9635244a478d",
+      "git_blob": "c6ea32c6c3815fa4288a9646e48a059d9c1f1cf0"
+    },
+    {
       "path": "scripts/test-documents-country-retention-operation-integration-postgres-v1.mjs",
       "bytes": 28446,
       "sha256": "55abc4a762dd2ec08d6d9b4a44be9b338eb6f7983b4bebb6b7816f3dc196a9a0",
@@ -873,6 +885,12 @@
       "bytes": 19566,
       "sha256": "8697a63bd14a2d9b7ec0993a5287e1587c1ffa93255daf04b67de1d5ed97fb00",
       "git_blob": "8255d0fd60402a4954bbd86a15be614804fe5eba"
+    },
+    {
+      "path": "scripts/test-documents-null-workspace-creation-closure-v1.mjs",
+      "bytes": 6218,
+      "sha256": "8c0e5fac5a2603922ea35ac456d7324774fae26399e2ec52e94dfbd6d5f48d31",
+      "git_blob": "6f3b1c682d98e05eeb0d2d31f531a9df2a0b3ae1"
     },
     {
       "path": "scripts/test-documents-reference-authority-v1.mjs",
@@ -981,6 +999,30 @@
       "bytes": 19589,
       "sha256": "feb645464d87d13abbe91758910294f1d08147cab76aa24c7bf378b1363c421b",
       "git_blob": "d4d6f90168ab72f8033ccdb3096dbe0bdd19fcfb"
+    },
+    {
+      "path": "scripts/test-service-s01-consumer-sqlstate-v1.mjs",
+      "bytes": 9521,
+      "sha256": "662d3877bb377edc749f9cb546adddd061cad27c831284099e509e892ba29ee1",
+      "git_blob": "5a95f1cfab46f8f78552ed4dcd8f037d5ed55cb6"
     }
-  ]
+  ],
+  "current_status": {
+    "source_head": "b6bddb7b863c4b31c4f2047310d008f443c3c305",
+    "core_proposal": "APPLIED_EXACT_FIVE_AFTERIMAGES; HISTORICAL_CHECKER_MANIFEST_SOURCEGATE_PRODUCT_RUNTIME_UNCHANGED",
+    "Core17_CI22_24": "BOTH_PASS_AT_552ea91b; FINAL_SUCCESSOR_CI_PENDING",
+    "last_independent_seams": "S01_LOADER_PASS4; DOCUMENTS_REVIEWED_CORE_HOST_TRANSITION_PASS_WITH5_NEGATIVES",
+    "native": "NOT_RUN_NOT_PASS",
+    "runtime": null,
+    "QA": "PENDING_INDEPENDENT_EXACT_HEAD_REVIEW"
+  },
+  "ci155_final_source_seams": {
+    "source_head": "b6bddb7b863c4b31c4f2047310d008f443c3c305",
+    "parent": "6d7c0bfd15c54bbb90091fcb53773ca45a28361a",
+    "S01": "PASS4_EXACT40001_OBJECT_BOUNDED_FAILURE_EXISTING_HOST_RETRY_COUNTS_PRESERVED",
+    "Documents_NULL_workspace_closure": "PASS_EXISTING_ALL_MIGRATION_SOURCE_INSERT_OWNER_GUARDS",
+    "host_transition": "Core owner profile sha09ad4bdd... authenticates historical9436c082 and official Core4b current6bcca1f3; entire current host bytes/SHA/Gitblob checked; profile/native/extra tamper and host tamper rejected",
+    "no_SQL": "Local tests are source/controlled only",
+    "Core17_current_workflow_22_24": "Already passed at552ea; new real exact-head CI follows publication; no historical receipt relabel"
+  }
 }

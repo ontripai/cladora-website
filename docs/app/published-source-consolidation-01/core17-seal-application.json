@@ -113,5 +113,22 @@
   "historical_manifest_checker_sourceGate_runtime": "BYTE_IDENTICAL_TO_BEFORE",
   "old_54_healthy_suites_local": "NOT_REPEATED",
   "SQL_build_native_local": "NOT_RUN",
-  "CI22_24": "PENDING_AUTOMATIC_EXACT_FINAL_HEAD"
+  "CI22_24": {
+    "head": "552ea91be530db92c4afda43d644732ea1a08c29",
+    "workflow_run": "https://github.com/ontripai/cladora-website/actions/runs/43384398939",
+    "result": "PASS_BOTH_LANES",
+    "lanes": [
+      {
+        "node": "22.23.4",
+        "job": 131749371398,
+        "result": "success"
+      },
+      {
+        "node": "24.22.2",
+        "job": 131749371593,
+        "result": "success"
+      }
+    ],
+    "scope": "Actual original62/current73/18operator checks and seven new groups; native_execution_eligible=false; final independent S01/Documents successor CI must be read separately"
+  }
 }
