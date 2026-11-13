@@ -48,6 +48,7 @@ const technicalFreeAllowlist = new Map([
   ['src/app/[lang]/platform/(control-plane)/retention-operations/page.tsx', ['side-effect-free']],
   ['src/lib/community/experience-guide-lifecycle-http-v1.ts', ['write-free']],
   ['src/lib/community/experience-guide-create-writer-v1.ts', ['document-free']],
+  ['src/lib/core/platform-role-bound-pool-v1.ts', ['write-free']],
 ]);
 
 for (const file of allSourceFiles) {
