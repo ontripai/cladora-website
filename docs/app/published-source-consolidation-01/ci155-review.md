@@ -1,8 +1,8 @@
 # PR479 affected CI corrections
 
-Current correction source: `bc53e490d88e0ba001f2669ce3509d829094dcc8`.
-Parent: `ab45aa97a1eaadc1e7aa34d194fb7baf075cc150`.
-Tree: `d344ef1ad36d606ed95e9fe69d785f5abbcee84a`.
+Current correction source: `84a5ce313bfec47df3b8e63ef598b7dfeb378b66`.
+Parent: `ef055c35cf736bbe7ae0d98614e53c368d0134b4`.
+Tree: `8eaaed31f48ff73f6c547e462f39a9a392f6e7f3`.
 Initial correction source: `bec53e4301d539181ca564f8f87d9498875bc02b` on prior published head67.
 The following documentation-only successor records these results. Its exact SHA is available from PR479; tests are bound to the correction source above.
 
@@ -95,6 +95,12 @@ Atab45aa97 the terminology audit passes and Application Foundation reached the o
 New ce-guide-source-transition.json records only these four paths, exact main6cec before bytes/SHA/blob and exact owner commit/after bytes/SHA/blob. Its hash is fixed in the source verifier. The existing handoff check retains all preceding chain/provenance assertions and uses the bounded transition for those four paths only; every other covered byte remains unchanged. The complete source must equal actual owner Git bytes and its exact predecessor pin; missing/extra/unreviewed paths and native relabel fail. Existing classification counts remain10accepted/9inactive/4internal; QA/native remain pending and runtimeNULL.
 
 Four owner-source positives and ten predecessor/current-byte/extra/native negatives PASS. The affected handoff contract PASS314 reported checks across its original23 entries, retaining inactive runtime, explicit Guide edit gates, absence of automatic SERVICE mutation, separate command identities/receipts, benefit/locale boundaries and RTL. UI files were not edited. The new verification runs from Application Foundation with explicit trigger paths. Lint/whitespace PASS. Database static and PostgreSQL jobs atab45aa97 both pass after the bounded teardown fix; their result is scoped to that head.
+
+## Final jurisdiction artifact standalone loader
+
+At exactef055c35, all23 workflows completed:22 success, one Application Foundation failure. The real Core17 matrix passed both Node22.23.4/job131774859352 and Node24.22.2/job131774859558 in run43392290523; each log was read and contains the62/73/18 identity receipt, all seven new groups PASS and native eligibility false. Database static and PostgreSQL also pass. Application Foundation passed the unit suite and reached one remaining standalone jurisdiction-domain-artifact loader marker failure.
+
+That harness alone now uses the existing unchanged Core15 loader. The affected14 cases PASS with their original country/profile/hash/domain/version/expiry/credential rejection, postal grammar and non-executable artifact assertions; five synthetic countries remain fixtures. Lint/whitespace PASS; no SQL/native or healthy suite/build was run locally. The next exact-head automatic CI must be read separately.
 
 ## Open gates
 

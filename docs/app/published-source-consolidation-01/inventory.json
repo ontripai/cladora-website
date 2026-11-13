@@ -1,8 +1,8 @@
 {
   "task": "APP-PUBLISHED-SOURCE-CONSOLIDATION-01",
   "base": "6cecfa15b00f445be68817e756d766fb0e6fe026",
-  "tested_source_head": "bc53e490d88e0ba001f2669ce3509d829094dcc8",
-  "tested_source_tree": "d344ef1ad36d606ed95e9fe69d785f5abbcee84a",
+  "tested_source_head": "84a5ce313bfec47df3b8e63ef598b7dfeb378b66",
+  "tested_source_tree": "8eaaed31f48ff73f6c547e462f39a9a392f6e7f3",
   "branches": [
     {
       "branch": "codex/core-domain-ports-01",
@@ -905,6 +905,12 @@
       "git_blob": "94486decf03ff1496389ca9a6d18ce9fbd74d4a0"
     },
     {
+      "path": "scripts/test-core-jurisdiction-domain-artifact-v1.mjs",
+      "bytes": 21393,
+      "sha256": "0ab62e25b4223a2e3eb109294e7ea87e5c1d6530cd57b658aa99cf35cd65c989",
+      "git_blob": "b819ad4202520204cc3bea8776935f5b6e0c6f76"
+    },
+    {
       "path": "scripts/test-core-jurisdiction-profile-selector-postgres-v1.mjs",
       "bytes": 15295,
       "sha256": "648f32fd4b3693601f84190d23229f67290fca3f7ac0bdb3a22ff0d45243bf38",
@@ -1098,10 +1104,10 @@
     }
   ],
   "current_status": {
-    "source_head": "bc53e490d88e0ba001f2669ce3509d829094dcc8",
+    "source_head": "84a5ce313bfec47df3b8e63ef598b7dfeb378b66",
     "core_proposal": "APPLIED_EXACT_FIVE_AFTERIMAGES; HISTORICAL_CHECKER_MANIFEST_SOURCEGATE_PRODUCT_RUNTIME_UNCHANGED",
     "Core17_CI22_24": "BOTH_PASS_AT_b2e807eb; FINAL_HISTORICAL_DOMAIN_ADAPTER_SUCCESSOR_CI_PENDING",
-    "last_independent_seams": "CE_HANDOFF_PASS314_WITH_FROZEN23_ENTRY_INVENTORY; FOUR_EXACT_PUBLISHED_SOURCES_AND10_NEGATIVES",
+    "last_independent_seams": "JURISDICTION_ARTIFACT_EXISTING_LOADER_PASS14; PRECEDINGef055_EXACT_CI22_SUCCESS_1_FAILURE_OF23",
     "native": "NOT_RUN_NOT_PASS",
     "runtime": null,
     "QA": "PENDING_INDEPENDENT_EXACT_HEAD_REVIEW"
@@ -1183,5 +1189,13 @@
     "classification_counts": "UNCHANGED_ACCEPTED10_INACTIVE9_INTERNAL4",
     "UI_and_runtime": "UNCHANGED; runtimeNULL; native_execution_eligible=false; QA_PENDING",
     "lint_whitespace": "PASS_CHANGED_SCRIPTS"
+  },
+  "jurisdiction_artifact_last_loader": {
+    "source_head": "84a5ce313bfec47df3b8e63ef598b7dfeb378b66",
+    "previous_head": "ef055c35cf736bbe7ae0d98614e53c368d0134b4",
+    "previous_CI": "22_SUCCESS_1_FAILURE_OF23; Core17_22_24_BOTH_PASS; DB_STATIC_AND_POSTGRES_PASS",
+    "actual_failure": "Application Foundation after unit suite: test-core-jurisdiction-domain-artifact-v1.mjs standalone loader cannot resolve server-only",
+    "change": "Reuse unchanged Core15 native TS loader only; all original artifact assertions and product source retained",
+    "local": "PASS14_WITH_FIVE_SYNTHETIC_COUNTRIES; LINT_AND_WHITESPACE_PASS; SQL_NATIVE_NOT_RUN"
   }
 }
