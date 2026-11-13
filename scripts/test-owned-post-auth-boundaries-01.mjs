@@ -1,8 +1,8 @@
 /** Real routing modules, controlled Auth only; no live login or business calls. */
 import assert from 'node:assert/strict';
-import {readFileSync} from 'node:fs';
+import {readFileSync,existsSync} from 'node:fs';
 import {createRequire} from 'node:module';
-import {resolve,join} from 'node:path';
+import {resolve,join,dirname,relative} from 'node:path';
 import {fileURLToPath} from 'node:url';
 const root=resolve(process.argv[2]??fileURLToPath(new URL('../',import.meta.url)));
 const require=createRequire(join(root,'package.json')),ts=require('typescript');
@@ -26,10 +26,23 @@ function fixture({privateProfile=true,publicProfile=true,browser=false,level='aa
   '@/components/auth/AccountSecurityPanel':{AccountSecurityPanel:function Setup(){}},
   '@/components/customer/CustomerAppShell':{CustomerAppShell:function Shell(){}},
  };
+ const modules=new Map();
  function load(path){
-  const compiledModule={exports:{}};
+  if(modules.has(path))return modules.get(path).exports;
+  const compiledModule={exports:{}};modules.set(path,compiledModule);
+  if(path.endsWith('.json')){compiledModule.exports=JSON.parse(readFileSync(join(root,path),'utf8'));return compiledModule.exports;}
+  const actualRequire=name=>{
+   if(Object.hasOwn(mocks,name))return mocks[name];
+   if(name==='server-only')return require('next/dist/compiled/server-only/empty');
+   if(name.startsWith('@/')||name.startsWith('.')){
+    const base=name.startsWith('@/')?join(root,'src',name.slice(2)):resolve(dirname(join(root,path)),name);
+    const file=[base,base+'.ts',base+'.tsx',base+'.json'].find(p=>existsSync(p));
+    assert.ok(file,`Source dependency exists: ${name}`);return load(relative(root,file));
+   }
+   return require(name);
+  };
   const code=ts.transpileModule(readFileSync(join(root,path),'utf8'),{fileName:path,compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX,target:ts.ScriptTarget.ES2022,esModuleInterop:true}}).outputText;
-  new Function('require','module','exports','process','window',code)(name=>Object.hasOwn(mocks,name)?mocks[name]:require(name),compiledModule,compiledModule.exports,{env},browser?{location:{hostname:'localhost'}}:undefined);
+  new Function('require','module','exports','process','window',code)(actualRequire,compiledModule,compiledModule.exports,{env},browser?{location:{hostname:'localhost'}}:undefined);
   return compiledModule.exports;
  }
  const post=load('src/lib/auth/post-auth-route.ts');mocks['@/lib/auth/post-auth-route']=post;

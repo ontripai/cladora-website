@@ -8,12 +8,13 @@ const require=createRequire(import.meta.url),cache=new Map(),overrides=new Map()
 function load(url){
   if(overrides.has(url.href))return overrides.get(url.href);
   if(cache.has(url.href))return cache.get(url.href);
+  if(url.pathname.endsWith('.json')){const value=JSON.parse(readFileSync(url,'utf8'));cache.set(url.href,value);return value;}
   const compiled=ts.transpileModule(readFileSync(url,'utf8'),{compilerOptions:{
-    module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,
+    module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022,esModuleInterop:true,
   }});
   const mod={exports:{}};cache.set(url.href,mod.exports);
-  new Function('require','module','exports',compiled.outputText)(name=>name.startsWith('.')
-    ?load(new URL(name.endsWith('.ts')?name:`${name}.ts`,url)):require(name),mod,mod.exports);
+  new Function('require','module','exports',compiled.outputText)(name=>name==='server-only'?require('next/dist/compiled/server-only/empty'):name.startsWith('.')
+    ?load(new URL(/\.(?:json|[cm]?[jt]sx?)$/.test(name)?name:`${name}.ts`,url)):require(name),mod,mod.exports);
   return mod.exports;
 }
 

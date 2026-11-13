@@ -144,13 +144,51 @@ await check('public schema rejects actor, authority, transaction and evidence in
   }
 });
 
-await check('provider factory directly consumes Core authority and CE lifecycle functions', async () => {
+await check('provider factory consumes Core authority and CE lifecycle delegates with fresh-check custody', async () => {
   const providers = runtime.createExperienceGuideLifecycleCoreProvidersV1();
   assert.equal(providers.provider_code, lifecycle.experienceGuideLifecycleProviderCodeV1);
   assert.equal(providers.replay_policy, lifecycle.experienceGuideLifecycleReplayPolicyV1);
-  assert.equal(providers.validateProviders, lifecycle.validateExperienceGuideLifecycleV1);
-  assert.equal(providers.validateReplay, lifecycle.validateExperienceGuideLifecycleReplayV1);
-  assert.equal(providers.mutate, lifecycle.mutateExperienceGuideLifecycleV1);
+  const authorityProvider = load(new URL('../src/lib/core/current-authority-postgres-provider-v1.ts', import.meta.url));
+  assert.equal(providers.resolveAuthority, authorityProvider.resolveAuthority);
+  // Controlled delegate observations verify the current wrappers, rather than
+  // requiring obsolete function identity that bypasses their fresh-check custody.
+  const writer = load(new URL('../src/lib/community/experience-guide-create-writer-v1.ts', import.meta.url));
+  const original = { ...lifecycle }, recheck = writer.recheckCe012CurrentAuthorityV1;
+  const scope = {}, command = runtime.buildExperienceGuideLifecycleCoreCommandV1(requestValue, trusted);
+  const authority = { evaluated_at: '2026-10-18T12:00:00.000Z' }, receipt = {}, effect = {};
+  const fresh = { evaluated_at: '2026-10-18T12:00:00.001Z' }, calls = [];
+  let decision = 'accepted';
+  try {
+    lifecycle.validateExperienceGuideLifecycleV1 = async (...args) => { calls.push(['validate', ...args]); return { decision, evaluated_at: authority.evaluated_at }; };
+    lifecycle.validateExperienceGuideLifecycleReplayV1 = async (...args) => { calls.push(['replay', ...args]); return { decision, evaluated_at: authority.evaluated_at }; };
+    lifecycle.mutateExperienceGuideLifecycleV1 = async (...args) => { calls.push(['mutate', ...args]); return effect; };
+    writer.recheckCe012CurrentAuthorityV1 = async (...args) => { calls.push(['fresh', ...args]); return fresh; };
+    await assert.rejects(() => providers.mutate(scope, command), /ce_guide_lifecycle_binding_lost/);
+    assert.equal(calls.length, 0);
+    assert.equal((await providers.validateProviders(scope, command, authority)).evaluated_at, fresh.evaluated_at);
+    assert.strictEqual(calls[0][1], scope); assert.strictEqual(calls[0][2], command); assert.strictEqual(calls[0][3], authority);
+    assert.deepEqual(calls, [['validate', scope, command, authority], ['fresh', scope, command, authority]]);
+    calls.length = 0;
+    assert.strictEqual(await providers.mutate(scope, command), effect);
+    assert.deepEqual(calls, [['fresh', scope, command, fresh], ['mutate', scope, command], ['fresh', scope, command, fresh]]);
+    await assert.rejects(() => providers.mutate(scope, command), /ce_guide_lifecycle_binding_lost/);
+    calls.length = 0;
+    assert.equal((await providers.validateReplay(scope, command, authority, receipt)).evaluated_at, fresh.evaluated_at);
+    assert.deepEqual(calls, [['replay', scope, command, authority, receipt], ['fresh', scope, command, authority]]);
+    calls.length = 0; decision = 'denied';
+    assert.equal((await providers.validateProviders(scope, command, authority)).decision, 'denied');
+    assert.equal((await providers.validateReplay(scope, command, authority, receipt)).decision, 'denied');
+    assert.deepEqual(calls, [['validate', scope, command, authority], ['replay', scope, command, authority, receipt]]);
+    await assert.rejects(() => providers.mutate(scope, command), /ce_guide_lifecycle_binding_lost/);
+    decision = 'accepted'; calls.length = 0;
+    await providers.validateProviders(scope, command, authority);
+    calls.length = 0;
+    await assert.rejects(() => providers.mutate(scope, { ...command, idempotency_key: 'changed' }), /ce_guide_lifecycle_binding_lost/);
+    assert.equal(calls.length, 0);
+    await assert.rejects(() => providers.mutate(scope, command), /ce_guide_lifecycle_binding_lost/);
+  } finally {
+    Object.assign(lifecycle, original); writer.recheckCe012CurrentAuthorityV1 = recheck;
+  }
 });
 
 await check('bounded result mapping exposes only outcome, receipt and resulting version', async () => {
@@ -237,16 +275,26 @@ await check('missing or non-canonical role-bound capability fails closed without
 });
 
 await check('Supabase adapter requires matching current user, session, expiry and MFA assurance', async () => {
-  const actor = id(11);
+  const actor = id(11), expiresAt = Math.floor(Date.now() / 1000) + 300, sessionId = id(13);
+  const verifiedClaims = { sub: actor, session_id: sessionId, exp: expiresAt, role: 'authenticated', aal: 'aal2' };
   authFixture = {
+    getClaims: async () => ({ data: { claims: verifiedClaims }, error: null }),
     getUser: async () => ({ data: { user: { id: actor } }, error: null }),
-    getSession: async () => ({ data: { session: { user: { id: actor }, expires_at: Math.floor(Date.now() / 1000) + 300 } }, error: null }),
+    getSession: async () => ({ data: { session: { user: { id: actor }, expires_at: expiresAt } }, error: null }),
     mfa: { getAuthenticatorAssuranceLevel: async () => ({ data: { currentLevel: 'aal2' }, error: null }) },
   };
   assert.deepEqual(await runtime.authenticateExperienceGuideLifecycleServerSessionV1(request()), {
     source: 'supabase_verified_session', actor_id: actor, assurance_level: 'aal2',
-    expires_at: (await authFixture.getSession()).data.session.expires_at,
+    expires_at: expiresAt, session_id: sessionId,
   });
+  const validAuth = authFixture;
+  for (const changes of [{ sub: id(12) }, { session_id: undefined }, { exp: expiresAt + 1 }, { role: 'service_role' }, { aal: 'aal1' }]) {
+    authFixture = { ...validAuth, getClaims: async () => ({ data: { claims: { ...verifiedClaims, ...changes } }, error: null }) };
+    assert.equal(await runtime.authenticateExperienceGuideLifecycleServerSessionV1(request()), null);
+  }
+  authFixture = { ...validAuth, getClaims: async () => ({ data: { claims: verifiedClaims }, error: new Error('controlled') }) };
+  assert.equal(await runtime.authenticateExperienceGuideLifecycleServerSessionV1(request()), null);
+  authFixture = validAuth;
   authFixture = { ...authFixture,
     getSession: async () => ({ data: { session: { user: { id: id(12) }, expires_at: Math.floor(Date.now() / 1000) + 300 } }, error: null }),
   };

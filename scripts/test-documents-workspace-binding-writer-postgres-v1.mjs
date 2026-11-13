@@ -1,9 +1,9 @@
+import { createCore15NativeLoader } from './lib/core15-native-ts-loader.mjs';
+import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import { createHash, randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import pg from 'pg';
-import ts from 'typescript';
 
 const connectionString = process.env.DOC_WORKSPACE_WRITER_TEST_DATABASE_URL;
 if (!connectionString || process.env.DOC_WORKSPACE_WRITER_EPHEMERAL !== '1') {
@@ -23,17 +23,9 @@ if (target.pathname === '/postgres') {
   target.pathname = `/${isolatedDatabaseName}`;
 }
 
-const require = createRequire(import.meta.url), cache = new Map();
-function load(url) {
-  if (cache.has(url.href)) return cache.get(url.href);
-  const compiled = ts.transpileModule(readFileSync(url, 'utf8'), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
-  });
-  const mod = { exports: {} }; cache.set(url.href, mod.exports);
-  new Function('require', 'module', 'exports', compiled.outputText)(name => name.startsWith('.')
-    ? load(new URL(name.endsWith('.ts') ? name : `${name}.ts`, url)) : require(name), mod, mod.exports);
-  return mod.exports;
-}
+
+const { load: loadSource } = createCore15NativeLoader(fileURLToPath(new URL('../', import.meta.url)));
+const load = url => loadSource(fileURLToPath(url));
 
 const api = load(new URL('../src/lib/customer/documents-workspace-binding-writer-v1.ts', import.meta.url));
 const replacementApi = load(new URL(

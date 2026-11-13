@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
-import ts from 'typescript';
+import { fileURLToPath } from 'node:url';
+import { createCore15NativeLoader } from './lib/core15-native-ts-loader.mjs';
 
 const migration = readFileSync(
   'supabase/migrations/20261018150000_documents_retention_lifecycle_workspace_gate_v2.sql',
@@ -47,18 +47,8 @@ for (const path of routes) {
   assert.doesNotMatch(source, /documents-retention-lifecycle-workspace-v2/);
 }
 
-const require = createRequire(import.meta.url), cache = new Map();
-function load(url) {
-  if (cache.has(url.href)) return cache.get(url.href);
-  const compiled = ts.transpileModule(readFileSync(url, 'utf8'), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
-  });
-  const mod = { exports: {} }; cache.set(url.href, mod.exports);
-  new Function('require', 'module', 'exports', compiled.outputText)(name => name.startsWith('.')
-    ? load(new URL(name.endsWith('.ts') ? name : `${name}.ts`, url)) : require(name), mod, mod.exports);
-  return mod.exports;
-}
-
+const { load: loadSource } = createCore15NativeLoader(fileURLToPath(new URL('../', import.meta.url)));
+const load = url => loadSource(fileURLToPath(url));
 const api = load(new URL(
   '../src/lib/customer/documents-retention-lifecycle-workspace-v2.ts', import.meta.url));
 const id = value => `7b000000-0000-4000-8000-${String(value).padStart(12, '0')}`;
