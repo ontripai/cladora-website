@@ -35,6 +35,7 @@ jobs:
       GUIDE_INPUT_ENVELOPE_SHA256: ${{ vars.GUIDE_READINESS_INPUT_ENVELOPE_SHA256 }}
       GUIDE_INPUT_PUBLISHER_WORKFLOW_ID: ${{ vars.GUIDE_READINESS_INPUT_PUBLISHER_WORKFLOW_ID }}
       GUIDE_INPUT_PUBLISHER_HEAD_SHA: ${{ vars.GUIDE_READINESS_INPUT_PUBLISHER_HEAD_SHA }}
+      GUIDE_PRIVATE_INPUT_REPOSITORY_ID: ${{ vars.GUIDE_READINESS_PRIVATE_INPUT_REPOSITORY_ID }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -44,24 +45,28 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Authenticate protected original-input channel
-        run: python3 -B scripts/platform-guide-readiness-ci-v2/inputs.py metadata
+      - name: Authenticate the private original-input repository and artifact
+        run: python3 -B scripts/platform-guide-readiness-ci-v5/private-inputs.py metadata
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GUIDE_PRIVATE_INPUTS_TOKEN: ${{ secrets.GUIDE_READINESS_PRIVATE_TRANSFER_TOKEN }}
       - uses: actions/download-artifact@v4
         with:
-          github-token: ${{ github.token }}
-          repository: ontripai/cladora-website
+          github-token: ${{ secrets.GUIDE_READINESS_PRIVATE_TRANSFER_TOKEN }}
+          repository: ontripai/cladora-guide-readiness-private
           run-id: ${{ vars.GUIDE_READINESS_INPUT_RUN_ID }}
           artifact-ids: ${{ vars.GUIDE_READINESS_INPUT_ARTIFACT_ID }}
           merge-multiple: true
           path: ${{ runner.temp }}/guide-readiness-ciphertext
+      - name: Recheck source repository privacy after download
+        run: python3 -B scripts/platform-guide-readiness-ci-v5/private-inputs.py after-download
+        env:
+          GUIDE_PRIVATE_INPUTS_TOKEN: ${{ secrets.GUIDE_READINESS_PRIVATE_TRANSFER_TOKEN }}
       - name: Authenticate and decrypt original inputs privately
         run: node --max-old-space-size=256 scripts/platform-guide-readiness-ci-v2/envelope.mjs decrypt
         env:
           GUIDE_INPUT_DECRYPT_KEY_B64: ${{ secrets.GUIDE_READINESS_INPUT_DECRYPT_KEY_B64 }}
       - name: Verify original bytes and separate exact source tool and history
-        run: python3 -B scripts/platform-guide-readiness-ci-v3/inputs.py materialize --bootstrap-git "$GITHUB_WORKSPACE"
+        run: python3 -B scripts/platform-guide-readiness-ci-v5/private-inputs.py materialize
       - uses: supabase/setup-cli@v3
         with:
           version: 2.84.2
@@ -69,11 +74,9 @@ jobs:
         run: node scripts/platform-guide-readiness-ci-v4/observe.mjs
         env:
           GITHUB_TOKEN: ${{ github.token }}
-      - name: Preserve read-only observations separately from runtime admission
+      - name: Preserve observations only in the private evidence repository
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: guide-readiness-observation-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/guide-readiness-receipts/*.json
-          if-no-files-found: error
-          retention-days: 7
+        run: python3 -B scripts/platform-guide-readiness-ci-v5/private-receipts.py
+        env:
+          GUIDE_PRIVATE_INPUTS_TOKEN: ${{ secrets.GUIDE_READINESS_PRIVATE_TRANSFER_TOKEN }}
+          GUIDE_JOB_STATUS_BEFORE_CAPTURE: ${{ job.status }}
