@@ -1,0 +1,79 @@
+# Readiness transport and observation only. Database tests retain their existing workflow.
+name: Guide readiness
+
+on:
+  workflow_dispatch:
+    inputs:
+      guide_readiness_only:
+        description: Read-only Guide source, job and CLI observation; no target operations
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: guide-readiness-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+
+  guide-owned-preflight:
+    name: Guide owned CI readiness
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.guide_readiness_only == true && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: guide-readiness
+    permissions:
+      contents: read
+      actions: read
+    env:
+      GUIDE_INPUT_RUN_ID: ${{ vars.GUIDE_READINESS_INPUT_RUN_ID }}
+      GUIDE_INPUT_ARTIFACT_ID: ${{ vars.GUIDE_READINESS_INPUT_ARTIFACT_ID }}
+      GUIDE_INPUT_MANIFEST_SHA256: ${{ vars.GUIDE_READINESS_INPUT_MANIFEST_SHA256 }}
+      GUIDE_INPUT_ARCHIVE_SHA256: ${{ vars.GUIDE_READINESS_INPUT_ARCHIVE_SHA256 }}
+      GUIDE_INPUT_ENVELOPE_SHA256: ${{ vars.GUIDE_READINESS_INPUT_ENVELOPE_SHA256 }}
+      GUIDE_INPUT_PUBLISHER_WORKFLOW_ID: ${{ vars.GUIDE_READINESS_INPUT_PUBLISHER_WORKFLOW_ID }}
+      GUIDE_INPUT_PUBLISHER_HEAD_SHA: ${{ vars.GUIDE_READINESS_INPUT_PUBLISHER_HEAD_SHA }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Authenticate protected original-input channel
+        run: python3 -B scripts/platform-guide-readiness-ci-v2/inputs.py metadata
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - uses: actions/download-artifact@v4
+        with:
+          github-token: ${{ github.token }}
+          repository: ontripai/cladora-website
+          run-id: ${{ vars.GUIDE_READINESS_INPUT_RUN_ID }}
+          artifact-ids: ${{ vars.GUIDE_READINESS_INPUT_ARTIFACT_ID }}
+          merge-multiple: true
+          path: ${{ runner.temp }}/guide-readiness-ciphertext
+      - name: Authenticate and decrypt original inputs privately
+        run: node --max-old-space-size=256 scripts/platform-guide-readiness-ci-v2/envelope.mjs decrypt
+        env:
+          GUIDE_INPUT_DECRYPT_KEY_B64: ${{ secrets.GUIDE_READINESS_INPUT_DECRYPT_KEY_B64 }}
+      - name: Verify original bytes and separate exact source tool and history
+        run: python3 -B scripts/platform-guide-readiness-ci-v3/inputs.py materialize --bootstrap-git "$GITHUB_WORKSPACE"
+      - uses: supabase/setup-cli@v3
+        with:
+          version: 2.84.2
+      - name: Observe actual same-lane job and pinned CLI
+        run: node scripts/platform-guide-readiness-ci-v4/observe.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: Preserve read-only observations separately from runtime admission
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: guide-readiness-observation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/guide-readiness-receipts/*.json
+          if-no-files-found: error
+          retention-days: 7

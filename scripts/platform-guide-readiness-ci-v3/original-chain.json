@@ -1,0 +1,123 @@
+{
+  "contract": "app.guide-ci-original-inputs.v1",
+  "bootstrap": {
+    "head": "17c0fcefed9f80ed0ee9630d686627056764e604",
+    "tree": "009fa20985abefd405c63c2d6d4880fd6b150994"
+  },
+  "bundles_in_import_order": [
+    {
+      "file": "app-8cb9.bundle",
+      "bytes": 49617,
+      "sha256": "338180adbf119e912d1e7c6be56019bc54ce54b6274525588472428a979effc4",
+      "head": "8cb9d6e9b78aa1dfff3d11a87c719af19a9ef64d",
+      "parents": [
+        "17c0fcefed9f80ed0ee9630d686627056764e604"
+      ],
+      "tree": "b32813a36dac371e88b116da0356ac022a05b0b7",
+      "prerequisites": [
+        "17c0fcefed9f80ed0ee9630d686627056764e604"
+      ]
+    },
+    {
+      "file": "app-f3e68.bundle",
+      "bytes": 187905,
+      "sha256": "578d59a51fd11e0d65865116e26516838fa5fb61487cadcd9d0f09107c22a817",
+      "head": "f3e68d095777bc28c1a06a883b07886e2f8bfab3",
+      "parents": [
+        "14500a17767e20d4a70c640dc36540bb29630f76",
+        "3aa8a4aa775adea647a332292bd369b2efc3502f"
+      ],
+      "tree": "c2126a0b55b4b6ab924005e78d081aac292e2190",
+      "prerequisites": [
+        "8cb9d6e9b78aa1dfff3d11a87c719af19a9ef64d",
+        "17c0fcefed9f80ed0ee9630d686627056764e604"
+      ]
+    },
+    {
+      "file": "source-9064.bundle",
+      "bytes": 52175,
+      "sha256": "af82b3a2b7db09ab4e2d8be6d75f2aee10d6561ae6827e5fb07b2231fdc6a0b8",
+      "head": "9064c7844657d7f0bfc16c20461100356b673362",
+      "parents": [
+        "f3e68d095777bc28c1a06a883b07886e2f8bfab3",
+        "b5a4a6ac54aeea12e2082c84879ac21d824c9dcf",
+        "f774cae03d269d486d3d2cf6f4038e742a841b62"
+      ],
+      "tree": "ea64978b0fd3ecbb33b5ce8416e60e524b7b6ae2",
+      "prerequisites": [
+        "17c0fcefed9f80ed0ee9630d686627056764e604",
+        "f3e68d095777bc28c1a06a883b07886e2f8bfab3"
+      ]
+    },
+    {
+      "file": "platform-9fab.bundle",
+      "bytes": 12102,
+      "sha256": "859b909dba0d785a239460cf84e25d85b3fd744314f236a93d83f3d9eef5bab3",
+      "head": "9fab4dcdd5269e2724ca7888b11bbe448ece316e",
+      "parents": [
+        "17c0fcefed9f80ed0ee9630d686627056764e604"
+      ],
+      "tree": "23385aa06530ee96a84be5efdfe237989ac7425e",
+      "prerequisites": [
+        "17c0fcefed9f80ed0ee9630d686627056764e604"
+      ]
+    },
+    {
+      "file": "history-26f8.bundle",
+      "bytes": 11630,
+      "sha256": "a246d297ed3db948aa92b38dd588608acd0381bce59c5d5566076781afd81be3",
+      "head": "26f8df8a023095c6adbd7184445eee62fc3ddff9",
+      "parents": [
+        "9fab4dcdd5269e2724ca7888b11bbe448ece316e"
+      ],
+      "tree": "dd0594a7ae45ee10b4bfed6c5fc9bc91b28e51bd",
+      "prerequisites": [
+        "9fab4dcdd5269e2724ca7888b11bbe448ece316e"
+      ]
+    },
+    {
+      "file": "platform-a2.bundle",
+      "bytes": 10842,
+      "sha256": "83ca39395a90f711cef2b73b12600ce976118b0ba858f4ca5a02c2d6591cea22",
+      "head": "a2b8b2cc1f6458c61b3e2faacb7e6d3ddd97f8f1",
+      "parents": [
+        "26f8df8a023095c6adbd7184445eee62fc3ddff9"
+      ],
+      "tree": "f092acd8f142699ed5e175fa5723c8c8304cc30a",
+      "prerequisites": [
+        "26f8df8a023095c6adbd7184445eee62fc3ddff9"
+      ]
+    },
+    {
+      "file": "tool-aba19.bundle",
+      "bytes": 8132,
+      "sha256": "343f349aeef6cfa5b3b748f31539305677421f66d449efe892f6a4541eac5e8c",
+      "head": "aba19c2855973258e6edac80a5d4ba68e2c24e01",
+      "parents": [
+        "a2b8b2cc1f6458c61b3e2faacb7e6d3ddd97f8f1"
+      ],
+      "tree": "59cb465cb2d37c7bd641e882c04940ba24bb5177",
+      "prerequisites": [
+        "a2b8b2cc1f6458c61b3e2faacb7e6d3ddd97f8f1"
+      ]
+    }
+  ],
+  "ce_descriptor": {
+    "file": "ce-descriptor.json",
+    "bytes": 14444,
+    "sha256": "d4eaa3d999a4bf950deee0bd8027294e1b58842ad1c96cdc66dad4f2fce75831"
+  },
+  "roots": {
+    "source": "9064c7844657d7f0bfc16c20461100356b673362",
+    "tool": "aba19c2855973258e6edac80a5d4ba68e2c24e01",
+    "history": "26f8df8a023095c6adbd7184445eee62fc3ddff9"
+  },
+  "protection": {
+    "required": "CI-specific authorized private transfer, fixed read-only receiver; no public repository, Page grant or environment flag as proof",
+    "provider": null,
+    "CI_read_receipt": null
+  },
+  "workflow_revision": null,
+  "preflight": "HOLD",
+  "job_CLI_admission_native": "NOT_RUN"
+}
