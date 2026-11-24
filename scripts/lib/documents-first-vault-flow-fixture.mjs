@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest } from 'next/server.js';
 import { scanDocumentVersion } from '../document-clamav-worker.mjs';
+import { checkAppVaultDisclosure, checkCoreVaultDisclosure, installCoreVaultSessionFixture } from './documents-vault-disclosure-fixture.mjs';
 
 const migration = name => readFileSync(new URL(`../../supabase/migrations/${name}`, import.meta.url), 'utf8');
 const sha256 = value => createHash('sha256').update(value).digest('hex');
@@ -47,6 +48,7 @@ export async function installFirstVaultFlowFixture(pool) {
     .match(/create or replace function documents\.customer_document_scope_matches\([\s\S]+?\$\$;/);
   assert.ok(scopeMatcher);
   await pool.query(scopeMatcher[0]);
+  await installCoreVaultSessionFixture(pool);
 }
 
 function privateStorage(pool, directory, intent, bytes) {
@@ -148,6 +150,7 @@ export async function runFirstVaultFlow({ pool, host, load, ids, actor, revision
     const storage = privateStorage(pool, directory, intent, bytes);
     const byteAdapter = storageModule.createDocumentsStorageReadbackV1(storage.client);
     const rawTarget = { bucket_id: 'document-vault', object_path: intent.object_path };
+    let originalDownload;
     await check('canonical intent, SDK upload/readback and immutable version pin the same object and digest', async () => {
       const issued = await commands.issueNewIntent(intent, await context());
       assert.equal(issued.status, 'committed', JSON.stringify(issued));
@@ -244,6 +247,7 @@ export async function runFirstVaultFlow({ pool, host, load, ids, actor, revision
         ...selection, workspace_id: workspace.toUpperCase(), version_id: versionId.toUpperCase(),
       };
       const prepared = await commands.preparePrivateDownload(exactSelection, downloadContext);
+      originalDownload = { exactSelection, downloadContext, prepared };
       assert.equal(prepared.result.status, 'committed', JSON.stringify(prepared));
       assert.equal(prepared.private_candidate?.version_id, versionId);
       assert.equal(prepared.private_candidate?.storage_object_id, storage.object.id);
@@ -271,53 +275,12 @@ export async function runFirstVaultFlow({ pool, host, load, ids, actor, revision
       assert.equal(foreign.private_candidate, null);
       assert.equal(await digest(), beforeReplay);
     });
-    await check('private APP entry releases the same bytes only after fresh authority and exact replay', async () => {
-      const { createDocumentsPrivateDownloadPostV1 } = load(
-        new URL('../../src/lib/app/documents-private-download-v1.ts', import.meta.url));
-      const commandContext = await context();
-      const input = { ...selection, idempotency_key: 'vault-private-app-download' };
-      const binding = { sessionId: randomUUID(), tenantId: ids.tenantId, contextId: ids.contextId,
-        workspaceId: workspace, custodyId: 'disposable-vault', commandContext, commands, storage: byteAdapter };
-      const seen = [];
-      const post = createDocumentsPrivateDownloadPostV1(async original => { seen.push(original); return binding; });
-      const allowed = request(input);
-      const result = await post(allowed);
-      assert.equal(result.status, 200, await result.clone().text());
-      assert.equal(result.headers.get('content-disposition'), 'attachment');
-      assert.deepEqual(seen, [allowed, allowed]);
-      assert.equal(sha256(Buffer.from(await result.arrayBuffer())), sha256(bytes));
-
-      const before = await digest();
-      let storageReads = 0;
-      let revokeDuringRead = false;
-      const guarded = createDocumentsPrivateDownloadPostV1(async () => ({
-        ...binding, storage: { async readbackWithBytes(target) {
-          storageReads++;
-          const contents = await byteAdapter.readbackWithBytes(target);
-          if (revokeDuringRead) await pool.query(`update platform.workspace_entitlements set boolean_value=false
-            where customer_workspace_id=$1 and entitlement_key='module.documents'`, [workspace]);
-          return contents;
-        } },
-      }));
-      const foreign = await guarded(request({ ...input, workspace_id: otherWorkspace }));
-      assert.equal(foreign.status, 403);
-      assert.equal(storageReads, 0);
-
-      revokeDuringRead = true;
-      try {
-        const revoked = await guarded(request(input));
-        assert.equal(revoked.status, 403, await revoked.clone().text());
-        assert.equal(storageReads, 1);
-        for (const response of [foreign, revoked]) {
-          assert.equal(response.headers.get('content-disposition'), null);
-          assert.equal(response.headers.get('location'), null);
-          assert.deepEqual(await response.json(), { error: { code: 'DOCUMENT_DOWNLOAD_DENIED' } });
-        }
-        assert.equal(await digest(), before);
-      } finally {
-        await pool.query(`update platform.workspace_entitlements set boolean_value=true
-          where customer_workspace_id=$1 and entitlement_key='module.documents'`, [workspace]);
-      }
+    await checkCoreVaultDisclosure({
+      pool, load, ids, actor, digest, check, byteAdapter, rawTarget, bytes, ...originalDownload,
+    });
+    await checkAppVaultDisclosure({
+      pool, load, ids, actor, digest, check, byteAdapter, bytes, request,
+      commands, selection, commandContext: await context(), scratchFile: storage.file,
     });
     await check('existing public upload and download handlers retain their held response without releasing bytes', async () => {
       const uploadIntent = load(new URL('../../src/app/api/customer/v1/documents/upload-intent/route.ts', import.meta.url));
