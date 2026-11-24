@@ -1,21 +1,11 @@
 // New Documents primitives only. Real SDK/code; controlled HTTP/SQL transports.
 // No real Storage/PG/Auth/scanner or clean attestation is produced by this test.
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
-import ts from 'typescript';
 import { createClient } from '@supabase/supabase-js';
-const require = createRequire(import.meta.url), cache = new Map();
-function load(url) {
-  if (cache.has(url.href)) return cache.get(url.href);
-  const m = { exports: {} }; cache.set(url.href, m.exports);
-  const js = ts.transpileModule(readFileSync(url, 'utf8'), { compilerOptions: {
-    module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText;
-  new Function('require', 'module', 'exports', js)(n => n.startsWith('.')
-    ? load(new URL(n.endsWith('.ts') ? n : `${n}.ts`, url)) : require(n), m, m.exports);
-  cache.set(url.href, m.exports); return m.exports;
-}
+import { createApplicationTestModuleLoader } from './lib/load-application-test-module.mjs';
+
+const load = createApplicationTestModuleLoader({ server: true });
 const storageApi = load(new URL('../src/lib/customer/documents-storage-readback-v1.ts', import.meta.url));
 const functional = load(new URL('../src/lib/customer/documents-functional-download-provider-v1.ts', import.meta.url));
 const vault = load(new URL('../src/lib/customer/documents-vault-download-exact-workspace-v2.ts', import.meta.url));
