@@ -14,7 +14,11 @@ import {
   buildDocumentsReplacementPromotionAfterCleanCommandV1, createDocumentsReplacementPromotionAfterCleanProvidersV1,
   type DocumentsReplacementPromotionAfterCleanV1,
 } from './documents-replacement-promotion-after-clean-v1';
-import { buildDocumentsVaultDownloadExactWorkspaceCommandV2, type DocumentsVaultDownloadExactWorkspaceV2 } from './documents-vault-download-exact-workspace-v2';
+import {
+  buildDocumentsVaultDownloadExactWorkspaceCommandV2,
+  documentsVaultDownloadExactWorkspaceV2Schema,
+  type DocumentsVaultDownloadExactWorkspaceV2,
+} from './documents-vault-download-exact-workspace-v2';
 import { createDocumentsFunctionalDownloadProviderV1 } from './documents-functional-download-provider-v1';
 
 type CommandContext = Parameters<typeof buildDocumentsNewDocumentIntentCommandV1>[1];
@@ -47,7 +51,8 @@ export function createDocumentsFunctionalCommandsV1(host: CoreTransactionHostV1)
       return host.execute(buildDocumentsReplacementPromotionAfterCleanCommandV1(input, context, object),
         createDocumentsReplacementPromotionAfterCleanProvidersV1(input, context, object));
     },
-    async preparePrivateDownload(input: DocumentsVaultDownloadExactWorkspaceV2, context: CommandContext) {
+    async preparePrivateDownload(inputValue: DocumentsVaultDownloadExactWorkspaceV2, context: CommandContext) {
+      const input = documentsVaultDownloadExactWorkspaceV2Schema.parse(inputValue);
       const command = buildDocumentsVaultDownloadExactWorkspaceCommandV2(input, context);
       const download = createDocumentsFunctionalDownloadProviderV1(input, context);
       const result = await host.execute(command, download.providers);
