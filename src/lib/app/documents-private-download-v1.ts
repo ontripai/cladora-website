@@ -3,6 +3,7 @@ import 'server-only';
 import type { NextRequest } from 'next/server';
 
 import { createCoreDocumentsDownloadRecheckV1 } from '../core/documents-download-recheck-v1';
+import { CoreFunctionalRuntimeUnavailableV1 } from '../core/functional-command-runtime-v1';
 import { HEADERS } from '../customer/documents-api-helper';
 import type { createDocumentsFunctionalCommandsV1 } from '../customer/documents-functional-commands-v1';
 import type { createDocumentsStorageReadbackV1 } from '../customer/documents-storage-readback-v1';
@@ -67,7 +68,9 @@ export function createDocumentsPrivateDownloadPostV1(
       const identity = bindingIdentity(binding);
       const storage = binding.storage;
       const { pool, target } = binding.core;
-      const guard = await createCoreDocumentsDownloadRecheckV1({ pool, target: { ...target }, request });
+      const guard = await createCoreDocumentsDownloadRecheckV1({
+        pool, target: { ...target }, request, expectedSessionId: binding.sessionId,
+      });
       if (!guard || request.signal.aborted) return denied();
       const prepared = await binding.commands.preparePrivateDownload(input, context);
       const candidate = prepared.private_candidate;
@@ -94,7 +97,10 @@ export function createDocumentsPrivateDownloadPostV1(
 
       return new Response(bytes, { headers: { ...HEADERS, 'Content-Type': candidate.mime_type,
         'Content-Disposition': 'attachment', 'X-Content-Type-Options': 'nosniff' } });
-    } catch {
+    } catch (error) {
+      if (error instanceof CoreFunctionalRuntimeUnavailableV1 && error.code === 'DOCUMENTS_SESSION_MISMATCH') {
+        return denied();
+      }
       return unavailable();
     }
   };

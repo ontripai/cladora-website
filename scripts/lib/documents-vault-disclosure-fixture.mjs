@@ -43,6 +43,8 @@ async function withVaultReplayFixture({ pool, load, actor }, check) {
       sub: actor, session_id: session, aal: 'aal2', role: 'authenticated',
     }));
   const binding = load(new URL('../../src/lib/core/documents-command-binding-v1.ts', import.meta.url));
+  const { CoreFunctionalRuntimeUnavailableV1 } = load(
+    new URL('../../src/lib/core/functional-command-runtime-v1.ts', import.meta.url));
   const originalBinding = binding.createCoreDocumentsCommandBindingV1;
   const boundRequests = [];
   let replays = 0;
@@ -51,6 +53,10 @@ async function withVaultReplayFixture({ pool, load, actor }, check) {
       assert.ok(actualRequest instanceof Request);
       assert.equal(options.pool, pool);
       boundRequests.push(actualRequest);
+      const expectedSessionId = options.documents_download_session?.expected_session_id;
+      if (expectedSessionId !== undefined && expectedSessionId !== session) {
+        throw new CoreFunctionalRuntimeUnavailableV1('DOCUMENTS_SESSION_MISMATCH');
+      }
       return { replayHost: { async execute(command, providers) {
         replays += 1;
         return host.executeDocumentsReplayOnly(command, providers);
@@ -224,6 +230,17 @@ export async function checkAppVaultDisclosure({
       assert.equal(events.count, 2, 'one access event per separate original download command');
     });
     const before = await digest();
+    await check('private APP denies a binding whose session differs from the authenticated Request before Storage', async () => {
+      const priorReads = storageReads;
+      const priorReplays = replayCount();
+      const postWithMismatchedSession = createDocumentsPrivateDownloadPostV1(async () => ({
+        ...binding, sessionId: randomUUID(),
+      }));
+      await withheld(await postWithMismatchedSession(request(input)));
+      assert.equal(storageReads, priorReads);
+      assert.equal(replayCount(), priorReplays);
+      assert.equal(await digest(), before);
+    });
     await check('private APP handler denies wrong Workspace before reading and rejects altered measured bytes', async () => {
       const prior = storageReads;
       const replays = replayCount();
