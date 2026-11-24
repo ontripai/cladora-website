@@ -4,7 +4,7 @@ import {once} from 'node:events';
 import {readFile} from 'node:fs/promises';
 import {test} from 'node:test';
 import {copySnapshot, loadFixture, observeProcess, safeFailure, succeeded, validateCi} from './run-building-setup-concurrency-ci.mjs';
-import {cleanupOwnedDatabase, parseProofFailureRecord, proofFailureRecord, validateProofTarget, withProofCleanup} from './test-building-workspace-onboarding-postgres.mjs';
+import {cleanupOwnedDatabase, parseProofFailureRecord, proofFailureRecord, validateProofTarget, waitForSourceQuiescence, withProofCleanup} from './test-building-workspace-onboarding-postgres.mjs';
 
 // Offline: only isolated Node child processes/streams and mocked DB clients.
 // No Docker, PostgreSQL, Auth, HTTP, remote service, server or runtime startup.
@@ -180,6 +180,34 @@ test('one end failure does not skip other owned ends/drop; foreign session drop 
   assert.ok(!safeFailure('cleanup',error).message.includes(secret));
   return true;
  });
+});
+
+test('clone waits for its closing lease reader and proceeds only after zero source sessions',async()=>{
+ const pid=413, observations=[[{pid}],[{pid}],[]], waits=[];
+ const admin={query:async(sql,values)=>{
+  assert.equal(sql,'select pid from pg_stat_activity where datname=$1');
+  assert.deepEqual(values,[source]);
+  return {rows:observations.shift()};
+ }};
+ await waitForSourceQuiescence(admin,source,pid,async ms=>waits.push(ms));
+ assert.deepEqual(waits,[50,50]);
+ assert.deepEqual(observations,[]);
+});
+
+test('a foreign session stops the source check immediately',async()=>{
+ for(const rows of [[{pid:501}],[{pid:413},{pid:501}]]){
+  const admin={query:async()=>({rows})};
+  await assert.rejects(waitForSourceQuiescence(admin,source,413,()=>assert.fail('foreign sessions must not be polled')),
+   /never terminate another connection/);
+ }
+});
+
+test('a lingering owned backend times out without allowing a clone',async()=>{
+ let checks=0, waits=0;
+ const admin={query:async()=>{checks++;return {rows:[{pid:413}]};}};
+ await assert.rejects(waitForSourceQuiescence(admin,source,413,async()=>{waits++;}),/bounded wait expired/);
+ assert.equal(checks,40);
+ assert.equal(waits,39);
 });
 
 test('entrypoint refusal before Docker/DB and retained actual-role concurrency/no-write assertions',async()=>{

@@ -1,26 +1,16 @@
 // New Documents primitives only. Real SDK/code; controlled HTTP/SQL transports.
 // No real Storage/PG/Auth/scanner or clean attestation is produced by this test.
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { createRequire } from 'node:module';
 import { createHash } from 'node:crypto';
-import ts from 'typescript';
 import { createClient } from '@supabase/supabase-js';
-const require = createRequire(import.meta.url), cache = new Map();
-function load(url) {
-  if (cache.has(url.href)) return cache.get(url.href);
-  const m = { exports: {} }; cache.set(url.href, m.exports);
-  const js = ts.transpileModule(readFileSync(url, 'utf8'), { compilerOptions: {
-    module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText;
-  new Function('require', 'module', 'exports', js)(n => n.startsWith('.')
-    ? load(new URL(n.endsWith('.ts') ? n : `${n}.ts`, url)) : require(n), m, m.exports);
-  cache.set(url.href, m.exports); return m.exports;
-}
+import { createApplicationTestModuleLoader } from './lib/load-application-test-module.mjs';
+
+const load = createApplicationTestModuleLoader({ server: true });
 const storageApi = load(new URL('../src/lib/customer/documents-storage-readback-v1.ts', import.meta.url));
 const functional = load(new URL('../src/lib/customer/documents-functional-download-provider-v1.ts', import.meta.url));
 const vault = load(new URL('../src/lib/customer/documents-vault-download-exact-workspace-v2.ts', import.meta.url));
 const authorityApi = load(new URL('../src/lib/core/current-authority-transaction-port-v1.ts', import.meta.url));
-const id = n => `91000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
+const id = n => `91ab0000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const tenant = id(1), contextId = id(2), workspace = id(3), actor = id(4), document = id(5), version = id(6), intentId = id(7), objectId = id(8);
 const path = `${tenant}/${intentId}/v1.pdf`, bytes = Buffer.from('%PDF-1.7\nCLADORA synthetic upload only\n');
 const intent = { contract_version: 'documents-new-document-intent.v1', context_id: contextId, workspace_id: workspace,
@@ -95,14 +85,21 @@ const auth = authorityApi.bindCanonicalCurrentAuthorityObservationV1({ contract_
     module_code: 'documents', entitlement_key: 'module.documents', authority_revision: 2 } });
 function scopeFixture(options = {}) {
   const calls = [], one = x => ({ rowCount: 1, rows: [x] });
-  const scope = { transaction_id: ctx.transaction_id, database_transaction_id: '200', workspace_id: workspace,
-    tenant_id: tenant, actor_id: actor, attempt: 1, async query(sql) {
+  const scope = { transaction_id: ctx.transaction_id, database_transaction_id: '200', workspace_id: options.workspace ?? workspace,
+    tenant_id: tenant, actor_id: actor, attempt: 1, async query(sql, params) {
       calls.push(sql);
       if (sql.includes('authorized_download')) return one({ mutation_id: version });
       if (sql.includes("auth.jwt()->>'role'") && !sql.includes('from documents.documents')) return one({ valid: true });
-      if (sql.includes('d.tenant_id=$3') && sql.includes('storage_object_id')) return one({ valid: true, document_id: document, version_id: version, version: 1,
-        bucket_id: 'document-vault', object_path: path, storage_object_id: objectId, storage_generation: 'generation-1',
-        storage_etag: 'etag-1', sha256: 'a'.repeat(64), size_bytes: String(bytes.length), mime_type: 'application/pdf', now });
+      if (sql.includes('d.tenant_id=$3') && sql.includes('storage_object_id')) {
+        assert.deepEqual(params, [document, version, tenant, workspace, 1, actor]);
+        const stored = options.stored;
+        return one({ valid: true, document_id: document, version_id: version, version: 1,
+          bucket_id: 'document-vault', object_path: stored?.object_path ?? path,
+          storage_object_id: stored?.storage_object_id ?? objectId,
+          storage_generation: stored?.storage_generation ?? 'generation-1',
+          storage_etag: stored?.storage_etag ?? 'etag-1',
+          sha256: stored?.sha256 ?? 'a'.repeat(64), size_bytes: String(bytes.length), mime_type: 'application/pdf', now });
+      }
       if (sql.includes('as evaluated_at') && sql.includes('txid_current()')) return one({ transaction_id: '200', actor_id: actor, isolation: 'serializable', evaluated_at: now });
       if (sql.includes('canonical_authority_revision_v1')) return one({ revision: '2' });
       if (sql.includes('m.user_id::text as actor_id')) return one({ tenant_id: tenant, actor_id: actor,
@@ -171,6 +168,52 @@ await check('application commands delegate canonical providers once, preserve UN
   const prepared = await commands.preparePrivateDownload(download, ctx);
   assert.equal(prepared.result, unknown); assert.equal(prepared.private_candidate, null);
   assert.equal(prepared.outward_projection, null); assert.equal(prepared.current_disclosure, 'not_evaluated');
+});
+await check('application commands join synthetic upload/readback to the exact version and deny another Workspace', async () => {
+  const storage = storageFixture();
+  const stored = await storage.api.uploadNew(intent, bytes);
+  const reopened = await storage.api.readback({ bucket_id: stored.bucket_id, object_path: stored.object_path });
+  assert.deepEqual(reopened, stored);
+  assert.equal(reopened.sha256, createHash('sha256').update(bytes).digest('hex'));
+
+  function prepare(request, requestWorkspace) {
+    const fixture = scopeFixture({ workspace: requestWorkspace, stored: reopened });
+    const commands = commandsApi.createDocumentsFunctionalCommandsV1({
+      async execute(actual, providers) {
+        if (!await providers.validateProviders(fixture.scope, actual, auth)) return { status: 'denied' };
+        const effect = await providers.mutate(fixture.scope, actual);
+        return { status: 'committed', receipt: { ...effect, command_id: actual.command_id,
+          workspace_id: actual.workspace_id, input_fingerprint: actual.input_fingerprint } };
+      },
+    });
+    return { calls: fixture.calls, result: commands.preparePrivateDownload(request, ctx) };
+  }
+
+  // The API accepts case-insensitive UUIDs. PostgreSQL and canonical receipts use lowercase.
+  const request = { ...download, document_id: document.toUpperCase(), version_id: version.toUpperCase(),
+    workspace_id: workspace.toUpperCase() };
+  const allowed = prepare(request, workspace);
+  const { private_candidate: candidate, outward_projection } = await allowed.result;
+  assert.ok(candidate, 'same document and version must survive canonical receipt matching');
+  assert.equal(candidate.document_id, intent.prospective_document_id);
+  assert.equal(candidate.version_id, version);
+  assert.equal(candidate.version, 1);
+  assert.equal(candidate.object_path, reopened.object_path);
+  assert.equal(candidate.storage_object_id, reopened.storage_object_id);
+  assert.equal(candidate.storage_generation, reopened.storage_generation);
+  assert.equal(candidate.storage_etag, reopened.storage_etag);
+  assert.equal(candidate.sha256, reopened.sha256);
+  assert.equal(outward_projection, null);
+  assert.equal(allowed.calls.filter(sql => sql.includes('insert into documents.access_events')).length, 1);
+
+  const storageRequests = storage.requests.length;
+  const denied = prepare(request, id(40));
+  const result = await denied.result;
+  assert.equal(result.result.status, 'denied');
+  assert.equal(result.private_candidate, null);
+  assert.equal(result.outward_projection, null);
+  assert.deepEqual(denied.calls, []);
+  assert.equal(storage.requests.length, storageRequests);
 });
 console.log(JSON.stringify({ result: 'PASS_CONTROLLED_SDK_AND_SQL_TRANSPORT_ONLY', groups: n,
   actual_storage_pg_scanner_core15_restart: 'NOT_RUN_NOT_PASS', task_completion: 'OPEN_PLATFORM12_CORE15_BINDING_REQUIRED' }));

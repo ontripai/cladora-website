@@ -22,7 +22,7 @@ export class DocumentsStorageReadbackUnavailableV1 extends Error {
  * loads credentials. No public route is wired and no service_role fallback exists.
  */
 export function createDocumentsStorageReadbackV1(client: Pick<SupabaseClient, 'storage'>) {
-  async function readback(targetValue: z.input<typeof targetSchema>) {
+  async function readbackWithBytes(targetValue: z.input<typeof targetSchema>) {
     const target = targetSchema.parse(targetValue), bucket = client.storage.from(target.bucket_id);
     const beforeResponse = await bucket.info(target.object_path);
     const before = infoSchema.safeParse(beforeResponse.data);
@@ -38,7 +38,7 @@ export function createDocumentsStorageReadbackV1(client: Pick<SupabaseClient, 's
     if (afterResponse.error || !after.success || JSON.stringify(before.data) !== JSON.stringify(after.data)) {
       throw new DocumentsStorageReadbackUnavailableV1('OBJECT_CHANGED');
     }
-    return Object.freeze({ bucket_id: target.bucket_id, object_path: target.object_path,
+    const measurement = Object.freeze({ bucket_id: target.bucket_id, object_path: target.object_path,
       storage_object_id: before.data.id,
       generation_capability: before.data.version ? 'exposed' as const : 'not_exposed' as const,
       storage_generation: before.data.version ?? null,
@@ -50,8 +50,12 @@ export function createDocumentsStorageReadbackV1(client: Pick<SupabaseClient, 's
       // non-overwrite/custody separately; info/version/ETag cannot establish it.
       non_overwrite_verified: false as const, scan_authority: false as const,
       reusable_as_download_authority: false as const });
+    return Object.freeze({ measurement, bytes: downloaded.data });
   }
-  return Object.freeze({ readback,
+  async function readback(targetValue: z.input<typeof targetSchema>) {
+    return (await readbackWithBytes(targetValue)).measurement;
+  }
+  return Object.freeze({ readback, readbackWithBytes,
     async uploadNew(intentValue: DocumentsNewDocumentIntentV1, bytesValue: Uint8Array) {
       const intent = documentsNewDocumentIntentV1Schema.parse(intentValue);
       targetSchema.parse({ bucket_id: 'document-vault', object_path: intent.object_path });

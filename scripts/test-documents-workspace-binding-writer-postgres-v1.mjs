@@ -4,6 +4,9 @@ import assert from 'node:assert/strict';
 import { createHash, randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import pg from 'pg';
+import { installFirstVaultFlowFixture, runFirstVaultFlow } from './lib/documents-first-vault-flow-fixture.mjs';
+
+const firstVaultFlow = process.argv.includes('--first-vault-flow');
 
 const connectionString = process.env.DOC_WORKSPACE_WRITER_TEST_DATABASE_URL;
 if (!connectionString || process.env.DOC_WORKSPACE_WRITER_EPHEMERAL !== '1') {
@@ -383,7 +386,7 @@ create table documents.access_events(
   id uuid primary key default gen_random_uuid(),tenant_id uuid not null,document_id uuid not null,
   version_id uuid,actor_id uuid,action text not null,purpose text,occurred_at timestamptz not null default clock_timestamp()
 );
-create table documents.document_scan_jobs(
+${firstVaultFlow ? '' : `create table documents.document_scan_jobs(
   id uuid primary key default gen_random_uuid(),tenant_id uuid not null,version_id uuid not null unique,
   state text not null default 'pending'
 );
@@ -392,7 +395,7 @@ create table documents.document_scan_attestations(
   provider text not null check(provider='clamav'),scan_id uuid not null unique,
   verdict text not null check(verdict in ('clean','quarantined')),content_sha256 text not null,
   engine_version text not null,scanned_at timestamptz not null,recorded_at timestamptz not null default clock_timestamp()
-);
+);`}
 create function documents.protect_document_version() returns trigger language plpgsql as $$
 begin
   if tg_op='UPDATE' and old.scanning_status in ('deferred','scanning_pending')
@@ -407,10 +410,10 @@ begin
 end $$;
 create trigger document_versions_immutable before update or delete on documents.document_versions
 for each row execute function documents.protect_document_version();
-create function documents.queue_document_scan() returns trigger language plpgsql as $$
+${firstVaultFlow ? '' : `create function documents.queue_document_scan() returns trigger language plpgsql as $$
 begin insert into documents.document_scan_jobs(tenant_id,version_id) values(new.tenant_id,new.id); return new; end $$;
 create trigger document_version_scan_queue_insert after insert on documents.document_versions
-for each row execute function documents.queue_document_scan();
+for each row execute function documents.queue_document_scan();`}
 alter table documents.documents enable row level security;
 alter table documents.document_versions enable row level security;
 alter table documents.upload_intents enable row level security;
@@ -419,6 +422,7 @@ revoke all on documents.documents,documents.document_versions,documents.upload_i
 
 try {
   await pool.query(bootstrapSql);
+  if (firstVaultFlow) await installFirstVaultFlowFixture(pool);
   for (const migration of ['20261013063739_document_reference_exact_workspace_v1.sql',
     '20261014083050_document_workspace_binding_writer_v1.sql']) {
     await pool.query(readFileSync(new URL(`../supabase/migrations/${migration}`, import.meta.url), 'utf8'));
@@ -487,6 +491,12 @@ try {
       values($1,$2,$3,$4,clock_timestamp()-interval '1 second')`,
     [randomUUID(), ids.workspaceIds[i], ids.membershipId, workspaceRole]);
   }
+
+  if (firstVaultFlow) {
+    await runFirstVaultFlow({
+      pool, host, load, ids, actor, revision, withSyntheticAal2, check, digest,
+    });
+  } else {
 
   await check('closure preserves historical values and leaves every canonical addition NULL', async () => {
     const historicalAfter = (await pool.query(`select
@@ -949,6 +959,7 @@ try {
       quarantinedCurrent.input.document_id, quarantinedCurrent.input.version_id, 1);
     await deniedZeroWrite(quarantinedDownload, 'PROVIDER_UNAVAILABLE');
   });
+  }
 } finally {
   await pool.end();
   if (adminPool && isolatedDatabaseName) {

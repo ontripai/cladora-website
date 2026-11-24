@@ -16,9 +16,9 @@ const ids={actor:id(1),context:id(2),workspace:id(3),tenant:id(4),intent:id(5),d
 const target={contract:'core-functional-development-target.v1',backend_id:'controlled-owned-documents15',purpose:'owned-isolated-persistent-development',host:'127.0.0.1',port:55422,database_name:'cladora_dev_documents15',database_oid:1701,runtime_role:'cladora_core_runtime',auth_origin:'http://127.0.0.1:55421'};
 const requestValue={context_id:ids.context,workspace_id:ids.workspace,filename:'synthetic.txt',declared_mime:'text/plain',size_bytes:9,title:'synthetic',document_type:'general',classification:'internal',property_id:null};
 function harness(){
- const db=createDocumentsUploadAckSqlModelV1(ids),rows=new Map(),state={actor:ids.actor,aal:'aal2',rpcFault:null,rpcAfter:null,preflightFault:null,expire:false,claimsInvalid:false,authError:false,generation:'generation1',aliasFault:null,releaseFault:null,results:[]},trace=[],cache=new Map();
+ const db=createDocumentsUploadAckSqlModelV1(ids),rows=new Map(),state={actor:ids.actor,session:id(12),aal:'aal2',rpcFault:null,rpcAfter:null,preflightFault:null,expire:false,claimsInvalid:false,authError:false,generation:'generation1',aliasFault:null,releaseFault:null,results:[]},trace=[],cache=new Map();
  // SDK below is transport only.
- const SDK={auth:{async getUser(){return {error:state.authError?Error('synthetic'):null,data:{user:{id:state.actor}}};},async getClaims(){return {error:null,data:{claims:{sub:state.actor,session_id:id(12),exp:Math.floor(Date.now()/1000)+3600,aal:state.aal,role:'authenticated',...(state.claimsInvalid?{sub:'malformed'}:{})}}};}},
+ const SDK={auth:{async getUser(){return {error:state.authError?Error('synthetic'):null,data:{user:{id:state.actor}}};},async getClaims(){return {error:null,data:{claims:{sub:state.actor,session_id:state.session,exp:Math.floor(Date.now()/1000)+3600,aal:state.aal,role:'authenticated',...(state.claimsInvalid?{sub:'malformed'}:{})}}};}},
   schema(schema){assert.equal(schema,'platform_dev');return {rpc(name,args){const operation=(async({p_phase:phase,p_request:p})=>{
    assert.equal(name,'document_upload_custody_v1');trace.push('rpc:'+phase);
    if(state.rpcFault)return{data:null,error:state.rpcFault};if(db.control.revoked||state.actor!==ids.actor)return{data:null,error:{code:'42501'}};
@@ -89,4 +89,22 @@ await check('download recheck is canonical replay-only: absent receipt never cre
 await check('wrong RPC target identity stops before C03 dispatch',async()=>{const h=harness(),p=await h.producer();h.state.rpcAfter=async(_phase,result)=>{if(result.data)result.data.database_oid++;};await assert.rejects(p.custody.prepareIntent(h.req),/TARGET_OR_SCOPE_MISMATCH/);assert.equal(h.db.read().keys.size,0);assert.ok(!h.trace.includes('begin isolation level serializable'));});
 await check('alias setup40001 plus cleanup failure preserves original object, no query/dispatch',async()=>{const h=harness(),p=await h.producer(),plan=await p.custody.prepareIntent(h.req),w=h.load('src/lib/customer/documents-workspace-binding-writer-v1.ts');const bound=await h.load('src/lib/core/documents-command-binding-v1.ts').createCoreDocumentsCommandBindingV1({pool:h.db.pool,target}).bind(new Request(target.auth_origin+'/recovery'));const c=w.buildDocumentsNewDocumentIntentCommandV1(plan.input,{...plan.context,actor_id:ids.actor}),providers=w.createDocumentsNewDocumentIntentProvidersV1(plan.input,{...plan.context,actor_id:ids.actor}),e=Object.assign(Error('first'),{code:'40001'});h.state.aliasFault=e;h.state.releaseFault=Error('cleanup');await assert.rejects(bound.replayHost.execute(c,providers),x=>x===e);assert.ok(!h.trace.includes('begin isolation level serializable'));assert.equal(h.db.read().keys.size,0);});
 await check('lost retain ACK keeps actual handle privately but requires durable phase/receipt for admission',async()=>{const h=harness(),p=await h.producer(),plan=await p.custody.prepareIntent(h.req),r=await p.adapter.issue(h.req,plan),e=Object.assign(Error('retain ACK lost'),{code:'08006'});assert.equal(r.status,'ACK');h.state.rpcAfter=async phase=>{if(phase==='retain')throw e;};await assert.rejects(p.custody.retainIssued(h.req,plan,r),x=>x===e);h.state.rpcAfter=null;const fresh=await(await h.producer()).custody.takeFreshUpload({...h.req,intent_id:ids.intent,idempotency_key:'core-doc-final15'});assert.ok(fresh);assert.equal(fresh.issued,r);assert.equal(h.db.read().keys.size,1);});
+await check('download recheck pins the provider session and rejects an Auth session change on the same Request',async()=>{
+ const h=harness();
+ const request=new Request(target.auth_origin+'/download');
+ const createGuard=h.load('src/lib/core/documents-download-recheck-v1.ts').createCoreDocumentsDownloadRecheckV1;
+ const options={pool:h.db.pool,target,request};
+ await assert.rejects(createGuard({...options,expectedSessionId:id(13)}),e=>e.code==='DOCUMENTS_SESSION_MISMATCH');
+ assert.deepEqual(h.trace,[]);
+ const guard=await createGuard({...options,expectedSessionId:h.state.session});
+ const inferred=await createGuard(options);
+ const input={contract_version:'documents-vault-download-exact-workspace.v2',context_id:ids.context,workspace_id:ids.workspace,
+  document_id:ids.document,version_id:ids.version,expected_current_version:1,idempotency_key:'original-download-session'};
+ const context={transaction_id:id(24),command_id:id(25),actor_id:ids.actor,authority_version:7};
+ h.state.session=id(13);
+ for(const pinned of [guard,inferred])
+  await assert.rejects(pinned.recheckAfterStorage(input,context),e=>e.code==='DOCUMENTS_SESSION_MISMATCH');
+ assert.deepEqual(h.trace,[]);
+ assert.equal(h.db.read().keys.size,0);
+});
 console.log(JSON.stringify({task:'CORE_DOCUMENTS_PRODUCER_15',groups:n,consumer:DOCS,proof:'REAL_CORE_AND_DOCUMENTS_WITH_CONTROLLED_RPC_SDK_PG',SQL:false,native:'NOT_RUN_NOT_PASS'}));

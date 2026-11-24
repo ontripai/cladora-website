@@ -64,8 +64,12 @@ const principalSchema=z.strictObject({backend_pid:z.number().int().positive().sa
  * never an HTTP payload. No default URL, env-secret discovery, alternate target,
  * service-role client, caller Auth callback or authority provider is accepted.
  */
-export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool;target:CoreFunctionalDevelopmentTargetV1;offering:CoreS01ServiceOfferingBindingV1|null;request?:Request;agreement_family?:'request'|'authoring'|'revise';claim_alias_profile?:'documents.v1';finance_profile?:'calculate'|'approve'|'bill'|'consume'|'read'}>){
+export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool;target:CoreFunctionalDevelopmentTargetV1;offering:CoreS01ServiceOfferingBindingV1|null;request?:Request;agreement_family?:'request'|'authoring'|'revise';claim_alias_profile?:'documents.v1';documents_download_session?:Readonly<{expected_session_id?:string}>;finance_profile?:'calculate'|'approve'|'bill'|'consume'|'read'}>){
  const financeProfile=options.finance_profile;
+ const downloadSession=options.documents_download_session;
+ if(downloadSession&&(!options.request||options.claim_alias_profile!=='documents.v1'))fail('DOCUMENTS_REQUEST_REQUIRED');
+ let pinnedDownloadSession=downloadSession?.expected_session_id===undefined
+  ?undefined:uuid.parse(downloadSession.expected_session_id).toLowerCase();
  const sanitizeAliases=options.claim_alias_profile==='documents.v1'||financeProfile!==undefined;
  const principalSQL=financeProfile?CORE_FUNCTIONAL_RUNTIME_SQL.principal.replaceAll("'service_catalog','auth'","'service_catalog','finance','billing','utilities','auth'"):CORE_FUNCTIONAL_RUNTIME_SQL.principal;
  const financeReadFinal='select app_private.core_finance_monthly_checkpoint_v1($1::uuid,$2::uuid,$3::text,$4::text,$5::bigint,$6::text,$7::text,$8::jsonb)';
@@ -109,6 +113,11 @@ export function createCoreFunctionalCommandRuntimeV1(options:Readonly<{pool:Pool
   // Only a verified, structurally valid, actor-matched session can need MFA.
   // Never upgrade AAL1 to AAL2 or let it reach a pool checkout/dispatch.
   if(claims.aal!=='aal2')return fail('MFA_REQUIRED');
+  if(downloadSession){
+   const sessionId=claims.session_id.toLowerCase();
+   if(pinnedDownloadSession!==undefined&&sessionId!==pinnedDownloadSession)fail('DOCUMENTS_SESSION_MISMATCH');
+   pinnedDownloadSession??=sessionId;
+  }
   return {...claims,aal:'aal2' as const};
  }
  function makeConnect(command:Pick<CoreTransactionCommandV1,'context_id'|'workspace_id'|'permission_code'|'module_code'|'authority_version'>|null,claims:VerifiedAal2Claims,state:{authorized:boolean;binding?:{workspace_id:string;tenant_id:string;membership_id:string}},serviceRevise=false){

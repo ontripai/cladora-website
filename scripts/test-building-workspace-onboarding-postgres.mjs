@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
+import {setTimeout as delay} from 'node:timers/promises';
 
 const proofSqlstates=new Set(['42501','23505','40001','55006','08006','57P01']);
 const failureCategories=new Set(['sql-error','assertion-failed','operation-failed']);
@@ -109,6 +110,19 @@ export async function cleanupOwnedDatabase({admin,name,created,clients=[]}) {
  if(dropFailed||closed.some(result=>result.status==='rejected')) throw Object.assign(Error('owned database cleanup failed; no force or session termination attempted'),{code:dropCode});
 }
 
+// Closing the client socket can precede removal of its backend from pg_stat_activity.
+export async function waitForSourceQuiescence(admin, database, leaseReaderPid, wait=delay){
+ assert.ok(Number.isInteger(leaseReaderPid) && leaseReaderPid>0, 'source lease reader backend required');
+ for(let attempt=0;attempt<40;attempt++){
+  const {rows}=await admin.query('select pid from pg_stat_activity where datname=$1',[database]);
+  if(rows.length===0)return;
+  assert.ok(rows.length===1 && rows[0].pid===leaseReaderPid,
+   'source fixture has no active sessions other than the closing lease reader; never terminate another connection');
+  if(attempt<39)await wait(50);
+ }
+ assert.fail('source fixture has no active sessions only after the lease reader exits; bounded wait expired');
+}
+
 export async function runPostgresProof({commandProof='legacy',sessionId=null}={}) {
  assert.ok(['legacy','g2'].includes(commandProof),'explicit command proof profile');
  if(commandProof==='g2')assert.match(sessionId??'',/^[a-f0-9-]{36}$/i,'separately prepared native fixture session required; not created here');
@@ -140,9 +154,14 @@ async function fingerprint(){const parts=[];for(const table of tables){const r=a
 return withProofCleanup(async()=>{
  await admin.connect();
  const source=new pg.Client({connectionString:url});
- await withProofCleanup(async()=>{await source.connect();assert.equal((await source.query("select current_setting('cladora.synthetic_setup_lease',true) lease")).rows[0].lease,lease,'source fixture lease must match before clone');},
-  [{stage:'source-end',run:()=>source.end()}]);
- checkpoint='source-quiescence';assert.equal((await admin.query('select count(*)::integer n from pg_stat_activity where datname=$1',[target.pathname.slice(1)])).rows[0].n,0,'source fixture has no active sessions; never terminate another connection');
+ const leaseReaderPid=await withProofCleanup(async()=>{
+  await source.connect();
+  const {rows:[observed]}=await source.query("select current_setting('cladora.synthetic_setup_lease',true) lease, pg_backend_pid() pid");
+  assert.equal(observed.lease,lease,'source fixture lease must match before clone');
+  return observed.pid;
+ },[{stage:'source-end',run:()=>source.end()}]);
+ checkpoint='source-quiescence';
+ await waitForSourceQuiescence(admin,target.pathname.slice(1),leaseReaderPid);
  // Names derive only from validated source DB and task-owned random identifier.
  await admin.query(`create database "${owned}" template "${target.pathname.slice(1)}"`);created=true;
  inspector=new pg.Client({connectionString:new URL(`/${owned}`,url).href});await inspector.connect();

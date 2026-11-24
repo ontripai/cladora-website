@@ -8,7 +8,7 @@ import {createCoreDocumentsIntentReplayProvidersV1} from './documents-intent-rep
 import {isCoreDocumentsReplayProfileV1} from './documents-replay-only-v1';
 export const CORE_DOCUMENTS_COMMAND_BINDING_V1='core-documents-command-binding.v1' as const;
 const selection=z.strictObject({context_id:z.string().uuid(),workspace_id:z.string().uuid()});
-export function createCoreDocumentsCommandBindingV1(options:Readonly<{pool:Pool;target:CoreFunctionalDevelopmentTargetV1}>){
+export function createCoreDocumentsCommandBindingV1(options:Readonly<{pool:Pool;target:CoreFunctionalDevelopmentTargetV1;documents_download_session?:Readonly<{expected_session_id?:string}>}>){
  return Object.freeze({contract_version:CORE_DOCUMENTS_COMMAND_BINDING_V1,async bind(request:Request){
   if(request.signal.aborted)return null;
   const runtime=createCoreFunctionalCommandRuntimeV1({...options,request,offering:null,claim_alias_profile:'documents.v1'});

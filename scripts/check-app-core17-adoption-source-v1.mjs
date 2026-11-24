@@ -8,6 +8,7 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { CORE17_CONSUMER_PROTECTED_SOURCES } from './lib/core17-exact-consumer-admission-v1.mjs';
 import { verifyEngineMetadataOnly } from './lib/app-engine-source-transition.mjs';
+import { DOCUMENTS_VAULT_CORE_SOURCE, PRE_VAULT_CORE_SOURCE } from './lib/app-official-core-directory-v1.mjs';
 const HISTORY = '6cecfa15b00f445be68817e756d766fb0e6fe026';
 const manifestPath = 'docs/verification/CORE17-POST-AUTH-CONSUMER-ADOPTION-01.json';
 const checkerPath = 'scripts/check-core17-post-auth-consumer-adoption.mjs';
@@ -17,7 +18,8 @@ const blob = bytes => createHash('sha1').update(`blob ${bytes.length}\0`).update
 export function verifyAppCore17AdoptionSourceV1(options = {}) {
   const root = resolve(options.root ?? process.cwd());
   const current = options.readCurrent ?? (p => readFileSync(resolve(root, p)));
-  const historical = options.readHistorical ?? (p => execFileSync('git', ['show', `${HISTORY}:${p}`], { cwd: root, maxBuffer: 2 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] }));
+  const gitSource = (ref, p) => execFileSync('git', ['show', `${ref}:${p}`], { cwd: root, maxBuffer: 2 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] });
+  const historical = options.readHistorical ?? (p => gitSource(HISTORY, p));
   const manifestRaw = current(manifestPath);
   assert.equal(sha(manifestRaw), '4ae178aeba90b5e93b1cef5608ef6b893a21461e916ef06719b233edb6d6e160', 'ORIGINAL_ADOPTION_MANIFEST');
   const manifest = JSON.parse(manifestRaw), checkerRaw = current(checkerPath);
@@ -51,9 +53,15 @@ export function verifyAppCore17AdoptionSourceV1(options = {}) {
       assert.ok(transition); assert.equal(transition.historical.sha256, p.sha256);
       assert.equal(transition.historical.git_blob, p.git_blob);
       assert.deepEqual(transition.current, profile.current_product_sources.find(x => x.path === p.path));
-      assert.equal(actual.length, transition.current.bytes, p.path);
-      assert.equal(sha(actual), transition.current.sha256, 'REVIEWED_CORE_DRIFT ' + p.path);
-      assert.equal(blob(actual), transition.current.git_blob); accepted.push(p.path);
+      const vaultRuntime = p.path === 'src/lib/core/functional-command-runtime-v1.ts';
+      const reviewed = vaultRuntime ? gitSource(PRE_VAULT_CORE_SOURCE, p.path) : actual;
+      assert.equal(reviewed.length, transition.current.bytes, p.path);
+      assert.equal(sha(reviewed), transition.current.sha256, 'REVIEWED_CORE_DRIFT ' + p.path);
+      assert.equal(blob(reviewed), transition.current.git_blob);
+      if (vaultRuntime) {
+        assert.deepEqual(actual, gitSource(DOCUMENTS_VAULT_CORE_SOURCE, p.path), 'VAULT_RUNTIME_SOURCE_DRIFT');
+      }
+      accepted.push(p.path);
     } else {
       assert.equal(sha(actual), p.sha256, 'UNREVIEWED_ADOPTION_SOURCE_DRIFT ' + p.path);
     }
