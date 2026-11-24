@@ -271,6 +271,54 @@ export async function runFirstVaultFlow({ pool, host, load, ids, actor, revision
       assert.equal(foreign.private_candidate, null);
       assert.equal(await digest(), beforeReplay);
     });
+    await check('private APP entry releases the same bytes only after fresh authority and exact replay', async () => {
+      const { createDocumentsPrivateDownloadPostV1 } = load(
+        new URL('../../src/lib/app/documents-private-download-v1.ts', import.meta.url));
+      const commandContext = await context();
+      const input = { ...selection, idempotency_key: 'vault-private-app-download' };
+      const binding = { sessionId: randomUUID(), tenantId: ids.tenantId, contextId: ids.contextId,
+        workspaceId: workspace, custodyId: 'disposable-vault', commandContext, commands, storage: byteAdapter };
+      const seen = [];
+      const post = createDocumentsPrivateDownloadPostV1(async original => { seen.push(original); return binding; });
+      const allowed = request(input);
+      const result = await post(allowed);
+      assert.equal(result.status, 200, await result.clone().text());
+      assert.equal(result.headers.get('content-disposition'), 'attachment');
+      assert.deepEqual(seen, [allowed, allowed]);
+      assert.equal(sha256(Buffer.from(await result.arrayBuffer())), sha256(bytes));
+
+      const before = await digest();
+      let storageReads = 0;
+      let revokeDuringRead = false;
+      const guarded = createDocumentsPrivateDownloadPostV1(async () => ({
+        ...binding, storage: { async readbackWithBytes(target) {
+          storageReads++;
+          const contents = await byteAdapter.readbackWithBytes(target);
+          if (revokeDuringRead) await pool.query(`update platform.workspace_entitlements set boolean_value=false
+            where customer_workspace_id=$1 and entitlement_key='module.documents'`, [workspace]);
+          return contents;
+        } },
+      }));
+      const foreign = await guarded(request({ ...input, workspace_id: otherWorkspace }));
+      assert.equal(foreign.status, 403);
+      assert.equal(storageReads, 0);
+
+      revokeDuringRead = true;
+      try {
+        const revoked = await guarded(request(input));
+        assert.equal(revoked.status, 403, await revoked.clone().text());
+        assert.equal(storageReads, 1);
+        for (const response of [foreign, revoked]) {
+          assert.equal(response.headers.get('content-disposition'), null);
+          assert.equal(response.headers.get('location'), null);
+          assert.deepEqual(await response.json(), { error: { code: 'DOCUMENT_DOWNLOAD_DENIED' } });
+        }
+        assert.equal(await digest(), before);
+      } finally {
+        await pool.query(`update platform.workspace_entitlements set boolean_value=true
+          where customer_workspace_id=$1 and entitlement_key='module.documents'`, [workspace]);
+      }
+    });
     await check('existing public upload and download handlers retain their held response without releasing bytes', async () => {
       const uploadIntent = load(new URL('../../src/app/api/customer/v1/documents/upload-intent/route.ts', import.meta.url));
       const upload = load(new URL('../../src/app/api/customer/v1/documents/upload/route.ts', import.meta.url));
@@ -291,7 +339,7 @@ export async function runFirstVaultFlow({ pool, host, load, ids, actor, revision
     console.log(JSON.stringify({
       engine: (await pool.query('show server_version')).rows[0].server_version,
       storage: 'exclusive scratch file and SDK transport', scanner: 'controlled engine, native lease SQL',
-      current_disclosure: 'not_evaluated', public_routes: '503', hosted: 'NOT_RUN',
+      current_disclosure: 'verified in private APP fixture after Storage', public_routes: '503', hosted: 'NOT_RUN',
     }));
   } finally {
     await rm(directory, { recursive: true, force: true });

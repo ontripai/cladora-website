@@ -28,6 +28,26 @@ type CommandContext = Parameters<typeof buildDocumentsNewDocumentIntentCommandV1
  * no replacement keys, automatic retry loop or private idempotency ledger.
  */
 export function createDocumentsFunctionalCommandsV1(host: CoreTransactionHostV1) {
+  async function preparePrivateDownload(inputValue: DocumentsVaultDownloadExactWorkspaceV2, context: CommandContext, replayOnly = false) {
+    const input = documentsVaultDownloadExactWorkspaceV2Schema.parse(inputValue);
+    const command = buildDocumentsVaultDownloadExactWorkspaceCommandV2(input, context);
+    const download = createDocumentsFunctionalDownloadProviderV1(input, context);
+    const providers = replayOnly ? {
+      ...download.providers,
+      validateProviders: async () => false,
+      async mutate() { throw new Error('documents_download_replay_required'); },
+    } : download.providers;
+    const result = await host.execute(command, providers);
+    const successful = (result.status === 'committed' || result.status === 'exact_replay')
+      && result.receipt.mutation_id === input.version_id
+      && result.receipt.command_id === command.command_id
+      && result.receipt.workspace_id === input.workspace_id
+      && result.receipt.input_fingerprint === command.input_fingerprint;
+    // Not a stream/signed URL or release authority. Core15 must recheck current
+    // target/session + Platform12 custody after Storage read and before response.
+    return Object.freeze({ result, private_candidate: successful && (!replayOnly || result.status === 'exact_replay') ? download.readPrivateDownloadCandidate() : null,
+      outward_projection: null, current_disclosure: 'not_evaluated' as const });
+  }
   return Object.freeze({
     issueNewIntent(input: DocumentsNewDocumentIntentV1, context: CommandContext) {
       return host.execute(buildDocumentsNewDocumentIntentCommandV1(input, context),
@@ -51,20 +71,11 @@ export function createDocumentsFunctionalCommandsV1(host: CoreTransactionHostV1)
       return host.execute(buildDocumentsReplacementPromotionAfterCleanCommandV1(input, context, object),
         createDocumentsReplacementPromotionAfterCleanProvidersV1(input, context, object));
     },
-    async preparePrivateDownload(inputValue: DocumentsVaultDownloadExactWorkspaceV2, context: CommandContext) {
-      const input = documentsVaultDownloadExactWorkspaceV2Schema.parse(inputValue);
-      const command = buildDocumentsVaultDownloadExactWorkspaceCommandV2(input, context);
-      const download = createDocumentsFunctionalDownloadProviderV1(input, context);
-      const result = await host.execute(command, download.providers);
-      const successful = (result.status === 'committed' || result.status === 'exact_replay')
-        && result.receipt.mutation_id === input.version_id
-        && result.receipt.command_id === command.command_id
-        && result.receipt.workspace_id === input.workspace_id
-        && result.receipt.input_fingerprint === command.input_fingerprint;
-      // Not a stream/signed URL or release authority. Core15 must recheck current
-      // target/session + Platform12 custody after Storage read and before response.
-      return Object.freeze({ result, private_candidate: successful ? download.readPrivateDownloadCandidate() : null,
-        outward_projection: null, current_disclosure: 'not_evaluated' as const });
+    preparePrivateDownload(input: DocumentsVaultDownloadExactWorkspaceV2, context: CommandContext) {
+      return preparePrivateDownload(input, context);
+    },
+    recheckPrivateDownload(input: DocumentsVaultDownloadExactWorkspaceV2, context: CommandContext) {
+      return preparePrivateDownload(input, context, true);
     },
   });
 }
