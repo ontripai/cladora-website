@@ -7,6 +7,7 @@ import { join } from 'node:path';
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest } from 'next/server.js';
 import { scanDocumentVersion } from '../document-clamav-worker.mjs';
+import { checkCoreVaultDisclosure, installCoreVaultSessionFixture } from './documents-vault-disclosure-fixture.mjs';
 
 const migration = name => readFileSync(new URL(`../../supabase/migrations/${name}`, import.meta.url), 'utf8');
 const sha256 = value => createHash('sha256').update(value).digest('hex');
@@ -47,6 +48,7 @@ export async function installFirstVaultFlowFixture(pool) {
     .match(/create or replace function documents\.customer_document_scope_matches\([\s\S]+?\$\$;/);
   assert.ok(scopeMatcher);
   await pool.query(scopeMatcher[0]);
+  await installCoreVaultSessionFixture(pool);
 }
 
 function privateStorage(pool, directory, intent, bytes) {
@@ -148,6 +150,7 @@ export async function runFirstVaultFlow({ pool, host, load, ids, actor, revision
     const storage = privateStorage(pool, directory, intent, bytes);
     const byteAdapter = storageModule.createDocumentsStorageReadbackV1(storage.client);
     const rawTarget = { bucket_id: 'document-vault', object_path: intent.object_path };
+    let originalDownload;
     await check('canonical intent, SDK upload/readback and immutable version pin the same object and digest', async () => {
       const issued = await commands.issueNewIntent(intent, await context());
       assert.equal(issued.status, 'committed', JSON.stringify(issued));
@@ -244,6 +247,7 @@ export async function runFirstVaultFlow({ pool, host, load, ids, actor, revision
         ...selection, workspace_id: workspace.toUpperCase(), version_id: versionId.toUpperCase(),
       };
       const prepared = await commands.preparePrivateDownload(exactSelection, downloadContext);
+      originalDownload = { exactSelection, downloadContext, prepared };
       assert.equal(prepared.result.status, 'committed', JSON.stringify(prepared));
       assert.equal(prepared.private_candidate?.version_id, versionId);
       assert.equal(prepared.private_candidate?.storage_object_id, storage.object.id);
@@ -270,6 +274,9 @@ export async function runFirstVaultFlow({ pool, host, load, ids, actor, revision
       assert.equal(foreign.result.status, 'denied', JSON.stringify(foreign));
       assert.equal(foreign.private_candidate, null);
       assert.equal(await digest(), beforeReplay);
+    });
+    await checkCoreVaultDisclosure({
+      pool, load, ids, actor, digest, check, byteAdapter, rawTarget, bytes, ...originalDownload,
     });
     await check('existing public upload and download handlers retain their held response without releasing bytes', async () => {
       const uploadIntent = load(new URL('../../src/app/api/customer/v1/documents/upload-intent/route.ts', import.meta.url));
