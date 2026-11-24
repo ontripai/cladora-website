@@ -48,7 +48,7 @@ async function withVaultReplayFixture({ pool, load, actor }, check) {
   let replays = 0;
   binding.createCoreDocumentsCommandBindingV1 = options => ({
     async bind(actualRequest) {
-      assert.equal(actualRequest, options.request);
+      assert.ok(actualRequest instanceof Request);
       assert.equal(options.pool, pool);
       boundRequests.push(actualRequest);
       return { replayHost: { async execute(command, providers) {
@@ -121,6 +121,19 @@ export async function checkCoreVaultDisclosure({
         try { assert.equal(await releaseForFixture(measured, retained), null); }
         finally { await pool.query(sql, [key, restored]); }
       }
+      assert.equal(await digest(), before);
+    });
+    await check('receipt key or original transaction mismatch is rejected before Storage', async () => {
+      const prior = replayCount();
+      const receipt = prepared.result.receipt;
+      const mismatchedKey = { ...receipt, idempotency_key: 'other-committed-key' };
+      const transaction_id = randomUUID();
+      const mismatchedTransaction = { ...receipt, transaction_id, authority: { ...receipt.authority,
+        transaction_context: { ...receipt.authority.transaction_context, transaction_id } } };
+      for (const changedReceipt of [mismatchedKey, mismatchedTransaction]) {
+        assert.equal(pin({ ...prepared, result: { ...prepared.result, receipt: changedReceipt } }), null);
+      }
+      assert.equal(replayCount(), prior);
       assert.equal(await digest(), before);
     });
     await check('a substituted receipt or object generation is withheld even with current authority', async () => {

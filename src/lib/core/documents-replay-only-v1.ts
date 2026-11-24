@@ -25,6 +25,19 @@ export const CORE_DOCUMENTS_STORED_EXPIRY_SQL_V1 = `select * from (with observed
  (select revision::text from app_private.canonical_authority_revision_v1 where singleton) as authority_revision)
  select ($1::timestamptz>clock_timestamp()) as unexpired,database_transaction_id,observed_actor_id,isolation,session_guard,allowed,authority_revision from observed) as expiry_observation`;
 const stamp=z.iso.datetime({offset:true}).regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/);
+/** Shared receipt-to-command match before Storage and during exact replay. */
+export function matchesCoreDocumentsReplayReceiptV1(
+ r: z.infer<typeof coreTransactionReceiptV1Schema>, c: CoreTransactionCommandV1,
+) {
+ const a=r.authority;
+ return r.actor_id===c.actor_id&&r.workspace_id===c.workspace_id
+  &&r.transaction_id===c.transaction_id&&r.command_id===c.command_id&&r.idempotency_key===c.idempotency_key
+  &&r.input_fingerprint===c.input_fingerprint&&r.aggregate_type===c.aggregate_type
+  &&r.aggregate_id===c.aggregate_id&&r.aggregate_version===c.aggregate_version&&a.context_id===c.context_id
+  &&a.authority_version===c.authority_version&&a.permission_code===c.permission_code&&a.module_code===c.module_code
+  &&a.evaluation_purpose===c.evaluation_purpose
+  &&r.replay_validation?.provider_code===(c.permission_code==='documents.vault.read'?'documents-vault-download-exact-workspace.v2':CORE_DOCUMENTS_REPLAY_PROVIDER_V1);
+}
 export async function readCoreDocumentsReplayOnlyV1(scope: CoreTransactionScopeV1,c: CoreTransactionCommandV1) {
  const identity=JSON.stringify([scope.actor_id,scope.tenant_id,scope.workspace_id,scope.transaction_id,scope.database_transaction_id,scope.attempt]);
  const unchanged=()=>identity===JSON.stringify([scope.actor_id,scope.tenant_id,scope.workspace_id,scope.transaction_id,scope.database_transaction_id,scope.attempt]);
@@ -36,12 +49,8 @@ export async function readCoreDocumentsReplayOnlyV1(scope: CoreTransactionScopeV
  if(!parsed.success||!stamp.safeParse(row.expires_at).success||row.key!==key||row.request_hash!==hash
   ||row.tenant_id!==scope.tenant_id||row.actor_id!==scope.actor_id||row.observed_actor_id!==scope.actor_id
   ||row.database_transaction_id!==scope.database_transaction_id||row.isolation!=='serializable')return null;
- const r=parsed.data,a=r.authority;
- if(r.actor_id!==c.actor_id||r.workspace_id!==c.workspace_id||r.transaction_id!==c.transaction_id||r.command_id!==c.command_id
-  ||r.idempotency_key!==c.idempotency_key||r.input_fingerprint!==c.input_fingerprint||r.aggregate_type!==c.aggregate_type
-  ||r.aggregate_id!==c.aggregate_id||r.aggregate_version!==c.aggregate_version||a.context_id!==c.context_id
-  ||a.authority_version!==c.authority_version||a.permission_code!==c.permission_code||a.module_code!==c.module_code
-  ||a.evaluation_purpose!==c.evaluation_purpose||r.replay_validation?.provider_code!==(c.permission_code==='documents.vault.read'?'documents-vault-download-exact-workspace.v2':CORE_DOCUMENTS_REPLAY_PROVIDER_V1))return null;
+ const r=parsed.data;
+ if(!matchesCoreDocumentsReplayReceiptV1(r,c))return null;
  // Separate awaited clock after row-lock wait, no JS wall clock or replacement TTL.
  const check=await scope.query(CORE_DOCUMENTS_STORED_EXPIRY_SQL_V1,[row.expires_at,c.context_id,c.workspace_id,c.permission_code,c.module_code]);
  if(!unchanged()||check.rowCount!==1||check.rows.length!==1)return null;

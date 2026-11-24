@@ -9,6 +9,7 @@ import {
 } from '../customer/documents-vault-download-exact-workspace-v2';
 import { createDocumentsFunctionalDownloadProviderV1 } from '../customer/documents-functional-download-provider-v1';
 import { createCoreDocumentsCommandBindingV1 } from './documents-command-binding-v1';
+import { matchesCoreDocumentsReplayReceiptV1 } from './documents-replay-only-v1';
 import type { CoreFunctionalDevelopmentTargetV1 } from './functional-command-runtime-v1';
 import { coreTransactionReceiptV1Schema, type CoreTransactionResultV1 } from './postgres-transaction-host-v1';
 import { coreTransactionReplayReceiptHashV1 } from './transaction-replay-provider-hook-v1';
@@ -32,10 +33,14 @@ function objectIdentity(candidate: DocumentsVaultAuthorizedDownloadV2) {
 }
 
 export async function createCoreDocumentsDownloadRecheckV1(
-  options: Readonly<{ pool: Pool; target: CoreFunctionalDevelopmentTargetV1; request: Request }>,
+  options: Readonly<{ pool: Pool; target: CoreFunctionalDevelopmentTargetV1; request: Request; expectedSessionId?: string }>,
 ) {
   const request = options.request;
-  const binding = await createCoreDocumentsCommandBindingV1(options).bind(request);
+  const { pool, target, expectedSessionId } = options;
+  const binding = await createCoreDocumentsCommandBindingV1({
+    pool, target,
+    documents_download_session: expectedSessionId === undefined ? {} : { expected_session_id: expectedSessionId },
+  }).bind(request);
   if (!binding) return null;
   const { replayHost } = binding;
 
@@ -61,9 +66,8 @@ export async function createCoreDocumentsDownloadRecheckV1(
     const input = documentsVaultDownloadExactWorkspaceV2Schema.parse(inputValue);
     const command = buildDocumentsVaultDownloadExactWorkspaceCommandV2(input, context);
     const receipt = coreTransactionReceiptV1Schema.safeParse(result.receipt);
-    if (!receipt.success || receipt.data.command_id !== command.command_id
-      || receipt.data.workspace_id !== command.workspace_id || receipt.data.mutation_id !== input.version_id
-      || receipt.data.input_fingerprint !== command.input_fingerprint
+    if (!receipt.success || !matchesCoreDocumentsReplayReceiptV1(receipt.data, command)
+      || receipt.data.mutation_id !== input.version_id
       || candidate.document_id !== input.document_id || candidate.version_id !== input.version_id
       || candidate.version !== input.expected_current_version) return null;
     const receiptHash = coreTransactionReplayReceiptHashV1(receipt.data);
