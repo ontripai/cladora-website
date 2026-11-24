@@ -6,7 +6,8 @@ import { readFileSync, readdirSync, mkdtempSync, mkdirSync, writeFileSync, rmSyn
 import { resolve, join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { validateProtectedDirectory } from './airprop-b2-safety-guard.mjs';
-const CORE = '4b3138f0ff0a27187d23d8a5b058d114ddcad773';
+export const PRE_VAULT_CORE_SOURCE = '4b3138f0ff0a27187d23d8a5b058d114ddcad773';
+export const DOCUMENTS_VAULT_CORE_SOURCE = '8c1b9bbbb99a4b1a768887f1949e5a5c7bab63f3';
 const HISTORY = '6cecfa15b00f445be68817e756d766fb0e6fe026';
 const directory = 'src/lib/core';
 function git(root, ...args) { return execFileSync('git', args, { cwd: root, maxBuffer: 4 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] }); }
@@ -19,7 +20,7 @@ function list(root, prefix = '') {
 }
 export function verifyOfficialCoreDirectoryV1(options = {}) {
   const root = resolve(options.root ?? process.cwd());
-  const entries = git(root, 'ls-tree', '-r', `${CORE}:${directory}`).toString().trim().split('\n').map(line => {
+  const entries = git(root, 'ls-tree', '-r', `${DOCUMENTS_VAULT_CORE_SOURCE}:${directory}`).toString().trim().split('\n').map(line => {
     const [identity, path] = line.split('\t'); return { path, blob: identity.split(' ')[2] };
   });
   const paths = options.listCurrent ? options.listCurrent() : list(root);
@@ -28,7 +29,7 @@ export function verifyOfficialCoreDirectoryV1(options = {}) {
     const bytes = options.readCurrent ? options.readCurrent(e.path) : readFileSync(resolve(root, directory, e.path));
     assert.equal(createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex'), e.blob, 'OFFICIAL_CORE_BLOB ' + e.path);
   }
-  return { owner_commit: CORE, source_tree: git(root, 'rev-parse', `${CORE}:${directory}`).toString().trim(), files: entries.length,
+  return { owner_commit: DOCUMENTS_VAULT_CORE_SOURCE, source_tree: git(root, 'rev-parse', `${DOCUMENTS_VAULT_CORE_SOURCE}:${directory}`).toString().trim(), files: entries.length,
     source_only: true, native_execution_eligible: false, runtime: null };
 }
 export function validateAppCoreProtectedDirectoryV1(options) {
