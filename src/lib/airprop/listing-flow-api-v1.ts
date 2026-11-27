@@ -91,7 +91,21 @@ export function createListingFlowApi(composition: {
     async POST(request: NextRequest) {
       if (!hasTrustedMutationOrigin(request)) return diligenceFailure('BAD_ORIGIN', 403);
       if (!isApplicationJson(request.headers.get('content-type'))) return diligenceFailure('UNSUPPORTED_MEDIA_TYPE', 415);
-      const body = await parseJsonWithLimit(request, 16 * 1024);
+      const handoff = await import('../core/listing-original-wire-handoff-v1');
+      let admittedRequest: NextRequest;
+      try { admittedRequest = await handoff.captureCoreListingOriginalRequestV1(request); }
+      catch (error) {
+        // Exact Core class + own data code only; stream/driver text is private.
+        const code = error instanceof handoff.CoreListingWireHandoffErrorV1 ? ownString(error, 'code') : null;
+        const statuses: Record<string, number> = { LISTING_WIRE_METHOD: 400, LISTING_WIRE_CONTENT_TYPE: 415,
+          LISTING_WIRE_ALREADY_USED: 400, LISTING_WIRE_EMPTY: 400, LISTING_WIRE_TOO_LARGE: 413,
+          LISTING_WIRE_INVALID_UTF8: 400, LISTING_WIRE_ABORTED: 499, LISTING_WIRE_TIMEOUT: 408 };
+        return code && Object.hasOwn(statuses, code) ? diligenceFailure(code, statuses[code])
+          : diligenceFailure('LISTING_COMMAND_NOT_READY', 503);
+      }
+      if (admittedRequest.signal.aborted) return diligenceFailure('LISTING_WIRE_ABORTED', 499);
+      const body = await parseJsonWithLimit(admittedRequest, 16 * 1024);
+      if (admittedRequest.signal.aborted) return diligenceFailure('LISTING_WIRE_ABORTED', 499);
       if (body.errorResponse) {
         for (const [key, value] of Object.entries(diligenceHeaders)) body.errorResponse.headers.set(key, value);
         return body.errorResponse;
@@ -100,9 +114,11 @@ export function createListingFlowApi(composition: {
       if (!parsed.success) return diligenceFailure('INVALID_REQUEST', 400);
       try {
         const session = await composition.session();
+        if (admittedRequest.signal.aborted) return diligenceFailure('LISTING_WIRE_ABORTED', 499);
         if (!session) return diligenceFailure('UNAUTHORIZED', 401);
         if (session.aal !== 'aal2') return diligenceFailure('MFA_REQUIRED', 403);
-        const runtime = composition.resolveRuntime ? await composition.resolveRuntime(session, { context_id: parsed.data.command.context_id, workspace_id: parsed.data.command.workspace_id }, request) : composition;
+        const runtime = composition.resolveRuntime ? await composition.resolveRuntime(session, { context_id: parsed.data.command.context_id, workspace_id: parsed.data.command.workspace_id }, admittedRequest) : composition;
+        if (admittedRequest.signal.aborted) return diligenceFailure('LISTING_WIRE_ABORTED', 499);
         if (!runtime?.control) return diligenceFailure('LISTING_COMMAND_NOT_READY', 503);
         const result = await runtime.control(session.actor_id, parsed.data);
         if (result.status === 'receipt') {
