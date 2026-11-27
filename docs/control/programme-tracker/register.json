@@ -5743,14 +5743,15 @@
         "integration": "INTEGRATED_IN_APP_AGGREGATE_CANDIDATE",
         "target_acceptance": "NOT_RUN"
       },
-      "evidence_scope": "۱۵/۱۵ روی Head 3f3d2b9c با PostgreSQL 17.11 و Chromium ایزوله و ورودی مصنوعی. اصل پنج لاگ احراز شد. همان commit در نامزد APP حضور دارد و رگرسیون تغییرهای بعدی C09 روی 20cb1f3e باز است.",
+      "evidence_scope": "احراز سورس و اصل build محلی در ماتریس Procedure. دو اجرای مستقل ۱۵/۱۵ روی Head 3f3d2b9c با PostgreSQL 17.11 و Chromium ایزوله و ورودی مصنوعی. اصل هر پنج لاگ اجرای مجدد احراز شد. همان commit در نامزد APP حضور دارد و رگرسیون تغییرهای بعدی C09 روی 20cb1f3e باز است.",
       "evidence": [
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7098182050",
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7190074137",
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7190075836",
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7213111172",
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7214617767",
-        "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7214622131"
+        "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7214622131",
+        "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7214714789"
       ],
       "candidate": {
         "head": "3f3d2b9c1c4d02acdbb4764907709566c3451e7f",
