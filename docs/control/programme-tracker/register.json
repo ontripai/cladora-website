@@ -5906,26 +5906,26 @@
       "scope": "مصرف دوره و تعرفهٔ قبض تجهیز",
       "delivery_status": {
         "implementation": "FIX_CANDIDATE_VERIFIED",
-        "independent_test": "FAIL_SCOPED_AGGREGATE_FOCUS",
+        "independent_test": "PASS_SCOPED_ISOLATED_ON_FIX_CANDIDATE",
         "integration": "INTEGRATED_IN_APP_AGGREGATE_CANDIDATE",
         "target_acceptance": "BLOCKED_INPUT_NOT_RUN"
       },
-      "evidence_scope": "شکست فوکوس روی 20cb1f3e ثبت شد. باندل و patch جانشین cb890416 و هر ۱۱ عضو تحویل احراز شدند. چهار کنترل JSDOM جانشین PASS شدند. رأی مرورگری مستقل جانشین و پذیرش هدف NOT_RUN هستند.",
+      "evidence_scope": "شکست فوکوس روی 20cb1f3e ثبت شد. بازآزمون مستقل cb890416 در Chromium و PostgreSQL 17.11 ایزوله برای سه زبان، Context و مرز UTC گذشت. هر سه اصل لاگ تطبیق داشتند. یافته در دامنهٔ ایزوله بسته شد و پذیرش هدف NOT_RUN است.",
       "evidence": [
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7193719495",
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7193613836",
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7213111172"
       ],
       "candidate": {
-        "head": "3cdd23aa33153ec09e7f84ab1de10fb5052144dd",
-        "tree": "4cfd87a8d7bb58bd9e8e8ab9171a76599b5bba1d"
+        "head": "cb890416532ae99d57fcd4bb59958eb2a374dcc0",
+        "parent": "20cb1f3e9ad1a2518e734a71306098be0c527950",
+        "tree": "1e4362b35d6fdff8e2ea30622e4735256026c382"
       },
       "integration_candidate_id": "APP-NOV27-AGGREGATE",
-      "independent_test_candidate_id": "APP-NOV27-AGGREGATE",
       "finding": {
         "id": "LQA-AGG-C08-FOCUS-001",
         "severity": "Medium",
-        "state": "FIX_DELIVERED_AWAITING_INDEPENDENT_RETEST",
+        "state": "CLOSED_SCOPED_ISOLATED",
         "component": "src/components/customer/EquipmentUtilityBill.tsx",
         "owner": "CLADORA APP",
         "retest_owner": "CLADORA LAUNCH-QA",
@@ -5935,8 +5935,12 @@
           "parent": "20cb1f3e9ad1a2518e734a71306098be0c527950",
           "tree": "1e4362b35d6fdff8e2ea30622e4735256026c382",
           "build_id": "-LgpgkFp8Ak2zi7HXJEvs",
-          "independent_test": "NOT_RUN"
+          "independent_test": "PASS_SCOPED_ISOLATED"
         }
+      },
+      "prior_input_candidate": {
+        "head": "3cdd23aa33153ec09e7f84ab1de10fb5052144dd",
+        "tree": "4cfd87a8d7bb58bd9e8e8ab9171a76599b5bba1d"
       }
     },
     {
@@ -6099,11 +6103,11 @@
       "scope": "نامزد تجمیعی نگهداری، C02، پیش‌نمایش C04، C01 Pilot، C09، C08 و C16",
       "delivery_status": {
         "implementation": "COMBINED_CANDIDATE_BUILT",
-        "independent_test": "FAIL_SCOPED_ISOLATED_C08_FOCUS",
+        "independent_test": "PASS_SCOPED_BASELINE_AND_C08_SUCCESSOR",
         "integration": "CANDIDATE_ASSEMBLED",
         "target_acceptance": "NOT_RUN"
       },
-      "evidence_scope": "Head/Tree، build و ۲۲ کنترل محلی احراز شدند. C02، پیش‌نمایش C04، C01 Pilot، C09، C16 و رگرسیون نگهداری C09 مستقلاً PASS شدند. C08 در فوکوس پس از ثبت پیش‌نویس FAIL شد. LQA-AGG-C08-FOCUS-001 باز است. GitHub Actions و پذیرش هدف NOT_RUN هستند. جانشین احرازشدهٔ cb890416 برای بازآزمون مستقل یافته تحویل شد.",
+      "evidence_scope": "برای 20cb1f3e پنج مسیر اصلی و رگرسیون نگهداری C09 مستقلاً PASS شدند. روی جانشین cb890416 بازآزمون مستقل محدود C08 و کنترل Context PASS شدند و یافتهٔ فوکوس در دامنهٔ ایزوله بسته شد. GitHub Actions و پذیرش هدف NOT_RUN هستند.",
       "evidence": [
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7213111172",
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7214617767"
@@ -6125,15 +6129,13 @@
         "APP-C16",
         "APP-C01"
       ],
-      "open_findings": [
-        "LQA-AGG-C08-FOCUS-001"
-      ],
+      "open_findings": [],
       "follow_up_candidate": {
         "head": "cb890416532ae99d57fcd4bb59958eb2a374dcc0",
         "parent": "20cb1f3e9ad1a2518e734a71306098be0c527950",
         "tree": "1e4362b35d6fdff8e2ea30622e4735256026c382",
         "build_id": "-LgpgkFp8Ak2zi7HXJEvs",
-        "independent_test": "NOT_RUN",
+        "independent_test": "PASS_SCOPED_ISOLATED",
         "finding": "LQA-AGG-C08-FOCUS-001"
       }
     },
@@ -6143,25 +6145,37 @@
       "lane": "CLADORA APP",
       "scope": "تحویل دوم، واحد تا صورتحساب، انتقال بانکی، تطبیق و رسید",
       "delivery_status": {
-        "implementation": "BASELINE_CONTROLS_VERIFIED",
+        "implementation": "ISOLATED_OWNER_JOURNEYS_VERIFIED",
         "independent_test": "NOT_RUN",
-        "integration": "ISOLATED_REHEARSAL_STARTED",
-        "target_acceptance": "NOT_RUN"
+        "integration": "SOURCE_MERGE_PREFLIGHT_PASS",
+        "target_acceptance": "BLOCKED_INPUT_NOT_RUN"
       },
-      "evidence_scope": "هفت کنترل پایه روی 20cb1f3e با lockfile منطبق گذشتند. مسیر یکپارچهٔ یک صورتحساب تا حرکت بانکی مصنوعی، رسید و مانده، در انتظار اتصال ایزوله و رأی مستقل است.",
+      "evidence_scope": "هفت کنترل خط مبنا مستقل PASS بودند. اجرای APP روی faa980e8 با ماندهٔ ۵۰٫۲۵ RON و 403 در route تفکیک سهم، و اجرای SERVICE روی b4794c01 با ماندهٔ صفر و intent در created شواهد جدا دارند. ترکیب سورسی با اصلاح C08 و هشت کنترل پایه گذشت. بازآزمون مستقل کل مسیر و پذیرش هدف بازند.",
       "evidence": [
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7215699065",
-        "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7094353232"
+        "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7094353232",
+        "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7215831929"
       ],
       "candidate": {
-        "head": "20cb1f3e9ad1a2518e734a71306098be0c527950",
-        "tree": "ed66f006a8697b183d914a8ce83f556fb03d89ee"
+        "head": "faa980e836237f51bc7d906de1da60d0f78af4a1",
+        "parent": "20cb1f3e9ad1a2518e734a71306098be0c527950",
+        "tree": "1d77745a76d056b96767941dc0a6515d87b3d683"
       },
       "links_to": [
         "APP-NOV27-AGGREGATE",
         "APP-C02",
         "APP-C04"
-      ]
+      ],
+      "baseline_candidate": {
+        "head": "20cb1f3e9ad1a2518e734a71306098be0c527950",
+        "tree": "ed66f006a8697b183d914a8ce83f556fb03d89ee"
+      },
+      "additional_candidate": {
+        "head": "b4794c017bb14919ae05c9b10cced473c5cab5bf",
+        "parent": "689c02c88b285b05346f5943aab74b15c613add6",
+        "tree": "15b5b3e77c44004c35f093818276a9d3c44156e1"
+      },
+      "integration_preflight_tree": "a9ff6f18ca1dbaf29561b3fbd0c4c75916ed85e8"
     }
   ]
 }
