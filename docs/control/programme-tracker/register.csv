@@ -1,171 +1,185 @@
-شناسه,نوع ردیف,مالک موجود,دامنهٔ موجود,موج موجود,وضعیت پایهٔ ثبت‌شده؛ شواهد جاری جداست,قابل خودکارسازی
-DW01A,package,CORE_OPERATIONS,capability disclosure/read contract,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-DW01B,package,CORE_OPERATIONS,versioned workspace configuration,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-DW02,package,CORE_OPERATIONS,canonical resources and relationships,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-PC01,package,CORE_OPERATIONS,typed rights/product composition,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-PF01,package,CORE_OPERATIONS,owner portfolio and allowed actions,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-AUTH01,package,CORE_OPERATIONS,current authority and deny/revoke,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-COM01,package,CORE_OPERATIONS,communication request/delivery receipt,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-FIN01,package,CORE_OPERATIONS,proposal/posting/reversal receipt,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-OPS01,package,CORE_OPERATIONS,execution request/work order adapter,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-BK01,package,CORE_OPERATIONS,capacity/time hold lifecycle,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-SV01A,package,SERVICE,service definition,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-SV01B,package,SERVICE,provider offering,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-SV01C,package,SERVICE,eligibility,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-SV01D,package,SERVICE,resource-bound request,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-SV01E,package,SERVICE,versioned quote,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-SV01F,package,SERVICE,quote acceptance/order,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-SV01G,package,SERVICE,delivery/acceptance/rework,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-SV01H,package,SERVICE,booking,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-SV01I,package,SERVICE,portfolio projection,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-SV01J,package,SERVICE,technical execution link,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-SV01K,package,SERVICE,documents/evidence,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-SV01L,package,SERVICE,communications,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-SV01M,package,SERVICE,invoice/payment/refund/provider settlement,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-SV01N,package,SERVICE,experience composition,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-SV01O,package,SERVICE,UX,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-SV01P,package,SERVICE,authority,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-SV01Q,package,SERVICE,integrated acceptance,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-AP-PF01,package,AIRPROP,person/company ownership and representation,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-AP-PF02,package,AIRPROP,dynamic resource selection,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-AP01,package,AIRPROP,listing lifecycle,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-AP02,package,AIRPROP,commercial reservation lifecycle,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-AP03,package,AIRPROP,presale obligations/finance,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-AP04,package,AIRPROP,resale/official title link,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-AP05,package,AIRPROP,lease/handover,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-AP06,package,AIRPROP,management mandate,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-AP07,package,AIRPROP,service/maintenance action,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-AP08,package,AIRPROP,portfolio reporting,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-AP09,package,AIRPROP,three-language workflow,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-AP10,package,AIRPROP,multi-owner integrated acceptance,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-AP-VAL-01A,package,AIRPROP,data/contracts/provenance,1-5,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-AP-VAL-01B,package,AIRPROP,authorized ingestion/quality,1-5,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-AP-VAL-01C,package,AIRPROP,sale/rent baseline,1-5,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-AP-VAL-01D,package,AIRPROP,independent request/result/review UI,1-5,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-AP-VAL-01E,package,AIRPROP,domain integration,1-5,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-AP-VAL-01F,package,AIRPROP,advanced models/drift,1-5,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-CE010,package,CE,community/notices/moderation,2,LATEST_GATE_EVIDENCE_REQUIRED,ترکیبی؛ اجرا با تأیید انسانی
-CE011,package,CE,basic event/interest/manual attendance,2,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-CE012,package,CE,versioned guide/safe references,2,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F001,capability_subrow,CE / CE010,Member profile & privacy,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F002,capability_subrow,CE / CE010,Directory,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F003,capability_subrow,CE / CE010,Feed,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F004,capability_subrow,CE / CE010,Posts/media,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F005,capability_subrow,CE / CE010,Comments/reactions,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F006,capability_subrow,CE / CE010,Channels,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F007,capability_subrow,CE / CE010,Groups,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F008,capability_subrow,CE / CE010,Clubs,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F009,capability_subrow,Communications با CE,Direct messaging,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F010,capability_subrow,Communications با CE,Group messaging,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F011,capability_subrow,CE / CE010,Polls,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F012,capability_subrow,CE / CE010,Surveys,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F013,capability_subrow,CE / CE010,Q&A,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F014,capability_subrow,CE / CE012,Digital guide,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F015,capability_subrow,CE / CE010,Lost & found,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F016,capability_subrow,CE / CE010,Ideas/voting,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F017,capability_subrow,CE / CE010,Member marketplace,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F018,capability_subrow,CE / CE010,Moderation,۲ و ۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F019,capability_subrow,CE / CE010,Segmentation,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F020,capability_subrow,CE / CE010,Translation/localization,۲ و ۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F021,capability_subrow,CE / CE011,Event creation,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F022,capability_subrow,CE / CE011,Recurring events,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F023,capability_subrow,CE / CE011,RSVP,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F024,capability_subrow,CE / CE011,Capacity,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F025,capability_subrow,CE / CE011,Waitlist,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F026,capability_subrow,CE / CE011,Paid ticket,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F027,capability_subrow,CE / CE011,Guest ticket,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F028,capability_subrow,CE / CE011,QR check-in,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F029,capability_subrow,CE / CE011,Manual check-in,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F030,capability_subrow,CE / CE011,Calendar sync,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F031,capability_subrow,CE / CE011,Reminder,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F032,capability_subrow,CE / CE011,Event provider marketplace,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F033,capability_subrow,CE / CE011,Event bundle,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F034,capability_subrow,CE / CE011,Post-event survey,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F035,capability_subrow,CE / CE011,Attendance reward,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F036,capability_subrow,SERVICE / SV01,Dynamic service type,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F037,capability_subrow,SERVICE / SV01,Eligibility rule,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F038,capability_subrow,SERVICE / SV01,Service area,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F039,capability_subrow,SERVICE / SV01,Resource resolution,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F040,capability_subrow,SERVICE / SV01,Provider matching,۳ و ۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F041,capability_subrow,SERVICE / SV01,Availability,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F042,capability_subrow,SERVICE / SV01,Fixed price,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F043,capability_subrow,SERVICE / SV01,Quote price,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F044,capability_subrow,SERVICE / SV01,Add-ons,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F045,capability_subrow,SERVICE / SV01,Recurring service,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F046,capability_subrow,SERVICE / SV01,Subscription plan,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F047,capability_subrow,SERVICE / SV01,Service order,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F048,capability_subrow,SERVICE / SV01,SLA,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F049,capability_subrow,SERVICE / SV01,Dispatch,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F050,capability_subrow,SERVICE / SV01,Evidence/checklist,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F051,capability_subrow,SERVICE / SV01,Acceptance,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F052,capability_subrow,SERVICE / SV01,Cancellation,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F053,capability_subrow,SERVICE / SV01,Refund,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F054,capability_subrow,SERVICE / SV01,Dispute,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F055,capability_subrow,SERVICE / SV01,Favorite/rebook provider,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F056,capability_subrow,Core و مصرف‌کننده / BK01,Generic resource booking,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F057,capability_subrow,Core و مصرف‌کننده / BK01,Capacity booking,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F058,capability_subrow,Core و مصرف‌کننده / BK01,Appointment,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F059,capability_subrow,Core و مصرف‌کننده / BK01,Recurring booking,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F060,capability_subrow,Core و مصرف‌کننده / BK01,Blackout,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F061,capability_subrow,Core و مصرف‌کننده / BK01,Buffer,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F062,capability_subrow,Core و مصرف‌کننده / BK01,Quota,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F063,capability_subrow,Core و مصرف‌کننده / BK01,Approval,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F064,capability_subrow,Core و مصرف‌کننده / BK01,Deposit,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F065,capability_subrow,Core و مصرف‌کننده / BK01,Cancellation rule,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F066,capability_subrow,Core و مصرف‌کننده / BK01,Dynamic/member pricing,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F067,capability_subrow,Core و مصرف‌کننده / BK01,Waitlist,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F068,capability_subrow,Core و مصرف‌کننده / BK01,Booking pass,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F069,capability_subrow,Core و مصرف‌کننده / BK01,Check-in,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F070,capability_subrow,Core و مصرف‌کننده / BK01,Access linkage,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F071,capability_subrow,Commerce تصمیم باز,Merchant directory,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F072,capability_subrow,Commerce تصمیم باز,Product/catalog,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F073,capability_subrow,Commerce تصمیم باز,Food order,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F074,capability_subrow,Commerce تصمیم باز,Grocery order,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F075,capability_subrow,Commerce تصمیم باز,Pickup,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F076,capability_subrow,Commerce تصمیم باز,Delivery,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F077,capability_subrow,Commerce تصمیم باز,Scheduled order,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F078,capability_subrow,Commerce تصمیم باز,Group order,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F079,capability_subrow,Commerce تصمیم باز,Offer/coupon,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F080,capability_subrow,Commerce تصمیم باز,Member price,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F081,capability_subrow,Commerce تصمیم باز,Gift/voucher,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F082,capability_subrow,Commerce تصمیم باز,Order tracking,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F083,capability_subrow,Commerce تصمیم باز,Refund,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F084,capability_subrow,Commerce تصمیم باز,Merchant review,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F085,capability_subrow,Loyalty تصمیم باز,Digital card,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F086,capability_subrow,Loyalty تصمیم باز,Tier,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F087,capability_subrow,Loyalty تصمیم باز,Point ledger,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F088,capability_subrow,Loyalty تصمیم باز,Earn rules,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F089,capability_subrow,Loyalty تصمیم باز,Burn rules,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F090,capability_subrow,Loyalty تصمیم باز,Expiry,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F091,capability_subrow,Loyalty تصمیم باز,Reward catalog,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F092,capability_subrow,Loyalty تصمیم باز,Partner benefit,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F093,capability_subrow,Loyalty تصمیم باز,QR validation,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F094,capability_subrow,Loyalty تصمیم باز,Referral,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F095,capability_subrow,Loyalty تصمیم باز,Challenge/milestone,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F096,capability_subrow,Loyalty تصمیم باز,Credit wallet separation,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F097,capability_subrow,Core / Access و Operations,Visitor invite,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F098,capability_subrow,Core / Access و Operations,Temporary credential,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F099,capability_subrow,Core / Access و Operations,Service access,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F100,capability_subrow,Core / Access و Operations,Guest parking,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F101,capability_subrow,Core / Access و Operations,Vendor access,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F102,capability_subrow,Core / Access و Operations,Mobile key connector,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F103,capability_subrow,Core / Access و Operations,Emergency revoke,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F104,capability_subrow,Operations / لجستیک,Package intake,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F105,capability_subrow,Operations / لجستیک,Locker,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F106,capability_subrow,Operations / لجستیک,Pickup credential,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F107,capability_subrow,Operations / لجستیک,Chain of custody,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F108,capability_subrow,Core / Access و Operations,Courier access,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F109,capability_subrow,CE تجربه و مالک دامنه,AI intent,۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F110,capability_subrow,CE تجربه و مالک دامنه,Context resolution,۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F111,capability_subrow,CE تجربه و مالک دامنه,Multi-action orchestration,۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F112,capability_subrow,CE تجربه و مالک دامنه,Recommendation,۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F113,capability_subrow,CE تجربه و مالک دامنه,Conversational change,۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F114,capability_subrow,CE تجربه و مالک دامنه,Proactive opt-in,۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F115,capability_subrow,CE تجربه و مالک دامنه,Ops copilot,۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F116,capability_subrow,CE تجربه و مالک دامنه,Community copilot,۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F117,capability_subrow,CE تجربه و مالک دامنه,Analytics copilot,۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F118,capability_subrow,CE تجربه و مالک دامنه,Experience dashboard,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F119,capability_subrow,CE تجربه و مالک دامنه,Service KPI,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F120,capability_subrow,CE تجربه و مالک دامنه,Booking utilization,۳ و ۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F121,capability_subrow,CE تجربه و مالک دامنه,Provider score,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
-F122,capability_subrow,CE تجربه و مالک دامنه,Loyalty analytics,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی
+شناسه,نوع ردیف,مالک موجود,دامنهٔ موجود,موج موجود,وضعیت پایهٔ ثبت‌شده؛ شواهد جاری جداست,قابل خودکارسازی,پیاده‌سازی جاری,آزمون مستقل,ادغام,پذیرش هدف,دامنهٔ شاهد جاری,Head نامزد,Tree نامزد,مراجع شاهد جاری
+DW01A,package,CORE_OPERATIONS,capability disclosure/read contract,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+DW01B,package,CORE_OPERATIONS,versioned workspace configuration,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+DW02,package,CORE_OPERATIONS,canonical resources and relationships,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+PC01,package,CORE_OPERATIONS,typed rights/product composition,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+PF01,package,CORE_OPERATIONS,owner portfolio and allowed actions,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+AUTH01,package,CORE_OPERATIONS,current authority and deny/revoke,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+COM01,package,CORE_OPERATIONS,communication request/delivery receipt,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+FIN01,package,CORE_OPERATIONS,proposal/posting/reversal receipt,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+OPS01,package,CORE_OPERATIONS,execution request/work order adapter,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+BK01,package,CORE_OPERATIONS,capacity/time hold lifecycle,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+SV01A,package,SERVICE,service definition,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+SV01B,package,SERVICE,provider offering,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+SV01C,package,SERVICE,eligibility,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+SV01D,package,SERVICE,resource-bound request,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+SV01E,package,SERVICE,versioned quote,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+SV01F,package,SERVICE,quote acceptance/order,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+SV01G,package,SERVICE,delivery/acceptance/rework,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,PRIVATE_ASSEMBLY_IMPLEMENTED,PASS_SCOPED_ISOLATED,FORMAL_ADMISSION_PENDING,BLOCKED_INPUT_NOT_RUN,بازخوانی Request Rework در اسمبلی خصوصی. رأی به فایل‌های احرازشده محدود است. اجرای HTTP رسمی به منبع فرمان اصلی و مصوبهٔ اختیار خواندن وابسته است.,c9cca99b4ae9932db42225ce48cf5308de8b85c8,2d6c65ba5cee436dc55b19a979cfd8d7ba074b17,https://github.com/ontripai/cladora-website/issues/463#issuecomment-7195377784
+SV01H,package,SERVICE,booking,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+SV01I,package,SERVICE,portfolio projection,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+SV01J,package,SERVICE,technical execution link,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+SV01K,package,SERVICE,documents/evidence,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+SV01L,package,SERVICE,communications,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+SV01M,package,SERVICE,invoice/payment/refund/provider settlement,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+SV01N,package,SERVICE,experience composition,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+SV01O,package,SERVICE,UX,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+SV01P,package,SERVICE,authority,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+SV01Q,package,SERVICE,integrated acceptance,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+AP-PF01,package,AIRPROP,person/company ownership and representation,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+AP-PF02,package,AIRPROP,dynamic resource selection,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+AP01,package,AIRPROP,listing lifecycle,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,SCOPED_CANDIDATE_AVAILABLE,NATIVE_BROWSER_NOT_RUN,CONSOLIDATION_PENDING,NOT_RUN,شاهد مجری JSDOM با handler واقعی و provider آزمایشی. اجرای Chromium و پذیرش هدف انجام نشده‌اند.,,,
+AP02,package,AIRPROP,commercial reservation lifecycle,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,SCOPED_CANDIDATE_AVAILABLE,ISOLATED_OWNER_EVIDENCE,CONSOLIDATION_PENDING,HOLD_NOT_RUN,رزرو تجاری. شاهد ایزوله موجود است. پذیرش هدف به lease مشترک، توقف و تخلیهٔ HTTP و RPC مستقیم زیر همان lease وابسته است.,,,https://github.com/ontripai/cladora-website/issues/463#issuecomment-7156018640
+AP03,package,AIRPROP,presale obligations/finance,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+AP04,package,AIRPROP,resale/official title link,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+AP05,package,AIRPROP,lease/handover,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+AP06,package,AIRPROP,management mandate,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+AP07,package,AIRPROP,service/maintenance action,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+AP08,package,AIRPROP,portfolio reporting,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+AP09,package,AIRPROP,three-language workflow,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+AP10,package,AIRPROP,multi-owner integrated acceptance,1-3,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+AP-VAL-01A,package,AIRPROP,data/contracts/provenance,1-5,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+AP-VAL-01B,package,AIRPROP,authorized ingestion/quality,1-5,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+AP-VAL-01C,package,AIRPROP,sale/rent baseline,1-5,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+AP-VAL-01D,package,AIRPROP,independent request/result/review UI,1-5,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+AP-VAL-01E,package,AIRPROP,domain integration,1-5,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+AP-VAL-01F,package,AIRPROP,advanced models/drift,1-5,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+CE010,package,CE,community/notices/moderation,2,LATEST_GATE_EVIDENCE_REQUIRED,ترکیبی؛ اجرا با تأیید انسانی,SCOPED_CANDIDATE_AVAILABLE,PASS_SCOPED_ISOLATED,CONSOLIDATION_PENDING,NOT_RUN,بازخوانی اعلان نسخهٔ ۲ پس از reload و تغییر Context. دامنهٔ شاهد به همین مسیر محدود است.,,,https://github.com/ontripai/cladora-website/issues/463#issuecomment-7194277753
+CE011,package,CE,basic event/interest/manual attendance,2,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,SCOPED_CANDIDATE_AVAILABLE,PASS_SCOPED_ISOLATED,CONSOLIDATION_PENDING,NOT_RUN,بازخوانی رویداد نسخهٔ ۳ و occurrence پس از reload و تغییر Context. دامنهٔ شاهد به همین مسیر محدود است.,,,https://github.com/ontripai/cladora-website/issues/463#issuecomment-7194277753
+CE012,package,CE,versioned guide/safe references,2,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,SCOPED_CANDIDATE_AVAILABLE,THREE_LANGUAGE_NOT_RUN,CONSOLIDATION_PENDING,BLOCKED_INPUT_NOT_RUN,ایجاد تا لغو V4 روی نصب دورریختنی تازه شاهد مجری دارد. بازخوانی سه‌زبانهٔ مستقل در انتظار دسترسی به همان نصب و نشست مجاز است.,b1334e19e15d844b42acfb7327e611fd6d1d5b95,8875f38ad5f8a19b522f5aa701402e51622b55a2,https://github.com/ontripai/cladora-website/issues/463#issuecomment-7210614970
+F001,capability_subrow,CE / CE010,Member profile & privacy,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F002,capability_subrow,CE / CE010,Directory,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F003,capability_subrow,CE / CE010,Feed,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F004,capability_subrow,CE / CE010,Posts/media,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F005,capability_subrow,CE / CE010,Comments/reactions,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F006,capability_subrow,CE / CE010,Channels,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F007,capability_subrow,CE / CE010,Groups,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F008,capability_subrow,CE / CE010,Clubs,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F009,capability_subrow,Communications با CE,Direct messaging,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F010,capability_subrow,Communications با CE,Group messaging,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F011,capability_subrow,CE / CE010,Polls,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F012,capability_subrow,CE / CE010,Surveys,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F013,capability_subrow,CE / CE010,Q&A,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F014,capability_subrow,CE / CE012,Digital guide,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F015,capability_subrow,CE / CE010,Lost & found,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F016,capability_subrow,CE / CE010,Ideas/voting,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F017,capability_subrow,CE / CE010,Member marketplace,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F018,capability_subrow,CE / CE010,Moderation,۲ و ۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F019,capability_subrow,CE / CE010,Segmentation,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F020,capability_subrow,CE / CE010,Translation/localization,۲ و ۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F021,capability_subrow,CE / CE011,Event creation,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F022,capability_subrow,CE / CE011,Recurring events,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F023,capability_subrow,CE / CE011,RSVP,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F024,capability_subrow,CE / CE011,Capacity,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F025,capability_subrow,CE / CE011,Waitlist,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F026,capability_subrow,CE / CE011,Paid ticket,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F027,capability_subrow,CE / CE011,Guest ticket,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F028,capability_subrow,CE / CE011,QR check-in,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F029,capability_subrow,CE / CE011,Manual check-in,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F030,capability_subrow,CE / CE011,Calendar sync,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F031,capability_subrow,CE / CE011,Reminder,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F032,capability_subrow,CE / CE011,Event provider marketplace,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F033,capability_subrow,CE / CE011,Event bundle,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F034,capability_subrow,CE / CE011,Post-event survey,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F035,capability_subrow,CE / CE011,Attendance reward,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F036,capability_subrow,SERVICE / SV01,Dynamic service type,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F037,capability_subrow,SERVICE / SV01,Eligibility rule,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F038,capability_subrow,SERVICE / SV01,Service area,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F039,capability_subrow,SERVICE / SV01,Resource resolution,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F040,capability_subrow,SERVICE / SV01,Provider matching,۳ و ۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F041,capability_subrow,SERVICE / SV01,Availability,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F042,capability_subrow,SERVICE / SV01,Fixed price,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F043,capability_subrow,SERVICE / SV01,Quote price,۲,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F044,capability_subrow,SERVICE / SV01,Add-ons,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F045,capability_subrow,SERVICE / SV01,Recurring service,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F046,capability_subrow,SERVICE / SV01,Subscription plan,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F047,capability_subrow,SERVICE / SV01,Service order,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F048,capability_subrow,SERVICE / SV01,SLA,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F049,capability_subrow,SERVICE / SV01,Dispatch,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F050,capability_subrow,SERVICE / SV01,Evidence/checklist,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F051,capability_subrow,SERVICE / SV01,Acceptance,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F052,capability_subrow,SERVICE / SV01,Cancellation,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F053,capability_subrow,SERVICE / SV01,Refund,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F054,capability_subrow,SERVICE / SV01,Dispute,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F055,capability_subrow,SERVICE / SV01,Favorite/rebook provider,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F056,capability_subrow,Core و مصرف‌کننده / BK01,Generic resource booking,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F057,capability_subrow,Core و مصرف‌کننده / BK01,Capacity booking,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F058,capability_subrow,Core و مصرف‌کننده / BK01,Appointment,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F059,capability_subrow,Core و مصرف‌کننده / BK01,Recurring booking,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F060,capability_subrow,Core و مصرف‌کننده / BK01,Blackout,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F061,capability_subrow,Core و مصرف‌کننده / BK01,Buffer,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F062,capability_subrow,Core و مصرف‌کننده / BK01,Quota,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F063,capability_subrow,Core و مصرف‌کننده / BK01,Approval,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F064,capability_subrow,Core و مصرف‌کننده / BK01,Deposit,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F065,capability_subrow,Core و مصرف‌کننده / BK01,Cancellation rule,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F066,capability_subrow,Core و مصرف‌کننده / BK01,Dynamic/member pricing,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F067,capability_subrow,Core و مصرف‌کننده / BK01,Waitlist,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F068,capability_subrow,Core و مصرف‌کننده / BK01,Booking pass,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F069,capability_subrow,Core و مصرف‌کننده / BK01,Check-in,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F070,capability_subrow,Core و مصرف‌کننده / BK01,Access linkage,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F071,capability_subrow,Commerce تصمیم باز,Merchant directory,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F072,capability_subrow,Commerce تصمیم باز,Product/catalog,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F073,capability_subrow,Commerce تصمیم باز,Food order,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F074,capability_subrow,Commerce تصمیم باز,Grocery order,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F075,capability_subrow,Commerce تصمیم باز,Pickup,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F076,capability_subrow,Commerce تصمیم باز,Delivery,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F077,capability_subrow,Commerce تصمیم باز,Scheduled order,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F078,capability_subrow,Commerce تصمیم باز,Group order,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F079,capability_subrow,Commerce تصمیم باز,Offer/coupon,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F080,capability_subrow,Commerce تصمیم باز,Member price,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F081,capability_subrow,Commerce تصمیم باز,Gift/voucher,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F082,capability_subrow,Commerce تصمیم باز,Order tracking,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F083,capability_subrow,Commerce تصمیم باز,Refund,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F084,capability_subrow,Commerce تصمیم باز,Merchant review,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F085,capability_subrow,Loyalty تصمیم باز,Digital card,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F086,capability_subrow,Loyalty تصمیم باز,Tier,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F087,capability_subrow,Loyalty تصمیم باز,Point ledger,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F088,capability_subrow,Loyalty تصمیم باز,Earn rules,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F089,capability_subrow,Loyalty تصمیم باز,Burn rules,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F090,capability_subrow,Loyalty تصمیم باز,Expiry,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F091,capability_subrow,Loyalty تصمیم باز,Reward catalog,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F092,capability_subrow,Loyalty تصمیم باز,Partner benefit,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F093,capability_subrow,Loyalty تصمیم باز,QR validation,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F094,capability_subrow,Loyalty تصمیم باز,Referral,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F095,capability_subrow,Loyalty تصمیم باز,Challenge/milestone,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F096,capability_subrow,Loyalty تصمیم باز,Credit wallet separation,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F097,capability_subrow,Core / Access و Operations,Visitor invite,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F098,capability_subrow,Core / Access و Operations,Temporary credential,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F099,capability_subrow,Core / Access و Operations,Service access,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F100,capability_subrow,Core / Access و Operations,Guest parking,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F101,capability_subrow,Core / Access و Operations,Vendor access,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F102,capability_subrow,Core / Access و Operations,Mobile key connector,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F103,capability_subrow,Core / Access و Operations,Emergency revoke,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F104,capability_subrow,Operations / لجستیک,Package intake,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F105,capability_subrow,Operations / لجستیک,Locker,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F106,capability_subrow,Operations / لجستیک,Pickup credential,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F107,capability_subrow,Operations / لجستیک,Chain of custody,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F108,capability_subrow,Core / Access و Operations,Courier access,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F109,capability_subrow,CE تجربه و مالک دامنه,AI intent,۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F110,capability_subrow,CE تجربه و مالک دامنه,Context resolution,۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F111,capability_subrow,CE تجربه و مالک دامنه,Multi-action orchestration,۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F112,capability_subrow,CE تجربه و مالک دامنه,Recommendation,۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F113,capability_subrow,CE تجربه و مالک دامنه,Conversational change,۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F114,capability_subrow,CE تجربه و مالک دامنه,Proactive opt-in,۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F115,capability_subrow,CE تجربه و مالک دامنه,Ops copilot,۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F116,capability_subrow,CE تجربه و مالک دامنه,Community copilot,۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F117,capability_subrow,CE تجربه و مالک دامنه,Analytics copilot,۵,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F118,capability_subrow,CE تجربه و مالک دامنه,Experience dashboard,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F119,capability_subrow,CE تجربه و مالک دامنه,Service KPI,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F120,capability_subrow,CE تجربه و مالک دامنه,Booking utilization,۳ و ۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F121,capability_subrow,CE تجربه و مالک دامنه,Provider score,۳,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+F122,capability_subrow,CE تجربه و مالک دامنه,Loyalty analytics,۴,LATEST_GATE_EVIDENCE_REQUIRED,نیازمند بررسی,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,NOT_VERIFIED,,,,
+MAINTENANCE-WORK-ORDER,delivery_slice,CLADORA OPERATIONS,نگهداری از دستورکار و شاهد اسناد تا Verify، ثبت مالی و بازخوانی,,,,SCOPED_CANDIDATES_AVAILABLE,ISOLATED_EVIDENCE_ACROSS_CANDIDATES,CONSOLIDATION_PENDING,NOT_RUN,M74-01 تا M74-15 همگی در ماتریس موجود شاهد ایزوله دارند. بخشی از پرونده بازبینی مستقل شاهد است. اجرای مستقل هر ۱۵ سناریو روی یک نامزد واحد هنوز انجام نشده است.,,,https://github.com/ontripai/cladora-website/issues/463#issuecomment-7098182050 https://github.com/ontripai/cladora-website/issues/463#issuecomment-7190074137 https://github.com/ontripai/cladora-website/issues/463#issuecomment-7190075836
+APP-C01,delivery_slice,CLADORA FINANCE,آمادگی بستن دورهٔ حسابداری,,,,READINESS_IMPLEMENTED,PASS_SCOPED_ISOLATED,CONSOLIDATION_PENDING,NOT_RUN,پیش‌نمایش آماده/مسدود و جدایی Workspace در Chromium ایزوله PASS است. نصب migration فقط شاهد نصب است. مسیر بستن کامل دوره و پذیرش حسابدار بازند.,6583a7f4eaf82b4dcd6284f63357ae4872386d01,063a11496d5e4dbb9c05c339a3b798f7f3be9254,https://github.com/ontripai/cladora-website/issues/463#issuecomment-7155370588 https://github.com/ontripai/cladora-website/issues/463#issuecomment-7156412085
+APP-C01-PILOT-TRANSITION,delivery_slice,CLADORA APP,گذار Pilot و نگاشت رد اختیار,,,,SCOPED_CANDIDATE_AVAILABLE,PASS_SCOPED_ISOLATED,CONSOLIDATION_PENDING,HOLD_NOT_RUN,گذار و نگاشت ۴۰۳ روی جانشین ایزوله مستقل PASS است. نصب میزبان خصوصی و پنجرهٔ فعال‌سازی بازند.,0ea37d577a52c37be5fc43cbc911f5e94e42a0ee,c78a15737b2453ce80cce3e87cbdfd3345a4f750,https://github.com/ontripai/cladora-website/issues/463#issuecomment-7170440433
+APP-C02,delivery_slice,CLADORA FINANCE,نسخه‌های تسهیم، نصب و بازیابی,,,,SCOPED_CANDIDATE_AVAILABLE,PASS_SCOPED_ISOLATED,CONSOLIDATION_PENDING,NOT_RUN,سهم‌ها، تاریخچه و مسیرهای نصب و بازیابی ایزوله. پذیرش نصب هدف و اتصال به چرخهٔ کامل صورتحساب بازند.,e5761404bf152432ac5df36ccec0912846695da3,ec2949f132e19d50091b0efa8ca6c7af121fa3c8,https://github.com/ontripai/cladora-website/issues/463#issuecomment-7136138327 https://github.com/ontripai/cladora-website/issues/463#issuecomment-7192314333
+SERVICE-C03-FINANCE-READ,delivery_slice,CLADORA FINANCE / CLADORA Core,خواندن مصوبهٔ Quote و محافظ rollback,,,,SCOPED_CANDIDATE_AVAILABLE,PASS_SCOPED_ISOLATED,CONSOLIDATION_PENDING,BLOCKED_INPUT_NOT_RUN,سورس Finance و رأی ایزولهٔ SQL احراز شده‌اند. نقش مؤثر نصب و بازیابی و Quote و مصوبهٔ جاری برای Order باید احراز شوند.,ed2acf11cd408bdd2c16e587d4a4cde1c5753e17,53ffad26a1af146e3d81e67b06f9e32ac828ca7b,https://github.com/ontripai/cladora-website/issues/463#issuecomment-7191090749 https://github.com/ontripai/cladora-website/issues/463#issuecomment-7190697588
+APP-C04,delivery_slice,CLADORA FINANCE,پیش‌نمایش اقساط,,,,PREVIEW_IMPLEMENTED,PASS_SCOPED_ISOLATED,CONSOLIDATION_PENDING,NOT_RUN,رأی مستقل به پیش‌نمایش اقساط محدود است. اجرای قرارداد کامل تقسیط و وصول در دامنهٔ باز باقی می‌ماند.,8e21d1667bd9e6a0c12dd63b99fca290e05f3c3b,21db64ff00129199709ca2425a161657db42a59b,https://github.com/ontripai/cladora-website/issues/463#issuecomment-7137411463
+APP-C08,delivery_slice,CLADORA OPERATIONS / CLADORA FINANCE,مصرف دوره و تعرفهٔ قبض تجهیز,,,,COMBINED_CANDIDATE_BUILT,UTC_PASS_ISOLATED_BROWSER_NOT_RUN,CANDIDATE_ASSEMBLED,BLOCKED_INPUT_NOT_RUN,مرز UTC روی d8e249a8 مستقل PASS است. build ترکیبی احراز شد. مسیر قبض در هر سه زبان به پیکربندی و نشست مجاز نیاز دارد. مصوبهٔ حساب‌ها و مالیات برای ثبت واقعی باز است.,3cdd23aa33153ec09e7f84ab1de10fb5052144dd,4cfd87a8d7bb58bd9e8e8ab9171a76599b5bba1d,https://github.com/ontripai/cladora-website/issues/463#issuecomment-7193719495 https://github.com/ontripai/cladora-website/issues/463#issuecomment-7193613836
+APP-C09,delivery_slice,CLADORA OPERATIONS,پیش‌نویس دستورکار تجهیز و بازخوانی پس از قطع پاسخ,,,,SCOPED_CANDIDATE_AVAILABLE,ISOLATED_OWNER_EVIDENCE,CONSOLIDATION_PENDING,NOT_RUN,مجری SQL و مرورگر ایزوله را برای ساخت، reload/replay و جدایی Context آزموده است. نصب چهار migration وابسته در هدف باز است.,d32042e269a17c00fb5aae627fb2cdce88115b52,9c0d6bc09c7ff7ca533bba1db5454a26fc0afbc5,https://github.com/ontripai/cladora-website/issues/463#issuecomment-7184780606 https://github.com/ontripai/cladora-website/issues/463#issuecomment-7184995978
+APP-C16,delivery_slice,CLADORA OPERATIONS / CLADORA Core,CSV، بازبین مستقل و نگهبان تازگی نشست,,,,SCOPED_CANDIDATE_AVAILABLE,PASS_SCOPED_ISOLATED,CONSOLIDATION_PENDING,NOT_RUN,۲۳ کنترل مستقل ایزوله. rollback نگهبان نشست سه migration اصلی را حفظ کرد. نصب و دو Context واقعی بازند.,a849aa37f724e1e981b13deca77838276e7f580b,7b0e3a573cdd614b623772c3c081a9fbaf51f70c,https://github.com/ontripai/cladora-website/issues/463#issuecomment-7192052863
+DOCUMENTS-UUID-MATCH,delivery_slice,CLADORA Documents & Vault,تطبیق UUID بزرگ و کوچک در دانلود خصوصی,,,,IMPLEMENTED,NOT_VERIFIED,MERGED_MAIN,NOT_VERIFIED,ادغام PR 482 فقط به اصلاح تطبیق UUID مقید است. پذیرش دانلود متصل به Storage و Scanner در ردیف جداگانه است.,942697168379536215df7877685a2eb8c6c766fa,2672c196bc6ed1ffbfd8e2d58f239b4ba7edff45,https://github.com/ontripai/cladora-website/pull/482
+DOCUMENTS-PRIVATE-DOWNLOAD,delivery_slice,CLADORA Documents & Vault / CLADORA APP,دانلود همان نسخه پس از clean/ACK با جدایی Context,,,,SCOPED_CANDIDATE_AVAILABLE,PASS_ISOLATED_BASELINE_SUCCESSOR_PENDING,CONSOLIDATION_PENDING,NOT_RUN,۱۶ کنترل مستقل برای اتصال خصوصی مبنا. جانشین APP برای UI و provider شاهد مجری دارد. Storage و Scanner میزبانی‌شده برای همان build بازند.,3e3790ff69142f9829f06e8a00ac1f11088370c0,ba2592c4145a58458b21fa6d688ab54f1511e784,https://github.com/ontripai/cladora-website/issues/463#issuecomment-7158230612
+APP-SHELL,delivery_slice,CLADORA APP,شِل سه‌زبانه و زوم بومی مرورگر,,,,SCOPED_CANDIDATE_AVAILABLE,PASS_SCOPED_ISOLATED,CONSOLIDATION_PENDING,NOT_RUN,۱۲ ترکیب زبان و زوم در Chromium ایزوله PASS است. آزمون build خصوصی سرو‌شده باز است.,c225b9c9f97c7b55d487ac9d53aa2bf77c60dc28,13588d81cc764341b3b115f098974d4907e00b01,https://github.com/ontripai/cladora-website/issues/463#issuecomment-7187730513
+CE-GOVERNANCE,delivery_slice,CLADORA Community & Experience,رأی‌گیری، رسید و بازیابی,,,,SCOPED_CANDIDATE_AVAILABLE,PASS_SCOPED_ISOLATED,CONSOLIDATION_PENDING,NOT_RUN,رأی به مسیر اقدام، رسید و بازخوانی ایزوله محدود است. پذیرش هدف به نصب و اختیار مستقل وابسته است.,1c2d6cdfcf8996c91cf1478eb576bc488fc25fc2,cd808511334fe58d4b5b270343ec8e9bb0db3037,https://github.com/ontripai/cladora-website/issues/463#issuecomment-7157463679
+AIRPROP-V2-READ,delivery_slice,CLADORA AIRPROP,خواندن V2 در دامنهٔ مجاز,,,,SCOPED_CANDIDATE_AVAILABLE,PASS_ISOLATED_EVIDENCE_REVIEW,CONSOLIDATION_PENDING,NOT_RUN,رأی مستقل بازبینی شاهد اجرای ایزوله برای خواندن بدون fallback و بدون تغییر جداول مشاهده‌شده.,6640d29db73153446d3a2d04c6407343fb39983c,466ac5387ee81f0c5c824482cddf21a9c22e86d2,https://github.com/ontripai/cladora-website/issues/463#issuecomment-7184981802
