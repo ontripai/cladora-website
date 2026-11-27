@@ -5905,12 +5905,12 @@
       "lane": "CLADORA OPERATIONS / CLADORA FINANCE",
       "scope": "مصرف دوره و تعرفهٔ قبض تجهیز",
       "delivery_status": {
-        "implementation": "COMBINED_CANDIDATE_BUILT",
+        "implementation": "FIX_CANDIDATE_VERIFIED",
         "independent_test": "FAIL_SCOPED_AGGREGATE_FOCUS",
         "integration": "INTEGRATED_IN_APP_AGGREGATE_CANDIDATE",
         "target_acceptance": "BLOCKED_INPUT_NOT_RUN"
       },
-      "evidence_scope": "روی 20cb1f3e ثبت، بازخوانی، ترجمه، ارز و واحد و توقف مرز UTC گذشتند. فوکوس پس از ثبت موفق در انگلیسی و در فارسی زیر React production با CPU چهاربرابر کند روی BODY ماند. LQA-AGG-C08-FOCUS-001 باز است. پذیرش هدف به پیکربندی، نشست و مصوبهٔ حساب‌ها و مالیات وابسته است.",
+      "evidence_scope": "شکست فوکوس روی 20cb1f3e ثبت شد. باندل و patch جانشین cb890416 و هر ۱۱ عضو تحویل احراز شدند. چهار کنترل JSDOM جانشین PASS شدند. رأی مرورگری مستقل جانشین و پذیرش هدف NOT_RUN هستند.",
       "evidence": [
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7193719495",
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7193613836",
@@ -5925,11 +5925,18 @@
       "finding": {
         "id": "LQA-AGG-C08-FOCUS-001",
         "severity": "Medium",
-        "state": "OPEN",
+        "state": "FIX_DELIVERED_AWAITING_INDEPENDENT_RETEST",
         "component": "src/components/customer/EquipmentUtilityBill.tsx",
         "owner": "CLADORA APP",
         "retest_owner": "CLADORA LAUNCH-QA",
-        "evidence": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7213111172"
+        "evidence": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7213111172",
+        "fix_candidate": {
+          "head": "cb890416532ae99d57fcd4bb59958eb2a374dcc0",
+          "parent": "20cb1f3e9ad1a2518e734a71306098be0c527950",
+          "tree": "1e4362b35d6fdff8e2ea30622e4735256026c382",
+          "build_id": "-LgpgkFp8Ak2zi7HXJEvs",
+          "independent_test": "NOT_RUN"
+        }
       }
     },
     {
@@ -6096,7 +6103,7 @@
         "integration": "CANDIDATE_ASSEMBLED",
         "target_acceptance": "NOT_RUN"
       },
-      "evidence_scope": "Head/Tree، build و ۲۲ کنترل محلی احراز شدند. C02، پیش‌نمایش C04، C01 Pilot، C09، C16 و رگرسیون نگهداری C09 مستقلاً PASS شدند. C08 در فوکوس پس از ثبت پیش‌نویس FAIL شد. LQA-AGG-C08-FOCUS-001 باز است. GitHub Actions و پذیرش هدف NOT_RUN هستند.",
+      "evidence_scope": "Head/Tree، build و ۲۲ کنترل محلی احراز شدند. C02، پیش‌نمایش C04، C01 Pilot، C09، C16 و رگرسیون نگهداری C09 مستقلاً PASS شدند. C08 در فوکوس پس از ثبت پیش‌نویس FAIL شد. LQA-AGG-C08-FOCUS-001 باز است. GitHub Actions و پذیرش هدف NOT_RUN هستند. جانشین احرازشدهٔ cb890416 برای بازآزمون مستقل یافته تحویل شد.",
       "evidence": [
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7213111172",
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7214617767"
@@ -6120,7 +6127,15 @@
       ],
       "open_findings": [
         "LQA-AGG-C08-FOCUS-001"
-      ]
+      ],
+      "follow_up_candidate": {
+        "head": "cb890416532ae99d57fcd4bb59958eb2a374dcc0",
+        "parent": "20cb1f3e9ad1a2518e734a71306098be0c527950",
+        "tree": "1e4362b35d6fdff8e2ea30622e4735256026c382",
+        "build_id": "-LgpgkFp8Ak2zi7HXJEvs",
+        "independent_test": "NOT_RUN",
+        "finding": "LQA-AGG-C08-FOCUS-001"
+      }
     },
     {
       "id": "UNIT-TO-BILL-AND-RECEIPT",
