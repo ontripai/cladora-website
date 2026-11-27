@@ -5743,7 +5743,7 @@
         "integration": "INTEGRATED_IN_APP_AGGREGATE_CANDIDATE",
         "target_acceptance": "NOT_RUN"
       },
-      "evidence_scope": "احراز سورس و اصل build محلی در ماتریس Procedure. دو اجرای مستقل ۱۵/۱۵ روی Head 3f3d2b9c با PostgreSQL 17.11 و Chromium ایزوله و ورودی مصنوعی. اصل هر پنج لاگ اجرای مجدد احراز شد. همان commit در نامزد APP حضور دارد و رگرسیون تغییرهای بعدی C09 روی 20cb1f3e باز است.",
+      "evidence_scope": "احراز سورس و اصل build محلی در ماتریس Procedure. دو اجرای مستقل ۱۵/۱۵ روی Head 3f3d2b9c با PostgreSQL 17.11 و Chromium ایزوله و ورودی مصنوعی. اصل هر پنج لاگ اجرای مجدد احراز شد. همان commit در نامزد APP حضور دارد و رگرسیون مستقل تغییرهای بعدی C09 روی 20cb1f3e PASS شد.",
       "evidence": [
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7098182050",
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7190074137",
@@ -5788,19 +5788,22 @@
       "scope": "آمادگی بستن دورهٔ حسابداری",
       "delivery_status": {
         "implementation": "READINESS_IMPLEMENTED",
-        "independent_test": "PASS_SCOPED_ISOLATED",
-        "integration": "CONSOLIDATION_PENDING",
+        "independent_test": "PASS_SCOPED_ISOLATED_ON_APP_AGGREGATE",
+        "integration": "INTEGRATED_IN_APP_AGGREGATE_CANDIDATE",
         "target_acceptance": "NOT_RUN"
       },
-      "evidence_scope": "پیش‌نمایش آماده/مسدود و جدایی Workspace در Chromium ایزوله PASS است. نصب migration فقط شاهد نصب است. مسیر بستن کامل دوره و پذیرش حسابدار بازند.",
+      "evidence_scope": "آمادگی دورهٔ آماده و مسدود پس از reload روی نامزد 20cb1f3e مستقلاً PASS شد. پیش‌نمایش آماده/مسدود و جدایی Workspace در Chromium ایزوله PASS است. نصب migration فقط شاهد نصب است. مسیر بستن کامل دوره و پذیرش حسابدار بازند.",
       "evidence": [
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7155370588",
-        "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7156412085"
+        "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7156412085",
+        "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7213111172"
       ],
       "candidate": {
         "head": "6583a7f4eaf82b4dcd6284f63357ae4872386d01",
         "tree": "063a11496d5e4dbb9c05c339a3b798f7f3be9254"
-      }
+      },
+      "integration_candidate_id": "APP-NOV27-AGGREGATE",
+      "independent_test_candidate_id": "APP-NOV27-AGGREGATE"
     },
     {
       "id": "APP-C01-PILOT-TRANSITION",
@@ -5809,11 +5812,11 @@
       "scope": "گذار Pilot و نگاشت رد اختیار",
       "delivery_status": {
         "implementation": "SCOPED_CANDIDATE_AVAILABLE",
-        "independent_test": "PASS_SCOPED_ISOLATED",
+        "independent_test": "PASS_SCOPED_ISOLATED_ON_APP_AGGREGATE",
         "integration": "INTEGRATED_IN_APP_AGGREGATE_CANDIDATE",
         "target_acceptance": "HOLD_NOT_RUN"
       },
-      "evidence_scope": "گذار و نگاشت ۴۰۳ روی جانشین ایزوله مستقل PASS است. نصب میزبان خصوصی و پنجرهٔ فعال‌سازی بازند. ورودی این برش در نامزد 20cb1f3e تجمیع شد. بازآزمون مستقل نامزد تجمیعی باز است.",
+      "evidence_scope": "روی 20cb1f3e رد اپراتور موقت در APP/RPC و بازخوانی همان رسید میزبان پس از restart مستقلاً PASS شدند. گذار و نگاشت ۴۰۳ روی جانشین ایزوله مستقل PASS است. نصب میزبان خصوصی و پنجرهٔ فعال‌سازی بازند.",
       "evidence": [
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7170440433",
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7213111172"
@@ -5822,7 +5825,8 @@
         "head": "0ea37d577a52c37be5fc43cbc911f5e94e42a0ee",
         "tree": "c78a15737b2453ce80cce3e87cbdfd3345a4f750"
       },
-      "integration_candidate_id": "APP-NOV27-AGGREGATE"
+      "integration_candidate_id": "APP-NOV27-AGGREGATE",
+      "independent_test_candidate_id": "APP-NOV27-AGGREGATE"
     },
     {
       "id": "APP-C02",
@@ -5831,11 +5835,11 @@
       "scope": "نسخه‌های تسهیم، نصب و بازیابی",
       "delivery_status": {
         "implementation": "SCOPED_CANDIDATE_AVAILABLE",
-        "independent_test": "PASS_SCOPED_ISOLATED",
+        "independent_test": "PASS_SCOPED_ISOLATED_ON_APP_AGGREGATE",
         "integration": "INTEGRATED_IN_APP_AGGREGATE_CANDIDATE",
         "target_acceptance": "NOT_RUN"
       },
-      "evidence_scope": "سهم‌ها، تاریخچه و مسیرهای نصب و بازیابی ایزوله. پذیرش نصب هدف و اتصال به چرخهٔ کامل صورتحساب بازند. ورودی این برش در نامزد 20cb1f3e تجمیع شد. بازآزمون مستقل نامزد تجمیعی باز است.",
+      "evidence_scope": "ثبت و بازخوانی نسخهٔ قواعد، پیش‌نمایش تاریخی و جدایی اختیار روی 20cb1f3e مستقلاً PASS شدند. سهم‌ها، تاریخچه و مسیرهای نصب و بازیابی ایزوله. پذیرش نصب هدف و اتصال به چرخهٔ کامل صورتحساب بازند.",
       "evidence": [
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7136138327",
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7192314333",
@@ -5845,7 +5849,8 @@
         "head": "e5761404bf152432ac5df36ccec0912846695da3",
         "tree": "ec2949f132e19d50091b0efa8ca6c7af121fa3c8"
       },
-      "integration_candidate_id": "APP-NOV27-AGGREGATE"
+      "integration_candidate_id": "APP-NOV27-AGGREGATE",
+      "independent_test_candidate_id": "APP-NOV27-AGGREGATE"
     },
     {
       "id": "SERVICE-C03-FINANCE-READ",
@@ -5878,11 +5883,11 @@
       "scope": "پیش‌نمایش اقساط",
       "delivery_status": {
         "implementation": "PREVIEW_IMPLEMENTED",
-        "independent_test": "PASS_SCOPED_ISOLATED",
+        "independent_test": "PASS_SCOPED_ISOLATED_ON_APP_AGGREGATE",
         "integration": "INTEGRATED_IN_APP_AGGREGATE_CANDIDATE",
         "target_acceptance": "NOT_RUN"
       },
-      "evidence_scope": "رأی مستقل به پیش‌نمایش اقساط محدود است. اجرای قرارداد کامل تقسیط و وصول در دامنهٔ باز باقی می‌ماند. ورودی این برش در نامزد 20cb1f3e تجمیع شد. بازآزمون مستقل نامزد تجمیعی باز است.",
+      "evidence_scope": "تقسیم مبلغ، کنترل ورودی و جدایی Workspace در پیش‌نمایش روی 20cb1f3e مستقلاً PASS شدند. رأی مستقل به پیش‌نمایش اقساط محدود است. اجرای قرارداد کامل تقسیط و وصول در دامنهٔ باز باقی می‌ماند.",
       "evidence": [
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7137411463",
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7213111172"
@@ -5891,7 +5896,8 @@
         "head": "8e21d1667bd9e6a0c12dd63b99fca290e05f3c3b",
         "tree": "21db64ff00129199709ca2425a161657db42a59b"
       },
-      "integration_candidate_id": "APP-NOV27-AGGREGATE"
+      "integration_candidate_id": "APP-NOV27-AGGREGATE",
+      "independent_test_candidate_id": "APP-NOV27-AGGREGATE"
     },
     {
       "id": "APP-C08",
@@ -5900,11 +5906,11 @@
       "scope": "مصرف دوره و تعرفهٔ قبض تجهیز",
       "delivery_status": {
         "implementation": "COMBINED_CANDIDATE_BUILT",
-        "independent_test": "UTC_PASS_ISOLATED_BROWSER_NOT_RUN",
+        "independent_test": "FAIL_SCOPED_AGGREGATE_FOCUS",
         "integration": "INTEGRATED_IN_APP_AGGREGATE_CANDIDATE",
         "target_acceptance": "BLOCKED_INPUT_NOT_RUN"
       },
-      "evidence_scope": "مرز UTC روی d8e249a8 مستقل PASS است. build ترکیبی احراز شد. مسیر قبض در هر سه زبان به پیکربندی و نشست مجاز نیاز دارد. مصوبهٔ حساب‌ها و مالیات برای ثبت واقعی باز است. ورودی این برش در نامزد 20cb1f3e تجمیع شد. بازآزمون مستقل نامزد تجمیعی باز است.",
+      "evidence_scope": "روی 20cb1f3e ثبت، بازخوانی، ترجمه، ارز و واحد و توقف مرز UTC گذشتند. فوکوس پس از ثبت موفق در انگلیسی و در فارسی زیر React production با CPU چهاربرابر کند روی BODY ماند. LQA-AGG-C08-FOCUS-001 باز است. پذیرش هدف به پیکربندی، نشست و مصوبهٔ حساب‌ها و مالیات وابسته است.",
       "evidence": [
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7193719495",
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7193613836",
@@ -5914,7 +5920,17 @@
         "head": "3cdd23aa33153ec09e7f84ab1de10fb5052144dd",
         "tree": "4cfd87a8d7bb58bd9e8e8ab9171a76599b5bba1d"
       },
-      "integration_candidate_id": "APP-NOV27-AGGREGATE"
+      "integration_candidate_id": "APP-NOV27-AGGREGATE",
+      "independent_test_candidate_id": "APP-NOV27-AGGREGATE",
+      "finding": {
+        "id": "LQA-AGG-C08-FOCUS-001",
+        "severity": "Medium",
+        "state": "OPEN",
+        "component": "src/components/customer/EquipmentUtilityBill.tsx",
+        "owner": "CLADORA APP",
+        "retest_owner": "CLADORA LAUNCH-QA",
+        "evidence": "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7213111172"
+      }
     },
     {
       "id": "APP-C09",
@@ -5923,11 +5939,11 @@
       "scope": "پیش‌نویس دستورکار تجهیز و بازخوانی پس از قطع پاسخ",
       "delivery_status": {
         "implementation": "SCOPED_CANDIDATE_AVAILABLE",
-        "independent_test": "ISOLATED_OWNER_EVIDENCE",
+        "independent_test": "PASS_SCOPED_ISOLATED_ON_APP_AGGREGATE",
         "integration": "INTEGRATED_IN_APP_AGGREGATE_CANDIDATE",
         "target_acceptance": "NOT_RUN"
       },
-      "evidence_scope": "مجری SQL و مرورگر ایزوله را برای ساخت، reload/replay و جدایی Context آزموده است. نصب چهار migration وابسته در هدف باز است. ورودی این برش در نامزد 20cb1f3e تجمیع شد. بازآزمون مستقل نامزد تجمیعی باز است.",
+      "evidence_scope": "روی 20cb1f3e انتخاب تجهیز و بازنشانی پس از تغییر محل، یک دستورکار و یک audit و بازخوانی همان رسید بدون اثر دوم مستقلاً PASS شدند. مجری SQL و مرورگر ایزوله را برای ساخت، reload/replay و جدایی Context آزموده است. نصب چهار migration وابسته در هدف باز است.",
       "evidence": [
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7184780606",
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7184995978",
@@ -5940,7 +5956,8 @@
       "links_to": [
         "OPS01"
       ],
-      "integration_candidate_id": "APP-NOV27-AGGREGATE"
+      "integration_candidate_id": "APP-NOV27-AGGREGATE",
+      "independent_test_candidate_id": "APP-NOV27-AGGREGATE"
     },
     {
       "id": "APP-C16",
@@ -5949,11 +5966,11 @@
       "scope": "CSV، بازبین مستقل و نگهبان تازگی نشست",
       "delivery_status": {
         "implementation": "SCOPED_CANDIDATE_AVAILABLE",
-        "independent_test": "PASS_SCOPED_ISOLATED",
+        "independent_test": "PASS_SCOPED_ISOLATED_ON_APP_AGGREGATE",
         "integration": "INTEGRATED_IN_APP_AGGREGATE_CANDIDATE",
         "target_acceptance": "NOT_RUN"
       },
-      "evidence_scope": "۲۳ کنترل مستقل ایزوله. rollback نگهبان نشست سه migration اصلی را حفظ کرد. نصب و دو Context واقعی بازند. ورودی این برش در نامزد 20cb1f3e تجمیع شد. بازآزمون مستقل نامزد تجمیعی باز است.",
+      "evidence_scope": "روی 20cb1f3e تصمیم و replay مرورگری با PostgreSQL 17.6 و نگهبان نشست و rollback جدا در 17.11 مستقلاً PASS شدند. ۲۳ کنترل مستقل ایزوله. rollback نگهبان نشست سه migration اصلی را حفظ کرد. نصب و دو Context واقعی بازند.",
       "evidence": [
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7192052863",
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7213111172"
@@ -5962,7 +5979,8 @@
         "head": "a849aa37f724e1e981b13deca77838276e7f580b",
         "tree": "7b0e3a573cdd614b623772c3c081a9fbaf51f70c"
       },
-      "integration_candidate_id": "APP-NOV27-AGGREGATE"
+      "integration_candidate_id": "APP-NOV27-AGGREGATE",
+      "independent_test_candidate_id": "APP-NOV27-AGGREGATE"
     },
     {
       "id": "DOCUMENTS-UUID-MATCH",
@@ -6074,11 +6092,11 @@
       "scope": "نامزد تجمیعی نگهداری، C02، پیش‌نمایش C04، C01 Pilot، C09، C08 و C16",
       "delivery_status": {
         "implementation": "COMBINED_CANDIDATE_BUILT",
-        "independent_test": "NOT_RUN",
+        "independent_test": "FAIL_SCOPED_ISOLATED_C08_FOCUS",
         "integration": "CANDIDATE_ASSEMBLED",
         "target_acceptance": "NOT_RUN"
       },
-      "evidence_scope": "Head/Parent/Tree از باندل و هشت عضو تحویل احراز شدند. Build و typecheck و ۲۲ کنترل محلی مجری PASS هستند. GitHub Actions و بازآزمون مستقل کل نامزد بازند.",
+      "evidence_scope": "Head/Tree، build و ۲۲ کنترل محلی احراز شدند. C02، پیش‌نمایش C04، C01 Pilot، C09، C16 و رگرسیون نگهداری C09 مستقلاً PASS شدند. C08 در فوکوس پس از ثبت پیش‌نویس FAIL شد. LQA-AGG-C08-FOCUS-001 باز است. GitHub Actions و پذیرش هدف NOT_RUN هستند.",
       "evidence": [
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7213111172",
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7214617767"
@@ -6097,7 +6115,11 @@
         "APP-C04",
         "APP-C08",
         "APP-C09",
-        "APP-C16"
+        "APP-C16",
+        "APP-C01"
+      ],
+      "open_findings": [
+        "LQA-AGG-C08-FOCUS-001"
       ]
     }
   ]
