@@ -6121,6 +6121,32 @@
       "open_findings": [
         "LQA-AGG-C08-FOCUS-001"
       ]
+    },
+    {
+      "id": "UNIT-TO-BILL-AND-RECEIPT",
+      "kind": "delivery_slice",
+      "lane": "CLADORA APP",
+      "scope": "تحویل دوم، واحد تا صورتحساب، انتقال بانکی، تطبیق و رسید",
+      "delivery_status": {
+        "implementation": "BASELINE_CONTROLS_VERIFIED",
+        "independent_test": "NOT_RUN",
+        "integration": "ISOLATED_REHEARSAL_STARTED",
+        "target_acceptance": "NOT_RUN"
+      },
+      "evidence_scope": "هفت کنترل پایه روی 20cb1f3e با lockfile منطبق گذشتند. مسیر یکپارچهٔ یک صورتحساب تا حرکت بانکی مصنوعی، رسید و مانده، در انتظار اتصال ایزوله و رأی مستقل است.",
+      "evidence": [
+        "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7215699065",
+        "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7094353232"
+      ],
+      "candidate": {
+        "head": "20cb1f3e9ad1a2518e734a71306098be0c527950",
+        "tree": "ed66f006a8697b183d914a8ce83f556fb03d89ee"
+      },
+      "links_to": [
+        "APP-NOV27-AGGREGATE",
+        "APP-C02",
+        "APP-C04"
+      ]
     }
   ]
 }
