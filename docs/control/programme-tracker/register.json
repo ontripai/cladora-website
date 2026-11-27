@@ -5740,15 +5740,20 @@
       "delivery_status": {
         "implementation": "SCOPED_CANDIDATES_AVAILABLE",
         "independent_test": "ISOLATED_EVIDENCE_ACROSS_CANDIDATES",
-        "integration": "CONSOLIDATION_PENDING",
+        "integration": "LOCAL_COMBINED_CANDIDATE",
         "target_acceptance": "NOT_RUN"
       },
-      "evidence_scope": "M74-01 تا M74-15 همگی در ماتریس موجود شاهد ایزوله دارند. بخشی از پرونده بازبینی مستقل شاهد است. اجرای مستقل هر ۱۵ سناریو روی یک نامزد واحد هنوز انجام نشده است.",
+      "evidence_scope": "M74-01 تا M74-15 همگی در ماتریس موجود شاهد ایزوله دارند. بخشی از پرونده بازبینی مستقل شاهد است. نامزد محلی روی main پین‌شده با چهار suite کنترل‌شده و typecheck بررسی شد. اجرای مستقل ۱۵ سناریو و پذیرش هدف همچنان بازند.",
       "evidence": [
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7098182050",
         "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7190074137",
-        "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7190075836"
+        "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7190075836",
+        "https://github.com/ontripai/cladora-website/issues/463#issuecomment-7213111172"
       ],
+      "candidate": {
+        "head": "3f3d2b9c1c4d02acdbb4764907709566c3451e7f",
+        "tree": "6112b5d8099acb32c4b8000c1bb4774d4502ce61"
+      },
       "scenario_ids": [
         "M74-01",
         "M74-02",
