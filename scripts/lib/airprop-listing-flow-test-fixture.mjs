@@ -27,6 +27,7 @@ export const id = n => `${n.toString(16).padStart(8, '0')}-0000-4000-8000-${n.to
 export const scope = { context_id: id(1), workspace_id: id(2) };
 const time = '2026-11-02T09:00:00Z';
 export function sourceRow() {
+  const sourceVersions = { specification_id: id(55), resource_version: 4, party_version: 6, relationship_version: 2 };
   const authority = { contract_version: 'workspace-native-effective-authority.v2', decision_id: id(15),
     workspace_id: id(2), permission_code: 'airprop.asset.read', module_code: 'airprop_commercial',
     target_scope_type: 'workspace', target_scope_id: id(2), evaluator: 'app_private.check_workspace_native_permission_v2',
@@ -34,9 +35,13 @@ export function sourceRow() {
     current_authority_recheck_required: true, reusable_as_command_authority: false,
     decision: 'allowed', reason_codes: ['current_effective_permission_allowed'] };
   return { ...scope, tenant_id: id(6), listing_id: id(30), listing_version: 1, property_id: id(8), unit_id: id(9), status: 'published',
-    // SYNTHETIC stored binding for focused tests; never native persistence proof.
-    selected_binding: { state: 'record', value: { ...scope, tenant_id: id(6), spec_version: 4, selection: {
+    source_versions: { ...sourceVersions },
+    // Complete synthetic V2 read projection, not the private storage row or proof
+    // of native persistence. Keep copies independent for stale/invalid witnesses.
+    selected_binding: { state: 'record', value: { ...scope, binding_version: 2, tenant_id: id(6),
+      spec_id: sourceVersions.specification_id, spec_version: sourceVersions.resource_version, selection: {
       listing_id: id(30), listing_version: 1, property_id: id(8), unit_id: id(9), resource_id: id(9), resource_version: 4,
+      source_versions: { version: 2, ...sourceVersions },
       resource_type: 'unit', party_id: id(7), party_kind: 'person', relationship_id: id(4), relationship_version: 2, relationship_kind: 'ownership',
     } } },
     available_from: '2026-11-02T10:00:00Z', available_until: null,
